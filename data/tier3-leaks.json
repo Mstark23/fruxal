@@ -1,0 +1,3597 @@
+{
+  "version": "1.0.0",
+  "created": "2026-03-05",
+  "description": "Fruxal Mid-Market Leak Database — Canadian businesses $1M-$50M",
+  "total_categories": 7,
+  "categories": [
+    "tax_structure",
+    "vendor_procurement",
+    "payroll_hr",
+    "banking_treasury",
+    "insurance",
+    "saas_technology",
+    "compliance_penalties"
+  ],
+  "revenue_brackets": [
+    "1M_5M",
+    "5M_20M",
+    "20M_50M"
+  ],
+  "supported_provinces": [
+    "ON",
+    "QC",
+    "BC",
+    "AB",
+    "MB"
+  ],
+  "leaks": [
+    {
+      "leak_id": "TAX-001",
+      "category": "tax_structure",
+      "name": "Suboptimal corporate structure",
+      "description": "Operating as a single entity when income splitting through a holding company, family trust, or multiple corporations would reduce the combined federal-provincial tax rate by 5-12 percentage points on income above the small business deduction limit.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 8000,
+          "high": 25000
+        },
+        "5M_20M": {
+          "low": 30000,
+          "high": 120000
+        },
+        "20M_50M": {
+          "low": 80000,
+          "high": 350000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "healthcare",
+        "legal_services",
+        "accounting_firms",
+        "dental_clinics",
+        "engineering_firms",
+        "IT_services",
+        "real_estate",
+        "marketing_agencies",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Ontario SBD rate 3.2% on first $500K, 11.5% above — standard structure benefit"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec SBD rate 3.2% but lower threshold for M&P; additional benefit from QBCA flexibility in share classes"
+        },
+        "BC": {
+          "multiplier": 0.95,
+          "note": "BC SBD rate 2% is lowest in Canada — slightly smaller gap to optimize"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "Alberta SBD rate 2% but general rate 8% — largest provincial gap creates bigger holding company benefit"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Manitoba SBD rate 0% on first $500K — already advantaged, smaller incremental gain"
+        }
+      },
+      "confidence_trigger": "CFO mentions the owner takes salary and dividends from one operating company with no holding company in place",
+      "data_needed": [
+        "T2 corporate tax returns (3 years)",
+        "Shareholder register",
+        "Current org chart",
+        "Owner compensation breakdown"
+      ],
+      "recovery_timeline": "60-120 days for restructure; tax savings begin next fiscal year"
+    },
+    {
+      "leak_id": "TAX-002",
+      "category": "tax_structure",
+      "name": "Unclaimed SR&ED tax credits",
+      "description": "Eligible research and experimental development work is being performed but not claimed under the SR&ED program, leaving refundable and non-refundable investment tax credits worth 15-35% of qualifying expenditures on the table.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 15000,
+          "high": 60000
+        },
+        "5M_20M": {
+          "low": 50000,
+          "high": 250000
+        },
+        "20M_50M": {
+          "low": 150000,
+          "high": 800000
+        }
+      },
+      "applicable_industries": [
+        "manufacturing",
+        "IT_services",
+        "engineering_firms",
+        "pharmaceutical_distribution",
+        "e_commerce",
+        "food_beverage",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.08,
+          "note": "Ontario Innovation Tax Credit adds 8% on top of federal — combined rate up to 43% for CCPCs"
+        },
+        "QC": {
+          "multiplier": 1.3,
+          "note": "Quebec R&D tax credit adds 14-30% provincial credit — most generous province, combined rate can exceed 60%"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "BC SR&ED credit adds 10% provincial — solid combined rate"
+        },
+        "AB": {
+          "multiplier": 1.08,
+          "note": "Alberta Innovation Employment Grant at 8% — replaced old ASRIP"
+        },
+        "MB": {
+          "multiplier": 1.15,
+          "note": "Manitoba Research and Development Tax Credit at 15% — strong provincial addition"
+        }
+      },
+      "confidence_trigger": "CFO describes internal product development, process improvement, or custom engineering work but says they have never filed SR&ED or their accountant said they do not qualify",
+      "data_needed": [
+        "Project descriptions and timelines",
+        "Technical staff time allocation",
+        "Material costs for experimental work",
+        "Prior year T661 filings if any"
+      ],
+      "recovery_timeline": "90-180 days for initial claim preparation; refunds within 60-120 days of CRA filing"
+    },
+    {
+      "leak_id": "TAX-003",
+      "category": "tax_structure",
+      "name": "Missed capital cost allowance acceleration",
+      "description": "Depreciable assets purchased after November 2018 are not being claimed under the Accelerated Investment Incentive allowing first-year CCA at 1.5x the normal rate, or eligible manufacturing equipment is missing the 100% immediate expensing under Class 53.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 20000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 40000,
+          "high": 200000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "logistics_trucking",
+        "HVAC_trades",
+        "auto_dealerships",
+        "dental_clinics",
+        "hospitality",
+        "food_beverage"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard federal-provincial combined rates apply"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Quebec additional depreciation incentives for M&P equipment"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard rates"
+        },
+        "AB": {
+          "multiplier": 1.05,
+          "note": "Alberta Investor Tax Credit may stack for qualifying equipment"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard rates"
+        }
+      },
+      "confidence_trigger": "CFO mentions recent large equipment purchases, vehicle fleet additions, or leasehold improvements and their accountant uses standard half-year rule",
+      "data_needed": [
+        "Fixed asset register with purchase dates",
+        "CCA schedules from T2 (Schedule 8)",
+        "Lease vs buy analysis documents",
+        "Recent capital expenditure list"
+      ],
+      "recovery_timeline": "30-60 days to reclassify; benefit realized on next tax filing or via T2 adjustment"
+    },
+    {
+      "leak_id": "TAX-004",
+      "category": "tax_structure",
+      "name": "Provincial tax credit programs not utilized",
+      "description": "Province-specific tax credits for hiring, training, apprenticeships, co-op placements, or targeted industry incentives are available but not being claimed because the company's accountant focuses only on federal obligations.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 12000,
+          "high": 60000
+        },
+        "20M_50M": {
+          "low": 25000,
+          "high": 150000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "logistics_trucking",
+        "retail",
+        "staffing_agencies",
+        "HVAC_trades",
+        "food_beverage"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.15,
+          "note": "Ontario Apprenticeship Training Tax Credit (25-30% of salaries), Co-operative Education Tax Credit, OITC"
+        },
+        "QC": {
+          "multiplier": 1.25,
+          "note": "Quebec has 20+ targeted credits: workforce training (1% rule), e-business zones, Investissement Québec incentives, CDAE"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "BC Training Tax Credit, Interactive Digital Media Tax Credit, Book Publishing Tax Credit"
+        },
+        "AB": {
+          "multiplier": 0.85,
+          "note": "Fewer provincial credits than other provinces — limited to AITC and film/digital media"
+        },
+        "MB": {
+          "multiplier": 1.1,
+          "note": "Manitoba Tuition Fee Income Tax Rebate for hiring graduates, Co-op Education Tax Credit, Film and Video Production Tax Credit"
+        }
+      },
+      "confidence_trigger": "CFO mentions hiring apprentices, co-op students, or running a training program but is unaware of any provincial tax credits related to workforce development",
+      "data_needed": [
+        "Payroll records with employee classifications",
+        "Apprenticeship registration documents",
+        "Training expenditure records",
+        "Co-op or intern agreements"
+      ],
+      "recovery_timeline": "45-90 days to identify and file; credits applied on next provincial return or via amendment"
+    },
+    {
+      "leak_id": "TAX-005",
+      "category": "tax_structure",
+      "name": "HST/GST input tax credit leakage",
+      "description": "Recoverable HST/GST paid on business expenses is not being fully claimed due to poor expense categorization, missing receipts on large purchases, or incorrect apportionment methods between taxable and exempt activities.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 4000,
+          "high": 18000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 75000
+        },
+        "20M_50M": {
+          "low": 35000,
+          "high": 180000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "retail",
+        "real_estate",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "logistics_trucking"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "13% HST — standard ITC recovery"
+        },
+        "QC": {
+          "multiplier": 1.2,
+          "note": "Dual GST 5% + QST 9.975% filed separately — higher error rate due to two returns; QST ITRs often missed on interprovincial purchases"
+        },
+        "BC": {
+          "multiplier": 0.9,
+          "note": "5% GST only in BC — smaller absolute ITCs but PST is not recoverable creating different optimization strategies"
+        },
+        "AB": {
+          "multiplier": 0.85,
+          "note": "5% GST only — smallest ITC pool but also smallest leakage opportunity"
+        },
+        "MB": {
+          "multiplier": 0.95,
+          "note": "5% GST + 7% RST — RST is not recoverable but GST ITCs still commonly missed"
+        }
+      },
+      "confidence_trigger": "CFO mentions they have both taxable and exempt revenue streams, or they operate across multiple provinces, or they say their bookkeeper handles GST returns",
+      "data_needed": [
+        "GST/HST returns (4 quarters)",
+        "QST returns if Quebec",
+        "Expense ledger with tax codes",
+        "Large purchase invoices over $10K"
+      ],
+      "recovery_timeline": "30-60 days for ITC review; recovery via next filing or 2-year lookback adjustment"
+    },
+    {
+      "leak_id": "TAX-006",
+      "category": "tax_structure",
+      "name": "Small business deduction grind from passive income",
+      "description": "Passive investment income inside the operating company exceeds $50K annually, triggering a dollar-for-dollar reduction of the $500K small business deduction limit and pushing active business income into the general corporate tax rate.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 30000
+        },
+        "5M_20M": {
+          "low": 20000,
+          "high": 90000
+        },
+        "20M_50M": {
+          "low": 50000,
+          "high": 200000
+        }
+      },
+      "applicable_industries": [
+        "real_estate",
+        "legal_services",
+        "accounting_firms",
+        "dental_clinics",
+        "healthcare",
+        "engineering_firms",
+        "property_management",
+        "auto_dealerships"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Combined SBD rate advantage of ~16% vs general rate — standard grind impact"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Quebec SBD grind follows federal formula; slightly higher impact due to provincial rate differential"
+        },
+        "BC": {
+          "multiplier": 0.95,
+          "note": "BC general rate 12% vs SBD 2% — 10% gap vs Ontario's 8% general gap"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "Alberta general rate 8% vs SBD 2% — 6% provincial gap but larger federal impact at scale"
+        },
+        "MB": {
+          "multiplier": 0.9,
+          "note": "Manitoba SBD at 0% means provincial grind has less impact — federal grind still applies"
+        }
+      },
+      "confidence_trigger": "CFO mentions retained earnings invested in GICs, bonds, rental properties inside the operating company, or investment portfolio earning over $50K annually in passive income",
+      "data_needed": [
+        "T2 Schedule 7 (Aggregate Investment Income)",
+        "Investment portfolio statements",
+        "Rental income details",
+        "Corporate tax returns showing GRIP and LRIP balances"
+      ],
+      "recovery_timeline": "60-120 days for purification strategy; savings begin next fiscal year after implementation"
+    },
+    {
+      "leak_id": "TAX-007",
+      "category": "tax_structure",
+      "name": "Lifetime capital gains exemption not structured",
+      "description": "The business qualifies or could qualify for the Lifetime Capital Gains Exemption on sale but shares are not being held in a structure that maximizes the $1.016M exemption across multiple family members, leaving up to $500K in tax savings unrealized at exit.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 0,
+          "high": 50000
+        },
+        "5M_20M": {
+          "low": 50000,
+          "high": 250000
+        },
+        "20M_50M": {
+          "low": 100000,
+          "high": 500000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "IT_services",
+        "engineering_firms",
+        "HVAC_trades",
+        "marketing_agencies",
+        "dental_clinics",
+        "legal_services",
+        "auto_dealerships",
+        "e_commerce"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard federal-provincial capital gains rates apply"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Quebec capital gains inclusion rate and higher marginal rates increase the value of the LCGE"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard rates"
+        },
+        "AB": {
+          "multiplier": 0.95,
+          "note": "Lower personal marginal rates slightly reduce LCGE absolute value"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard rates"
+        }
+      },
+      "confidence_trigger": "Owner mentions considering selling the business in the next 3-7 years but has not done any estate or succession planning, or all shares are held by one individual",
+      "data_needed": [
+        "Share register and ownership structure",
+        "Corporate balance sheet (asset test)",
+        "Revenue mix (active vs passive)",
+        "Owner family situation and ages"
+      ],
+      "recovery_timeline": "90-180 days for trust or holdco setup; purification may require 24 months before sale"
+    },
+    {
+      "leak_id": "TAX-008",
+      "category": "tax_structure",
+      "name": "Interprovincial tax allocation errors",
+      "description": "Companies operating in multiple provinces are not optimally allocating taxable income based on payroll and revenue attribution, missing the opportunity to shift income toward lower-rate provinces through legitimate permanent establishment planning.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 12000
+        },
+        "5M_20M": {
+          "low": 12000,
+          "high": 60000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 150000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "logistics_trucking",
+        "IT_services",
+        "staffing_agencies",
+        "e_commerce",
+        "manufacturing",
+        "retail",
+        "engineering_firms"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Ontario general rate 11.5% — mid-range, allocation away benefits"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec general rate 11.5% plus complex QST allocation — highest error rate"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "BC general rate 12% — highest provincial rate, allocation away is valuable"
+        },
+        "AB": {
+          "multiplier": 1.2,
+          "note": "Alberta general rate 8% — lowest major province rate, allocation toward AB saves the most"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Manitoba rate 12% — high rate, allocation away benefits"
+        }
+      },
+      "confidence_trigger": "CFO mentions operations, employees, or revenue streams in multiple provinces and says their accountant files returns in each province based on a simple formula",
+      "data_needed": [
+        "T2 Schedule 5 (Tax Calculation Supplementary)",
+        "Payroll by province",
+        "Revenue by customer province",
+        "Office/warehouse lease agreements by province"
+      ],
+      "recovery_timeline": "45-90 days for analysis; reallocation applied on next filing or via T2 adjustment for prior 3 years"
+    },
+    {
+      "leak_id": "TAX-009",
+      "category": "tax_structure",
+      "name": "Owner-manager compensation mix not optimized",
+      "description": "The split between salary, dividends, and bonus to the owner-manager has not been reviewed against current integration rates, leaving money on the table due to CPP contribution gaps, RRSP room generation, or incorrect dividend gross-up and credit calculations.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 20000
+        },
+        "5M_20M": {
+          "low": 12000,
+          "high": 45000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 60000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "healthcare",
+        "legal_services",
+        "accounting_firms",
+        "dental_clinics",
+        "engineering_firms",
+        "IT_services",
+        "real_estate",
+        "marketing_agencies",
+        "HVAC_trades",
+        "auto_dealerships"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Ontario integration is near-perfect at lower brackets; larger gap at higher income"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec integration breaks down more — QPP vs CPP differences, QPIP premiums, higher marginal rates make salary/dividend split more sensitive"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard integration"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "No provincial health premium — salary is relatively cheaper; dividend strategy may differ"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard integration"
+        }
+      },
+      "confidence_trigger": "Owner takes the same salary every year without review, or takes only dividends and has no RRSP room, or mentions they have not looked at their compensation structure since the TOSI rules changed",
+      "data_needed": [
+        "Owner T1 personal returns (2 years)",
+        "T4 and T5 slips issued",
+        "RRSP contribution room from NOA",
+        "CPP/QPP contribution history"
+      ],
+      "recovery_timeline": "30-45 days for analysis and recommendation; implementation at next pay cycle or fiscal year"
+    },
+    {
+      "leak_id": "VEND-001",
+      "category": "vendor_procurement",
+      "name": "No competitive bidding on major recurring contracts",
+      "description": "Contracts for cleaning, security, waste management, fleet maintenance, or materials supply have auto-renewed for 3+ years without competitive rebid, typically resulting in 8-20% above current market rates.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 6000,
+          "high": 25000
+        },
+        "5M_20M": {
+          "low": 25000,
+          "high": 120000
+        },
+        "20M_50M": {
+          "low": 60000,
+          "high": 300000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "retail",
+        "real_estate",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "logistics_trucking",
+        "dental_clinics"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Competitive vendor market in GTA; standard savings"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Smaller bilingual vendor pool in some categories inflates contracts; language requirements limit competition"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "Vancouver market premium; solid savings outside Lower Mainland"
+        },
+        "AB": {
+          "multiplier": 1.15,
+          "note": "Post-oil-boom vendor contracts often locked at 2014-peak pricing; renegotiation yields outsized savings"
+        },
+        "MB": {
+          "multiplier": 0.9,
+          "note": "Smaller vendor pool limits competitive pressure; savings still available on national contracts"
+        }
+      },
+      "confidence_trigger": "CFO says they have had the same cleaning company or waste hauler or IT support firm for over 3 years and have not gone to market",
+      "data_needed": [
+        "Vendor list with contract start dates",
+        "Top 20 vendors by annual spend",
+        "Current contract terms and renewal clauses",
+        "AP aging summary"
+      ],
+      "recovery_timeline": "60-120 days for RFP process; new pricing takes effect on next contract cycle"
+    },
+    {
+      "leak_id": "VEND-002",
+      "category": "vendor_procurement",
+      "name": "Payment terms not optimized",
+      "description": "The company pays invoices on receipt or within 15 days when industry standard is net-30 or net-45, forfeiting free float, or conversely is missing early payment discounts of 1-2% offered by suppliers willing to trade terms for cash certainty.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 12000
+        },
+        "5M_20M": {
+          "low": 10000,
+          "high": 50000
+        },
+        "20M_50M": {
+          "low": 25000,
+          "high": 120000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "retail",
+        "hospitality",
+        "food_beverage",
+        "auto_dealerships",
+        "pharmaceutical_distribution",
+        "e_commerce",
+        "logistics_trucking"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard terms"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Quebec prompt payment legislation (Bill 41 for construction) affects timing strategy"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard terms"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Prompt Payment and Construction Lien Act affects construction specifically"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard terms"
+        }
+      },
+      "confidence_trigger": "CFO mentions they always pay bills immediately because they like to keep accounts clean, or they mention they never take early payment discounts because cash flow is tight",
+      "data_needed": [
+        "AP aging report",
+        "Top vendor payment terms",
+        "Bank statement showing payment patterns",
+        "Early payment discount terms offered by vendors"
+      ],
+      "recovery_timeline": "15-30 days to implement new payment policy; savings begin immediately"
+    },
+    {
+      "leak_id": "VEND-003",
+      "category": "vendor_procurement",
+      "name": "Volume discount thresholds not consolidated",
+      "description": "Purchases from the same supplier or category are split across departments, locations, or purchase orders, preventing the company from reaching volume discount thresholds that would reduce unit costs by 5-15%.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 4000,
+          "high": 18000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 40000,
+          "high": 200000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "retail",
+        "food_beverage",
+        "healthcare",
+        "dental_clinics",
+        "property_management",
+        "auto_dealerships",
+        "pharmaceutical_distribution"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions multiple locations ordering supplies independently, or different departments purchasing from the same vendor category without coordination",
+      "data_needed": [
+        "Purchase order history by vendor",
+        "Vendor spend analysis by department/location",
+        "Current volume agreements",
+        "Category spend breakdown"
+      ],
+      "recovery_timeline": "30-60 days to consolidate; savings on next purchase cycle"
+    },
+    {
+      "leak_id": "VEND-004",
+      "category": "vendor_procurement",
+      "name": "Freight and shipping cost overcharges",
+      "description": "Shipping invoices contain accessorial charges, dimensional weight upcharges, residential delivery surcharges, and fuel surcharges that are incorrect or negotiable, typically representing 8-18% of total freight spend that can be recovered or reduced.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 12000,
+          "high": 65000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 180000
+        }
+      },
+      "applicable_industries": [
+        "manufacturing",
+        "retail",
+        "e_commerce",
+        "food_beverage",
+        "pharmaceutical_distribution",
+        "auto_dealerships",
+        "logistics_trucking"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard — good carrier competition in corridor"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Quebec fuel surcharges and winter road premiums add cost; bilingual documentation requirements"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "Mountain/island surcharges common for Vancouver Island and interior BC"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "Long-haul distances to major ports increase absolute freight spend and error opportunities"
+        },
+        "MB": {
+          "multiplier": 1.05,
+          "note": "Central location benefits but limited carrier options inflate rates"
+        }
+      },
+      "confidence_trigger": "CFO says they have never audited their shipping invoices, or they mention freight costs seem to keep going up without explanation",
+      "data_needed": [
+        "Carrier invoices (3 months)",
+        "Shipping volume and weight data",
+        "Current carrier contracts and rate cards",
+        "Accessorial charge breakdown"
+      ],
+      "recovery_timeline": "30-60 days for freight audit; refunds on past overcharges within 90 days; new rates on next contract"
+    },
+    {
+      "leak_id": "VEND-005",
+      "category": "vendor_procurement",
+      "name": "Telecom and connectivity overcharges",
+      "description": "Business phone, internet, and mobile plans are on legacy pricing 2-4 generations old, with unused lines still being billed, data plans sized for 2019 usage patterns, and bundled services that include products no longer used.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 12000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 40000
+        },
+        "20M_50M": {
+          "low": 20000,
+          "high": 100000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "retail",
+        "real_estate",
+        "property_management",
+        "staffing_agencies",
+        "HVAC_trades",
+        "auto_dealerships",
+        "logistics_trucking"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Competitive market with Rogers, Bell, Telus plus regional carriers"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Vidéotron adds competition but legacy Bell/Telus contracts in business segment remain overpriced"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Telus HQ market — competitive"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Telus HQ market — competitive"
+        },
+        "MB": {
+          "multiplier": 0.9,
+          "note": "MTS/Bell dominant — less competitive, but lower base rates"
+        }
+      },
+      "confidence_trigger": "CFO says they have been with the same telecom provider for over 3 years and have never reviewed their business plan, or mentions they still have desk phones that nobody uses",
+      "data_needed": [
+        "Monthly telecom invoices (3 months)",
+        "Line and device inventory",
+        "Current contract terms",
+        "Actual usage data per line"
+      ],
+      "recovery_timeline": "30-60 days for audit and renegotiation; new rates within one billing cycle"
+    },
+    {
+      "leak_id": "VEND-006",
+      "category": "vendor_procurement",
+      "name": "Duplicate and erroneous vendor payments",
+      "description": "Duplicate invoices, incorrect quantities, price variances from purchase orders, and payments to inactive or fraudulent vendors are going undetected in the accounts payable process, typically affecting 0.5-2% of total disbursements.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 20000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 40000,
+          "high": 250000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "retail",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "logistics_trucking",
+        "pharmaceutical_distribution"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Dual GST/QST invoicing increases duplicate payment risk due to separate tax line processing"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they process invoices manually, or they have had issues with vendors billing twice, or they do not do three-way matching between PO, receiving, and invoice",
+      "data_needed": [
+        "Full AP disbursement file (12 months)",
+        "Vendor master list",
+        "Purchase order log",
+        "Receiving reports"
+      ],
+      "recovery_timeline": "30-60 days for AP recovery audit; refund requests issued immediately on confirmed duplicates"
+    },
+    {
+      "leak_id": "VEND-007",
+      "category": "vendor_procurement",
+      "name": "Unmanaged tail spend",
+      "description": "Purchases under $5K each are not tracked or managed, representing 20-30% of total procurement volume but 60-80% of transactions, with no preferred vendor agreements, no approval workflows, and no consolidated category management.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 20000
+        },
+        "5M_20M": {
+          "low": 20000,
+          "high": 90000
+        },
+        "20M_50M": {
+          "low": 50000,
+          "high": 250000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "retail",
+        "property_management",
+        "food_beverage",
+        "engineering_firms",
+        "dental_clinics",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions that department managers have corporate credit cards with high limits and no spend approval process for purchases under a certain threshold",
+      "data_needed": [
+        "Corporate credit card statements (6 months)",
+        "Expense reports by department",
+        "Vendor count vs spend distribution",
+        "Current approval thresholds"
+      ],
+      "recovery_timeline": "60-90 days to implement procurement policy; 10-20% tail spend reduction within 6 months"
+    },
+    {
+      "leak_id": "VEND-008",
+      "category": "vendor_procurement",
+      "name": "Waste management and recycling overspend",
+      "description": "Waste collection frequency, container sizes, and hauling contracts have not been optimized to actual waste generation volumes, with contamination charges on recycling streams and rental fees on underutilized compactors or containers adding 15-30% to costs.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 8000
+        },
+        "5M_20M": {
+          "low": 6000,
+          "high": 30000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 75000
+        }
+      },
+      "applicable_industries": [
+        "manufacturing",
+        "hospitality",
+        "retail",
+        "food_beverage",
+        "construction",
+        "property_management",
+        "healthcare",
+        "auto_dealerships"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.1,
+          "note": "Ontario carbon pricing and landfill diversion requirements add regulatory cost layers"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec recycling regulations and RECYC-QUÉBEC requirements most stringent — higher base costs but also more optimization opportunity"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "BC Recycling Regulation and extended producer responsibility increase complexity"
+        },
+        "AB": {
+          "multiplier": 0.9,
+          "note": "Lower waste management regulatory burden — lower base costs"
+        },
+        "MB": {
+          "multiplier": 0.95,
+          "note": "Moderate regulatory environment"
+        }
+      },
+      "confidence_trigger": "CFO says waste management is just a line item they never look at, or mentions paying for daily pickup when they could do twice weekly",
+      "data_needed": [
+        "Waste hauling invoices (6 months)",
+        "Container inventory and sizes",
+        "Pickup frequency schedule",
+        "Recycling contamination reports"
+      ],
+      "recovery_timeline": "30-60 days for waste audit; new contract within 90 days"
+    },
+    {
+      "leak_id": "PAY-001",
+      "category": "payroll_hr",
+      "name": "Incorrect worker classification",
+      "description": "Workers classified as independent contractors meet the CRA's criteria for employee status under the four-point test, exposing the company to reassessment of unremitted CPP, EI premiums, and source deductions plus penalties of 10-20% and interest.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 8000,
+          "high": 35000
+        },
+        "5M_20M": {
+          "low": 25000,
+          "high": 150000
+        },
+        "20M_50M": {
+          "low": 60000,
+          "high": 400000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "IT_services",
+        "marketing_agencies",
+        "staffing_agencies",
+        "logistics_trucking",
+        "HVAC_trades",
+        "real_estate",
+        "hospitality",
+        "food_beverage"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard CRA enforcement — WSIB also audits contractor classifications"
+        },
+        "QC": {
+          "multiplier": 1.25,
+          "note": "Revenu Québec enforces independently with QPP and QPIP — double audit risk; Quebec definition of employee is broader than federal; CNT complaints trigger reviews"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "WorkSafeBC actively audits contractor status — secondary enforcement layer"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard CRA enforcement; WCB also reviews"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard CRA enforcement"
+        }
+      },
+      "confidence_trigger": "CFO mentions they use a significant number of independent contractors who work regular hours on site, use company equipment, or have worked exclusively for the company for over 12 months",
+      "data_needed": [
+        "Contractor list with tenure and hours",
+        "Sample contractor agreements",
+        "T4A summaries issued",
+        "Worker questionnaires (CRA criteria)"
+      ],
+      "recovery_timeline": "30-60 days for classification review; restructuring within 90 days to prevent future liability"
+    },
+    {
+      "leak_id": "PAY-002",
+      "category": "payroll_hr",
+      "name": "Overtime calculation errors",
+      "description": "Overtime is being calculated incorrectly by not including shift premiums, commissions, non-discretionary bonuses, or other regular earnings in the overtime base rate, or by applying federal rules instead of provincial employment standards.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 4000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 12000,
+          "high": 60000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 150000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "logistics_trucking",
+        "food_beverage",
+        "staffing_agencies",
+        "HVAC_trades",
+        "retail",
+        "auto_dealerships"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Ontario ESA: OT after 44 hours/week; specific exemptions for managers, IT professionals, and some trades"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec LSA: OT after 40 hours/week — lower threshold means more OT exposure; CNESST actively enforces"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "BC ESA: OT after 8 hours/day AND 40 hours/week — daily OT threshold is unique and commonly miscalculated"
+        },
+        "AB": {
+          "multiplier": 0.95,
+          "note": "Alberta ESC: OT after 44 hours/week; averaging agreements common in oil and gas"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Manitoba ESC: OT after 8 hours/day or 40 hours/week — similar to BC daily threshold"
+        }
+      },
+      "confidence_trigger": "CFO mentions employees work significant overtime, or they have commission-based staff who also work overtime, or they are unsure whether their payroll system calculates the blended rate correctly",
+      "data_needed": [
+        "Payroll register showing OT calculations",
+        "Commission and bonus records",
+        "Employment contracts with hours-of-work provisions",
+        "Time and attendance records"
+      ],
+      "recovery_timeline": "30-45 days for payroll audit; corrections on next payroll cycle; retroactive liability assessment within 60 days"
+    },
+    {
+      "leak_id": "PAY-003",
+      "category": "payroll_hr",
+      "name": "Excessive employee turnover costs",
+      "description": "Annual turnover rate exceeds industry benchmark by 10-25 percentage points, with each departure costing 50-200% of the role's annual salary in recruitment, training, lost productivity, and institutional knowledge loss that is not being tracked or addressed.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 15000,
+          "high": 60000
+        },
+        "5M_20M": {
+          "low": 50000,
+          "high": 250000
+        },
+        "20M_50M": {
+          "low": 120000,
+          "high": 600000
+        }
+      },
+      "applicable_industries": [
+        "hospitality",
+        "retail",
+        "food_beverage",
+        "staffing_agencies",
+        "healthcare",
+        "construction",
+        "manufacturing",
+        "logistics_trucking",
+        "auto_dealerships",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "GTA labour market highly competitive — replacement costs high"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Quebec labour shortage acute; bilingual requirement limits candidate pool; CNESST termination rules more complex"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "Lower Mainland cost of living drives turnover; housing affordability is a retention factor"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "Boom-bust cycle creates volatile labour market; retention during upswings is critical"
+        },
+        "MB": {
+          "multiplier": 0.9,
+          "note": "Lower cost of living aids retention; smaller labour pool creates longer replacement timelines"
+        }
+      },
+      "confidence_trigger": "CFO mentions they are constantly hiring, or the company spends a lot on recruitment agencies, or they cannot keep people in a specific department for more than a year",
+      "data_needed": [
+        "Employee roster with start dates",
+        "Termination records (12 months)",
+        "Recruitment costs by role",
+        "Exit interview data if available"
+      ],
+      "recovery_timeline": "90-180 days for retention strategy; measurable turnover reduction within 6-12 months"
+    },
+    {
+      "leak_id": "PAY-004",
+      "category": "payroll_hr",
+      "name": "Benefits plan not market-tested",
+      "description": "Group health, dental, and insurance benefits have been with the same carrier for 3+ years without competitive market review, with plan design that may include underutilized benefits while missing high-value low-cost additions like EAP, telemedicine, or HSA/WSA.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 20000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 40000,
+          "high": 200000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "engineering_firms",
+        "IT_services",
+        "retail",
+        "staffing_agencies",
+        "HVAC_trades",
+        "dental_clinics",
+        "auto_dealerships"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard — large broker market"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Quebec pharmacare (RAMQ) interaction with private plans requires specific optimization; mandatory drug insurance creates unique plan design considerations"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.05,
+          "note": "Alberta Health Care Insurance Plan covers less than other provinces — private coverage more critical"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO says they have been with the same benefits broker for 5+ years, or mentions they just renewed at another 8-12% increase without looking at alternatives",
+      "data_needed": [
+        "Benefits plan booklet and rate card",
+        "Claims experience data (2 years)",
+        "Employee census (age, gender, dependents)",
+        "Current broker/carrier contracts"
+      ],
+      "recovery_timeline": "60-90 days for market review; new plan implementation at next renewal date"
+    },
+    {
+      "leak_id": "PAY-005",
+      "category": "payroll_hr",
+      "name": "Payroll tax remittance penalties",
+      "description": "Source deduction remittances to CRA are consistently late or incorrect, triggering automatic penalties of 3-10% plus daily compound interest, with repeat offenders facing 20% gross negligence penalties on the unremitted amounts.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 10000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 40000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 80000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "hospitality",
+        "retail",
+        "food_beverage",
+        "staffing_agencies",
+        "HVAC_trades",
+        "logistics_trucking",
+        "manufacturing"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard CRA penalties and EHT remittance requirements"
+        },
+        "QC": {
+          "multiplier": 1.25,
+          "note": "Dual remittance to CRA and Revenu Québec doubles the penalty risk; QPP, QPIP, CNESST, and provincial health fund all have separate deadlines"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard CRA penalties"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard CRA penalties"
+        },
+        "MB": {
+          "multiplier": 1.05,
+          "note": "Manitoba Health and Education Tax Levy adds provincial remittance complexity"
+        }
+      },
+      "confidence_trigger": "CFO mentions they have received penalty notices from CRA, or they remit source deductions manually instead of through their payroll system, or they have been late on remittances in the past 12 months",
+      "data_needed": [
+        "PD7A remittance confirmations (12 months)",
+        "CRA notices of assessment for payroll",
+        "Revenu Québec RL-1 filing confirmations if applicable",
+        "Payroll system remittance reports"
+      ],
+      "recovery_timeline": "Immediate — process correction within 15 days; penalty relief request within 30 days; future penalties eliminated"
+    },
+    {
+      "leak_id": "PAY-006",
+      "category": "payroll_hr",
+      "name": "Unclaimed wage subsidies and hiring grants",
+      "description": "Federal and provincial wage subsidies for hiring Indigenous workers, persons with disabilities, newcomers, youth, or workers from underrepresented groups are not being claimed despite the company already employing eligible individuals.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 25000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 150000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "retail",
+        "food_beverage",
+        "logistics_trucking",
+        "staffing_agencies",
+        "HVAC_trades",
+        "healthcare",
+        "auto_dealerships"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.1,
+          "note": "Ontario offers Canada-Ontario Job Grant ($10K/employee), Youth Job Connection, Second Career programs"
+        },
+        "QC": {
+          "multiplier": 1.2,
+          "note": "Quebec offers Emploi-Québec wage subsidies, PRIIME for immigrants, SDEM for persons with disabilities — most programs available"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "BC Employer Training Grant up to $8K/employee, WorkBC subsidies"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Canada-Alberta Job Grant available"
+        },
+        "MB": {
+          "multiplier": 1.05,
+          "note": "Manitoba Hire-a-Student, Workforce Development programs"
+        }
+      },
+      "confidence_trigger": "CFO mentions they hire from specific demographics or newcomer populations but have never applied for any government wage subsidies, or they were unaware such programs exist for private employers",
+      "data_needed": [
+        "Employee roster with demographics (voluntary)",
+        "Hire dates and roles",
+        "Training expenditure records",
+        "Current government program applications if any"
+      ],
+      "recovery_timeline": "30-60 days for eligibility assessment; applications submitted within 90 days; funding within 60-120 days of approval"
+    },
+    {
+      "leak_id": "PAY-007",
+      "category": "payroll_hr",
+      "name": "Workers compensation premium rate errors",
+      "description": "WCB/WSIB premium rates are calculated on incorrect industry classification codes, include workers who should be in lower-risk categories, or are not benefiting from available experience rating programs that reduce premiums for companies with good safety records.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 10000,
+          "high": 60000
+        },
+        "20M_50M": {
+          "low": 25000,
+          "high": 150000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "logistics_trucking",
+        "HVAC_trades",
+        "hospitality",
+        "food_beverage",
+        "healthcare",
+        "staffing_agencies",
+        "auto_dealerships"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.1,
+          "note": "WSIB rates among highest in Canada; NEER/MAP experience rating programs offer 10-40% discount for qualifying employers"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "CNESST rates very high for construction and manufacturing; personalized rate available for 20+ employees based on experience"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "WorkSafeBC experience rating discount available; classification review can shift rates significantly"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "WCB Alberta Partnerships in Injury Reduction (PIR) offers up to 20% rebate"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "WCB Manitoba SAFE Work program incentives"
+        }
+      },
+      "confidence_trigger": "CFO mentions their WCB premiums seem high compared to competitors, or they have never challenged their rate classification, or they have office workers included under the same classification as field workers",
+      "data_needed": [
+        "WCB rate statement and premium calculation",
+        "Employee classification by job function",
+        "Claims history (3 years)",
+        "Safety program documentation"
+      ],
+      "recovery_timeline": "30-60 days for rate review; retroactive adjustment request within 90 days; new rate at next premium cycle"
+    },
+    {
+      "leak_id": "PAY-008",
+      "category": "payroll_hr",
+      "name": "Vacation and statutory holiday pay miscalculations",
+      "description": "Vacation pay is being calculated on base salary only instead of total earnings including commissions and overtime, or statutory holiday pay is using the wrong averaging formula, creating underpayment liability and potential employment standards complaints.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 12000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 45000
+        },
+        "20M_50M": {
+          "low": 20000,
+          "high": 100000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "retail",
+        "hospitality",
+        "food_beverage",
+        "staffing_agencies",
+        "auto_dealerships",
+        "manufacturing",
+        "HVAC_trades",
+        "logistics_trucking"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Ontario ESA: vacation pay is 4% of gross earnings (2 weeks); 6% after 5 years; public holiday pay formula based on earnings in the pay period"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec LSA: vacation pay calculation differs — based on annual gross earnings; additional National Holiday (Saint-Jean) and unique statutory holiday rules"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "BC ESA: vacation pay is 4% of total wages earned; stat holiday formula averages last 30 days"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Alberta ESC: vacation pay on total wages; general holiday pay on 5% of qualifying wages in 4 weeks before"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Manitoba ESC: standard calculations"
+        }
+      },
+      "confidence_trigger": "CFO mentions they have sales staff earning commissions plus base salary, or hourly workers who occasionally work overtime, and they are not sure if vacation pay covers all earnings",
+      "data_needed": [
+        "Payroll register with vacation pay calculations",
+        "Commission payment records",
+        "Overtime payment records",
+        "Employment contracts with vacation provisions"
+      ],
+      "recovery_timeline": "15-30 days for payroll audit; corrections on next pay cycle; retroactive liability assessment within 45 days"
+    },
+    {
+      "leak_id": "BANK-001",
+      "category": "banking_treasury",
+      "name": "Business banking fees above market",
+      "description": "Monthly account fees, transaction charges, wire transfer fees, merchant processing rates, and cash management fees exceed current market rates for the company's transaction volume and balance profile, typically by 15-40% on a bundled basis.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 12000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 45000
+        },
+        "20M_50M": {
+          "low": 20000,
+          "high": 120000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "retail",
+        "real_estate",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "logistics_trucking",
+        "dental_clinics",
+        "e_commerce"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Full Big Five competition plus credit unions"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Desjardins adds competitive pressure but legacy National Bank and Desjardins commercial accounts often overpriced"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Strong credit union sector provides competition"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "ATB Financial adds provincial competition"
+        },
+        "MB": {
+          "multiplier": 0.95,
+          "note": "Credit union penetration highest in Canada — generally better rates"
+        }
+      },
+      "confidence_trigger": "CFO says they have banked with the same institution for over 5 years and have not done a banking RFP, or they mention their bank fees seem high but they have not looked at alternatives",
+      "data_needed": [
+        "Bank statements (3 months)",
+        "Bank fee schedule",
+        "Transaction volume by type",
+        "Current credit facility terms"
+      ],
+      "recovery_timeline": "30-60 days for banking RFP; transition within 90 days or renegotiate with incumbent"
+    },
+    {
+      "leak_id": "BANK-002",
+      "category": "banking_treasury",
+      "name": "Merchant processing rate premium",
+      "description": "Credit and debit card processing rates are above interchange-plus benchmarks for the company's transaction volume, card mix, and average ticket size, with processors charging blended rates that hide the actual markup over interchange.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 4000,
+          "high": 18000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 75000
+        },
+        "20M_50M": {
+          "low": 35000,
+          "high": 180000
+        }
+      },
+      "applicable_industries": [
+        "retail",
+        "hospitality",
+        "food_beverage",
+        "e_commerce",
+        "dental_clinics",
+        "healthcare",
+        "auto_dealerships",
+        "property_management"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions their effective card processing rate is above 2.5%, or they are on a flat-rate processor like Square without comparing to interchange-plus alternatives, or they do not know what interchange-plus means",
+      "data_needed": [
+        "Merchant processing statements (3 months)",
+        "Transaction volume by card type",
+        "Average ticket size",
+        "Current processor contract"
+      ],
+      "recovery_timeline": "30-45 days for rate analysis; new rates within 60 days via renegotiation or switch"
+    },
+    {
+      "leak_id": "BANK-003",
+      "category": "banking_treasury",
+      "name": "Credit facility terms not optimized",
+      "description": "Operating lines of credit, term loans, and equipment financing carry interest rates, commitment fees, and covenant structures that have not been renegotiated to reflect the company's improved financial position or current market rates.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 25000
+        },
+        "5M_20M": {
+          "low": 20000,
+          "high": 100000
+        },
+        "20M_50M": {
+          "low": 50000,
+          "high": 300000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "retail",
+        "real_estate",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "logistics_trucking",
+        "e_commerce"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Investissement Québec may offer lower-rate alternatives; Desjardins commercial lending competitive for restructure"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "ATB Financial and government-backed programs may offer better terms for eligible industries"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions their line of credit rate is prime plus 2% or higher, or they have not refinanced since initial setup, or they have personal guarantees they want to remove",
+      "data_needed": [
+        "Loan and credit facility agreements",
+        "Current rate and terms",
+        "Financial statements (2 years)",
+        "Personal guarantee documents"
+      ],
+      "recovery_timeline": "45-90 days for lender negotiation; new terms on next renewal or upon switching"
+    },
+    {
+      "leak_id": "BANK-004",
+      "category": "banking_treasury",
+      "name": "Cash flow forecasting gaps",
+      "description": "No 13-week cash flow forecast exists, leading to emergency borrowing at premium rates, missed early payment discounts, idle cash earning zero return, and inability to time major expenditures to minimize financing costs.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 10000,
+          "high": 50000
+        },
+        "20M_50M": {
+          "low": 25000,
+          "high": 125000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "retail",
+        "food_beverage",
+        "staffing_agencies",
+        "auto_dealerships",
+        "logistics_trucking",
+        "e_commerce",
+        "property_management"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "QST timing differences from GST create additional cash flow complexity"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.05,
+          "note": "Commodity-linked businesses face higher cash flow volatility"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO says they manage cash flow by checking the bank balance daily, or they have had to use their line of credit for unexpected shortfalls more than twice in the past year",
+      "data_needed": [
+        "Bank statements (6 months)",
+        "AR and AP aging",
+        "Recurring revenue and expense schedule",
+        "Seasonal revenue patterns"
+      ],
+      "recovery_timeline": "15-30 days to build forecast model; immediate benefit from improved cash management"
+    },
+    {
+      "leak_id": "BANK-005",
+      "category": "banking_treasury",
+      "name": "Foreign exchange losses on international transactions",
+      "description": "Cross-border purchases or sales in USD or other currencies are converted at spot rates through the bank with markup of 1.5-3% over interbank rates, with no hedging strategy to protect against currency fluctuations on committed future payments.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 12000,
+          "high": 60000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 180000
+        }
+      },
+      "applicable_industries": [
+        "manufacturing",
+        "e_commerce",
+        "IT_services",
+        "pharmaceutical_distribution",
+        "retail",
+        "auto_dealerships",
+        "logistics_trucking",
+        "engineering_firms"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Proximity to US border drives high cross-border transaction volume"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard — moderate cross-border activity"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "Pacific Rim trade adds multi-currency exposure beyond USD"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "Energy sector USD-denominated contracts create high FX exposure"
+        },
+        "MB": {
+          "multiplier": 0.9,
+          "note": "Lower cross-border trade volume reduces exposure"
+        }
+      },
+      "confidence_trigger": "CFO mentions they buy materials or services in USD and just pay whatever the bank converts it to, or they have no FX hedging in place for known future payments",
+      "data_needed": [
+        "Foreign currency transactions (12 months)",
+        "Current FX conversion rates charged by bank",
+        "Future committed foreign currency payments",
+        "Vendor contracts with currency terms"
+      ],
+      "recovery_timeline": "15-30 days for FX strategy; immediate savings on conversion rates via FX broker"
+    },
+    {
+      "leak_id": "BANK-006",
+      "category": "banking_treasury",
+      "name": "Idle cash earning zero return",
+      "description": "Operating account balances consistently exceed working capital requirements by $50K-$500K without being swept to a high-interest savings account, money market fund, or short-term GICs, forfeiting 3-5% annual return on excess balances.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 1500,
+          "high": 8000
+        },
+        "5M_20M": {
+          "low": 5000,
+          "high": 30000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 80000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "real_estate",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "dental_clinics",
+        "engineering_firms",
+        "IT_services"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they keep a large balance in the operating account for comfort, or they do not have an automated sweep arrangement with their bank",
+      "data_needed": [
+        "Bank statements showing daily balances (6 months)",
+        "Current interest rate on operating account",
+        "Cash flow volatility analysis",
+        "Minimum balance requirements"
+      ],
+      "recovery_timeline": "7-14 days to set up sweep account; returns begin immediately"
+    },
+    {
+      "leak_id": "BANK-007",
+      "category": "banking_treasury",
+      "name": "Accounts receivable collection inefficiency",
+      "description": "Average days sales outstanding exceeds industry benchmark by 15-30 days due to lack of automated invoicing, no systematic follow-up process, and no early payment incentives, costing the company in carrying costs and bad debt write-offs.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 25000
+        },
+        "5M_20M": {
+          "low": 20000,
+          "high": 100000
+        },
+        "20M_50M": {
+          "low": 50000,
+          "high": 250000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "IT_services",
+        "engineering_firms",
+        "marketing_agencies",
+        "legal_services",
+        "staffing_agencies",
+        "logistics_trucking",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard — Construction Act prompt payment rules apply to construction"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Quebec Bill 41 prompt payment for construction; generally longer payment culture in government contracts"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.05,
+          "note": "Oil and gas sector historically slow payers during downturns"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions their average collection period is over 45 days, or they have significant balances in the 60-90 day aging bucket, or they write off more than 1% of revenue as bad debt",
+      "data_needed": [
+        "AR aging report",
+        "Collection policy documentation",
+        "Bad debt write-offs (2 years)",
+        "Invoicing process and timeline"
+      ],
+      "recovery_timeline": "30-60 days for process improvement; DSO reduction measurable within 90 days"
+    },
+    {
+      "leak_id": "BANK-008",
+      "category": "banking_treasury",
+      "name": "Personal guarantees creating unnecessary risk premium",
+      "description": "Business loans and credit facilities still carry personal guarantees from the owner despite the business having sufficient financial strength to qualify for corporate-only lending, creating personal tax and estate planning complications and preventing the owner from accessing personal credit at optimal rates.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 10000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 35000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 60000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "real_estate",
+        "property_management",
+        "auto_dealerships",
+        "hospitality",
+        "food_beverage",
+        "retail",
+        "logistics_trucking"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Quebec Civil Code personal guarantee provisions are distinct from common law provinces"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "Owner mentions they still personally guarantee the company's credit line even though the company has been profitable for 5+ years with strong net worth",
+      "data_needed": [
+        "Current loan and credit agreements",
+        "Company financial statements (3 years)",
+        "Personal guarantee documentation",
+        "Owner personal financial position summary"
+      ],
+      "recovery_timeline": "45-90 days for lender negotiation; guarantee release or reduction at next renewal"
+    },
+    {
+      "leak_id": "INS-001",
+      "category": "insurance",
+      "name": "Commercial insurance not competitively marketed",
+      "description": "Property, general liability, professional liability, and umbrella policies have been renewed with the same insurer for 3+ years without being competitively marketed to at least 3 carriers, typically resulting in premiums 10-25% above market for equivalent coverage.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 4000,
+          "high": 18000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 70000
+        },
+        "20M_50M": {
+          "low": 35000,
+          "high": 175000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "real_estate",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "logistics_trucking",
+        "dental_clinics",
+        "engineering_firms",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Largest insurance market — most carriers and brokers competing"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Fewer carriers write Quebec commercial policies due to Civil Code differences; less competition"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "BC commercial insurance rates elevated post-2021 atmospheric events; harder market"
+        },
+        "AB": {
+          "multiplier": 1.15,
+          "note": "Alberta premiums highest in Canada for commercial property due to hail and weather exposure"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Moderate market"
+        }
+      },
+      "confidence_trigger": "CFO says they have been with the same insurance broker for 5+ years and just renew annually, or their premiums increased 10%+ without any claims",
+      "data_needed": [
+        "Current policy declarations pages (all lines)",
+        "Premium history (3 years)",
+        "Claims history (5 years)",
+        "Broker of record letter"
+      ],
+      "recovery_timeline": "45-60 days for market submission; new rates at renewal or mid-term switch"
+    },
+    {
+      "leak_id": "INS-002",
+      "category": "insurance",
+      "name": "Coverage gaps creating uninsured exposure",
+      "description": "Critical risks are not covered due to policy exclusions, inadequate limits, or missing coverage lines such as cyber liability, errors and omissions, directors and officers, employment practices liability, or equipment breakdown, creating catastrophic uninsured exposure.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 30000
+        },
+        "5M_20M": {
+          "low": 20000,
+          "high": 100000
+        },
+        "20M_50M": {
+          "low": 50000,
+          "high": 300000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "healthcare",
+        "IT_services",
+        "legal_services",
+        "engineering_firms",
+        "dental_clinics",
+        "property_management",
+        "e_commerce",
+        "staffing_agencies"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard coverage requirements"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Quebec professional orders mandate specific coverage for regulated professions; Bill 25 (privacy) increases cyber liability exposure"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "BC PIPA privacy legislation creates specific cyber liability exposure"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO is unable to list all their insurance policies from memory, or they mention they do not have cyber insurance, or they have not reviewed their coverage against their current operations in the past 2 years",
+      "data_needed": [
+        "Complete insurance policy portfolio",
+        "Business operations summary and risk profile",
+        "Contract insurance requirements from clients",
+        "Prior coverage gap analysis if any"
+      ],
+      "recovery_timeline": "30-45 days for coverage audit; gap closure within 60 days"
+    },
+    {
+      "leak_id": "INS-003",
+      "category": "insurance",
+      "name": "Deductible and retention levels not optimized",
+      "description": "Insurance deductibles are set at default levels rather than being calibrated to the company's risk tolerance and claims frequency, with a higher deductible typically reducing premiums by 15-30% for companies with good loss history and sufficient reserves.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 8000
+        },
+        "5M_20M": {
+          "low": 6000,
+          "high": 30000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 75000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "retail",
+        "logistics_trucking",
+        "auto_dealerships",
+        "property_management",
+        "food_beverage",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "Higher base premiums make deductible optimization more impactful"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "Higher base premiums in Alberta amplify deductible savings"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they have had zero or minimal claims in the past 3 years but their deductibles are still at the standard $1,000-$2,500 level",
+      "data_needed": [
+        "Current policy deductibles",
+        "Claims history (5 years)",
+        "Company cash reserves and risk tolerance",
+        "Premium sensitivity analysis from broker"
+      ],
+      "recovery_timeline": "15-30 days for analysis; implementation at next renewal"
+    },
+    {
+      "leak_id": "INS-004",
+      "category": "insurance",
+      "name": "Vehicle fleet insurance not fleet-rated",
+      "description": "Company vehicles are insured individually rather than under a fleet policy, missing fleet discounts of 10-25%, and without telematics data or driver training programs that further reduce premiums by demonstrating lower risk.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 12000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 45000
+        },
+        "20M_50M": {
+          "low": 20000,
+          "high": 120000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "logistics_trucking",
+        "HVAC_trades",
+        "real_estate",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "manufacturing",
+        "engineering_firms"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Ontario auto rates highest in Canada — fleet optimization high value"
+        },
+        "QC": {
+          "multiplier": 0.8,
+          "note": "Quebec SAAQ covers bodily injury — only property damage needs private insurance; significantly lower auto premiums"
+        },
+        "BC": {
+          "multiplier": 1.15,
+          "note": "ICBC mandatory auto insurance is expensive — fleet programs and risk management critically important"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "Alberta auto rates high and rising; fleet discount impactful"
+        },
+        "MB": {
+          "multiplier": 0.85,
+          "note": "MPI public insurance — lower base rates; fleet programs still available for optional coverage"
+        }
+      },
+      "confidence_trigger": "CFO mentions they have 5 or more company vehicles and each one is insured separately, or their drivers have varying accident histories that are dragging up the overall cost",
+      "data_needed": [
+        "Vehicle list with insurance details",
+        "Driver abstracts",
+        "Claims history per vehicle",
+        "Current insurance policies and premiums per vehicle"
+      ],
+      "recovery_timeline": "30-45 days for fleet quote; new policy at next renewal"
+    },
+    {
+      "leak_id": "INS-005",
+      "category": "insurance",
+      "name": "Key person and business interruption gaps",
+      "description": "No key person insurance exists for the owner or critical employees whose death or disability would trigger loan covenant defaults, customer attrition, or operational paralysis, and business interruption coverage limits are based on outdated revenue figures.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 10000,
+          "high": 50000
+        },
+        "20M_50M": {
+          "low": 25000,
+          "high": 120000
+        }
+      },
+      "applicable_industries": [
+        "legal_services",
+        "healthcare",
+        "dental_clinics",
+        "engineering_firms",
+        "IT_services",
+        "accounting_firms",
+        "marketing_agencies",
+        "construction",
+        "manufacturing",
+        "auto_dealerships"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO or owner mentions the business depends heavily on one or two people, or they do not have key person insurance, or their BI coverage has not been updated since they doubled in revenue",
+      "data_needed": [
+        "Current insurance portfolio",
+        "Revenue growth trajectory",
+        "Key person identification",
+        "Loan covenants requiring insurance"
+      ],
+      "recovery_timeline": "30-60 days for coverage placement"
+    },
+    {
+      "leak_id": "INS-006",
+      "category": "insurance",
+      "name": "Subcontractor insurance compliance not verified",
+      "description": "Subcontractors and third-party service providers are not required to provide certificates of insurance naming the company as additional insured, creating vicarious liability exposure where the company could be held responsible for subcontractor-caused damages without insurance coverage.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 25000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 200000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "real_estate",
+        "property_management",
+        "HVAC_trades",
+        "engineering_firms",
+        "manufacturing",
+        "logistics_trucking",
+        "staffing_agencies"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.1,
+          "note": "Ontario Construction Act liability provisions increase exposure"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec solidarity obligations under Civil Code create broader third-party liability than common law provinces"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they use subcontractors regularly but do not have a formal COI collection process, or they are not sure if their subs carry adequate limits",
+      "data_needed": [
+        "Subcontractor list",
+        "Certificates of insurance on file",
+        "Subcontractor agreement templates",
+        "Company's own GL policy for additional insured requirements"
+      ],
+      "recovery_timeline": "30-45 days to implement COI tracking; ongoing compliance management"
+    },
+    {
+      "leak_id": "INS-007",
+      "category": "insurance",
+      "name": "Property valuations outdated leading to underinsurance",
+      "description": "Building, equipment, and inventory values on property insurance policies have not been updated to reflect replacement cost inflation of 25-40% since 2020, creating co-insurance penalties and inadequate claim settlements in the event of a loss.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 10000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 40000
+        },
+        "20M_50M": {
+          "low": 20000,
+          "high": 100000
+        }
+      },
+      "applicable_industries": [
+        "manufacturing",
+        "hospitality",
+        "retail",
+        "real_estate",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "healthcare",
+        "dental_clinics",
+        "construction"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.05,
+          "note": "Ontario construction cost inflation 30%+ since 2020"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Similar construction cost inflation"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "BC construction costs among highest in Canada — undervaluation risk greatest"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Moderate construction cost inflation"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they have not updated their insured property values in over 2 years, or their policy still shows the original purchase price of the building",
+      "data_needed": [
+        "Current property policy declarations",
+        "Recent appraisals or assessments",
+        "Equipment purchase records",
+        "Inventory valuation method"
+      ],
+      "recovery_timeline": "15-30 days for valuation review; updated coverage within 30 days"
+    },
+    {
+      "leak_id": "INS-008",
+      "category": "insurance",
+      "name": "No cyber liability coverage",
+      "description": "The company handles personal information, processes payments, or stores sensitive data but carries no cyber liability insurance, leaving exposure to breach notification costs, forensic investigation, legal defense, regulatory fines, and business interruption from a cyber event that typically costs $150K-$500K for a mid-market company.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 8000
+        },
+        "5M_20M": {
+          "low": 6000,
+          "high": 25000
+        },
+        "20M_50M": {
+          "low": 12000,
+          "high": 50000
+        }
+      },
+      "applicable_industries": [
+        "healthcare",
+        "legal_services",
+        "accounting_firms",
+        "IT_services",
+        "e_commerce",
+        "dental_clinics",
+        "retail",
+        "hospitality",
+        "staffing_agencies",
+        "engineering_firms",
+        "marketing_agencies",
+        "property_management"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "PIPEDA federal requirements apply; standard cyber risk"
+        },
+        "QC": {
+          "multiplier": 1.2,
+          "note": "Quebec Law 25 (private sector privacy reform) creates strongest provincial privacy regime — mandatory breach notification, privacy officer requirement, DPIAs; highest regulatory exposure"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "BC PIPA adds provincial privacy layer"
+        },
+        "AB": {
+          "multiplier": 1.05,
+          "note": "Alberta PIPA adds provincial privacy layer"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "PIPEDA federal only — standard"
+        }
+      },
+      "confidence_trigger": "CFO confirms they store customer personal information or process credit card payments and says they do not have cyber insurance, or they believe their general liability policy covers cyber events",
+      "data_needed": [
+        "IT infrastructure overview",
+        "Types of personal data collected and stored",
+        "Current security measures",
+        "Vendor agreements with data provisions"
+      ],
+      "recovery_timeline": "15-30 days for cyber risk assessment; policy placement within 45 days"
+    },
+    {
+      "leak_id": "SAAS-001",
+      "category": "saas_technology",
+      "name": "Unused and underutilized software licenses",
+      "description": "SaaS subscriptions are being paid for users who have left the company, features that are not being used, or tiers that exceed actual usage, with typical companies paying for 25-40% more software licenses than they actively use.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 12000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 45000
+        },
+        "20M_50M": {
+          "low": 20000,
+          "high": 120000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "IT_services",
+        "engineering_firms",
+        "marketing_agencies",
+        "retail",
+        "staffing_agencies",
+        "e_commerce",
+        "accounting_firms",
+        "dental_clinics"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Quebec companies often carry duplicate French and English software versions"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they are not sure exactly how many software subscriptions they have, or they say employees sign up for tools on their own, or they have had departing employees whose accounts were not cancelled promptly",
+      "data_needed": [
+        "Corporate credit card statements showing recurring charges",
+        "IT software inventory",
+        "User license counts vs active employee count",
+        "Monthly SaaS spend breakdown"
+      ],
+      "recovery_timeline": "15-30 days for audit; immediate cancellation of unused licenses"
+    },
+    {
+      "leak_id": "SAAS-002",
+      "category": "saas_technology",
+      "name": "Overlapping software functionality",
+      "description": "Multiple software tools perform the same function — two project management tools, three communication platforms, separate CRM and sales tools with overlapping features — creating integration headaches and redundant subscription costs.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 10000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 40000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 80000
+        }
+      },
+      "applicable_industries": [
+        "IT_services",
+        "marketing_agencies",
+        "engineering_firms",
+        "legal_services",
+        "accounting_firms",
+        "e_commerce",
+        "manufacturing",
+        "construction",
+        "staffing_agencies",
+        "healthcare"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions different departments use different tools for similar functions, or they have both Slack and Teams, or both Asana and Monday, or they recently acquired a company and have not consolidated systems",
+      "data_needed": [
+        "Complete software inventory with function categories",
+        "Department-level tool usage",
+        "Integration map between systems",
+        "Per-tool cost and user count"
+      ],
+      "recovery_timeline": "30-60 days for consolidation analysis; migration within 90-180 days"
+    },
+    {
+      "leak_id": "SAAS-003",
+      "category": "saas_technology",
+      "name": "No annual billing or volume discounts on SaaS",
+      "description": "Software subscriptions are on monthly billing instead of annual commitments that typically save 15-25%, and multi-user or enterprise tier discounts are not being leveraged despite having sufficient user counts to qualify.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 8000
+        },
+        "5M_20M": {
+          "low": 5000,
+          "high": 25000
+        },
+        "20M_50M": {
+          "low": 10000,
+          "high": 60000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "IT_services",
+        "engineering_firms",
+        "marketing_agencies",
+        "retail",
+        "staffing_agencies",
+        "e_commerce",
+        "accounting_firms"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they pay for software monthly because they like flexibility, or they are unsure whether they are on annual or monthly billing for most tools",
+      "data_needed": [
+        "SaaS subscription list with billing frequency",
+        "User counts per tool",
+        "Current tier/plan level per tool",
+        "Renewal dates"
+      ],
+      "recovery_timeline": "7-14 days for analysis; switches made at next billing cycle"
+    },
+    {
+      "leak_id": "SAAS-004",
+      "category": "saas_technology",
+      "name": "Legacy on-premise systems maintenance costs",
+      "description": "On-premise servers, locally installed software, and legacy systems require IT staff time, hardware replacement cycles, backup management, and security patching that exceeds the cost of equivalent cloud-based solutions by 30-60%.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 20000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 40000,
+          "high": 200000
+        }
+      },
+      "applicable_industries": [
+        "manufacturing",
+        "healthcare",
+        "legal_services",
+        "accounting_firms",
+        "engineering_firms",
+        "construction",
+        "auto_dealerships",
+        "dental_clinics",
+        "pharmaceutical_distribution"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Quebec Law 25 data residency preferences may slow cloud migration but savings still available with Canadian-hosted solutions"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they still have a server room, or they are running on-premise software that requires an IT person to maintain, or they are on a locally installed accounting system or ERP",
+      "data_needed": [
+        "IT infrastructure inventory",
+        "IT staff allocation to maintenance vs projects",
+        "Hardware replacement schedule and costs",
+        "Current hosting and backup costs"
+      ],
+      "recovery_timeline": "90-180 days for cloud migration planning and execution"
+    },
+    {
+      "leak_id": "SAAS-005",
+      "category": "saas_technology",
+      "name": "Manual processes that should be automated",
+      "description": "Repetitive tasks like invoicing, data entry between systems, report generation, scheduling, and inventory tracking are performed manually when existing tools have automation features or affordable integrations exist, consuming 10-30 hours per week of staff time.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 8000,
+          "high": 30000
+        },
+        "5M_20M": {
+          "low": 25000,
+          "high": 120000
+        },
+        "20M_50M": {
+          "low": 60000,
+          "high": 300000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "retail",
+        "property_management",
+        "food_beverage",
+        "auto_dealerships",
+        "staffing_agencies",
+        "logistics_trucking",
+        "accounting_firms"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Bilingual documentation requirements add to manual processing burden — automation saves more"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions staff spend significant time on data entry, or they print and re-enter information between systems, or they create reports manually in Excel every week or month",
+      "data_needed": [
+        "Process map of key workflows",
+        "Staff time allocation survey",
+        "Current software capabilities assessment",
+        "Integration inventory between systems"
+      ],
+      "recovery_timeline": "30-90 days for automation implementation; ROI typically within 3-6 months"
+    },
+    {
+      "leak_id": "SAAS-006",
+      "category": "saas_technology",
+      "name": "IT support and managed services overpriced",
+      "description": "Managed IT services or break-fix IT support contracts are priced above market for the company's endpoint count, complexity level, and support requirements, with managed service providers often charging for monitoring and maintenance tiers that exceed actual needs.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 10000,
+          "high": 50000
+        },
+        "20M_50M": {
+          "low": 25000,
+          "high": 120000
+        }
+      },
+      "applicable_industries": [
+        "legal_services",
+        "accounting_firms",
+        "healthcare",
+        "dental_clinics",
+        "real_estate",
+        "property_management",
+        "manufacturing",
+        "construction",
+        "hospitality",
+        "retail"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Large MSP market — competitive"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Bilingual MSP requirement limits pool slightly"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 0.9,
+          "note": "Lower IT labour costs"
+        }
+      },
+      "confidence_trigger": "CFO mentions they pay a fixed monthly fee for IT support and are not sure exactly what they get for it, or their MSP contract has auto-renewed for 3+ years",
+      "data_needed": [
+        "MSP contract and SLA terms",
+        "Monthly IT support invoices",
+        "Endpoint/device count",
+        "Support ticket volume and resolution times"
+      ],
+      "recovery_timeline": "30-60 days for MSP market review; transition or renegotiation within 90 days"
+    },
+    {
+      "leak_id": "SAAS-007",
+      "category": "saas_technology",
+      "name": "No disaster recovery or business continuity plan",
+      "description": "The company has no documented disaster recovery plan, untested backups, no defined RTO/RPO, and no business continuity procedures, creating exposure to extended downtime that costs mid-market companies $10K-$50K per hour of unplanned outage.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 10000,
+          "high": 60000
+        },
+        "20M_50M": {
+          "low": 25000,
+          "high": 150000
+        }
+      },
+      "applicable_industries": [
+        "manufacturing",
+        "e_commerce",
+        "healthcare",
+        "IT_services",
+        "logistics_trucking",
+        "retail",
+        "food_beverage",
+        "hospitality",
+        "auto_dealerships",
+        "pharmaceutical_distribution"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "QC": {
+          "multiplier": 1.05,
+          "note": "Quebec Law 25 requires privacy incident response plan — overlaps with DR requirements"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "Seismic risk adds physical DR planning component"
+        },
+        "AB": {
+          "multiplier": 1.05,
+          "note": "Flood and severe weather risk requires physical DR component"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO says they do not have a disaster recovery plan, or they are not sure if their backups are tested, or they experienced a system outage in the past year and it took more than 4 hours to recover",
+      "data_needed": [
+        "Current backup procedures and schedule",
+        "IT infrastructure diagram",
+        "Recovery time estimates by system",
+        "Business impact analysis by function"
+      ],
+      "recovery_timeline": "30-60 days for DR plan development; testing within 90 days"
+    },
+    {
+      "leak_id": "SAAS-008",
+      "category": "saas_technology",
+      "name": "Website and digital marketing spend inefficiency",
+      "description": "Digital advertising spend has no clear attribution model, website hosting and maintenance costs exceed market rates, SEO strategy is nonexistent or outsourced without measurable KPIs, and marketing technology stack has significant overlap with unused features.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 20000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 150000
+        }
+      },
+      "applicable_industries": [
+        "retail",
+        "e_commerce",
+        "hospitality",
+        "food_beverage",
+        "dental_clinics",
+        "healthcare",
+        "legal_services",
+        "real_estate",
+        "auto_dealerships",
+        "HVAC_trades",
+        "marketing_agencies"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard — competitive digital agency market"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Bilingual digital marketing requirements double content costs; Quebec Ad Standards (OQLF) compliance adds overhead"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 0.95,
+          "note": "Lower digital agency costs"
+        }
+      },
+      "confidence_trigger": "CFO mentions they spend money on Google Ads or social media advertising but cannot tell you the return on that investment, or their website has not been updated in 2+ years",
+      "data_needed": [
+        "Digital marketing spend breakdown (12 months)",
+        "Website hosting and maintenance costs",
+        "Marketing tool subscriptions",
+        "Revenue attribution by channel"
+      ],
+      "recovery_timeline": "30-60 days for marketing audit; optimization within 90 days"
+    },
+    {
+      "leak_id": "COMP-001",
+      "category": "compliance_penalties",
+      "name": "Late filing penalties — corporate tax returns",
+      "description": "T2 corporate tax returns, information returns (T4, T5, T5018), or partnership returns are filed late, triggering automatic penalties of 5% of balance owing plus 1% per month, plus potential gross negligence penalties of 10% additional.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 10000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 40000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 80000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "retail",
+        "real_estate",
+        "food_beverage",
+        "auto_dealerships",
+        "logistics_trucking",
+        "IT_services",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard CRA penalties"
+        },
+        "QC": {
+          "multiplier": 1.2,
+          "note": "Dual filing to CRA and Revenu Québec means double penalty exposure; CO-17 (Quebec corporate return) has separate penalties"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard CRA penalties"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard CRA penalties"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard CRA penalties"
+        }
+      },
+      "confidence_trigger": "CFO mentions their accountant filed late last year, or they have received penalty notices from CRA, or they are currently behind on any filings",
+      "data_needed": [
+        "CRA notices of assessment (3 years)",
+        "Filing history and dates",
+        "Outstanding balances with CRA",
+        "Revenu Québec notices if applicable"
+      ],
+      "recovery_timeline": "15-30 days for penalty relief application; CRA responds within 90-180 days"
+    },
+    {
+      "leak_id": "COMP-002",
+      "category": "compliance_penalties",
+      "name": "Employment standards violations exposure",
+      "description": "Non-compliance with provincial employment standards regarding hours of work, rest periods, overtime, vacation, termination notice, or pay equity creates exposure to complaints, orders to pay, administrative penalties, and reputation damage.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 25000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 200000
+        }
+      },
+      "applicable_industries": [
+        "hospitality",
+        "retail",
+        "food_beverage",
+        "construction",
+        "staffing_agencies",
+        "manufacturing",
+        "logistics_trucking",
+        "healthcare",
+        "auto_dealerships",
+        "HVAC_trades"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Ontario ESA enforced by Ministry of Labour; regular proactive inspections in high-risk sectors"
+        },
+        "QC": {
+          "multiplier": 1.2,
+          "note": "Quebec CNESST is aggressive — automatic penalty regime, pay equity audit requirements (Act Respecting Pay Equity), and psychological harassment provisions unique to Quebec"
+        },
+        "BC": {
+          "multiplier": 1.05,
+          "note": "BC Employment Standards Branch active; recent updates to ESA expanded protections"
+        },
+        "AB": {
+          "multiplier": 0.95,
+          "note": "Alberta ES enforcement historically less aggressive but increasing"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard enforcement"
+        }
+      },
+      "confidence_trigger": "CFO mentions they have had employee complaints, or they are not sure their employment contracts comply with current provincial standards, or they have not updated their employee handbook in over 2 years",
+      "data_needed": [
+        "Employee handbook and policies",
+        "Sample employment contracts",
+        "Termination records and severance calculations",
+        "Hours of work records"
+      ],
+      "recovery_timeline": "30-60 days for compliance audit; remediation within 90 days"
+    },
+    {
+      "leak_id": "COMP-003",
+      "category": "compliance_penalties",
+      "name": "Privacy legislation non-compliance",
+      "description": "The company collects personal information from customers, employees, or website visitors without proper consent mechanisms, privacy policies, breach response procedures, or data retention protocols required under PIPEDA and provincial privacy legislation.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 3000,
+          "high": 15000
+        },
+        "5M_20M": {
+          "low": 10000,
+          "high": 50000
+        },
+        "20M_50M": {
+          "low": 25000,
+          "high": 150000
+        }
+      },
+      "applicable_industries": [
+        "healthcare",
+        "dental_clinics",
+        "legal_services",
+        "IT_services",
+        "e_commerce",
+        "retail",
+        "staffing_agencies",
+        "property_management",
+        "hospitality",
+        "marketing_agencies",
+        "accounting_firms"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "PIPEDA federal only — OPC complaints and recommendations"
+        },
+        "QC": {
+          "multiplier": 1.35,
+          "note": "Quebec Law 25 (September 2023 full force) — most stringent in Canada: mandatory privacy officer, DPIAs, breach notification, administrative monetary penalties up to $25M or 4% of worldwide revenue"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "BC PIPA — substantially similar to PIPEDA with additional provincial enforcement"
+        },
+        "AB": {
+          "multiplier": 1.1,
+          "note": "Alberta PIPA — substantially similar with own Commissioner"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "PIPEDA federal only"
+        }
+      },
+      "confidence_trigger": "CFO says they do not have a privacy officer, or their website privacy policy is a template from 3 years ago, or they are not sure about their obligations under Quebec Law 25",
+      "data_needed": [
+        "Current privacy policy",
+        "Data collection practices inventory",
+        "Consent mechanisms",
+        "Breach response plan if any",
+        "Privacy impact assessments if any"
+      ],
+      "recovery_timeline": "45-90 days for compliance gap assessment and remediation plan"
+    },
+    {
+      "leak_id": "COMP-004",
+      "category": "compliance_penalties",
+      "name": "Workplace health and safety deficiencies",
+      "description": "Mandatory safety training, workplace inspections, WHMIS compliance, joint health and safety committee requirements, and incident reporting procedures are not fully implemented, creating exposure to Ministry of Labour orders, stop-work orders, and fines of $25K-$500K per violation.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 30000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 80000
+        },
+        "20M_50M": {
+          "low": 30000,
+          "high": 200000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "logistics_trucking",
+        "HVAC_trades",
+        "food_beverage",
+        "hospitality",
+        "auto_dealerships",
+        "healthcare",
+        "dental_clinics"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.1,
+          "note": "Ontario OHSA enforced by MOL inspectors; mandatory JHSC for 20+ workers; supervisor competency training required"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec CNESST modernized OHS regime (2021 reform) — expanded sectors requiring prevention programs and JHSCs; aggressive inspection regime"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "WorkSafeBC has authority to issue administrative penalties without court — immediate financial impact"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Alberta OHS enforcement standard — Bill 47 changes reduced some requirements"
+        },
+        "MB": {
+          "multiplier": 1.05,
+          "note": "Manitoba SAFE Work enforcement moderate"
+        }
+      },
+      "confidence_trigger": "CFO mentions they have had a workplace injury, or they do not have a formal safety program, or they received a MOL visit, or they do not have a joint health and safety committee despite having 20+ workers",
+      "data_needed": [
+        "Safety program documentation",
+        "Training records",
+        "JHSC meeting minutes",
+        "Incident reports (2 years)",
+        "Most recent inspection reports"
+      ],
+      "recovery_timeline": "30-60 days for gap assessment; 60-90 days for program implementation"
+    },
+    {
+      "leak_id": "COMP-005",
+      "category": "compliance_penalties",
+      "name": "Contractor payment reporting non-compliance",
+      "description": "Payments to subcontractors in construction are not being reported on T5018 slips as required by CRA, creating exposure to $100/day penalties per slip, and contractor payments above $500 are not properly tracked for T4A reporting obligations.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 10000
+        },
+        "5M_20M": {
+          "low": 8000,
+          "high": 40000
+        },
+        "20M_50M": {
+          "low": 15000,
+          "high": 80000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "HVAC_trades",
+        "engineering_firms",
+        "real_estate",
+        "property_management",
+        "logistics_trucking",
+        "IT_services",
+        "marketing_agencies",
+        "staffing_agencies"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Standard CRA enforcement"
+        },
+        "QC": {
+          "multiplier": 1.15,
+          "note": "Quebec RL-1 reporting adds provincial layer; Revenu Québec conducts separate audits on contractor payments"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard"
+        }
+      },
+      "confidence_trigger": "CFO mentions they pay a lot of subcontractors and are not sure whether they file T5018 slips, or they say their accountant handles it but they have received CRA notices about missing information returns",
+      "data_needed": [
+        "Subcontractor payment records",
+        "T5018 filing history",
+        "T4A filing history",
+        "CRA compliance notices"
+      ],
+      "recovery_timeline": "30-45 days for compliance review; retroactive filing within 60 days"
+    },
+    {
+      "leak_id": "COMP-006",
+      "category": "compliance_penalties",
+      "name": "Environmental compliance gaps",
+      "description": "Required environmental permits, waste disposal certifications, emission reporting, or contaminated site remediation obligations are not being met, creating exposure to remediation orders, administrative penalties, and director personal liability.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 5000,
+          "high": 25000
+        },
+        "5M_20M": {
+          "low": 15000,
+          "high": 100000
+        },
+        "20M_50M": {
+          "low": 40000,
+          "high": 300000
+        }
+      },
+      "applicable_industries": [
+        "manufacturing",
+        "construction",
+        "auto_dealerships",
+        "HVAC_trades",
+        "food_beverage",
+        "logistics_trucking",
+        "pharmaceutical_distribution"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.1,
+          "note": "Ontario EPA and OWRA — MECP enforcement active; Environmental Penalty regime allows administrative penalties without prosecution"
+        },
+        "QC": {
+          "multiplier": 1.2,
+          "note": "Quebec MELCCFP has broadest environmental regulatory framework; mandatory environmental compliance audits for certain sectors; carbon market obligations"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "BC Environmental Management Act — active enforcement on contaminated sites and emissions"
+        },
+        "AB": {
+          "multiplier": 1.05,
+          "note": "Alberta EPEA — enforcement focused on energy sector but expanding to manufacturing"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Standard enforcement"
+        }
+      },
+      "confidence_trigger": "CFO mentions they generate hazardous waste, have chemical storage, operate manufacturing equipment with air emissions, or own property with historical industrial use",
+      "data_needed": [
+        "Environmental permits and certificates",
+        "Waste disposal records",
+        "Emission monitoring reports",
+        "Phase I/II environmental assessments"
+      ],
+      "recovery_timeline": "60-180 days depending on compliance gap severity"
+    },
+    {
+      "leak_id": "COMP-007",
+      "category": "compliance_penalties",
+      "name": "Accessibility compliance gaps",
+      "description": "Mandatory accessibility requirements under provincial legislation for customer service, employment, information and communications, and built environment are not met, creating exposure to complaints, penalties, and loss of government contracts.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 2000,
+          "high": 8000
+        },
+        "5M_20M": {
+          "low": 5000,
+          "high": 25000
+        },
+        "20M_50M": {
+          "low": 10000,
+          "high": 50000
+        }
+      },
+      "applicable_industries": [
+        "retail",
+        "hospitality",
+        "healthcare",
+        "dental_clinics",
+        "food_beverage",
+        "property_management",
+        "real_estate",
+        "legal_services",
+        "accounting_firms"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.25,
+          "note": "Ontario AODA is the most mature accessibility framework — mandatory compliance reports, penalties up to $100K/day for corporations; applies to organizations with 20+ employees"
+        },
+        "QC": {
+          "multiplier": 0.8,
+          "note": "Quebec has no equivalent provincial accessibility legislation yet — federal ACA applies to federally regulated employers only"
+        },
+        "BC": {
+          "multiplier": 1.1,
+          "note": "BC Accessible British Columbia Act (2021) — new and expanding requirements"
+        },
+        "AB": {
+          "multiplier": 0.8,
+          "note": "Alberta has no provincial accessibility legislation — federal ACA for federally regulated only"
+        },
+        "MB": {
+          "multiplier": 1.05,
+          "note": "Manitoba Accessibility for Manitobans Act — requirements being phased in"
+        }
+      },
+      "confidence_trigger": "CFO is unaware of accessibility compliance requirements, or they mention they have over 20 employees in Ontario and have not filed an AODA compliance report",
+      "data_needed": [
+        "Current accessibility policies",
+        "Website accessibility audit",
+        "Physical premises assessment",
+        "Employee training records on accessibility"
+      ],
+      "recovery_timeline": "30-60 days for gap assessment; remediation varies by gap severity"
+    },
+    {
+      "leak_id": "COMP-008",
+      "category": "compliance_penalties",
+      "name": "Corporate annual filings and minute book deficiencies",
+      "description": "Annual corporate returns, changes in directors or registered office, and corporate minute book maintenance have lapsed, creating risk of involuntary dissolution, inability to close financing or M&A transactions, and director personal liability exposure.",
+      "dollar_ranges": {
+        "1M_5M": {
+          "low": 1500,
+          "high": 5000
+        },
+        "5M_20M": {
+          "low": 3000,
+          "high": 12000
+        },
+        "20M_50M": {
+          "low": 5000,
+          "high": 25000
+        }
+      },
+      "applicable_industries": [
+        "construction",
+        "manufacturing",
+        "hospitality",
+        "healthcare",
+        "legal_services",
+        "retail",
+        "real_estate",
+        "food_beverage",
+        "auto_dealerships",
+        "IT_services",
+        "engineering_firms",
+        "HVAC_trades",
+        "marketing_agencies",
+        "property_management"
+      ],
+      "province_modifiers": {
+        "ON": {
+          "multiplier": 1.0,
+          "note": "Ontario annual return required under Ontario Business Registry — failure can lead to dissolution"
+        },
+        "QC": {
+          "multiplier": 1.1,
+          "note": "Quebec Enterprise Registrar (REQ) annual updating declaration required — non-compliance leads to striking off and loss of corporate protections"
+        },
+        "BC": {
+          "multiplier": 1.0,
+          "note": "BC annual report required — standard consequences"
+        },
+        "AB": {
+          "multiplier": 1.0,
+          "note": "Alberta annual return required"
+        },
+        "MB": {
+          "multiplier": 1.0,
+          "note": "Manitoba annual return required"
+        }
+      },
+      "confidence_trigger": "CFO mentions they are not sure if their corporate filings are up to date, or they do not know where their minute book is, or their corporate lawyer has not been contacted in over 2 years",
+      "data_needed": [
+        "Corporate minute book",
+        "Provincial annual return filing history",
+        "Director and officer register",
+        "Shareholder register",
+        "Articles and bylaws"
+      ],
+      "recovery_timeline": "15-30 days for minute book update; annual filings within 7 days"
+    }
+  ],
+  "metadata": {
+    "total_leaks": 57,
+    "leaks_per_category": {
+      "tax_structure": 9,
+      "vendor_procurement": 8,
+      "payroll_hr": 8,
+      "banking_treasury": 8,
+      "insurance": 8,
+      "saas_technology": 8,
+      "compliance_penalties": 8
+    },
+    "industries_covered": [
+      "construction",
+      "manufacturing",
+      "hospitality",
+      "healthcare",
+      "legal_services",
+      "accounting_firms",
+      "logistics_trucking",
+      "retail",
+      "real_estate",
+      "dental_clinics",
+      "engineering_firms",
+      "IT_services",
+      "marketing_agencies",
+      "food_beverage",
+      "property_management",
+      "staffing_agencies",
+      "auto_dealerships",
+      "HVAC_trades",
+      "e_commerce",
+      "pharmaceutical_distribution"
+    ],
+    "total_industries": 20,
+    "dollar_range_methodology": "Ranges based on Canadian mid-market benchmarks from BDC, Statistics Canada CANSIM tables, CPA Canada survey data, and industry-specific audit experience. Low range represents conservative estimate for well-managed companies with minor gaps. High range represents companies with systemic issues across the category. Ranges assume Canadian dollar values and do not include compound effects across categories.",
+    "province_modifier_methodology": "Multipliers reflect actual provincial regulatory differences including tax rates, employment standards, WCB premiums, privacy legislation, and enforcement intensity. A multiplier of 1.0 is baseline (typically Ontario). Values above 1.0 indicate the leak is likely larger in that province. Values below 1.0 indicate the leak is likely smaller.",
+    "confidence_trigger_usage": "During a 20-minute CFO call, ask open-ended questions that surface these triggers. When a trigger matches, flag the leak as HIGH confidence in the rep brief. Leaks without confirmed triggers are rated MEDIUM confidence based on industry and revenue bracket statistical likelihood."
+  }
+}

@@ -1,0 +1,402 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  businessMembers BusinessMember[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Business {
+  id        String   @id @default(cuid())
+  name      String
+  industry  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members     BusinessMember[]
+  dataSources DataSource[]
+  clients     Client[]
+  invoices    Invoice[]
+  documents   Document[]
+  leaks       Leak[]
+
+  @@map("businesses")
+}
+
+model BusinessMember {
+  id         String   @id @default(cuid())
+  businessId String
+  userId     String
+  role       String   @default("OWNER")
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, userId])
+  @@map("business_members")
+}
+
+model DataSource {
+  id           String   @id @default(cuid())
+  businessId   String
+  provider     String
+  status       String   @default("PENDING")
+  accessToken  String?
+  refreshToken String?
+  externalId   String?
+  lastSyncAt   DateTime?
+  lastError    String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("data_sources")
+}
+
+model SyncLog {
+  id           String   @id @default(cuid())
+  dataSourceId String
+  type         String
+  status       String
+  recordsFound Int      @default(0)
+  recordsSynced Int     @default(0)
+  error        String?
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+
+  @@map("sync_logs")
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  businessId  String
+  externalId  String?
+  name        String
+  email       String?
+  phone       String?
+  status      String   @default("ACTIVE")
+  aum         Float?
+  annualValue Float?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+  leaks    Leak[]
+  contracts Contract[]
+
+  @@map("clients")
+}
+
+model Invoice {
+  id            String    @id @default(cuid())
+  businessId    String
+  clientId      String?
+  externalId    String?
+  invoiceNumber String?
+  amount        Float     @default(0)
+  amountPaid    Float     @default(0)
+  currency      String    @default("CAD")
+  status        String    @default("PENDING")
+  issuedAt      DateTime?
+  dueAt         DateTime?
+  paidAt        DateTime?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  client   Client?  @relation(fields: [clientId], references: [id])
+
+  @@map("invoices")
+}
+
+model Document {
+  id            String    @id @default(cuid())
+  businessId    String
+  fileName      String
+  fileUrl       String
+  fileType      String
+  docType       String    @default("OTHER")
+  status        String    @default("UPLOADED")
+  extractedData Json?
+  analyzedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  business  Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  contracts Contract[]
+
+  @@map("documents")
+}
+
+model Contract {
+  id         String    @id @default(cuid())
+  documentId String
+  clientId   String?
+  type       String
+  terms      Json?
+  startDate  DateTime?
+  endDate    DateTime?
+  autoRenew  Boolean   @default(false)
+  status     String    @default("active")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  client   Client?  @relation(fields: [clientId], references: [id])
+
+  @@map("contracts")
+}
+
+model Leak {
+  id              String    @id @default(cuid())
+  businessId      String
+  clientId        String?
+  type            String
+  severity        String    @default("MEDIUM")
+  status          String    @default("OPEN")
+  title           String
+  description     String
+  annualImpact    Float     @default(0)
+  amountRecovered Float     @default(0)
+  evidence        Json?
+  detectedAt      DateTime  @default(now())
+  fixedAt         DateTime?
+  resolvedAt      DateTime?
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  client   Client?  @relation(fields: [clientId], references: [id])
+
+  @@map("leaks")
+}
+
+model Transaction {
+  id          String    @id @default(cuid())
+  businessId  String
+  externalId  String?
+  amount      Float
+  type        String
+  category    String?
+  description String?
+  date        DateTime?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+
+  @@map("transactions")
+}
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  company   String?
+  createdAt DateTime @default(now())
+
+  @@map("waitlist")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AFFILIATE ENGINE MODELS
+// ═══════════════════════════════════════════════════════════════
+
+model AffiliatePartner {
+  id                   String   @id @default(cuid())
+  name                 String
+  slug                 String   @unique
+  description          String?
+  logoUrl              String?  @map("logo_url")
+  websiteUrl           String?  @map("website_url")
+  category             String
+  subCategory          String?  @map("sub_category")
+  pricingType          String   @default("fixed") @map("pricing_type")
+  referralType         String   @default("link") @map("referral_type")
+  referralUrl          String?  @map("referral_url")
+  referralCode         String?  @map("referral_code")
+  commissionType       String   @default("percentage") @map("commission_type")
+  commissionValue      Float    @default(0) @map("commission_value")
+  commissionRecurring  Boolean  @default(false) @map("commission_recurring")
+  qualityScore         Float    @default(0.5) @map("quality_score")
+  avgUserSatisfaction  Float    @default(0) @map("avg_user_satisfaction")
+  totalClicks          Int      @default(0) @map("total_clicks")
+  totalConversions     Int      @default(0) @map("total_conversions")
+  conversionRate       Float    @default(0) @map("conversion_rate")
+  active               Boolean  @default(true)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  rates         AffiliatePartnerRate[]
+  leakMappings  AffiliatePartnerLeakMapping[]
+  referrals     AffiliateReferral[]
+
+  @@map("affiliate_partners")
+}
+
+model AffiliatePartnerRate {
+  id            String    @id @default(cuid())
+  partnerId     String    @map("partner_id")
+  rateName      String    @map("rate_name")
+  rateType      String    @map("rate_type")
+  rateValue     Float     @map("rate_value")
+  monthlyFee    Float     @default(0) @map("monthly_fee")
+  setupFee      Float     @default(0) @map("setup_fee")
+  conditions    String?
+  validFrom     DateTime  @default(now()) @map("valid_from")
+  validUntil    DateTime? @map("valid_until")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  partner AffiliatePartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@map("affiliate_partner_rates")
+}
+
+model AffiliatePartnerLeakMapping {
+  id                         String  @id @default(cuid())
+  partnerId                  String  @map("partner_id")
+  leakType                   String  @map("leak_type")
+  estimatedSavingsPercentage Float   @default(0) @map("estimated_savings_percentage")
+  active                     Boolean @default(true)
+
+  partner AffiliatePartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, leakType])
+  @@map("affiliate_partner_leak_mappings")
+}
+
+model MarketBenchmark {
+  id              String   @id @default(cuid())
+  category        String
+  subCategory     String?  @map("sub_category")
+  region          String   @default("CANADA")
+  businessSize    String?  @map("business_size")
+  top10Value      Float?   @map("top10_value")
+  lowValue        Float?   @map("low_value")
+  medianValue     Float?   @map("median_value")
+  highValue       Float?   @map("high_value")
+  unit            String?
+  sampleSize      Int      @default(0) @map("sample_size")
+  confidenceScore Float    @default(0.5) @map("confidence_score")
+  source          String?
+  lastUpdated     DateTime @default(now()) @map("last_updated")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([category, subCategory, region, businessSize])
+  @@map("market_benchmarks")
+}
+
+model UserExpenseProfile {
+  id                       String    @id @default(cuid())
+  businessId               String?   @map("business_id")
+  userId                   String?   @map("user_id")
+  category                 String
+  subCategory              String?   @map("sub_category")
+  vendorName               String?   @map("vendor_name")
+  monthlyCost              Float?    @map("monthly_cost")
+  annualCost               Float?    @map("annual_cost")
+  currentRate              Float?    @map("current_rate")
+  contractStartDate        DateTime? @map("contract_start_date")
+  contractEndDate          DateTime? @map("contract_end_date")
+  autoRenew                Boolean   @default(false) @map("auto_renew")
+  potentialSavingsMonthly  Float?    @map("potential_savings_monthly")
+  potentialSavingsAnnual   Float?    @map("potential_savings_annual")
+  bestPartnerId            String?   @map("best_partner_id")
+  detectedFromTransactions Boolean   @default(false) @map("detected_from_transactions")
+  lastAnalyzed             DateTime? @map("last_analyzed")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  @@map("user_expense_profiles")
+}
+
+model AffiliateReferral {
+  id                       String    @id @default(cuid())
+  userId                   String    @map("user_id")
+  businessId               String?   @map("business_id")
+  partnerId                String    @map("partner_id")
+  expenseProfileId         String?   @map("expense_profile_id")
+  leakId                   String?   @map("leak_id")
+  category                 String?
+  currentCostMonthly       Float?    @map("current_cost_monthly")
+  projectedSavingsMonthly  Float?    @map("projected_savings_monthly")
+  projectedSavingsAnnual   Float?    @map("projected_savings_annual")
+  actualSavingsMonthly     Float?    @map("actual_savings_monthly")
+  referralUrl              String?   @map("referral_url")
+  status                   String    @default("CLICKED")
+  convertedAt              DateTime? @map("converted_at")
+  userSatisfaction         Int?      @map("user_satisfaction")
+  userFeedback             String?   @map("user_feedback")
+  wouldRecommend           Boolean?  @map("would_recommend")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  partner AffiliatePartner @relation(fields: [partnerId], references: [id])
+
+  @@map("affiliate_referrals")
+}
+
+model AffiliateRecommendation {
+  id                String   @id @default(cuid())
+  userId            String?  @map("user_id")
+  businessId        String?  @map("business_id")
+  partnerId         String   @map("partner_id")
+  category          String
+  reason            String?
+  estimatedSavings  Float?   @map("estimated_savings")
+  confidence        Float    @default(0.5)
+  dismissed         Boolean  @default(false)
+  dismissReason     String?  @map("dismiss_reason")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("affiliate_recommendations")
+}

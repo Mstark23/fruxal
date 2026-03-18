@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+*.pem
+npm-debug.log*
+.DS_Store
+.vercel
+session1-files/
+session1-files.zip
+uploads/

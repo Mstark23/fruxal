@@ -1,0 +1,271 @@
+// =============================================================================
+// POST /api/register — Create account + bridge prescan data
+// =============================================================================
+import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+export async function POST(request: NextRequest) {
+  try {
+    const { email: rawEmail, password, name, prescanRunId } = await request.json();
+
+    if (!rawEmail || !password) {
+      return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+    }
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    }
+
+    const email = rawEmail.toLowerCase().trim();
+    const sb = supabaseAdmin;
+
+    const { data: existing } = await sb
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .single();
+
+    if (existing) {
+      return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const userId = crypto.randomUUID();
+    const { data: user, error } = await sb
+      .from("users")
+      .insert({ id: userId, email, name: name || null, password_hash: hashedPassword })
+      .select("id")
+      .single();
+
+    if (error || !user) {
+      console.error("Register error:", error);
+      return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
+    }
+
+    let businessId: string | null = null;
+    let qualifiedPlan = "solo";
+
+    if (prescanRunId) {
+      businessId = crypto.randomUUID();
+
+      let industry = "generic_small_business";
+      let province: string | null = null;
+      let revenue: number | null = null;
+      let employeeCount: number | null = null;
+      let prescanRunExists = false;
+
+      try {
+        const { data: run } = await sb.from("prescan_runs").select("*").eq("id", prescanRunId).single();
+        if (run) {
+          prescanRunExists = true;
+          industry = run.industry_slug || industry;
+          province = run.province || null;
+          revenue = run.annual_revenue || null;
+          employeeCount = run.employee_count || null;
+          console.log("✅ Bridge source A: prescan_runs found");
+        }
+      } catch (e: any) {
+        console.warn("⚠️ Bridge source A (prescan_runs):", e.message);
+      }
+
+      if (!prescanRunExists) {
+        try {
+          const { data: pr } = await sb
+            .from("prescan_results")
+            .select("*")
+            .contains("input_snapshot", { prescan_run_id: prescanRunId })
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (pr?.[0]) {
+            const snap = pr[0].input_snapshot || {};
+            industry = snap.industry || pr[0].industry || industry;
+            province = snap.province || pr[0].province || null;
+            revenue = snap.annual_revenue || (snap.monthly_revenue ? snap.monthly_revenue * 12 : null);
+            console.log("✅ Bridge source B: prescan_results found");
+            await sb.from("prescan_results").update({ user_id: userId }).eq("id", pr[0].id);
+          }
+        } catch (e: any) {
+          console.warn("⚠️ Bridge source B (prescan_results):", e.message);
+        }
+      }
+
+      const hasProfileData = !!(industry && industry !== "generic_small_business" && province);
+
+      if (prescanRunExists) {
+        try {
+          await sb.from("prescan_runs").update({
+            user_id: userId,
+            business_id: businessId,
+          }).eq("id", prescanRunId);
+          console.log("✅ Bridge step 2: prescan_runs linked");
+        } catch (e: any) {
+          console.warn("⚠️ Bridge step 2:", e.message);
+        }
+      }
+
+      try {
+        await sb.from("detected_leaks").update({
+          business_id: businessId,
+        }).eq("prescan_run_id", prescanRunId);
+      } catch (e: any) {
+        console.warn("⚠️ Bridge step 3 (detected_leaks):", e.message);
+      }
+
+      try {
+        const { data: prResults } = await sb
+          .from("prescan_results")
+          .select("id")
+          .contains("input_snapshot", { prescan_run_id: prescanRunId });
+        if (prResults && prResults.length > 0) {
+          for (const pr of prResults) {
+            await sb.from("prescan_results").update({ user_id: userId }).eq("id", pr.id);
+          }
+          console.log(`✅ Bridge step 3.5: ${prResults.length} prescan_results linked`);
+        }
+      } catch (e: any) {
+        console.warn("⚠️ Bridge step 3.5:", e.message);
+      }
+
+      try {
+        await sb.from("business_profiles").upsert({
+          business_id: businessId,
+          user_id: userId,
+          business_name: name ? `${name}'s Business` : "My Business",
+          industry, industry_slug: industry,
+          province,
+          monthly_revenue: revenue ? Math.round(revenue / 12) : null,
+          annual_revenue: revenue || null,
+          employee_count: employeeCount,
+          onboarding_completed: hasProfileData,
+          onboarding_completed_at: hasProfileData ? new Date().toISOString() : null,
+          tour_completed_at: hasProfileData ? new Date().toISOString() : null,
+          tour_step_reached: hasProfileData ? 5 : 0,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "business_id" });
+        console.log("✅ Bridge step 4: business_profiles created");
+      } catch (e: any) {
+        console.warn("⚠️ Bridge step 4 (full):", e.message);
+        try {
+          await sb.from("business_profiles").upsert({
+            business_id: businessId,
+            user_id: userId,
+            business_name: name ? `${name}'s Business` : "My Business",
+            industry, industry_slug: industry,
+            province,
+            annual_revenue: revenue || null,
+            onboarding_completed: hasProfileData,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "business_id" });
+          console.log("✅ Bridge step 4 fallback 1: without tour columns");
+        } catch (e2: any) {
+          console.warn("⚠️ Bridge step 4 fallback 1:", e2.message);
+          try {
+            await sb.from("business_profiles").upsert({
+              business_id: businessId, user_id: userId,
+              industry, province, annual_revenue: revenue || null,
+              onboarding_completed: hasProfileData,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: "user_id" });
+            console.log("✅ Bridge step 4 fallback 2: minimal");
+          } catch {}
+        }
+      }
+
+      // ─── Derive tier — assign to outer qualifiedPlan (no const) ───
+      const derivedTier = "Free";
+      qualifiedPlan =
+        (revenue && revenue >= 5_000_000) ? "enterprise" :
+        (employeeCount && employeeCount > 0) || (revenue && revenue >= 500_000) ? "business" :
+        "solo";
+
+      try {
+        await sb.from("businesses").upsert({
+          id: businessId, owner_user_id: userId,
+          name: name ? `${name}'s Business` : "My Business",
+          industry, industry_slug: industry,
+          province, annual_revenue: revenue || null, tier: derivedTier,
+          qualified_plan: qualifiedPlan,
+        }, { onConflict: "id" });
+      } catch (e: any) {
+        console.warn("⚠️ Bridge step 5 (businesses):", e.message);
+      }
+
+      try {
+        await sb.from("business_members").upsert({
+          userId, businessId, role: "owner",
+        }, { onConflict: "userId,businessId" });
+      } catch (e: any) {
+        console.warn("⚠️ Bridge step 6 (business_members):", e.message);
+      }
+
+      try {
+        await sb.rpc("auto_detect_flags", { p_business_id: businessId });
+      } catch {}
+
+      try {
+        const { data: detectedLeaks } = await sb
+          .from("detected_leaks")
+          .select("leak_type_code, title, annual_impact_min, category, severity")
+          .eq("prescan_run_id", prescanRunId);
+
+        if (detectedLeaks && detectedLeaks.length > 0) {
+          const leakRows = detectedLeaks.map((l: any) => ({
+            user_id: userId,
+            leak_slug: l.leak_type_code || l.title?.toLowerCase().replace(/\s+/g, "_") || "unknown",
+            status: "detected",
+            savings_amount: l.annual_impact_min || 0,
+          }));
+          await sb.from("user_leak_status").upsert(leakRows, { onConflict: "user_id,leak_slug" });
+          console.log(`✅ Bridge step 8: ${leakRows.length} leaks seeded from detected_leaks`);
+        } else {
+          const { data: pr } = await sb
+            .from("prescan_results")
+            .select("teaser_leaks")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (pr?.[0]?.teaser_leaks?.length > 0) {
+            const leakRows = (pr?.[0]?.teaser_leaks || []).map((l: any) => ({
+              user_id: userId,
+              leak_slug: l.slug || "unknown",
+              status: "detected",
+              savings_amount: l.impact_min || 0,
+            }));
+            await sb.from("user_leak_status").upsert(leakRows, { onConflict: "user_id,leak_slug" });
+            console.log(`✅ Bridge step 8: ${leakRows.length} leaks seeded from prescan_results`);
+          } else if (province) {
+            const { data: genericLeaks } = await sb
+              .from("provincial_leak_detectors")
+              .select("slug, annual_impact_min")
+              .eq("province", province)
+              .eq("is_active", true);
+            if (genericLeaks && genericLeaks.length > 0) {
+              const leakRows = genericLeaks.map((g: any) => ({
+                user_id: userId, leak_slug: g.slug,
+                status: "detected", savings_amount: g.annual_impact_min || 0,
+              }));
+              await sb.from("user_leak_status").upsert(leakRows, { onConflict: "user_id,leak_slug" });
+              console.log(`✅ Bridge step 8: ${genericLeaks.length} leaks from provincial defaults`);
+            }
+          }
+        }
+      } catch (e: any) {
+        console.warn("⚠️ Bridge step 8 (leak seeding):", e.message);
+      }
+
+      console.log(`✅ Prescan bridge complete: user=${userId}, biz=${businessId}, prescan=${prescanRunId}`);
+    }
+
+    return NextResponse.json(
+      { success: true, userId: user.id, businessId, qualifiedPlan },
+      { status: 201 }
+    );
+
+  } catch (err: any) {
+    console.error("[Register] Error:", err);
+    return NextResponse.json({ error: err.message || "Registration failed" }, { status: 500 });
+  }
+}

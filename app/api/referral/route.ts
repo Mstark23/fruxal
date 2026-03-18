@@ -1,0 +1,67 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+// GET — Get referral code + stats for a user
+export async function GET(req: NextRequest) {
+  const userId = req.nextUrl.searchParams.get("userId");
+  if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+
+  try {
+    // Get or create referral code
+    let { data: ref } = await supabase.from("referrals").select("*").eq("referrerId", userId).single();
+
+    if (!ref) {
+      const code = "LG-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { data: newRef } = await supabase.from("referrals").insert({
+        referrerId: userId,
+        code,
+        signups: 0,
+        conversions: 0,
+        earned: 0,
+        createdAt: new Date().toISOString(),
+      }).select().single();
+      ref = newRef;
+    }
+
+    return NextResponse.json({
+      code: ref?.code || "",
+      link: `${process.env.NEXTAUTH_URL || "https://fruxal.com"}/register?ref=${ref?.code}`,
+      signups: ref?.signups || 0,
+      conversions: ref?.conversions || 0,
+      earned: ref?.earned || 0,
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// POST — Track a referral signup
+export async function POST(req: NextRequest) {
+  try {
+    const { referralCode, newUserId } = await req.json();
+    if (!referralCode || !newUserId) return NextResponse.json({ error: "referralCode and newUserId required" }, { status: 400 });
+
+    // Find referrer
+    const { data: ref } = await supabase.from("referrals").select("*").eq("code", referralCode).single();
+    if (!ref) return NextResponse.json({ error: "Invalid referral code" }, { status: 404 });
+
+    // Increment signups
+    await supabase.from("referrals").update({
+      signups: (ref.signups || 0) + 1,
+    }).eq("code", referralCode);
+
+    // Save the referral link
+    await supabase.from("referral_signups").insert({
+      referralCode,
+      referrerId: ref.referrerId,
+      referredUserId: newUserId,
+      createdAt: new Date().toISOString(),
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

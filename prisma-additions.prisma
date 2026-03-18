@@ -1,0 +1,118 @@
+// ============================================================================
+// ADD THESE MODELS TO YOUR EXISTING prisma/schema.prisma
+// ============================================================================
+
+model LeakType {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  nameFr          String?
+  description     String?
+  category        String
+  industrySlug    String?
+  severity        String   @default("MEDIUM")
+  avgImpactPct    Decimal? @db.Decimal(5, 2)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("leak_types")
+}
+
+model IndustryBenchmark {
+  id             String   @id @default(cuid())
+  industrySlug   String
+  metricKey      String
+  metricName     String
+  metricNameFr   String?
+  avgValue       Decimal? @db.Decimal(12, 4)
+  topPerformer   Decimal? @db.Decimal(12, 4)
+  unit           String?
+  lowerIsBetter  Boolean  @default(false)
+  source         String?
+  updatedAt      DateTime @updatedAt
+
+  @@unique([industrySlug, metricKey])
+  @@map("industry_benchmarks")
+}
+
+model PrescanRun {
+  id                String   @id @default(cuid())
+
+  // Identity
+  tempUserId        String?
+  userId            String?
+  businessId        String?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  business          Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  // Business snapshot
+  businessName      String?
+  industrySlug      String?
+  industryLabel     String?
+  industryLabelFr   String?
+  annualRevenue     Decimal? @db.Decimal(15, 2)
+  employeeCount     Int?
+  tier              String?
+  language          String   @default("en")
+  country           String   @default("CA")
+  province          String?
+
+  // Raw data
+  rawAnswers        Json     @default("{}")
+  extractedTags     Json     @default("{}")
+  conversationLog   Json     @default("[]")
+
+  // Results
+  totalLeaksFound   Int      @default(0)
+  estimatedLossMin  Decimal? @db.Decimal(15, 2)
+  estimatedLossMax  Decimal? @db.Decimal(15, 2)
+  healthScore       Int?
+  scanStatus        String   @default("pending")
+
+  // Conversion
+  prescanVersion    String   @default("v2")
+  source            String?
+  utmSource         String?
+  utmCampaign       String?
+  convertedToPaid   Boolean  @default(false)
+  convertedAt       DateTime?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  detectedLeaks     DetectedLeak[]
+
+  @@map("prescan_runs")
+}
+
+model DetectedLeak {
+  id              String     @id @default(cuid())
+  prescanRunId    String
+  prescanRun      PrescanRun @relation(fields: [prescanRunId], references: [id], onDelete: Cascade)
+
+  leakTypeCode    String?
+  category        String
+  title           String
+  titleFr         String?
+  description     String?
+  descriptionFr   String?
+
+  severity        String     @default("MEDIUM")
+  annualImpactMin Decimal?   @db.Decimal(15, 2)
+  annualImpactMax Decimal?   @db.Decimal(15, 2)
+  impactPct       Decimal?   @db.Decimal(5, 2)
+
+  evidence        Json       @default("{}")
+  quickFix        String?
+  quickFixFr      String?
+  fullFix         String?
+  affiliateIds    Json       @default("[]")
+
+  isFreePreview   Boolean    @default(false)
+  displayOrder    Int        @default(0)
+
+  createdAt       DateTime   @default(now())
+
+  @@map("detected_leaks")
+}
