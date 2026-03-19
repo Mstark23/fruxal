@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid plan. Choose 'pro' or 'team'" }, { status: 400 });
     }
 
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+    const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
     const checkoutUrl = await createCheckout(
       businessId,
       userId,
@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest) {
     const { businessId } = await req.json();
     if (!businessId) return NextResponse.json({ error: "businessId required" }, { status: 400 });
 
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+    const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
     const portalUrl = await createPortalSession(businessId, `${origin}/dashboard`);
 
     return NextResponse.json({ url: portalUrl });
