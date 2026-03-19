@@ -285,9 +285,7 @@ export async function POST(req: NextRequest) {
     // ─── TRY RUNNING TRANSACTION-INTELLIGENCE ENGINE ────────────────────────
     let engineLeaks: any[] = [];
     try {
-      // @ts-ignore — engine removed; graceful no-op
-      const { analyzeTransactions } = await import("@/services/transaction-intelligence/engine");
-      const txnResults = await analyzeTransactions(businessId);
+      const txnResults: any[] = [];
       engineLeaks = txnResults || [];
     } catch (e: any) {
       console.log("Transaction engine skipped:", e.message);
@@ -309,9 +307,7 @@ export async function POST(req: NextRequest) {
 
     // ─── TRY RUNNING FINANCIAL BLINDSPOTS ENGINE ────────────────────────────
     try {
-      // @ts-ignore — engine removed; graceful no-op
-      const { analyzeFinancialBlindSpots } = await import("@/services/financial-blindspots/engine");
-      const finResults = await analyzeFinancialBlindSpots(businessId);
+      const finResults: any[] = [];
       for (const leak of (finResults || [])) {
         findings.push({
           title: leak.title,
