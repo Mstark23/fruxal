@@ -93,7 +93,7 @@ export default function Tier3ClientDashboard() {
     }
   };
 
-  const fade = (d = 0) => ({ opacity: mounted?1:0, transform: mounted?"none":"translateY(8px)", transition: `all 0.5s cubic-bezier(0.16,1,0.3,1) ${d}s` });
+  const fade = (d = 0) => ({ opacity: mounted?1:0, transform: mounted?"none":"translateY(8px)", transition: `all 0.5s cubic-bezier(0.16,1,0.3,1) ${d}s` } as React.CSSProperties);
 
   const stageList = engagement?.stages || Object.keys(STAGE_LABELS);
   const currentStageIdx = engagement?.stageIndex ?? 0;
@@ -148,7 +148,7 @@ export default function Tier3ClientDashboard() {
       <div style={{maxWidth:900,margin:"0 auto",padding:"24px 20px 60px"}}>
 
         {/* Header */}
-        <div style={{,marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12, opacity: mounted?1:0, transform: mounted?"translateY(0)":"translateY(8px)", transition: "all 0.5s ease 0s" }}>
+        <div style={{...fade(0),marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
           <div>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
               <span style={{fontSize:10,fontWeight:700,color:"#1B3A2D",background:"rgba(27,58,45,0.07)",padding:"2px 10px",borderRadius:100,textTransform:"uppercase",letterSpacing:"0.08em"}}>
@@ -175,7 +175,7 @@ export default function Tier3ClientDashboard() {
 
         {/* Stage progress bar */}
         {engagement && (
-          <div style={{,background:"white",border:"1px solid #EEECE8",borderRadius:12,padding:"18px 20px",marginBottom:20,overflowX:"auto", opacity: mounted?1:0, transform: mounted?"translateY(0)":"translateY(8px)", transition: "all 0.5s ease 0.05s" }}>
+          <div style={{...fade(0.05),background:"white",border:"1px solid #EEECE8",borderRadius:12,padding:"18px 20px",marginBottom:20,overflowX:"auto"}}>
             <p style={{fontSize:10,fontWeight:700,color:"#B5B3AD",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>
               {t("Engagement Progress","Progression de l'engagement")}
             </p>
@@ -215,7 +215,7 @@ export default function Tier3ClientDashboard() {
 
         {/* KPI row */}
         {engagement && (
-          <div style={{,display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20, opacity: mounted?1:0, transform: mounted?"translateY(0)":"translateY(8px)", transition: "all 0.5s ease 0.1s" }}>
+          <div style={{...fade(0.1),display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
             {[
               {
                 label: t("Est. Savings Range","Économies estimées"),
@@ -248,7 +248,7 @@ export default function Tier3ClientDashboard() {
         )}
 
         {/* Tabs */}
-        <div style={{,display:"flex",gap:0,borderBottom:"1px solid #EEECE8",marginBottom:20, opacity: mounted?1:0, transform: mounted?"translateY(0)":"translateY(8px)", transition: "all 0.5s ease 0.12s" }}>
+        <div style={{...fade(0.12),display:"flex",gap:0,borderBottom:"1px solid #EEECE8",marginBottom:20}}>
           {TABS.map(tb => (
             <button key={tb.id} className="tab-btn" onClick={() => setTab(tb.id as any)}
               style={{padding:"10px 18px",fontSize:13,fontWeight:tab===tb.id?600:400,color:tab===tb.id?"#1A1A18":"#8E8C85",borderBottom:tab===tb.id?"2px solid #1B3A2D":"2px solid transparent",marginBottom:-1,transition:"all 0.15s"}}>
@@ -294,7 +294,7 @@ export default function Tier3ClientDashboard() {
                 <p style={{fontSize:11,fontWeight:700,color:"#B5B3AD",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>{t("Recovery Progress","Progression de récupération")}</p>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                   <div style={{flex:1,height:8,background:"#F0EFEB",borderRadius:4,overflow:"hidden"}}>
-                    <div style={{height:"100%",width:Math.max(recoveryPct,1) + "%",background:"#2D7A50",borderRadius:4,transition:"width 1s ease"}}/>
+                    <div style={{height:"100%",width:`${Math.max(recoveryPct,1)}%`,background:"#2D7A50",borderRadius:4,transition:"width 1s ease"}}/>
                   </div>
                   <span style={{fontSize:13,fontWeight:700,color:"#2D7A50",width:36,textAlign:"right"}}>{recoveryPct}%</span>
                 </div>
@@ -376,7 +376,7 @@ export default function Tier3ClientDashboard() {
                   {lk.confidence && (
                     <div style={{display:"flex",alignItems:"center",gap:6}}>
                       <div style={{height:3,width:48,background:"#EEECE8",borderRadius:2,overflow:"hidden"}}>
-                        <div style={{height:"100%",width:lk.confidence + "%",background:lk.confidence>70?"#2D7A50":lk.confidence>40?"#d97706":"#B34040",borderRadius:2}}/>
+                        <div style={{height:"100%",width:`${lk.confidence}%`,background:lk.confidence>70?"#2D7A50":lk.confidence>40?"#d97706":"#B34040",borderRadius:2}}/>
                       </div>
                       <p style={{fontSize:10,color:"#B5B3AD"}}>{lk.confidence}% {t("confidence","confiance")}</p>
                     </div>
