@@ -38,6 +38,14 @@ export interface PromptInputs {
   stripeChurnRate?: number;
   stripeRefundRate?: number;
   dataSource?:      string;
+  // Parsed document data from intake uploads
+  docData?: {
+    t2:         any | null;
+    financials: any | null;
+    gst:        any | null;
+    t4:         any | null;
+    bank:       any | null;
+  };
   ctx: DiagnosticContext;
 }
 
@@ -328,6 +336,52 @@ ${inputs.qbBankBalance && inputs.qbBankBalance > 0 ? `- Bank balance: $${inputs.
 ${inputs.stripeChurnRate && inputs.stripeChurnRate > 0 ? `- Stripe churn rate: ${inputs.stripeChurnRate.toFixed(1)}%` : ""}
 ${inputs.stripeRefundRate && inputs.stripeRefundRate > 0 ? `- Stripe refund rate: ${inputs.stripeRefundRate.toFixed(1)}%` : ""}
 ${inputs.dataSource ? `- Data source: ${inputs.dataSource}` : ""}
+${(() => {
+  const d = inputs.docData;
+  if (!d) return "";
+  const lines: string[] = [];
+  if (d.t2) {
+    lines.push("\nVERIFIED T2 CORPORATE RETURN DATA (treat as authoritative — from actual CRA filing):");
+    if (d.t2.tax_year)                lines.push(`  Tax year: ${d.t2.tax_year}`);
+    if (d.t2.net_income_before_tax)   lines.push(`  Net income before tax: $${d.t2.net_income_before_tax.toLocaleString()}`);
+    if (d.t2.taxable_income)          lines.push(`  Taxable income: $${d.t2.taxable_income.toLocaleString()}`);
+    if (d.t2.total_tax_payable)       lines.push(`  Total tax payable: $${d.t2.total_tax_payable.toLocaleString()}`);
+    if (d.t2.small_business_deduction)lines.push(`  SBD claimed: $${d.t2.small_business_deduction.toLocaleString()}`);
+    if (d.t2.sred_credit_claimed)     lines.push(`  SR&ED credit: $${d.t2.sred_credit_claimed.toLocaleString()}`);
+    if (d.t2.rdtoh_balance)           lines.push(`  RDTOH balance: $${d.t2.rdtoh_balance.toLocaleString()}`);
+    if (d.t2.passive_income)          lines.push(`  Passive income: $${d.t2.passive_income.toLocaleString()}`);
+    if (d.t2.confidence)              lines.push(`  Parse confidence: ${d.t2.confidence}`);
+  }
+  if (d.financials) {
+    lines.push("\nVERIFIED FINANCIAL STATEMENTS DATA (treat as authoritative):");
+    if (d.financials.total_revenue)   lines.push(`  Total revenue: $${d.financials.total_revenue.toLocaleString()}`);
+    if (d.financials.gross_profit)    lines.push(`  Gross profit: $${d.financials.gross_profit.toLocaleString()}`);
+    if (d.financials.gross_margin_pct)lines.push(`  Gross margin: ${d.financials.gross_margin_pct.toFixed(1)}%`);
+    if (d.financials.ebitda)          lines.push(`  EBITDA: $${d.financials.ebitda.toLocaleString()}`);
+    if (d.financials.net_income)      lines.push(`  Net income: $${d.financials.net_income.toLocaleString()}`);
+    if (d.financials.total_assets)    lines.push(`  Total assets: $${d.financials.total_assets.toLocaleString()}`);
+    if (d.financials.total_liabilities)lines.push(`  Total liabilities: $${d.financials.total_liabilities.toLocaleString()}`);
+    if (d.financials.accounts_receivable)lines.push(`  Accounts receivable: $${d.financials.accounts_receivable.toLocaleString()}`);
+    if (d.financials.accounts_payable)lines.push(`  Accounts payable: $${d.financials.accounts_payable.toLocaleString()}`);
+    if (d.financials.confidence)      lines.push(`  Parse confidence: ${d.financials.confidence}`);
+  }
+  if (d.gst) {
+    lines.push("\nVERIFIED GST/HST RETURN DATA:");
+    if (d.gst.total_sales_and_other_revenue) lines.push(`  Reported GST sales: $${d.gst.total_sales_and_other_revenue.toLocaleString()}`);
+    if (d.gst.gst_hst_collected)             lines.push(`  GST/HST collected: $${d.gst.gst_hst_collected.toLocaleString()}`);
+    if (d.gst.input_tax_credits)             lines.push(`  ITCs claimed: $${d.gst.input_tax_credits.toLocaleString()}`);
+    if (d.gst.net_tax_remitted)              lines.push(`  Net remitted: $${d.gst.net_tax_remitted.toLocaleString()}`);
+    if (d.gst.quick_method !== undefined)    lines.push(`  Quick method elected: ${d.gst.quick_method ? "YES" : "NO"}`);
+  }
+  if (d.t4) {
+    lines.push("\nVERIFIED T4 SUMMARY DATA:");
+    if (d.t4.total_employment_income) lines.push(`  Total T4 employment income: $${d.t4.total_employment_income.toLocaleString()}`);
+    if (d.t4.number_of_t4s)           lines.push(`  Number of T4s issued: ${d.t4.number_of_t4s}`);
+    if (d.t4.total_cpp_deducted)      lines.push(`  Total CPP deducted: $${d.t4.total_cpp_deducted.toLocaleString()}`);
+    if (d.t4.total_ei_deducted)       lines.push(`  Total EI deducted: $${d.t4.total_ei_deducted.toLocaleString()}`);
+  }
+  return lines.join("\n");
+})()}
 
 COMPLIANCE:
 - Obligations tracked: ${obligations.length}

@@ -95,11 +95,13 @@ export async function POST(req: NextRequest) {
       (profile.monthly_revenue ? profile.monthly_revenue * 12 : 0) ||
       0;
 
-    const revenueSource = profile.exact_annual_revenue  ? "T2/financial statements"
-      : profile.qb_revenue_ttm                          ? "QuickBooks TTM"
-      : profile.stripe_arr                              ? "Stripe ARR"
-      : profile.plaid_revenue_90d                       ? "Plaid 90d annualised"
-      : profile.annual_revenue                          ? "onboarding estimate"
+    const revenueSource = profile.doc_financials_data?.total_revenue  ? "verified financial statements (uploaded)"
+      : profile.doc_t2_data?.net_income_before_tax                   ? "verified T2 return (uploaded)"
+      : profile.exact_annual_revenue                                  ? "intake (exact)"
+      : profile.qb_revenue_ttm                                        ? "QuickBooks TTM"
+      : profile.stripe_arr                                            ? "Stripe ARR"
+      : profile.plaid_revenue_90d                                     ? "Plaid 90d annualised"
+      : profile.annual_revenue                                        ? "onboarding estimate"
       : "monthly x 12 estimate";
 
     // Gross margin: QB actuals > intake > industry default
@@ -165,6 +167,14 @@ export async function POST(req: NextRequest) {
       stripeChurnRate:  profile.stripe_churn_rate_pct || 0,
       stripeRefundRate: profile.stripe_refund_rate_pct || 0,
       dataSource:     revenueSource,
+      // Parsed document data from intake uploads — feed directly to Claude as authoritative
+      docData: {
+        t2:         profile.doc_t2_data         || null,
+        financials: profile.doc_financials_data || null,
+        gst:        profile.doc_gst_data        || null,
+        t4:         profile.doc_t4_data         || null,
+        bank:       profile.doc_bank_data       || null,
+      },
       ctx,
     };
 

@@ -32,4 +32,12 @@ export interface DiagCtx {
   rdtohBalance:     number;
   hasCDA:           boolean;
   sredLastYear:     number;
+  // Parsed document data (from Claude document parser — may be null if not uploaded)
+  docData: {
+    t2:         any | null;  // T2 Corporate Return extracted fields
+    financials: any | null;  // Financial statements extracted fields
+    gst:        any | null;  // GST/HST Return extracted fields
+    t4:         any | null;  // T4 Summary extracted fields
+    bank:       any | null;  // Bank statement extracted fields
+  };
 }
