@@ -1000,60 +1000,115 @@ export default function EnterpriseDashboard() {
                 );
               })()}
               <div className="divide-y divide-border-light">
-                {(findingsTab === "quick"
-                  ? findings.filter((f:any) => ["medium","low"].includes(f.severity) || f.effort === "low" || (f.timeline && (f.timeline.toLowerCase().includes("week") || f.timeline.toLowerCase().includes("day") || f.timeline.toLowerCase().includes("semaine"))))
-                  : findingsTab === "strategic"
-                  ? findings.filter((f:any) => ["critical","high"].includes(f.severity))
-                  : findings
-                ).map((f: any, i: number) => {
-                  const sev = SEV[f.severity] || SEV.low;
-                  return (
-                    <div key={i} className="px-4 py-3 hover:bg-bg cursor-pointer group"
-                      style={{ borderLeft: `3px solid ${sev.dot}` }}
-                      onClick={() => reportId && router.push(`/v2/diagnostic/${reportId}`)}>
-                      <div className="flex items-start gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors">
-                              {isFr ? (f.title_fr || f.title) : f.title}
-                            </span>
-                            <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">
-                              {fmtM(f.impact_max || f.impact_min || 0)}
-                            </span>
+                {(() => {
+                  const visibleFindings = (findingsTab === "quick"
+                    ? findings.filter((f:any) => ["medium","low"].includes(f.severity) || f.effort === "low" || (f.timeline && (f.timeline.toLowerCase().includes("week") || f.timeline.toLowerCase().includes("day") || f.timeline.toLowerCase().includes("semaine"))))
+                    : findingsTab === "strategic"
+                    ? findings.filter((f:any) => ["critical","high"].includes(f.severity))
+                    : findings
+                  );
+                  const FREE_COUNT = 3;
+                  const freeFindings   = visibleFindings.slice(0, FREE_COUNT);
+                  const lockedFindings = visibleFindings.slice(FREE_COUNT);
+                  const lockedValue    = lockedFindings.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
+                  const callHref       = entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`;
+                  return (<>
+                    {freeFindings.map((f: any, i: number) => {
+                      const sev = SEV[f.severity] || SEV.low;
+                      return (
+                        <div key={i} className="px-4 py-3 hover:bg-bg cursor-pointer group"
+                          style={{ borderLeft: `3px solid ${sev.dot}` }}
+                          onClick={() => reportId && router.push(`/v2/diagnostic/${reportId}`)}>
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors">
+                                  {isFr ? (f.title_fr || f.title) : f.title}
+                                </span>
+                                <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">
+                                  {fmtM(f.impact_max || f.impact_min || 0)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[9px] text-ink-faint">{f.category}</span>
+                                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                                  style={{ background: sev.badge, color: sev.text }}>{f.severity}</span>
+                                {f.timeline && <span className="text-[9px] text-ink-faint">{f.timeline}</span>}
+                                {f.ebitda_improvement > 0 && (
+                                  <span className="text-[9px] font-bold text-positive">+{fmtM(f.ebitda_improvement)} EBITDA</span>
+                                )}
+                                {f.enterprise_value_improvement > 0 && (
+                                  <span className="text-[9px] font-semibold" style={{ color: "#1B3A2D" }}>+{fmtM(f.enterprise_value_improvement)} EV</span>
+                                )}
+                              </div>
+                              {f.calculation_shown && (
+                                <p className="text-[9px] text-ink-faint font-mono mt-1.5 bg-bg-section px-2 py-1 rounded leading-relaxed">
+                                  {isFr ? (f.calculation_shown_fr || f.calculation_shown) : f.calculation_shown}
+                                </p>
+                              )}
+                              {f.recommendation && (
+                                <p className="text-[10px] font-medium mt-1.5 px-2 py-1 rounded"
+                                  style={{ background: "rgba(27,58,45,0.04)", color: "#1B3A2D", borderLeft: "2px solid rgba(27,58,45,0.25)" }}>
+                                  {isFr ? (f.recommendation_fr || f.recommendation) : f.recommendation}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[9px] text-ink-faint">{f.category}</span>
-                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                              style={{ background: sev.badge, color: sev.text }}>{f.severity}</span>
-                            {f.timeline && <span className="text-[9px] text-ink-faint">{f.timeline}</span>}
-                            {f.ebitda_improvement > 0 && (
-                              <span className="text-[9px] font-bold text-positive">+{fmtM(f.ebitda_improvement)} EBITDA</span>
+                        </div>
+                      );
+                    })}
+                    {/* ── Lock gate — findings 4+ ───────────────────────── */}
+                    {lockedFindings.length > 0 && (
+                      <div className="relative">
+                        {/* Blurred preview rows */}
+                        {lockedFindings.slice(0, 2).map((f: any, i: number) => {
+                          const sev = SEV[f.severity] || SEV.low;
+                          return (
+                            <div key={i} className="px-4 py-3 select-none pointer-events-none"
+                              style={{ borderLeft: `3px solid ${sev.dot}`, filter: "blur(4px)", opacity: 0.4 }}>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[12px] font-semibold text-ink flex-1">{isFr ? (f.title_fr || f.title) : f.title}</span>
+                                <span className="font-serif text-[13px] font-bold text-negative">{fmtM(f.impact_max || f.impact_min || 0)}</span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[9px] text-ink-faint">{f.category}</span>
+                                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: sev.badge, color: sev.text }}>{f.severity}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {/* Lock overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center"
+                          style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.97) 40%)" }}>
+                          <div className="text-center px-6 pt-8 pb-4">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3"
+                              style={{ background: "rgba(27,58,45,0.08)" }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                            </div>
+                            <p className="text-[13px] font-bold text-ink mb-1">
+                              {lockedFindings.length} {t("more findings locked", "constats supplémentaires verrouillés")}
+                            </p>
+                            {lockedValue > 0 && (
+                              <p className="text-[11px] text-ink-muted mb-3">
+                                {t("Additional", "Supplémentaire")} <span className="font-bold text-negative">{fmtM(lockedValue)}</span> {t("identified — recovered on contingency.", "identifié — récupéré à la performance.")}
+                              </p>
                             )}
-                            {f.enterprise_value_improvement > 0 && (
-                              <span className="text-[9px] font-semibold" style={{ color: "#1B3A2D" }}>+{fmtM(f.enterprise_value_improvement)} EV</span>
-                            )}
+                            <p className="text-[10px] text-ink-faint mb-4">
+                              {t("We find it. We recover it. You pay 12% of what we save you — nothing upfront.", "Nous trouvons. Nous récupérons. Vous payez 12% de ce que nous économisons — rien d'avance.")}
+                            </p>
+                            <a href={callHref} target="_blank" rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-5 py-2.5 text-[12px] font-bold text-white rounded-lg transition hover:opacity-90"
+                              style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 0112 2.18 2 2 0 0114.09 4v3.09a2 2 0 01-1.45 1.93l-1.37.46a16 16 0 006.29 6.29l.46-1.37a2 2 0 011.93-1.45z"/></svg>
+                              {t("Book free strategy call →", "Réserver un appel stratégie gratuit →")}
+                            </a>
+                            <p className="text-[9px] text-ink-faint mt-2">{t("No credit card · No commitment · 30 min", "Sans carte · Sans engagement · 30 min")}</p>
                           </div>
-                          {f.calculation_shown && (
-                            <p className="text-[9px] text-ink-faint font-mono mt-1.5 bg-bg-section px-2 py-1 rounded leading-relaxed">
-                              {isFr ? (f.calculation_shown_fr || f.calculation_shown) : f.calculation_shown}
-                            </p>
-                          )}
-                          {f.second_order_effects && (
-                            <p className="text-[9px] text-ink-faint italic mt-1">
-                              → {isFr ? (f.second_order_effects_fr || f.second_order_effects) : f.second_order_effects}
-                            </p>
-                          )}
-                          {f.recommendation && (
-                            <p className="text-[10px] font-medium mt-1.5 px-2 py-1 rounded"
-                              style={{ background: "rgba(27,58,45,0.04)", color: "#1B3A2D", borderLeft: "2px solid rgba(27,58,45,0.25)" }}>
-                              {isFr ? (f.recommendation_fr || f.recommendation) : f.recommendation}
-                            </p>
-                          )}
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    )}
+                  </>);
+                })()}
               </div>
             </div>
           </>
@@ -1149,14 +1204,31 @@ export default function EnterpriseDashboard() {
           </div>
         </div>
 
-        {/* ── Executive summary ───────────────────────────────────────────── */}
-        {execSummary && (
-          <div className="bg-white rounded-xl border border-border-light px-5 py-4 mb-3"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Executive Summary", "Résumé exécutif")}</p>
-            <p className="text-[12px] text-ink-muted leading-relaxed">{isFr ? (execSummaryFr || execSummary) : execSummary}</p>
-          </div>
-        )}
+        {/* ── Executive summary (teaser — first sentence only) ────────────── */}
+        {execSummary && (() => {
+          const full = isFr ? (execSummaryFr || execSummary) : execSummary;
+          const teaser = full.split(/[.!?]/)[0] + ".";
+          const callHref = entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`;
+          return (
+            <div className="bg-white rounded-xl border border-border-light px-5 py-4 mb-3"
+              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Executive Summary", "Résumé exécutif")}</p>
+              <p className="text-[12px] text-ink-muted leading-relaxed">{teaser}</p>
+              <div className="mt-3 flex items-center gap-3 pt-3 border-t border-border-light">
+                <div className="w-4 h-4 flex items-center justify-center shrink-0"
+                  style={{ color: "#1B3A2D" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </div>
+                <p className="text-[10px] text-ink-faint flex-1">{t("Full analysis, CPA briefing, and priority action plan unlocked on your strategy call.", "Analyse complète, briefing CPA et plan d'action déverrouillés lors de votre appel stratégie.")}</p>
+                <a href={callHref} target="_blank" rel="noopener noreferrer"
+                  className="shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
+                  style={{ background: "#1B3A2D" }}>
+                  {t("Book call →", "Réserver →")}
+                </a>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Risk Matrix ─────────────────────────────────────────────────── */}
         {riskMatrix.length > 0 && (
@@ -1195,173 +1267,73 @@ export default function EnterpriseDashboard() {
           </div>
         )}
 
-        {/* ── CPA / Board Briefing ────────────────────────────────────────── */}
-        {briefing && (
-          <div className="bg-white rounded-xl border border-border-light p-5 mb-3"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Board / CPA Briefing", "Briefing conseil / CPA")}</p>
-              <button onClick={() => window.print()} className="text-[9px] font-medium text-ink-faint hover:text-brand border border-border-light rounded px-2 py-0.5">🖨 {t("Print", "Imprimer")}</button>
-            </div>
-            {briefing.intro && (
-              <p className="text-[12px] text-ink-muted leading-relaxed mb-3">
-                {isFr ? (briefing.intro_fr || briefing.intro) : briefing.intro}
-              </p>
-            )}
-            {briefing.talking_points?.length > 0 && (
-              <div className="space-y-1.5 mb-3">
-                {briefing.talking_points.map((tp: any, i: number) => (
-                  <p key={i} className="text-[11px] text-ink-muted italic">
-                    · {isFr ? (tp.point_fr || tp.point) : tp.point}
-                  </p>
-                ))}
-              </div>
-            )}
-            {briefing.forms_to_discuss?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {briefing.forms_to_discuss.map((form: string, i: number) => (
-                  <span key={i} className="text-[9px] px-2 py-0.5 bg-bg-section text-ink-faint rounded border border-border-light">{form}</span>
-                ))}
-              </div>
-            )}
-            {briefing.tax_exposures && (
-              <div className="rounded-lg px-3 py-2"
-                style={{ background: "rgba(196,132,29,0.04)", border: "1px solid rgba(196,132,29,0.10)" }}>
-                <p className="text-[10px] text-ink-muted">
-                  {isFr ? (briefing.tax_exposures_fr || briefing.tax_exposures) : briefing.tax_exposures}
-                </p>
-              </div>
-            )}
-            {(briefing.rdtoh_strategy || briefing.cda_strategy || briefing.lcge_plan) && (
-              <div className="mt-3 space-y-1.5">
-                {briefing.rdtoh_strategy && (
-                  <div className="rounded-lg px-3 py-2" style={{ background: "rgba(3,105,161,0.04)", border: "1px solid rgba(3,105,161,0.10)" }}>
-                    <p className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "#0369a1" }}>RDTOH Strategy</p>
-                    <p className="text-[10px] text-ink-muted">{briefing.rdtoh_strategy}</p>
-                  </div>
-                )}
-                {briefing.cda_strategy && (
-                  <div className="rounded-lg px-3 py-2" style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
-                    <p className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "#2D7A50" }}>CDA Strategy</p>
-                    <p className="text-[10px] text-ink-muted">{briefing.cda_strategy}</p>
-                  </div>
-                )}
-                {briefing.lcge_plan && (
-                  <div className="rounded-lg px-3 py-2" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.12)" }}>
-                    <p className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "#1B3A2D" }}>LCGE Plan</p>
-                    <p className="text-[10px] text-ink-muted">{briefing.lcge_plan}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Priority Sequence ───────────────────────────────────────────── */}
-        {planSequence.length > 0 && (
-          <div className="bg-white rounded-xl border border-border-light overflow-hidden mb-3"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="px-4 py-3 border-b border-border-light">
-              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Priority Sequence", "Séquence prioritaire")}</span>
-            </div>
-            <div className="divide-y divide-border-light">
-              {planSequence.map((s: any, i: number) => (
-                <div key={i} className="flex items-start gap-3 px-4 py-3">
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
-                    style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{s.rank || i + 1}</span>
-                  <div className="flex-1">
-                    <p className="text-[12px] font-semibold text-ink">{isFr ? (s.action_fr || s.action) : s.action}</p>
-                    {s.why_first && <p className="text-[10px] text-ink-faint mt-0.5">{isFr ? (s.why_first_fr || s.why_first) : s.why_first}</p>}
-                    {s.expected_result && <p className="text-[10px] text-positive mt-0.5">{isFr ? (s.expected_result_fr || s.expected_result) : s.expected_result}</p>}
-                    <div className="flex items-center gap-3 mt-0.5">
-                      {s.ebitda_improvement > 0 && (
-                        <span className="text-[9px] font-bold text-positive">+{fmtM(s.ebitda_improvement)} EBITDA</span>
-                      )}
-                      {s.enterprise_value_improvement > 0 && (
-                        <span className="text-[9px] font-semibold" style={{ color: "#1B3A2D" }}>+{fmtM(s.enterprise_value_improvement)} EV</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Strengths ───────────────────────────────────────────────────── */}
-        {strengths.length > 0 && (
-          <div className="bg-white rounded-xl border border-border-light overflow-hidden mb-3"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="px-4 py-3 border-b border-border-light">
-              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("What You're Doing Well", "Ce que vous faites bien")}</span>
-            </div>
-            <div className="divide-y divide-border-light">
-              {strengths.map((s: any, i: number) => (
-                <div key={i} className="flex items-start gap-3 px-4 py-3">
-                  <span className="text-positive shrink-0 mt-0.5 text-sm">✓</span>
+        {/* ── Locked sections: CPA Briefing + Priority Sequence + Benchmarks ── */}
+        {(briefing || planSequence.length > 0 || benchmarks.length > 0) && (() => {
+          const lockedValue = findings.slice(3).reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
+          const callHref = entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`;
+          return (
+            <div className="bg-white rounded-xl border overflow-hidden mb-3"
+              style={{ borderColor: "rgba(27,58,45,0.15)", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              {/* Header */}
+              <div className="px-5 py-4 border-b"
+                style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)", borderColor: "rgba(255,255,255,0.08)" }}>
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-[12px] font-semibold text-positive">{isFr ? (s.title_fr || s.title) : s.title}</p>
-                    <p className="text-[10px] text-ink-faint mt-0.5">{isFr ? (s.description_fr || s.description) : s.description}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                      <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.5)" }}>{t("Locked", "Verrouillé")}</p>
+                    </div>
+                    <p className="text-[13px] font-bold text-white">
+                      {t("CPA Briefing · Priority Sequence · Peer Benchmarks", "Briefing CPA · Séquence prioritaire · Benchmarks")}
+                    </p>
+                    {lockedValue > 0 && (
+                      <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>
+                        {fmtM(lockedValue)} {t("in additional findings behind this gate", "de constats supplémentaires derrière cette porte")}
+                      </p>
+                    )}
                   </div>
+                  <a href={callHref} target="_blank" rel="noopener noreferrer"
+                    className="shrink-0 text-[11px] font-bold px-4 py-2 rounded-lg transition hover:opacity-90"
+                    style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", whiteSpace: "nowrap" }}>
+                    {t("Book free call →", "Réserver →")}
+                  </a>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Peer Benchmarks ─────────────────────────────────────────────── */}
-        {benchmarks.length > 0 && (
-          <div className="bg-white rounded-xl border border-border-light overflow-hidden mb-5"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="px-4 py-3 border-b border-border-light">
-              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Peer Benchmarks", "Benchmarks sectoriels")}</span>
-            </div>
-            <div className="divide-y divide-border-light">
-              {benchmarks.map((b: any, i: number) => {
-                const youRaw = b.your_value_raw ?? null;
-                const topRaw = b.top_quartile_raw ?? null;
-                const lowerIsBetter = b.lower_is_better === true;
-                const barPct = (youRaw !== null && topRaw !== null && topRaw > 0)
-                  ? (lowerIsBetter
-                    ? Math.min(100, Math.round(((topRaw * 2 - youRaw) / (topRaw * 2)) * 100))
-                    : Math.min(100, Math.round((youRaw / topRaw) * 100)))
-                  : null;
-                return (
-                <div key={i} className="px-4 py-3">
-                  <p className="text-[10px] font-semibold text-ink-muted mb-2">{isFr ? (b.metric_name_fr || b.metric_fr || b.metric_name || b.metric) : (b.metric_name || b.metric)}</p>
-                  {barPct !== null && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex-1 h-[3px] bg-bg-section rounded-full">
-                        <div className="h-full rounded-full transition-all duration-700"
-                          style={{ width: barPct + "%", background: barPct !== null && barPct >= 80 ? "#2D7A50" : barPct !== null && barPct >= 50 ? "#C4841D" : "#B34040" }} />
-                      </div>
-                      <span className="text-[9px] font-bold shrink-0"
-                        style={{ color: barPct !== null && barPct >= 80 ? "#2D7A50" : barPct !== null && barPct >= 50 ? "#C4841D" : "#B34040" }}>
-                        {barPct !== null ? (barPct >= 80 ? t("Top 25%","Top 25%") : barPct >= 50 ? t("Mid","Med.") : t("Bottom 35%","Bas 35%")) : ""}
-                      </span>
+              </div>
+              {/* Preview items — blurred */}
+              <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.04)" }}>
+                {[
+                  { icon: "📋", label: t("CPA / Board Briefing Memo", "Mémo Briefing CPA"), sub: t("RDTOH strategy, tax exposure, talking points for your accountant", "Stratégie IMRTD, exposition fiscale, points pour votre comptable") },
+                  { icon: "🎯", label: t("Priority Action Sequence", "Séquence d'actions prioritaires"), sub: t("Step-by-step recovery plan ranked by ROI and effort", "Plan de récupération étape par étape classé par ROI") },
+                  { icon: "📊", label: t("Peer Benchmark Comparisons", "Comparaisons aux pairs sectoriels"), sub: t("How your margins, payroll ratio, and EBITDA compare to top quartile", "Comment vos marges, masse salariale et BAIIA se comparent aux meilleurs") },
+                ].map((item, i) => (
+                  <div key={i} className="px-5 py-3 flex items-center gap-4" style={{ filter: "blur(0.5px)", opacity: 0.55 }}>
+                    <span className="text-lg shrink-0">{item.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-ink">{item.label}</p>
+                      <p className="text-[10px] text-ink-faint truncate">{item.sub}</p>
                     </div>
-                  )}
-                  <div className="grid grid-cols-3 text-center gap-2">
-                    <div>
-                      <div className="text-[13px] font-bold text-ink">{b.your_value}</div>
-                      <div className="text-[8px] text-ink-faint uppercase">{t("You", "Vous")}</div>
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-bold text-ink-muted">{b.industry_avg}</div>
-                      <div className="text-[8px] text-ink-faint uppercase">{t("Avg", "Moy.")}</div>
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-bold text-positive">{b.top_quartile}</div>
-                      <div className="text-[8px] text-ink-faint uppercase">Top 25%</div>
-                    </div>
+                    <div className="w-16 h-6 rounded bg-bg-section shrink-0" />
                   </div>
-                  {b.gap && <p className="text-[9px] text-ink-faint italic mt-1.5">{isFr ? (b.gap_fr || b.gap) : b.gap}</p>}
+                ))}
+              </div>
+              {/* CTA footer */}
+              <div className="px-5 py-4 flex flex-col sm:flex-row items-center gap-3"
+                style={{ background: "#FAFAF8", borderTop: "1px solid rgba(0,0,0,0.05)" }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold text-ink">{t("We find it. We recover it. You pay nothing upfront.", "Nous trouvons. Nous récupérons. Vous ne payez rien d'avance.")}</p>
+                  <p className="text-[10px] text-ink-faint mt-0.5">{t("12% contingency on confirmed savings — booked only after you approve each finding.", "12% à la performance sur les économies confirmées — facturé uniquement après approbation.")}</p>
                 </div>
-                );
-              })}
+                <a href={callHref} target="_blank" rel="noopener noreferrer"
+                  className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-[12px] font-bold text-white rounded-lg transition hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 0112 2.18 2 2 0 0114.09 4v3.09a2 2 0 01-1.45 1.93l-1.37.46a16 16 0 006.29 6.29l.46-1.37a2 2 0 011.93-1.45z"/></svg>
+                  {t("Book free strategy call →", "Réserver un appel stratégie gratuit →")}
+                </a>
+              </div>
+              <p className="text-center text-[9px] text-ink-faint pb-3">{t("No credit card · No commitment · 30 min call", "Sans carte · Sans engagement · Appel de 30 min")}</p>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Next review trigger */}
         {nextReview && (
