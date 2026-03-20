@@ -121,13 +121,22 @@ export default function SoloDashboard() {
     }).catch(() => {});
 
     const diagP = fetch("/api/v2/diagnostic/latest").then(r => r.json()).then(json => {
-      if (redirected || !json.success || !json.data) return;
+      if (redirected || !json.success) return;
+      if (json.status === "analyzing" || json.data?.status === "analyzing") {
+        // Show analyzing banner — don't set any report data yet
+        try { sessionStorage.setItem("fruxal_analyzing", "1"); } catch {}
+        return;
+      }
+      if (!json.data) return;
       const r = json.data;
       const diagScore = r.scores?.overall ?? r.overall_score ?? 0;
       if (diagScore > 0) setScore(diagScore);
       const diagLeak = r.total_annual_leaks || r.totals?.annual_leaks || 0;
       if (diagLeak > 0) setTotalLeak(diagLeak);
-      if (r.action_plan && !Array.isArray(r.action_plan)) setTonightAction(r.action_plan.tonight_action || null);
+      // Handle both {tonight_action:...} object and flat array format
+      if (r.action_plan) {
+        if (!Array.isArray(r.action_plan)) setTonightAction(r.action_plan.tonight_action || null);
+      }
       setNorthStar(r.north_star_metric || null);
       setNinetyDay(r.ninety_day_success || null);
       setStrengths(r.strengths || []);
@@ -178,9 +187,15 @@ export default function SoloDashboard() {
   if (leaks.length === 0 && diagFindings.length === 0 && !totalLeak) return (
     <div className="min-h-screen bg-bg flex items-center justify-center px-6">
       <div className="text-center max-w-xs">
-        <p className="font-serif text-xl text-ink mb-2">{t("No analysis yet", "Aucune analyse")}</p>
-        <p className="text-sm text-ink-muted mb-6">{t("Run your free prescan to get started.", "Lancez votre prescan gratuit pour commencer.")}</p>
-        <button onClick={() => router.push("/")} className="px-6 py-2.5 text-sm font-semibold text-white bg-brand rounded-lg">{t("Start", "Lancer")}</button>
+        <p className="font-serif text-xl text-ink mb-2">{isPaid ? t("No diagnostic yet", "Aucun diagnostic") : t("No analysis yet", "Aucune analyse")}</p>
+        <p className="text-sm text-ink-muted mb-6">
+          {isPaid
+            ? t("Run your diagnostic to get your health score, detected leaks, and a personalised fix plan.", "Lancez votre diagnostic pour obtenir votre score santé et un plan de correction personnalisé.")
+            : t("Run your free prescan to get started.", "Lancez votre prescan gratuit pour commencer.")}
+        </p>
+        <button onClick={() => router.push(isPaid ? "/v2/diagnostic" : "/")} className="px-6 py-2.5 text-sm font-semibold text-white bg-brand rounded-lg">
+          {isPaid ? t("Run diagnostic →", "Lancer le diagnostic →") : t("Start", "Lancer")}
+        </button>
       </div>
     </div>
   );
