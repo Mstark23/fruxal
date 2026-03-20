@@ -548,13 +548,13 @@ export default function EnterpriseDashboard() {
                 {t("Get your Enterprise Diagnostic", "Obtenez votre diagnostic Enterprise")}
               </p>
               <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)" }}>
-                {t("3 steps · takes about 5 minutes", "3 étapes · environ 5 minutes")}
+                {t("2 steps · takes about 5 minutes", "2 étapes · environ 5 minutes")}
               </p>
               {/* Progress bar */}
               <div className="mt-3 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.15)" }}>
                 <div className="h-full rounded-full transition-all duration-700"
                   style={{
-                    width: `${[stepProfile, anyIntegrationConnected, stepDiagnostic].filter(Boolean).length / 3 * 100}%`,
+                    width: `${[stepProfile, stepDiagnostic].filter(Boolean).length / 2 * 100}%`,
                     background: "rgba(255,255,255,0.75)"
                   }} />
               </div>
@@ -591,36 +591,37 @@ export default function EnterpriseDashboard() {
                 )}
               </div>
 
-              {/* Step 2 — Connect data */}
-              <div className="px-6 py-4 flex items-start gap-4">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                  style={{ background: anyIntegrationConnected ? "rgba(45,122,80,0.1)" : "rgba(27,58,45,0.06)" }}>
+              {/* Optional — Connect data (boost accuracy) */}
+              <div className="px-6 py-3 flex items-start gap-3"
+                style={{ background: "#FAFAF8", borderTop: "1px dashed #E8E6E1" }}>
+                <div className="w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ background: anyIntegrationConnected ? "rgba(45,122,80,0.1)" : "rgba(196,132,29,0.08)" }}>
                   {anyIntegrationConnected ? (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   ) : (
-                    <span className="text-[11px] font-bold text-ink-muted">2</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C4841D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className={`text-[12px] font-semibold ${anyIntegrationConnected ? "text-positive line-through opacity-60" : "text-ink"}`}>
-                      {t("Connect a data source", "Connectez une source de données")}
+                    <p className="text-[11px] font-semibold text-ink-secondary">
+                      {t("Boost accuracy", "Améliorer la précision")}
                     </p>
-                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded text-ink-faint"
-                      style={{ background: "#F0EFEB" }}>
-                      {t("optional · improves accuracy", "optionnel · améliore la précision")}
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                      style={{ background: "rgba(196,132,29,0.08)", color: "#C4841D" }}>
+                      {t("optional", "optionnel")}
                     </span>
                   </div>
                   <p className="text-[10px] text-ink-faint mt-0.5">
-                    {t("QuickBooks, bank account, or Stripe — replaces estimates with real numbers.",
-                       "QuickBooks, compte bancaire ou Stripe — remplace les estimations par des données réelles.")}
+                    {anyIntegrationConnected
+                      ? t("Data source connected — your diagnostic will use real numbers.", "Source connectée — le diagnostic utilisera vos données réelles.")
+                      : t("Connect QuickBooks, your bank, or Stripe to replace estimates with real figures.", "Connectez QuickBooks, votre banque ou Stripe pour remplacer les estimations.")}
                   </p>
-                  {/* Mini integration pills */}
                   {!anyIntegrationConnected && (
-                    <div className="flex gap-2 mt-2 flex-wrap">
+                    <div className="flex gap-2 mt-1.5 flex-wrap">
                       {[
                         { label: "QuickBooks", href: "/api/quickbooks/connect" },
-                        { label: "Bank",       href: "#plaid"                  },
+                        { label: "Bank",       href: "#plaid" },
                         { label: "Stripe",     href: "/api/stripe-connect/connect" },
                       ].map(i => (
                         <a key={i.label} href={i.href}
@@ -629,20 +630,16 @@ export default function EnterpriseDashboard() {
                           {i.label}
                         </a>
                       ))}
-                      <button onClick={() => router.push("/v2/integrations")}
-                        className="text-[10px] font-semibold text-ink-faint hover:text-brand transition">
-                        {t("More →", "Plus →")}
-                      </button>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Step 3 — Run diagnostic */}
+              {/* Step 2 — Run diagnostic */}
               <div className="px-6 py-4 flex items-start gap-4">
                 <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
                   style={{ background: "rgba(27,58,45,0.06)" }}>
-                  <span className="text-[11px] font-bold text-ink-muted">3</span>
+                  <span className="text-[11px] font-bold text-ink-muted">2</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] font-semibold text-ink">
