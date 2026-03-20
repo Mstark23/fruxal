@@ -66,6 +66,7 @@ export default function EnterpriseDashboard() {
   const [lastRun, setLastRun]           = useState<string | null>(null);
   const [hasReport, setHasReport]     = useState(false);
   const [isAnalyzing, setIsAnalyzing]  = useState(false);
+  const [analysisFailed, setAnalysisFailed] = useState(false);
 
  // Dashboard / profile data
   const [profile, setProfile] = useState<any>({
@@ -112,6 +113,8 @@ export default function EnterpriseDashboard() {
  // If analyzing use React state so banner is reactive (no page reload)
             if (d?.status === "analyzing") {
               setIsAnalyzing(true);
+              // Persist reportId so we can deep-link even after tab close
+              try { if (d.report_id) localStorage.setItem("fruxal_analyzing_report", d.report_id); } catch {}
               let pollCount = 0;
               const poll = setInterval(async () => {
                 pollCount++;
@@ -120,10 +123,19 @@ export default function EnterpriseDashboard() {
                   if (!pr.ok) { clearInterval(poll); setIsAnalyzing(false); return; }
                   const pd = await pr.json();
                   if (pd?.status === "completed") {
-                    clearInterval(poll); setIsAnalyzing(false); load(); return;
+                    clearInterval(poll);
+                    try { localStorage.removeItem("fruxal_analyzing_report"); } catch {}
+                    setIsAnalyzing(false);
+                    load();
+                    return;
                   }
-                  if (pollCount >= 30) { clearInterval(poll); setIsAnalyzing(false); } // 2min max
-                } catch { clearInterval(poll); setIsAnalyzing(false); }
+                  if (pd?.status === "failed" || pollCount >= 45) {
+                    clearInterval(poll);
+                    try { localStorage.removeItem("fruxal_analyzing_report"); } catch {}
+                    setIsAnalyzing(false);
+                    setAnalysisFailed(true);
+                  }
+                } catch { clearInterval(poll); setIsAnalyzing(false); setAnalysisFailed(true); }
               }, 4000);
  // NO setTimeout fallback needed pollCount guard handles it
               void poll; // 2min max
@@ -487,19 +499,45 @@ export default function EnterpriseDashboard() {
         )}
 
         {/* ── No report / Analyzing state + Onboarding ─────────────────────── */}
-        {isAnalyzing && (
-          <div className="bg-white rounded-xl border border-border-light px-6 py-8 text-center mb-5"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <div className="w-4 h-4 border-2 border-border border-t-brand rounded-full animate-spin" />
-              <p className="text-[13px] font-semibold text-ink">{t("Enterprise analysis in progress…", "Analyse enterprise en cours…")}</p>
+        {(isAnalyzing || analysisFailed) && (
+          <div className="bg-white rounded-xl border mb-5 overflow-hidden"
+            style={{ borderColor: analysisFailed ? "rgba(180,64,64,0.2)" : "rgba(27,58,45,0.12)", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div className="px-6 py-5 flex items-start gap-4"
+              style={{ background: analysisFailed ? "rgba(180,64,64,0.04)" : "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+              {analysisFailed ? (
+                <>
+                  <div className="flex-1">
+                    <p className="text-[13px] font-bold text-red-700 mb-1">{t("Analysis did not complete", "L'analyse n'a pas pu être complétée")}</p>
+                    <p className="text-[11px] text-red-600/80">{t("The AI engine timed out or encountered an error. Your data is saved — retry below.", "Le moteur IA a dépassé le délai. Vos données sont sauvegardées — réessayez ci-dessous.")}</p>
+                  </div>
+                  <button onClick={() => { setAnalysisFailed(false); rerunDiagnostic(); }}
+                    className="shrink-0 h-8 px-4 text-[12px] font-bold text-white rounded-lg transition"
+                    style={{ background: "#B34040" }}>
+                    {t("Retry →", "Réessayer →")}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="w-4 h-4 mt-0.5 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-[13px] font-bold text-white mb-1">{t("Enterprise analysis in progress…", "Analyse enterprise en cours…")}</p>
+                    <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("This takes 30–90 seconds. This page will refresh automatically when ready.", "Cela prend 30 à 90 secondes. La page se rafraîchira automatiquement.")}</p>
+                  </div>
+                  {(() => { try { const id = localStorage.getItem("fruxal_analyzing_report"); if (id) return (
+                    <button onClick={() => router.push(`/v2/diagnostic/${id}`)}
+                      className="shrink-0 h-8 px-3 text-[11px] font-medium rounded-lg transition"
+                      style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)" }}>
+                      {t("View progress →", "Voir →")}
+                    </button>
+                  ); } catch {} return null; })()}
+                </>
+              )}
             </div>
-            <p className="text-[11px] text-ink-faint">{t("This takes 30–60 seconds. Page will refresh automatically.", "Cela prend 30 à 60 secondes. La page se rafraîchira automatiquement.")}</p>
           </div>
         )}
 
         {/* ── Onboarding checklist — shown until first diagnostic is complete ── */}
-        {!hasReport && !isAnalyzing && (
+        {!hasReport && !isAnalyzing && !analysisFailed && (
           <div className="bg-white rounded-xl border border-border-light mb-5 overflow-hidden"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
 

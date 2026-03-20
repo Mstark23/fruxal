@@ -131,14 +131,15 @@ function normalize(raw: any): any {
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    if (!token?.sub) {
+    const userId = (token as any)?.id || token?.sub;
+    if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const { data: report, error } = await supabaseAdmin
       .from("diagnostic_reports")
       .select("id, tier, status, completed_at, created_at, result_json")
-      .eq("user_id", token.sub)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)
       .single();

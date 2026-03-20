@@ -82,13 +82,33 @@ export default function DiagnosticReportPage() {
   const t = (en: string, fr: string) => isFr ? fr : en;
 
   useEffect(() => {
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
+    let pollCount = 0;
+
     async function load() {
       try {
         const res = await fetch(`/api/v2/diagnostic/${params.id}`);
         const json = await res.json();
         if (json.success) {
           setReport(json.data);
-          if (json.data.language === "fr") setLang("fr");
+          if (json.data?.language === "fr") setLang("fr");
+          // If still analyzing, start polling every 4s until complete (max 3 min)
+          if (json.data?.status === "analyzing" && !pollInterval) {
+            pollInterval = setInterval(async () => {
+              pollCount++;
+              try {
+                const pr = await fetch(`/api/v2/diagnostic/${params.id}`);
+                const pd = await pr.json();
+                if (pd.success && pd.data?.status === "completed") {
+                  clearInterval(pollInterval!);
+                  setReport(pd.data);
+                } else if (pollCount >= 45 || pd.data?.status === "failed") {
+                  clearInterval(pollInterval!);
+                  setError(t("Analysis timed out. Please try again.", "Délai dépassé. Veuillez réessayer."));
+                }
+              } catch { clearInterval(pollInterval!); }
+            }, 4000);
+          }
         } else {
           setError(json.error);
         }
@@ -99,6 +119,7 @@ export default function DiagnosticReportPage() {
       }
     }
     load();
+    return () => { if (pollInterval) clearInterval(pollInterval); };
   }, [params.id]);
 
   if (loading) {
