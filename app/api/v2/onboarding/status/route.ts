@@ -54,6 +54,8 @@ export async function GET(req: NextRequest) {
       success: true,
       onboarding_completed: onboardingDone,
       tour_completed: tourDone,
+      // Expose businessId so diagnostic/page.tsx doesn't need a second dashboard fetch
+      businessId: profile.business_id || null,
     });
 
   } catch (err: any) {

@@ -121,7 +121,7 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
     <div className="min-h-screen bg-bg flex font-sans">
 
       {/* ── DESKTOP SIDEBAR ──────────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-[220px] bg-white border-r border-border sticky top-0 h-screen">
+      <aside suppressHydrationWarning className="hidden lg:flex flex-col w-[220px] bg-white border-r border-border sticky top-0 h-screen">
 
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-5 pt-5 pb-4">

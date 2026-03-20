@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
       .from("diagnostic_reports")
       .insert({
         business_id: businessId,
-        user_id:     token.sub,
+        user_id:     ((token as any)?.id || token?.sub),
         language,
         status:      "analyzing",
         tier,
@@ -304,7 +304,7 @@ export async function POST(req: NextRequest) {
         const { data: rep } = await supabaseAdmin
           .from("tier3_reps")
           .select("id")
-          .eq("user_id", token.sub)
+          .eq("user_id", (token as any)?.id || token?.sub)
           .eq("status", "active")
           .maybeSingle();
 
