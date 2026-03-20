@@ -188,7 +188,7 @@ export default function LandingPage() {
               </button>
             ))}
           </div>
-          <button className="px-4 py-2 text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Sign in", "Connexion")}</button>
+          <button onClick={() => router.push("/login")} className="px-4 py-2 text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Sign in", "Connexion")}</button>
           <button onClick={startPrescan} className="px-5 py-2 text-sm font-semibold text-white bg-brand rounded-sm hover:bg-brand-light transition">{t("Get started", "Commencer")}</button>
         </div>
       </nav>
