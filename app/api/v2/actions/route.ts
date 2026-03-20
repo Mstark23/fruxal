@@ -21,10 +21,8 @@ const supabase = createClient(
 export async function GET(req: NextRequest) {
   try {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const serverUserId = ((token as any)?.id || token?.sub) as string | undefined;
-  if (!serverUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  // Allow dashboard to pass userId for backwards compat but always validate server-side
-  const userId = serverUserId;
+  const userId = ((token as any)?.id || token?.sub) as string | undefined;
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [
     { data: actions },

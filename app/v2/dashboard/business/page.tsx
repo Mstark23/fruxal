@@ -127,7 +127,7 @@ export default function BusinessDashboard() {
       if (r.action_plan && !Array.isArray(r.action_plan)) setPlanSequence(r.action_plan.optimal_sequence || []);
     }).catch(() => {});
 
-    const actP = user?.id ? fetch(`/api/v2/actions?userId=${user.id}`).then(r => r.json()).then(json => {
+    const actP = user?.id ? fetch("/api/v2/actions").then(r => r.json()).then(json => {
       if (json.stats) setActionStats(json.stats);
       if (json.actions) { setThisWeekActions(json.actions.this_week || []); setInProgressActions(json.actions.in_progress || []); setCompletedActions(json.actions.completed || []); }
     }).catch(() => {}) : Promise.resolve();
