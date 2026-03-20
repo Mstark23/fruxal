@@ -35,7 +35,7 @@ export default function BusinessDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const { progress } = useCelebration();
   const [loading, setLoading] = useState(true);
-  const [lang, setLang] = useState<"en" | "fr">("fr");
+  const [lang, setLang] = useState<"en" | "fr">("en");
   const [mounted, setMounted] = useState(false);
 
   // — existing dashboard state —
@@ -50,7 +50,6 @@ export default function BusinessDashboard() {
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [leaksFixed, setLeaksFixed] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
-  const [costBreakdown, setCostBreakdown] = useState<CostItem[]>([]);
   const [actionStats, setActionStats] = useState<ActionStats | null>(null);
   const [inProgressActions, setInProgressActions] = useState<ActionItem[]>([]);
   const [thisWeekActions, setThisWeekActions] = useState<ActionItem[]>([]);
@@ -66,6 +65,7 @@ export default function BusinessDashboard() {
 
   // — paywall state —
   const [isPaid, setIsPaid] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const upgradeUrl = "/v2/checkout?plan=business";
   const upgradePrice = "$149";
 
@@ -110,7 +110,9 @@ export default function BusinessDashboard() {
     // — diagnostic layer —
     const diagP = fetch("/api/v2/diagnostic/latest").then(r => r.json()).then(json => {
       if (!json.success || !json.data) return;
+      if (json.status === "analyzing") { setIsAnalyzing(true); return; }
       const r = json.data;
+      if (r.status === "analyzing") { setIsAnalyzing(true); return; }
       setReportId(json.report_id || null);
       const diagScore = r.scores?.overall ?? r.overall_score ?? 0;
       if (diagScore > 0) setScore(diagScore);
@@ -118,9 +120,20 @@ export default function BusinessDashboard() {
       if (diagLeak > 0) setTotalLeak(diagLeak);
       setBankabilityScore(r.scores?.bankability ?? r.bankability_score ?? 0);
       if (r.findings?.length > 0) setDiagFindings(r.findings);
-      setBriefing(r.accountant_briefing || null);
+      setBriefing(r.accountant_briefing || r.cpa_briefing || null);
       setDiagBenchmarks((r.benchmark_comparisons || []).slice(0, 5));
-      if (r.action_plan && !Array.isArray(r.action_plan)) setPlanSequence(r.action_plan.optimal_sequence || []);
+      // Handle both object format {optimal_sequence:[]} and array format
+      if (r.action_plan) {
+        if (!Array.isArray(r.action_plan) && r.action_plan.optimal_sequence) {
+          setPlanSequence(r.action_plan.optimal_sequence.slice(0, 4));
+        } else if (Array.isArray(r.action_plan)) {
+          setPlanSequence(r.action_plan.slice(0, 4).map((a: any, i: number) => ({
+            step: a.priority || i + 1,
+            action: a.title || a.action || "",
+            value: a.estimated_savings || a.value || 0,
+          })));
+        }
+      }
     }).catch(() => {});
 
     const actP = user?.id ? fetch("/api/v2/actions").then(r => r.json()).then(json => {
@@ -141,6 +154,21 @@ export default function BusinessDashboard() {
 
   if (loading || authLoading) return (
     <div className="min-h-screen bg-bg flex items-center justify-center"><div className="w-6 h-6 border-2 border-border border-t-brand rounded-full animate-spin" /></div>
+  );
+
+  if (!loading && leaks.length === 0 && diagFindings.length === 0 && !totalLeak && !isAnalyzing) return (
+    <div className="min-h-screen bg-bg flex items-center justify-center px-6">
+      <div className="text-center max-w-sm">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(27,58,45,0.06)" }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.7" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <p className="font-serif text-xl text-ink mb-2">{t("No diagnostic yet", "Aucun diagnostic")}</p>
+        <p className="text-sm text-ink-muted mb-6">{t("Run your first diagnostic to see your full financial picture — health score, detected leaks, and a CPA briefing.", "Lancez votre premier diagnostic pour voir votre tableau financier complet.")}</p>
+        <button onClick={() => router.push("/v2/diagnostic")} className="px-6 py-2.5 text-sm font-semibold text-white bg-brand rounded-lg hover:opacity-90 transition">
+          {t("Run diagnostic →", "Lancer le diagnostic →")}
+        </button>
+      </div>
+    </div>
   );
 
   return (
@@ -167,6 +195,37 @@ export default function BusinessDashboard() {
             {reportId && <button onClick={() => router.push(`/v2/diagnostic/${reportId}`)} className="h-6 px-2.5 text-[9px] font-bold text-brand bg-brand/5 border border-brand/15 rounded-md hover:bg-brand/10 transition">{t("Full Report →", "Rapport →")}</button>}
           </div>
         </div>
+
+        {/* ANALYZING BANNER */}
+        {isAnalyzing && (
+          <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+            style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)", ...fade(0.01) }}>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+            <div className="flex-1">
+              <p className="text-[12px] font-semibold text-white">{t("Business diagnostic in progress…", "Diagnostic business en cours…")}</p>
+              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("This takes 30–60 seconds. Page will refresh automatically.", "Cela prend 30 à 60 secondes. La page se rafraîchira automatiquement.")}</p>
+            </div>
+          </div>
+        )}
+
+        {/* UPGRADE BANNER — unpaid users only */}
+        {!isPaid && totalLeak > 0 && (
+          <div className="rounded-xl mb-5 p-4 flex items-center justify-between gap-4 flex-wrap"
+            style={{ background: "linear-gradient(135deg, #1B3A2D, #2A5A44)", ...fade(0.03) }}>
+            <div>
+              <p className="text-[13px] font-bold text-white mb-1">
+                {isFR ? `Votre entreprise perd $${totalLeak.toLocaleString()}/an` : `Your business is leaking $${totalLeak.toLocaleString()}/year`}
+              </p>
+              <p className="text-[11px] text-white/60">
+                {t("Unlock full calculation math, CPA briefing, priority sequence and benchmarks.", "Débloquez les calculs complets, briefing CPA, séquence prioritaire et benchmarks.")}
+              </p>
+            </div>
+            <button onClick={() => router.push(upgradeUrl)}
+              className="px-4 py-2 text-[12px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition flex-shrink-0">
+              Business {upgradePrice}/{t("mo", "mois")}
+            </button>
+          </div>
+        )}
 
         {/* OVERDUE ALERT */}
         {overdue > 0 && (
@@ -342,12 +401,20 @@ export default function BusinessDashboard() {
           {/* COL 2: RECOVERY PLAN + CPA BRIEFING + BENCHMARKS */}
           <div className="flex flex-col gap-3">
 
-            {/* Recovery Plan (existing) */}
+            {/* Recovery Plan */}
             <div className="bg-white rounded-xl border border-border-light overflow-hidden flex-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-3 border-b border-border-light">
                 <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Recovery Plan", "Plan de récupération")}</span>
               </div>
-              {allActions.length === 0 ? (
+              {!isPaid ? (
+                <div className="px-4 py-8 text-center">
+                  <LockIcon />
+                  <p className="text-[11px] text-ink-muted mt-2 mb-3">{t("Your personalized fix plan unlocks with Business.", "Votre plan de correction se débloque avec Business.")}</p>
+                  <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-brand border border-brand/20 px-3 py-1.5 rounded-lg hover:bg-brand/5 transition">
+                    {t(`Unlock ${upgradePrice}/mo`, `Débloquer ${upgradePrice}/mois`)}
+                  </button>
+                </div>
+              ) : allActions.length === 0 ? (
                 <div className="px-4 py-6 text-center text-[11px] text-ink-muted">{t("Actions appear after your first diagnostic.", "Les actions apparaissent après votre diagnostic.")}</div>
               ) : allActions.slice(0, 4).map((a, i) => (
                 <div key={a.id} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
@@ -441,24 +508,15 @@ export default function BusinessDashboard() {
                 </button>
                 <p className="text-[9px] text-ink-faint mt-2">{t("Cancel anytime", "Annulez en tout temps")}</p>
               </div>
-            ) : (diagBenchmarks.length > 0 || costBreakdown.length > 0) && (
+            ) : diagBenchmarks.length > 0 && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
                   <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Costs vs Industry", "Coûts vs industrie")}</span>
-                  {diagBenchmarks.length > 0 && (
-                    <div className="flex items-center gap-3 text-[8px] text-ink-faint">
-                      <span>{t("You", "Vous")}</span><span>{t("Avg", "Moy.")}</span><span>Top 25%</span>
-                    </div>
-                  )}
-                  {costBreakdown.length > 0 && diagBenchmarks.length === 0 && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1"><div className="w-[6px] h-[6px] rounded-[1px]" style={{ background: "#2D7A50" }} /><span className="text-[8px] text-ink-faint">{t("You", "Vous")}</span></div>
-                      <div className="flex items-center gap-1"><div className="w-[6px] h-[6px] rounded-[1px]" style={{ background: "#E0DED9" }} /><span className="text-[8px] text-ink-faint">{t("Ref.", "Réf.")}</span></div>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3 text-[8px] text-ink-faint">
+                    <span>{t("You", "Vous")}</span><span>{t("Avg", "Moy.")}</span><span>Top 25%</span>
+                  </div>
                 </div>
-                {diagBenchmarks.length > 0 ? (
-                  diagBenchmarks.map((b, i) => (
+                {diagBenchmarks.map((b, i) => (
                     <div key={i} className="px-4 py-2 border-b border-border-light last:border-0">
                       <p className="text-[10px] font-semibold text-ink-secondary mb-1.5">{isFR ? (b.metric_fr || b.metric) : b.metric}</p>
                       <div className="grid grid-cols-3 text-center">
@@ -468,18 +526,7 @@ export default function BusinessDashboard() {
                       </div>
                     </div>
                   ))
-                ) : (
-                  <div className="px-4 py-2">
-                    {costBreakdown.map((c, i) => { const over = c.pct_of_revenue > c.benchmark_pct * 1.05; return (
-                      <div key={i} className="flex items-center gap-3 py-[5px]">
-                        <span className="text-[11px] font-medium text-ink-secondary w-[72px] shrink-0 truncate">{c.category}</span>
-                        <MiniBar yours={c.pct_of_revenue} bench={c.benchmark_pct} />
-                        <span className={`text-[11px] font-bold w-9 text-right tabular-nums ${over ? "text-negative" : "text-positive"}`}>{c.pct_of_revenue.toFixed(1)}%</span>
-                        <span className="text-[9px] text-ink-faint w-8 text-right tabular-nums">{c.benchmark_pct.toFixed(1)}%</span>
-                      </div>
-                    ); })}
-                  </div>
-                )}
+                }
               </div>
             )}
           </div>
@@ -531,7 +578,7 @@ export default function BusinessDashboard() {
                 </div>
                 <div>
                   <div className="text-[12px] font-semibold text-ink">{t("Book advisor call", "Réserver un appel")}</div>
-                  <div className="text-[9px] text-ink-faint">{t("Monthly 30-min included", "Session 30 min mensuelle incluse")}</div>
+                  <div className="text-[9px] text-ink-faint">{isPaid ? t("Monthly 30-min included", "Session 30 min mensuelle incluse") : t("Free 30-min strategy call", "Appel stratégie gratuit de 30 min")}</div>
                 </div>
               </div>
             </a>
