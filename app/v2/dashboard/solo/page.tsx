@@ -58,11 +58,16 @@ export default function SoloDashboard() {
   const isFR = lang === "fr";
   const isFree = tier === "free";
   const isPaid = !isFree;
-  // Cap upgrade target: solo users can only go to solo or business, not enterprise directly
-  const upgradeTarget = (recommendedPlan === "enterprise" || recommendedPlan === "business") ? "business" : "solo";
-  const upgradeUrl = "/v2/checkout?plan=" + upgradeTarget;
-  const upgradePrice = upgradeTarget === "business" ? "$150" : "$49";
-  const upgradeName = upgradeTarget === "business" ? "Business" : "Solo";
+  // Route to the right tier based on revenue qualification
+  const upgradeTarget = recommendedPlan === "enterprise" ? "enterprise"
+    : (recommendedPlan === "business") ? "business"
+    : "solo";
+  const upgradeUrl = upgradeTarget === "enterprise"
+    ? "/v2/diagnostic/intake"   // enterprise → book call via intake form, no subscription
+    : "/v2/checkout?plan=" + upgradeTarget;
+  const upgradePrice = upgradeTarget === "business" ? "$149" : "$49";
+  const upgradeName = upgradeTarget === "enterprise" ? "Enterprise"
+    : upgradeTarget === "business" ? "Business" : "Solo";
 
   useEffect(() => {
     let redirected = false;
@@ -221,13 +226,17 @@ export default function SoloDashboard() {
                 {isFR ? "Votre entreprise perd " + totalLeak.toLocaleString() + " $/an" : "Your business is leaking $" + totalLeak.toLocaleString() + "/year"}
               </p>
               <p className="text-[11px] text-white/60">
-                {recommendedPlan === "business"
+                {recommendedPlan === "enterprise"
+                  ? t("Your revenue qualifies for Enterprise — we recover savings on contingency.", "Vos revenus vous qualifient pour Enterprise — nous récupérons à la performance.")
+                  : recommendedPlan === "business"
                   ? t("Based on your revenue, you qualify for Business.", "Selon vos revenus, vous etes admissible au plan Business.")
                   : t("Unlock the full report, fix steps and alerts.", "Debloquez le rapport complet et les corrections.")}
               </p>
             </div>
             <button onClick={() => router.push(upgradeUrl)} className="px-4 py-2 text-[12px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition flex-shrink-0">
-              {upgradeName} {upgradePrice}/{t("mo", "mois")}
+              {upgradeTarget === "enterprise"
+                ? t("Book strategy call →", "Réserver un appel →")
+                : `${upgradeName} ${upgradePrice}/${t("mo", "mois")}`}
             </button>
           </div>
         )}
@@ -477,10 +486,20 @@ export default function SoloDashboard() {
             <button onClick={() => router.push(upgradeUrl)} className="w-full bg-white rounded-xl border border-border-light p-4 text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] font-bold text-ink mb-0.5">{t("Upgrade to " + upgradeName, "Passer a " + upgradeName)}</p>
-                  <p className="text-[9px] text-ink-faint">{t("Full diagnostic - Fix steps - Alerts", "Diagnostic complet - Etapes - Alertes")}</p>
+                  <p className="text-[11px] font-bold text-ink mb-0.5">
+                    {upgradeTarget === "enterprise"
+                      ? t("Book a free strategy call", "Réserver un appel stratégie gratuit")
+                      : t("Upgrade to " + upgradeName, "Passer a " + upgradeName)}
+                  </p>
+                  <p className="text-[9px] text-ink-faint">
+                    {upgradeTarget === "enterprise"
+                      ? t("We recover savings on contingency — $0 upfront", "Récupération à la performance — $0 d'avance")
+                      : t("Full diagnostic - Fix steps - Alerts", "Diagnostic complet - Etapes - Alertes")}
+                  </p>
                 </div>
-                <span className="text-[12px] font-bold text-brand">{upgradePrice}/{t("mo", "mois")}</span>
+                <span className="text-[12px] font-bold text-brand">
+                  {upgradeTarget === "enterprise" ? t("Free →", "Gratuit →") : `${upgradePrice}/${t("mo", "mois")}`}
+                </span>
               </div>
             </button>
           </div>
