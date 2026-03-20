@@ -108,40 +108,64 @@ export default function BusinessDashboard() {
     }).catch(() => {});
 
     // — diagnostic layer —
-    const diagP = fetch("/api/v2/diagnostic/latest").then(r => r.json()).then(json => {
-      if (!json.success || !json.data) return;
-      if (json.status === "analyzing") { setIsAnalyzing(true); return; }
-      const r = json.data;
-      if (r.status === "analyzing") { setIsAnalyzing(true); return; }
-      setReportId(json.report_id || null);
-      const diagScore = r.scores?.overall ?? r.overall_score ?? 0;
-      if (diagScore > 0) setScore(diagScore);
-      const diagLeak = r.totals?.annual_leaks ?? r.total_annual_leaks ?? 0;
-      if (diagLeak > 0) setTotalLeak(diagLeak);
-      setBankabilityScore(r.scores?.bankability ?? r.bankability_score ?? 0);
-      if (r.findings?.length > 0) setDiagFindings(r.findings);
-      setBriefing(r.accountant_briefing || r.cpa_briefing || null);
-      setDiagBenchmarks((r.benchmark_comparisons || []).slice(0, 5));
-      // Handle both object format {optimal_sequence:[]} and array format
-      if (r.action_plan) {
-        if (!Array.isArray(r.action_plan) && r.action_plan.optimal_sequence) {
-          setPlanSequence(r.action_plan.optimal_sequence.slice(0, 4));
-        } else if (Array.isArray(r.action_plan)) {
-          setPlanSequence(r.action_plan.slice(0, 4).map((a: any, i: number) => ({
-            step: a.priority || i + 1,
-            action: a.title || a.action || "",
-            value: a.estimated_savings || a.value || 0,
-          })));
+    let analyzePoll: ReturnType<typeof setInterval> | null = null;
+
+    const loadDiag = async () => {
+      try {
+        const json = await fetch("/api/v2/diagnostic/latest").then(r => r.json());
+        // MUST check status BEFORE checking data — analyzing returns data:null
+        if (json.status === "analyzing" || json.data?.status === "analyzing") {
+          setIsAnalyzing(true);
+          return;
         }
-      }
-    }).catch(() => {});
+        if (!json.success || !json.data) return;
+        const r = json.data;
+        setIsAnalyzing(false);
+        setReportId(json.report_id || null);
+        const diagScore = r.scores?.overall ?? r.overall_score ?? 0;
+        if (diagScore > 0) setScore(diagScore);
+        const diagLeak = r.totals?.annual_leaks ?? r.total_annual_leaks ?? 0;
+        if (diagLeak > 0) setTotalLeak(diagLeak);
+        setBankabilityScore(r.scores?.bankability ?? r.bankability_score ?? 0);
+        if (r.findings?.length > 0) setDiagFindings(r.findings);
+        setBriefing(r.accountant_briefing || r.cpa_briefing || null);
+        setDiagBenchmarks((r.benchmark_comparisons || []).slice(0, 5));
+        if (r.action_plan) {
+          if (!Array.isArray(r.action_plan) && r.action_plan.optimal_sequence) {
+            setPlanSequence(r.action_plan.optimal_sequence.slice(0, 4));
+          } else if (Array.isArray(r.action_plan)) {
+            setPlanSequence(r.action_plan.slice(0, 4).map((a: any, i: number) => ({
+              step: a.priority || i + 1,
+              action: a.title || a.action || "",
+              value: a.estimated_savings || a.value || 0,
+            })));
+          }
+        }
+      } catch {}
+    };
+
+    const diagP = loadDiag();
 
     const actP = user?.id ? fetch("/api/v2/actions").then(r => r.json()).then(json => {
       if (json.stats) setActionStats(json.stats);
       if (json.actions) { setThisWeekActions(json.actions.this_week || []); setInProgressActions(json.actions.in_progress || []); setCompletedActions(json.actions.completed || []); }
     }).catch(() => {}) : Promise.resolve();
 
-    Promise.all([v2P, diagP, actP]).finally(() => { setLoading(false); requestAnimationFrame(() => setMounted(true)); });
+    Promise.all([v2P, diagP, actP]).finally(() => {
+      setLoading(false);
+      requestAnimationFrame(() => setMounted(true));
+      // Start polling AFTER initial load if analyzing
+      analyzePoll = setInterval(async () => {
+        try {
+          const json = await fetch("/api/v2/diagnostic/latest").then(r => r.json());
+          if (json.status === "analyzing" || json.data?.status === "analyzing") return; // still running
+          clearInterval(analyzePoll!);
+          await loadDiag(); // reload with completed data
+        } catch {}
+      }, 4000);
+    });
+
+    return () => { if (analyzePoll) clearInterval(analyzePoll); };
   }, [user?.id]);
 
   const recovered = actionStats?.total_recovered || totalSavings || 0;
