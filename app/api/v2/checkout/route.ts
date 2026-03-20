@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
 
     const { plan, scanId } = await req.json();
 
-    if (!plan || !["report", "advisor", "solo"].includes(plan)) {
-      return NextResponse.json({ error: "Invalid plan. Choose 'report', 'solo', or 'advisor'" }, { status: 400 });
+    if (!plan || !["report", "advisor", "solo", "business"].includes(plan)) {
+      return NextResponse.json({ error: "Invalid plan. Choose 'report', 'solo', 'advisor', or 'business'" }, { status: 400 });
     }
 
     const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
@@ -109,8 +109,32 @@ export async function POST(req: NextRequest) {
           metadata: { userId, plan: "solo", scanId: scanId || "" },
         },
       };
+    } else if (plan === "business") {
+      // $149/month — Business plan
+      sessionConfig = {
+        customer: customerId,
+        mode: "subscription",
+        line_items: [{
+          price_data: {
+            currency: "cad",
+            product_data: {
+              name: "Fruxal Business",
+              description: "Full AI diagnostic · 7 findings with calculation math · CPA briefing · Priority sequence · Benchmarks · Monthly re-scans",
+            },
+            unit_amount: 14900, // $149.00 CAD
+            recurring: { interval: "month" },
+          },
+          quantity: 1,
+        }],
+        success_url: `${origin}/v2/dashboard?paid=business&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url:  `${origin}/v2/dashboard/business?cancelled=true`,
+        metadata: { userId, plan: "business", scanId: scanId || "" },
+        subscription_data: {
+          metadata: { userId, plan: "business", scanId: scanId || "" },
+        },
+      };
     } else {
-      // $79/month subscription
+      // $79/month — Advisor plan (business tier access)
       sessionConfig = {
         customer: customerId,
         mode: "subscription",

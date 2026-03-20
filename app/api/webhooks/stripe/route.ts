@@ -19,8 +19,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const PLAN_TO_TIER: Record<string, string> = {
   solo:     "solo",
   business: "business",
-  advisor:  "solo",    // advisor = enhanced solo tier
-  report:   "solo",    // one-time report = solo access
+  advisor:  "business",  // $79/mo advisor = business tier access
+  report:   "solo",      // one-time report = solo access
   team:     "business",
   enterprise: "enterprise",
 };

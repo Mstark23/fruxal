@@ -64,6 +64,11 @@ export default function BusinessDashboard() {
   const [diagBenchmarks, setDiagBenchmarks] = useState<any[]>([]);
   const [planSequence, setPlanSequence] = useState<any[]>([]);
 
+  // — paywall state —
+  const [isPaid, setIsPaid] = useState(false);
+  const upgradeUrl = "/v2/checkout?plan=business";
+  const upgradePrice = "$149";
+
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
   const isFR = lang === "fr";
 
@@ -84,6 +89,8 @@ export default function BusinessDashboard() {
         if (detectedTier === "free" || detectedTier === "solo" || detectedTier === "pro") { router.replace("/v2/dashboard/solo"); return; }
         if (detectedTier === "enterprise") { router.replace("/v2/dashboard/enterprise"); return; }
       }
+      // Paid = has an active business-level subscription
+      setIsPaid(detectedTier === "business" || detectedTier === "growth" || detectedTier === "team" || detectedTier === "corp");
       setProfile(d.profile || { province: "QC", industry: "Small Business", structure: "" });
       setObligationsTotal(d.obligations?.total || 0);
       setOverdue(d.obligations?.overdue || 0);
@@ -238,14 +245,14 @@ export default function BusinessDashboard() {
             {diagFindings.length > 0 ? (
               // Diagnostic view: show findings with calculation math
               <>
-                {diagFindings.slice(0, 6).map((f: any, i: number) => (
-                  <div key={i} onClick={() => router.push("/v2/leaks")} className="px-4 py-3 border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer group"
+                {diagFindings.slice(0, isPaid ? 6 : 3).map((f: any, i: number) => (
+                  <div key={i} onClick={() => isPaid && router.push("/v2/leaks")} className={`px-4 py-3 border-b border-border-light last:border-0 group ${isPaid ? "hover:bg-surface-hover cursor-pointer" : ""}`}
                     style={{ borderLeft: `3px solid ${SEV_DOT[f.severity] || "#C5C2BB"}`, background: f.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
                     <div className="flex items-start gap-2 mb-1">
                       <div className="w-[6px] h-[6px] rounded-full shrink-0 mt-1.5" style={{ background: SEV_DOT[f.severity] || "#8E8C85" }} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors">{isFR ? (f.title_fr || f.title) : f.title}</span>
+                          <span className={`text-[12px] font-semibold text-ink truncate ${isPaid ? "group-hover:text-brand transition-colors" : ""}`}>{isFR ? (f.title_fr || f.title) : f.title}</span>
                           <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">${(f.impact_max || f.impact_min).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -254,27 +261,64 @@ export default function BusinessDashboard() {
                         </div>
                       </div>
                     </div>
-                    {/* Calculation math — Business exclusive */}
-                    {f.calculation_shown && (
+                    {/* Calculation math — visible only for paid users */}
+                    {isPaid && f.calculation_shown && (
                       <div className="ml-[14px] mt-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(27,58,45,0.03)", border: "1px solid rgba(27,58,45,0.06)" }}>
                         <code className="text-[9px] text-ink-muted leading-relaxed">{f.calculation_shown}</code>
                       </div>
                     )}
                   </div>
                 ))}
+                {/* Lock gate for unpaid users */}
+                {!isPaid && diagFindings.length > 3 && (() => {
+                  const locked = diagFindings.slice(3);
+                  const lockedVal = locked.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
+                  return (
+                    <div className="relative">
+                      {locked.slice(0, 2).map((f: any, i: number) => (
+                        <div key={i} className="px-4 py-3 border-b border-border-light select-none pointer-events-none"
+                          style={{ borderLeft: `3px solid ${SEV_DOT[f.severity] || "#C5C2BB"}`, filter: "blur(4px)", opacity: 0.35 }}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: SEV_DOT[f.severity] || "#8E8C85" }} />
+                            <span className="text-[12px] font-semibold text-ink flex-1">{isFR ? (f.title_fr || f.title) : f.title}</span>
+                            <span className="font-serif text-[13px] font-bold text-negative">${(f.impact_max || f.impact_min).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="absolute inset-0 flex items-end justify-center pb-3"
+                        style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.95) 45%)" }}>
+                        <div className="text-center px-4 pt-6">
+                          <p className="text-[12px] font-bold text-ink mb-0.5">
+                            {locked.length} {t("more findings locked", "constats supplémentaires verrouillés")}
+                          </p>
+                          {lockedVal > 0 && (
+                            <p className="text-[10px] text-ink-faint mb-3">
+                              {t("Additional", "Supplémentaire")} <span className="font-bold text-negative">${lockedVal.toLocaleString()}</span> {t("in recoverable savings", "en économies récupérables")}
+                            </p>
+                          )}
+                          <button onClick={() => router.push(upgradeUrl)}
+                            className="text-[11px] font-bold text-white px-4 py-2 rounded-lg transition hover:opacity-90"
+                            style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+                            {t(`Unlock Business ${upgradePrice}/mo →`, `Débloquer Business ${upgradePrice}/mois →`)}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
                   <span className="font-serif text-[14px] font-bold text-negative">${totalLeak.toLocaleString()}/{t("yr", "an")}</span>
                 </div>
               </>
             ) : (
-              // Fallback: original leak list
+              // Fallback: original leak list (free/prescan data)
               <>
-                {leaks.slice(0, 6).map((l, i) => (
-                  <div key={i} onClick={() => router.push("/v2/leaks")} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 hover:bg-surface-hover transition-colors cursor-pointer group">
+                {leaks.slice(0, isPaid ? 6 : 3).map((l, i) => (
+                  <div key={i} onClick={() => isPaid && router.push("/v2/leaks")} className={`px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 transition-colors ${isPaid ? "hover:bg-surface-hover cursor-pointer group" : ""}`}>
                     <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors">{isFR ? (l.title_fr || l.title) : l.title}</div>
+                      <div className={`text-[12px] font-semibold text-ink truncate ${isPaid ? "group-hover:text-brand transition-colors" : ""}`}>{isFR ? (l.title_fr || l.title) : l.title}</div>
                       <span className="text-[9px] text-ink-faint">{l.category}</span>
                     </div>
                     <div className="text-right shrink-0">
@@ -283,6 +327,14 @@ export default function BusinessDashboard() {
                     </div>
                   </div>
                 ))}
+                {!isPaid && leaks.length > 3 && (
+                  <div className="px-4 py-4 text-center border-t border-border-light">
+                    <p className="text-[11px] text-ink-muted mb-2.5">{leaks.length - 3} {t("more leaks hidden", "fuites supplémentaires cachées")}</p>
+                    <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-white bg-brand px-4 py-2 rounded-lg hover:opacity-90 transition">
+                      {t(`Unlock Business ${upgradePrice}/mo`, `Débloquer Business ${upgradePrice}/mois`)}
+                    </button>
+                  </div>
+                )}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
                   <span className="font-serif text-[14px] font-bold text-negative">${totalLeak.toLocaleString()}/{t("yr", "an")}</span>
@@ -324,8 +376,8 @@ export default function BusinessDashboard() {
               )}
             </div>
 
-            {/* ── DIAGNOSTIC ADDITION: CPA Briefing ── */}
-            {briefing && (
+            {/* ── DIAGNOSTIC ADDITION: CPA Briefing (paid only) ── */}
+            {isPaid && briefing && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex items-center justify-between">
                   <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Accountant Briefing", "Briefing comptable")}</span>
@@ -353,8 +405,8 @@ export default function BusinessDashboard() {
               </div>
             )}
 
-            {/* ── DIAGNOSTIC ADDITION: Priority sequence ── */}
-            {planSequence.length > 0 && (
+            {/* ── DIAGNOSTIC ADDITION: Priority sequence (paid only) ── */}
+            {isPaid && planSequence.length > 0 && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light">
                   <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("What To Do First", "Quoi faire en premier")}</span>
@@ -372,8 +424,28 @@ export default function BusinessDashboard() {
               </div>
             )}
 
-            {/* ── DIAGNOSTIC benchmarks OR existing cost breakdown ── */}
-            {(diagBenchmarks.length > 0 || costBreakdown.length > 0) && (
+            {/* ── DIAGNOSTIC benchmarks OR existing cost breakdown (paid only) + upgrade CTA ── */}
+            {!isPaid ? (
+              <div className="bg-white rounded-xl border border-border-light p-5 text-center"
+                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3"
+                  style={{ background: "rgba(27,58,45,0.06)" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </div>
+                <p className="text-[12px] font-bold text-ink mb-1">
+                  {t("CPA Briefing · Priority Sequence · Benchmarks", "Briefing CPA · Séquence · Benchmarks")}
+                </p>
+                <p className="text-[10px] text-ink-faint mb-4">
+                  {t("Full calculation math, accountant talking points, and peer comparisons included.", "Math de calcul, points pour comptable et comparaisons aux pairs inclus.")}
+                </p>
+                <button onClick={() => router.push(upgradeUrl)}
+                  className="text-[11px] font-bold text-white px-5 py-2.5 rounded-lg transition hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+                  {t(`Unlock Business ${upgradePrice}/mo →`, `Débloquer Business ${upgradePrice}/mois →`)}
+                </button>
+                <p className="text-[9px] text-ink-faint mt-2">{t("Cancel anytime", "Annulez en tout temps")}</p>
+              </div>
+            ) : (diagBenchmarks.length > 0 || costBreakdown.length > 0) && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
                   <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Costs vs Industry", "Coûts vs industrie")}</span>
@@ -456,7 +528,7 @@ export default function BusinessDashboard() {
               </div>
             </div>
 
-            <a href="https://calendly.com/fruxal/advisor" target="_blank" rel="noopener noreferrer" className="w-full bg-white rounded-xl border border-brand/15 p-4 text-left hover:shadow-[0_4px_16px_rgba(27,58,45,0.08)] transition-all block" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <a href={process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/fruxal/advisor"} target="_blank" rel="noopener noreferrer" className="w-full bg-white rounded-xl border border-brand/15 p-4 text-left hover:shadow-[0_4px_16px_rgba(27,58,45,0.08)] transition-all block" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-brand/5 border border-brand/10 flex items-center justify-center shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.7" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.06 1.18 2 2 0 012.03 0h3a2 2 0 012 1.72c.128.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.572 2.81.7A2 2 0 0122 16.92z"/></svg>
