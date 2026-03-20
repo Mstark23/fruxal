@@ -498,20 +498,47 @@ export default function BusinessDashboard() {
                   <span className="text-[9px] text-ink-faint">{t("Share with CPA", "Partagez avec votre comptable")}</span>
                 </div>
                 <div className="px-4 py-3">
-                  <p className="text-[11px] text-ink-secondary leading-relaxed mb-3">{briefing.summary}</p>
-                  {briefing.cra_forms_relevant?.length > 0 && (
+                  {/* intro / summary — AI uses 'intro', old schema used 'summary' */}
+                  {(briefing.intro || briefing.summary) && (
+                    <p className="text-[11px] text-ink-secondary leading-relaxed mb-3">
+                      {isFR ? (briefing.intro_fr || briefing.intro || briefing.summary) : (briefing.intro || briefing.summary)}
+                    </p>
+                  )}
+                  {/* talking points */}
+                  {briefing.talking_points?.length > 0 && (
+                    <div className="space-y-1 mb-3">
+                      {briefing.talking_points.slice(0, 3).map((tp: any, i: number) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="text-brand text-[9px] font-bold mt-0.5 shrink-0">→</span>
+                          <p className="text-[10px] text-ink-secondary">
+                            {isFR ? (typeof tp === "string" ? tp : (tp.point_fr || tp.point)) : (typeof tp === "string" ? tp : tp.point)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* CRA forms — AI uses 'forms_to_discuss', old schema used 'cra_forms_relevant' */}
+                  {(briefing.forms_to_discuss?.length > 0 || briefing.cra_forms_relevant?.length > 0) && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
-                      {briefing.cra_forms_relevant.map((form: string, i: number) => (
+                      {(briefing.forms_to_discuss || briefing.cra_forms_relevant || []).map((form: string, i: number) => (
                         <span key={i} className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)", color: "#0e7490" }}>{form}</span>
                       ))}
                     </div>
                   )}
-                  {(briefing.estimated_tax_exposure || 0) > 0 && (
-                    <div className="flex items-center justify-between px-3 py-2 rounded-lg mb-3" style={{ background: "rgba(196,132,29,0.04)", border: "1px solid rgba(196,132,29,0.10)" }}>
-                      <span className="text-[10px] text-ink-faint">{t("Tax Exposure", "Exposition fiscale")}</span>
-                      <span className="font-serif text-[16px] font-bold" style={{ color: "#C4841D" }}>${briefing.estimated_tax_exposure.toLocaleString()}</span>
+                  {/* Tax exposure — AI returns string 'tax_exposures', old schema had numeric 'estimated_tax_exposure' */}
+                  {(briefing.tax_exposures || briefing.estimated_tax_exposure > 0) && (
+                    <div className="px-3 py-2 rounded-lg mb-3" style={{ background: "rgba(196,132,29,0.04)", border: "1px solid rgba(196,132,29,0.10)" }}>
+                      <p className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-1">{t("Tax Exposure", "Exposition fiscale")}</p>
+                      {briefing.tax_exposures ? (
+                        <p className="text-[11px] font-medium" style={{ color: "#C4841D" }}>
+                          {isFR ? (briefing.tax_exposures_fr || briefing.tax_exposures) : briefing.tax_exposures}
+                        </p>
+                      ) : (
+                        <p className="font-serif text-[16px] font-bold" style={{ color: "#C4841D" }}>${briefing.estimated_tax_exposure.toLocaleString()}</p>
+                      )}
                     </div>
                   )}
+                  {/* Questions to ask accountant */}
                   {briefing.questions_to_ask?.slice(0, 3).map((q: string, i: number) => (
                     <p key={i} className="text-[10px] text-ink-secondary italic mb-1 pl-2 border-l-2 border-border-light">"{q}"</p>
                   ))}
