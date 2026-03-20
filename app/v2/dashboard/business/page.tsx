@@ -554,12 +554,15 @@ export default function BusinessDashboard() {
                 </div>
                 {planSequence.slice(0, 4).map((s: any, i: number) => (
                   <div key={i} className="px-4 py-2.5 flex items-start gap-3 border-b border-border-light last:border-0">
-                    <span className="w-[20px] h-[20px] rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{s.step}</span>
+                    <span className="w-[20px] h-[20px] rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{s.step ?? i + 1}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-medium text-ink-secondary">{s.action}</p>
+                      <p className="text-[11px] font-medium text-ink-secondary">{isFR ? (s.action_fr || s.action || "") : (s.action || "")}</p>
                       {s.unlocks?.length > 0 && <p className="text-[9px] text-ink-faint mt-0.5">{t("Unlocks:", "Débloque:")} {s.unlocks.join(", ")}</p>}
+                      {(s.why_first || s.description) && <p className="text-[9px] text-ink-faint mt-0.5 italic">{isFR ? (s.why_first_fr || s.why_first || s.description) : (s.why_first || s.description)}</p>}
                     </div>
-                    <span className="text-[10px] font-bold text-positive shrink-0">${s.value.toLocaleString()}</span>
+                    {(s.value ?? s.estimated_savings ?? 0) > 0 && (
+                      <span className="text-[10px] font-bold text-positive shrink-0">${(s.value ?? s.estimated_savings ?? 0).toLocaleString()}</span>
+                    )}
                   </div>
                 ))}
               </div>
