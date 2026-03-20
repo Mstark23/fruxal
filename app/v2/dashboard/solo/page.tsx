@@ -95,7 +95,8 @@ export default function SoloDashboard() {
       const detectedPlan = (d.recommended_plan || "").toLowerCase();
       if (detectedTier === "enterprise" || detectedTier === "corp") { redirected = true; router.replace("/v2/dashboard/enterprise"); return; }
       if (detectedTier === "business" || detectedTier === "growth" || detectedTier === "team") { redirected = true; router.replace("/v2/dashboard/business"); return; }
-      if (detectedPlan === "enterprise" || detectedPlan === "business") { redirected = true; router.replace("/v2/dashboard/business"); return; }
+      if (detectedPlan === "enterprise") { redirected = true; router.replace("/v2/dashboard/enterprise"); return; }
+      if (detectedPlan === "business") { redirected = true; router.replace("/v2/dashboard/business"); return; }
       setTier(detectedTier);
       if (d.recommended_plan) setRecommendedPlan(d.recommended_plan);
       setProfile(d.profile || { province: "QC", industry: "Small Business", structure: "" });

@@ -107,10 +107,6 @@ export default function BusinessDashboard() {
       }
     }).catch(() => {});
 
-    const v3P = fetch("/api/v3/dashboard").then(r => r.json()).then(json => {
-      if (json.snapshot?.cost_breakdown?.length) setCostBreakdown(json.snapshot.cost_breakdown);
-    }).catch(() => {});
-
     // — diagnostic layer —
     const diagP = fetch("/api/v2/diagnostic/latest").then(r => r.json()).then(json => {
       if (!json.success || !json.data) return;
@@ -132,7 +128,7 @@ export default function BusinessDashboard() {
       if (json.actions) { setThisWeekActions(json.actions.this_week || []); setInProgressActions(json.actions.in_progress || []); setCompletedActions(json.actions.completed || []); }
     }).catch(() => {}) : Promise.resolve();
 
-    Promise.all([v2P, v3P, diagP, actP]).finally(() => { setLoading(false); requestAnimationFrame(() => setMounted(true)); });
+    Promise.all([v2P, diagP, actP]).finally(() => { setLoading(false); requestAnimationFrame(() => setMounted(true)); });
   }, [user?.id]);
 
   const recovered = actionStats?.total_recovered || totalSavings || 0;
