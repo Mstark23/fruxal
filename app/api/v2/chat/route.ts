@@ -87,24 +87,25 @@ export async function POST(req: NextRequest) {
     }
 
     // ─── PAYWALL CHECK ─────────────────────────────────────────────────────
-    // Enterprise users work on contingency — always bypass paywall
-    const isAdmin = false; // admin check handled server-side via session
+    // Check paid tier — businesses.tier (written by Stripe webhook) is authoritative
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("tier")
+      .eq("owner_user_id", userId)
+      .maybeSingle();
 
-    // Check enterprise tier via business_profiles
-    const { data: bizProfile } = await supabase
-      .from("business_profiles")
-      .select("user_id")
-      .eq("user_id", userId)
-      .limit(1)
-      .single();
+    const bizTier = (biz?.tier || "").toLowerCase();
+    const isPaidTier = ["business","growth","team","corp","enterprise","advisor","solo"].includes(bizTier);
 
+    // Fallback: check legacy user_progress table
     const { data: progress } = await supabase
       .from("user_progress")
-      .select("payment_status, payment_type, total_leak_found")
+      .select("payment_status, total_leak_found")
       .eq("userId", userId)
-      .single();
+      .single()
+      .catch(() => ({ data: null }));
 
-    const isPaid = isAdmin
+    const isPaid = isPaidTier
       || progress?.payment_status === "active"
       || progress?.payment_status === "lifetime";
 
@@ -121,8 +122,8 @@ export async function POST(req: NextRequest) {
       if (userMessageCount >= 2) {
         return NextResponse.json({
           error: "paywall",
-          message: "You've used your free preview messages. Unlock your full leak report and Fruxal advisor to continue.",
-          totalLeak: (progress as any)?.total_leak_found || 0,
+          message: "You've used your 2 free messages.",
+          totalLeak: progress?.total_leak_found || 0,
           paywallType: "chat_limit",
         }, { status: 402 });
       }

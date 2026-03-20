@@ -58,6 +58,7 @@ export default function ChatPage() {
   const [isEnt, setIsEnt]           = useState(false);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState<string|null>(null);
+  const [paywalled, setPaywalled]   = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
 
@@ -143,7 +144,18 @@ export default function ChatPage() {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify(body),
       });
+
+      // Handle paywall
+      if (res.status === 402) {
+        setPaywalled(true);
+        // Remove the user message we just added — don't pollute history
+        setMessages(prev => prev.slice(0, -1));
+        setSending(false);
+        return;
+      }
+
       const json = await res.json();
+      if (json.error === "paywall") { setPaywalled(true); setMessages(prev => prev.slice(0, -1)); setSending(false); return; }
       if (json.conversationId) setConvId(json.conversationId);
       const reply = json.reply || json.message || json.response || json.content || t("Sorry, try again.","Désolé, réessayez.");
       setMessages(prev => [...prev, { role:"assistant", content:reply, ts:new Date().toISOString() }]);
@@ -339,9 +351,29 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* ── Input bar ───────────────────────────────────────────────────── */}
+      {/* ── Input bar / Paywall gate ────────────────────────────────────── */}
       <div className="shrink-0 px-6 lg:px-8 py-4 bg-white border-t border-border-light">
         <div className="max-w-[760px] mx-auto">
+
+          {paywalled ? (
+            /* Paywall gate — replaces the input */
+            <div className="rounded-xl overflow-hidden" style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+              <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="text-[13px] font-bold text-white mb-1">
+                    {t("You've used your 2 free messages", "Vous avez utilisé vos 2 messages gratuits")}
+                  </p>
+                  <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+                    {t("Unlock Business to ask unlimited questions about your finances, leaks, and CPA strategy.", "Débloquez Business pour des questions illimitées sur vos finances et stratégie CPA.")}
+                  </p>
+                </div>
+                <a href="/v2/checkout?plan=business"
+                  className="shrink-0 px-4 py-2 text-[12px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition">
+                  Business $149/mo →
+                </a>
+              </div>
+            </div>
+          ) : (
           <div className="flex items-end gap-3 bg-bg border border-border-light rounded-xl px-4 py-3"
             style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
             <textarea
@@ -372,9 +404,12 @@ export default function ChatPage() {
               </svg>
             </button>
           </div>
+          )}
+          {!paywalled && (
           <p className="text-[9px] text-ink-faint text-center mt-2">
             {t("AI may make mistakes. Verify with a qualified advisor.","L'IA peut faire des erreurs. Vérifiez avec un conseiller qualifié.")}
           </p>
+          )}
         </div>
       </div>
 

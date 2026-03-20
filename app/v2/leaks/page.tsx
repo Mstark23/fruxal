@@ -47,13 +47,25 @@ export default function LeaksPage() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const { celebrate, celebrating, celebrationProps, dismissCelebration } = useCelebration();
+  const [isPaid, setIsPaid] = useState(true); // optimistic — avoids flash of gate
+  const [gated, setGated] = useState(false);
+  const [lockedCount, setLockedCount] = useState(0);
+  const [lockedValue, setLockedValue] = useState(0);
 
   useEffect(() => {
     async function load() {
       try {
         const res = await fetch("/api/v2/leaks/list");
         const json = await res.json();
-        if (json.success) setLeaks(json.data);
+        if (json.success) {
+          setLeaks(json.data);
+          if (json.meta) {
+            setIsPaid(json.meta.isPaid);
+            setGated(json.meta.gated);
+            setLockedCount(json.meta.lockedCount || 0);
+            setLockedValue(json.meta.lockedValue || 0);
+          }
+        }
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
     }
@@ -135,7 +147,8 @@ export default function LeaksPage() {
           </div>
         </div>
 
-        {/* Filter tabs */}
+        {/* Filter tabs — only shown for paid users (free users only see detected) */}
+        {isPaid && (
         <div className="flex gap-1.5 mb-4">
           {STATUS_TABS.map(tab => (
             <button key={tab.value} onClick={() => setFilter(tab.value)}
@@ -146,6 +159,7 @@ export default function LeaksPage() {
               }`}>{isFR ? tab.fr : tab.label}</button>
           ))}
         </div>
+        )}
 
         {/* List */}
         {loading ? (
@@ -249,6 +263,45 @@ export default function LeaksPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Gate card — shown when free/solo user has locked leaks */}
+        {gated && lockedCount > 0 && (
+          <div className="mt-4 rounded-xl overflow-hidden border"
+            style={{ borderColor: "rgba(27,58,45,0.15)" }}>
+            {/* Blurred ghost rows */}
+            {[...Array(Math.min(lockedCount, 2))].map((_, i) => (
+              <div key={i} className="px-4 py-3 border-b border-border-light select-none"
+                style={{ filter: "blur(4px)", opacity: 0.3, background: "white" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-3 bg-gray-200 rounded" />
+                  <div className="flex-1 h-3 bg-gray-200 rounded" />
+                  <div className="w-16 h-3 bg-gray-200 rounded" />
+                </div>
+              </div>
+            ))}
+            {/* Lock overlay */}
+            <div className="px-5 py-6 text-center"
+              style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{ background: "rgba(255,255,255,0.1)" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              </div>
+              <p className="text-[13px] font-bold text-white mb-1">
+                {lockedCount} more {lockedCount === 1 ? "leak" : "leaks"} locked
+              </p>
+              {lockedValue > 0 && (
+                <p className="text-[11px] mb-4" style={{ color: "rgba(255,255,255,0.65)" }}>
+                  Additional <span className="font-bold text-white">${lockedValue.toLocaleString()}</span> in recoverable savings
+                </p>
+              )}
+              <a href="/v2/checkout?plan=business"
+                className="inline-block px-5 py-2.5 text-[12px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition">
+                Unlock Business $149/mo →
+              </a>
+              <p className="text-[9px] mt-2" style={{ color: "rgba(255,255,255,0.4)" }}>Cancel anytime</p>
+            </div>
           </div>
         )}
       </div>
