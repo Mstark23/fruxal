@@ -1,6 +1,6 @@
 // =============================================================================
 // app/v2/dashboard/enterprise/page.tsx v4
-// Enterprise dashboard. Light theme. Full $5M$1B spectrum.
+// Enterprise dashboard. Light theme. $1M+ revenue CCPCs.
 // KPI row 1: Health Score | Annual Leak | EBITDA Impact | Enterprise Value Impact
 // KPI row 2: Exit Readiness | Bankability | Penalty Exposure | Programs
 // Intake quality nudge | Financial context row | Structure flags
@@ -41,6 +41,7 @@ export default function EnterpriseDashboard() {
   const [reportId,   setReportId]   = useState<string | null>(null);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [rerunning,  setRerunning]  = useState(false);
+  const [mounted,    setMounted]    = useState(false);
 
  // Diagnostic report data
   const [savingsAnchor, setSavingsAnchor] = useState("");
@@ -280,6 +281,7 @@ export default function EnterpriseDashboard() {
         console.error("[EnterpriseDashboard]", e);
       } finally {
         setLoading(false);
+        requestAnimationFrame(() => setMounted(true));
       }
     }
     load();
