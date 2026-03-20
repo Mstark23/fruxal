@@ -292,8 +292,8 @@ export async function GET(req: NextRequest) {
       const empCount = profile?.employee_count || 0;
 
       // Revenue-based qualification — solo threshold raised to avoid false enterprise routing
-      if (rev >= 5_000_000 || empCount >= 50)  recommended_plan = "enterprise";
-      else if (rev >= 500_000 || empCount >= 6) recommended_plan = "business";
+      if (rev >= 1_000_000 || empCount >= 50)   recommended_plan = "enterprise";
+      else if (rev >= 150_000 || empCount >= 3)  recommended_plan = "business";
 
       // Paid tier overrides if higher
       if (tier === "business" || tier === "enterprise") recommended_plan = tier;

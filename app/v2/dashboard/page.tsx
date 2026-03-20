@@ -52,10 +52,10 @@ export default function DashboardRouter() {
       }
     } catch {}
 
-    // 2. Check sessionStorage prescan result (new registration flow)
+    // 2. Check sessionStorage prescan result (new registration flow + returning users)
     try {
       const raw = sessionStorage.getItem("lg_prescan_result");
-      if (raw && rid) {
+      if (raw) {
         const p   = JSON.parse(raw);
         const rev = p.inputs?.annualRevenue || 0;
         const emp = p.inputs?.employeeCount || 0;
@@ -71,15 +71,11 @@ export default function DashboardRouter() {
       .then(json => {
         const tier  = (json?.data?.tier             || "free").toLowerCase();
         const plan  = (json?.data?.recommended_plan || "solo").toLowerCase();
-        // Enterprise routing: ONLY from paid tier — never from recommended_plan alone.
-        // recommended_plan="enterprise" means high revenue but not paid enterprise.
-        // Treat plan="enterprise" unpaid as business (they qualify, they just haven't paid up).
-        const eff = (tier === "enterprise" || tier === "corp") ? "enterprise"
-                  : (tier === "business" || tier === "growth" || tier === "team") ? "business"
-                  : (plan === "business" || plan === "enterprise") ? "business"
+        const eff = (tier === "enterprise" || tier === "corp" || plan === "enterprise") ? "enterprise"
+                  : (tier === "business" || tier === "growth" || tier === "team" || plan === "business") ? "business"
                   : "solo";
         // Persist so next nav click skips the API call
-        try { if (eff !== "solo") localStorage.setItem("fruxal_tier", eff); } catch {}
+        try { localStorage.setItem("fruxal_tier", eff); } catch {}
         if      (eff === "enterprise") router.replace("/v2/dashboard/enterprise" + suffix);
         else if (eff === "business")   router.replace("/v2/dashboard/business"   + suffix);
         else                           router.replace("/v2/dashboard/solo"        + suffix);
