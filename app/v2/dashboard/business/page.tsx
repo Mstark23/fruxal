@@ -174,7 +174,7 @@ export default function BusinessDashboard() {
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon après-midi") : t("Good evening", "Bonsoir"); })();
   const fade = (d = 0) => ({ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: `all 0.45s cubic-bezier(0.16,1,0.3,1) ${d}s` } as React.CSSProperties);
   const allActions = [...inProgressActions, ...thisWeekActions];
-  const displayLeaks = diagFindings.length > 0 ? diagFindings.slice(0, 6) : leaks;
+  const displayLeaks = diagFindings.length > 0 ? diagFindings.slice(0, isPaid ? 6 : 3) : leaks.slice(0, isPaid ? 6 : 3);
 
   if (loading || authLoading) return (
     <div className="min-h-screen bg-bg flex items-center justify-center"><div className="w-6 h-6 border-2 border-border border-t-brand rounded-full animate-spin" /></div>
@@ -274,7 +274,14 @@ export default function BusinessDashboard() {
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${totalLeak.toLocaleString()}</div>
-            <div className="text-[10px] text-ink-faint mt-1.5">{displayLeaks.length} {t("findings", "constats")}</div>
+            <div className="text-[10px] text-ink-faint mt-1.5">
+              {displayLeaks.length} {t("findings", "constats")}
+              {!isPaid && (diagFindings.length > 3 || leaks.length > 3) && (
+                <span className="ml-1 text-negative font-semibold">
+                  +{(diagFindings.length || leaks.length) - 3} {t("locked", "verrouillés")}
+                </span>
+              )}
+            </div>
           </button>
 
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
