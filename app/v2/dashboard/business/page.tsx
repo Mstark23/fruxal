@@ -284,11 +284,20 @@ export default function BusinessDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5" style={fade(0.04)}>
           <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
-            <div className="flex items-end gap-1.5">
-              <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: score >= 60 ? "#1B3A2D" : "#C4841D" }}>{score}</span>
-              <span className="text-xs text-ink-faint mb-1">/100</span>
-            </div>
-            <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${score}%`, background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
+            {score > 0 ? (
+              <>
+                <div className="flex items-end gap-1.5">
+                  <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: score >= 60 ? "#1B3A2D" : "#C4841D" }}>{score}</span>
+                  <span className="text-xs text-ink-faint mb-1">/100</span>
+                </div>
+                <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${score}%`, background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
+              </>
+            ) : (
+              <>
+                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
+                <div className="text-[10px] text-ink-faint mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
+              </>
+            )}
           </button>
 
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
