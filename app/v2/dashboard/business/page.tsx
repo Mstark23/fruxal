@@ -251,6 +251,26 @@ export default function BusinessDashboard() {
           </div>
         )}
 
+        {/* PAID NO-DIAGNOSTIC NUDGE — paid user has prescan data but hasn't run the full diagnostic yet */}
+        {isPaid && diagFindings.length === 0 && leaks.length > 0 && !isAnalyzing && (
+          <div className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl mb-4"
+            style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.12)", ...fade(0.02) }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: "rgba(27,58,45,0.08)" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-semibold text-ink">{t("You're seeing prescan estimates", "Vous voyez des estimations du prescan")}</p>
+              <p className="text-[10px] text-ink-faint mt-0.5">{t("Run your Business diagnostic to get exact dollar amounts, calculation math, CPA briefing and benchmarks.", "Lancez votre diagnostic Business pour obtenir des montants exacts, calculs, briefing CPA et benchmarks.")}</p>
+            </div>
+            <button onClick={() => router.push("/v2/diagnostic")}
+              className="shrink-0 h-8 px-4 text-[11px] font-bold text-white rounded-lg transition hover:opacity-90"
+              style={{ background: "#1B3A2D" }}>
+              {t("Run diagnostic →", "Lancer →")}
+            </button>
+          </div>
+        )}
+
         {/* OVERDUE ALERT */}
         {overdue > 0 && (
           <button onClick={() => router.push("/v2/obligations")} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl mb-4 text-left" style={{ background: "rgba(179,64,64,0.03)", border: "1px solid rgba(179,64,64,0.1)", ...fade(0.02) }}>
