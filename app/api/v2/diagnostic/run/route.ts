@@ -301,29 +301,39 @@ export async function POST(req: NextRequest) {
     // ── 9. Auto-create tier3_pipeline entry (enterprise) ─────────────────
     if (tier === "enterprise") {
       try {
-        const { data: rep } = await supabaseAdmin
+        const userId    = (token as any)?.id || token?.sub;
+        const userEmail = (token as any)?.email as string | undefined;
+
+        // Find best available active rep — match by province first, fallback to any active rep
+        const { data: reps } = await supabaseAdmin
           .from("tier3_reps")
-          .select("id")
-          .eq("user_id", (token as any)?.id || token?.sub)
+          .select("id, province")
           .eq("status", "active")
-          .maybeSingle();
+          .order("created_at", { ascending: true });
+
+        const rep = reps?.find(r => r.province === province) || reps?.[0] || null;
 
         const { data: existingPipe } = await supabaseAdmin
           .from("tier3_pipeline")
           .select("id")
-          .eq("report_id", reportId)
+          .or(`report_id.eq.${reportId},user_id.eq.${userId}`)
           .maybeSingle();
 
         if (!existingPipe) {
           const pipeId = crypto.randomUUID();
           await supabaseAdmin.from("tier3_pipeline").insert({
-            id:          pipeId,
-            report_id:   reportId,
-            business_id: businessId,
-            rep_id:      rep?.id || null,
-            stage:       "lead",
-            created_at:  new Date().toISOString(),
-            updated_at:  new Date().toISOString(),
+            id:            pipeId,
+            report_id:     reportId,
+            business_id:   businessId,
+            user_id:       userId,          // ← required for status API lookup
+            contact_email: userEmail || null, // ← fallback lookup
+            company_name:  profile.business_name || null,
+            industry:      profile.industry_label || profile.industry || null,
+            province:      province || null,
+            rep_id:        rep?.id || null,
+            stage:         "lead",
+            created_at:    new Date().toISOString(),
+            updated_at:    new Date().toISOString(),
           });
 
           if (rep?.id) {
@@ -331,6 +341,7 @@ export async function POST(req: NextRequest) {
               id:                   crypto.randomUUID(),
               rep_id:               rep.id,
               pipeline_id:          pipeId,
+              diagnostic_id:        reportId,
               report_id:            reportId,
               stage_at_assignment:  "lead",
               assigned_at:          new Date().toISOString(),

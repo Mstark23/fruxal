@@ -17,11 +17,24 @@ export async function GET(req: NextRequest) {
     const userId = ((token as any)?.id || token?.sub) as string;
     const email  = (token as any)?.email as string | undefined;
 
+    // ── 0. Resolve business_id for this user (needed for pipeline lookup) ──
+    const { data: bProfile } = await supabaseAdmin
+      .from("business_profiles")
+      .select("business_id")
+      .eq("user_id", userId)
+      .single()
+      .catch(() => ({ data: null }));
+    const businessId = bProfile?.business_id as string | undefined;
+
     // ── 1. Pipeline entry for this user ────────────────────────────────────
+    const orParts = [`user_id.eq.${userId}`];
+    if (email)      orParts.push(`contact_email.eq.${email}`);
+    if (businessId) orParts.push(`business_id.eq.${businessId}`);
+
     const { data: pipeline } = await supabaseAdmin
       .from("tier3_pipeline")
       .select("id, stage, created_at, updated_at, follow_up_date, notes, diagnostic_id, company_name, contact_name")
-      .or(`user_id.eq.${userId}${email ? `,contact_email.eq.${email}` : ""}`)
+      .or(orParts.join(","))
       .order("updated_at", { ascending: false })
       .limit(1)
       .single();
@@ -37,26 +50,39 @@ export async function GET(req: NextRequest) {
 
     // ── 3. Rep assignment ───────────────────────────────────────────────────
     let rep: any = null;
-    if (engagement?.id || pipeline?.diagnostic_id) {
+    // Try rep assignment via pipeline's direct rep_id first (fastest path)
+    if (pipeline?.rep_id) {
+      const { data: repData } = await supabaseAdmin
+        .from("tier3_reps")
+        .select("name, email, phone, province, calendly_url")
+        .eq("id", pipeline.rep_id)
+        .single()
+        .catch(() => ({ data: null }));
+      if (repData) rep = { ...repData, assignedAt: pipeline.created_at };
+    }
+    // Fallback: look up via rep_assignments table using diagnostic_id or report_id
+    if (!rep && (engagement?.id || pipeline?.diagnostic_id || pipeline?.report_id)) {
       const diagId = engagement?.id
-        ? (await supabaseAdmin.from("tier3_engagements").select("diagnostic_id").eq("id", engagement.id).single()).data?.diagnostic_id
-        : pipeline?.diagnostic_id;
+        ? (await supabaseAdmin.from("tier3_engagements").select("diagnostic_id").eq("id", engagement.id).single().catch(() => ({ data: null }))).data?.diagnostic_id
+        : (pipeline?.diagnostic_id || pipeline?.report_id);
 
       if (diagId) {
         const { data: assignment } = await supabaseAdmin
           .from("tier3_rep_assignments")
           .select("rep_id, assigned_at, notes")
-          .eq("diagnostic_id", diagId)
+          .or(`diagnostic_id.eq.${diagId},report_id.eq.${diagId}`)
           .order("assigned_at", { ascending: false })
           .limit(1)
-          .single();
+          .single()
+          .catch(() => ({ data: null }));
 
         if (assignment?.rep_id) {
           const { data: repData } = await supabaseAdmin
             .from("tier3_reps")
-            .select("name, email, phone, province")
+            .select("name, email, phone, province, calendly_url")
             .eq("id", assignment.rep_id)
-            .single();
+            .single()
+            .catch(() => ({ data: null }));
           if (repData) rep = { ...repData, assignedAt: assignment.assigned_at };
         }
       }
