@@ -38,9 +38,25 @@ export async function POST(req: NextRequest) {
     const body       = await req.json();
     const { businessId } = body;
     const language: string = body.language || "en";
+    const userId = ((token as any)?.id || token?.sub) as string;
 
     if (!businessId) {
       return NextResponse.json({ success: false, error: "businessId required" }, { status: 400 });
+    }
+
+    // ── IDOR fix: verify the caller owns this businessId before any data access ──
+    // Fetch profile scoped to BOTH businessId AND userId — prevents any authenticated
+    // user from running a diagnostic on another user's business by guessing a UUID.
+    const { data: profile } = await supabaseAdmin
+      .from("business_profiles")
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("user_id", userId)
+      .single();
+
+    if (!profile) {
+      // Return 404 not 403 — don't confirm whether the businessId exists at all
+      return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
     }
 
     // Prevent duplicate concurrent runs — if one is already analyzing, return it
@@ -61,17 +77,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, reportId: existingRun.id, status: "analyzing" });
       }
       // Older than 3 min — stale, fall through and create a new one
-    }
-
-    // ── 1. Fetch profile ──────────────────────────────────────────────────
-    const { data: profile } = await supabaseAdmin
-      .from("business_profiles")
-      .select("*")
-      .eq("business_id", businessId)
-      .single();
-
-    if (!profile) {
-      return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
     }
 
     const { data: business } = await supabaseAdmin
@@ -296,7 +301,7 @@ export async function POST(req: NextRequest) {
       .from("diagnostic_reports")
       .insert({
         business_id: businessId,
-        user_id:     ((token as any)?.id || token?.sub),
+        user_id:     userId,
         language,
         status:      "analyzing",
         tier,
@@ -418,7 +423,6 @@ export async function POST(req: NextRequest) {
     // ── 9. Auto-create tier3_pipeline entry (enterprise) ─────────────────
     if (tier === "enterprise") {
       try {
-        const userId    = (token as any)?.id || token?.sub;
         const userEmail = (token as any)?.email as string | undefined;
 
         // Find best available active rep — match by province first, fallback to any active rep
