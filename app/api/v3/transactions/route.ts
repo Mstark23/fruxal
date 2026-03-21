@@ -2,17 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+// ── Ownership helper ──────────────────────────────────────────────────────────
+// Returns the userId's verified businessId, or null if they don't own it.
+async function verifyOwnership(userId: string, businessId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from("business_profiles")
+    .select("business_id")
+    .eq("business_id", businessId)
+    .eq("user_id", userId)
+    .single()
+    .catch(() => ({ data: null }));
+  return !!data;
+}
 
 /**
  * GET /api/v3/transactions?businessId=xxx&page=1&limit=50&category=rent&from=2025-01-01&to=2025-12-31
  */
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!(session?.user as any)?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = (session?.user as any)?.id;
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const sp = req.nextUrl.searchParams;
   const businessId = sp.get("businessId");
   if (!businessId) return NextResponse.json({ error: "businessId required" }, { status: 400 });
+
+  // IDOR fix: verify caller owns this businessId
+  if (!(await verifyOwnership(userId, businessId))) {
+    return NextResponse.json({ error: "Business not found" }, { status: 404 });
+  }
 
   const sb = getSupabase();
   const page = parseInt(sp.get("page") || "1");
@@ -66,23 +86,32 @@ export async function GET(req: NextRequest) {
 
 /**
  * PATCH /api/v3/transactions — update category for one or many transactions
- * Body: { ids: string[], category_code: string }
+ * Body: { ids: string[], category_code: string, businessId: string }
  */
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!(session?.user as any)?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = (session?.user as any)?.id;
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { ids, category_code } = body;
-  if (!ids?.length || !category_code) {
-    return NextResponse.json({ error: "ids and category_code required" }, { status: 400 });
+  const { ids, category_code, businessId } = body;
+  if (!ids?.length || !category_code || !businessId) {
+    return NextResponse.json({ error: "ids, category_code, and businessId required" }, { status: 400 });
+  }
+
+  // IDOR fix: verify caller owns the businessId before updating any transactions
+  if (!(await verifyOwnership(userId, businessId))) {
+    return NextResponse.json({ error: "Business not found" }, { status: 404 });
   }
 
   const sb = getSupabase();
+  // Scope update to businessId so a valid user can't update another business's transactions
+  // even if they somehow obtained valid transaction UUIDs
   const { error } = await sb
     .from("raw_transactions")
     .update({ category_code, user_confirmed: true })
-    .in("id", ids);
+    .in("id", ids)
+    .eq("business_id", businessId); // ownership scope
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

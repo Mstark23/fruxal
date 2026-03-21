@@ -2,16 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+// ── Ownership helper ──────────────────────────────────────────────────────────
+async function verifyOwnership(userId: string, businessId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from("business_profiles")
+    .select("business_id")
+    .eq("business_id", businessId)
+    .eq("user_id", userId)
+    .single()
+    .catch(() => ({ data: null }));
+  return !!data;
+}
 
 /**
  * GET /api/v3/data-sources?businessId=xxx
  */
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!(session?.user as any)?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = (session?.user as any)?.id;
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const businessId = req.nextUrl.searchParams.get("businessId");
   if (!businessId) return NextResponse.json({ error: "businessId required" }, { status: 400 });
+
+  // IDOR fix: verify caller owns this businessId
+  if (!(await verifyOwnership(userId, businessId))) {
+    return NextResponse.json({ error: "Business not found" }, { status: 404 });
+  }
 
   const sb = getSupabase();
   const { data, error } = await sb
@@ -26,22 +45,28 @@ export async function GET(req: NextRequest) {
 
 /**
  * DELETE /api/v3/data-sources — remove a source and its transactions
- * Body: { id: string }
+ * Body: { id: string, businessId: string }
  */
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!(session?.user as any)?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = (session?.user as any)?.id;
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { id } = body;
-  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  const { id, businessId } = body;
+  if (!id || !businessId) return NextResponse.json({ error: "id and businessId required" }, { status: 400 });
+
+  // IDOR fix: verify caller owns the businessId before deleting anything
+  if (!(await verifyOwnership(userId, businessId))) {
+    return NextResponse.json({ error: "Business not found" }, { status: 404 });
+  }
 
   const sb = getSupabase();
 
-  // Delete transactions first
-  await sb.from("raw_transactions").delete().eq("data_source_id", id);
-  // Delete source
-  const { error } = await sb.from("data_sources").delete().eq("id", id);
+  // Scope deletes to businessId — prevents deleting another business's source
+  // even if a valid data_source UUID is somehow obtained
+  await sb.from("raw_transactions").delete().eq("data_source_id", id).eq("business_id", businessId);
+  const { error } = await sb.from("data_sources").delete().eq("id", id).eq("business_id", businessId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
