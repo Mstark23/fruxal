@@ -929,7 +929,18 @@ export default function EnterpriseDashboard() {
                   <div className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: "#1B3A2D" }}>
                     +{fmtM(totals.enterprise_value_impact)}
                   </div>
-                  <div className="text-[10px] text-ink-faint mt-1.5">{t("at 6–8× EBITDA", "à 6–8× BAIIA")}</div>
+                  <div className="text-[10px] text-ink-faint mt-1.5">
+                    {(() => {
+                      // Derive the actual multiple used from EV ÷ EBITDA impact
+                      if (totals.ebitda_impact > 0 && totals.enterprise_value_impact > 0) {
+                        const multiple = Math.round(totals.enterprise_value_impact / totals.ebitda_impact);
+                        if (multiple >= 2 && multiple <= 20) {
+                          return t(`at ${multiple}× EBITDA`, `à ${multiple}× BAIIA`);
+                        }
+                      }
+                      return t("at market multiple", "au multiple du marché");
+                    })()}
+                  </div>
                 </>
               ) : (
                 <div className="text-[11px] text-ink-faint mt-1">{t("Requires diagnostic", "Diagnostic requis")}</div>
