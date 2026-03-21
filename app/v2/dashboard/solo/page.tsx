@@ -53,6 +53,7 @@ export default function SoloDashboard() {
   const [ninetyDay, setNinetyDay] = useState<any>(null);
   const [strengths, setStrengths] = useState<any[]>([]);
   const [diagFindings, setDiagFindings] = useState<any[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
   const isFR = lang === "fr";
@@ -120,15 +121,21 @@ export default function SoloDashboard() {
       }
     }).catch(() => {});
 
-    const diagP = fetch("/api/v2/diagnostic/latest").then(r => r.json()).then(json => {
-      if (redirected || !json.success) return;
-      if (json.status === "analyzing" || json.data?.status === "analyzing") {
-        // Show analyzing banner — don't set any report data yet
-        try { sessionStorage.setItem("fruxal_analyzing", "1"); } catch {}
-        return;
-      }
-      if (!json.data) return;
-      const r = json.data;
+    let analyzePoll: ReturnType<typeof setInterval> | null = null;
+    let isAnalyzingNow = false;
+
+    const loadDiag = async () => {
+      try {
+        const json = await fetch("/api/v2/diagnostic/latest").then(r => r.json());
+        if (redirected || !json.success) return;
+        if (json.status === "analyzing" || json.data?.status === "analyzing") {
+          setIsAnalyzing(true);
+          isAnalyzingNow = true;
+          return;
+        }
+        if (!json.data) return;
+        setIsAnalyzing(false);
+        const r = json.data;
       const diagScore = r.scores?.overall ?? r.overall_score ?? 0;
       if (diagScore > 0) setScore(diagScore);
       const diagLeak = r.total_annual_leaks || r.totals?.annual_leaks || 0;
@@ -155,14 +162,34 @@ export default function SoloDashboard() {
           setDiagPrograms(prev => prev.length > 0 ? prev : progs);
         }
       }
-    }).catch(() => {});
-
     const actP = user?.id ? fetch("/api/v2/actions").then(r => r.json()).then(json => {
       if (json.stats) setActionStats(json.stats);
       if (json.actions) { setThisWeekActions(json.actions.this_week || []); setInProgressActions(json.actions.in_progress || []); setCompletedActions(json.actions.completed || []); }
     }).catch(() => {}) : Promise.resolve();
 
-    Promise.all([v2P, diagP, actP]).finally(() => { setLoading(false); requestAnimationFrame(() => setMounted(true)); });
+      } catch {}
+    };
+
+    const diagP = loadDiag();
+
+    Promise.all([v2P, diagP, actP]).finally(() => {
+      setLoading(false);
+      requestAnimationFrame(() => setMounted(true));
+      // Only poll when actually analyzing
+      if (isAnalyzingNow) {
+        analyzePoll = setInterval(async () => {
+          try {
+            const json = await fetch("/api/v2/diagnostic/latest").then(r => r.json());
+            if (json.status === "analyzing" || json.data?.status === "analyzing") return;
+            clearInterval(analyzePoll!);
+            setIsAnalyzing(false);
+            await loadDiag();
+          } catch {}
+        }, 4000);
+      }
+    });
+
+    return () => { if (analyzePoll) clearInterval(analyzePoll); };
   }, [user?.id]);
 
   const recovered = actionStats?.total_recovered || totalSavings || 0;
@@ -176,10 +203,26 @@ export default function SoloDashboard() {
   }
 
   const allActions = [...inProgressActions, ...thisWeekActions];
-  const allLeaks = diagFindings.length > 0
-    ? diagFindings.map((f: any) => ({ slug: f.id || f.slug || "f", title: f.title, title_fr: f.title_fr, severity: f.severity, category: f.category, description: isFR ? (f.description_fr || f.description) : f.description, description_fr: f.description_fr, impact_min: f.annual_leak || f.impact_min || 0, impact_max: f.potential_savings || f.impact_max || f.annual_leak || 0, confidence: null, action: isFR ? (f.action_items_fr?.[0] || f.action_items?.[0]) : f.action_items?.[0], action_fr: f.action_items_fr?.[0], affiliates: [] }))
-    : leaks;
-  const displayLeaks = allLeaks.slice(0, isPaid ? 6 : 4); // free: 1 visible + 3 blurred; paid: all 6
+  // Gap 2+6 fix: compute allLeaks inside render using current isFR — not stale at mount time
+  const allLeaks = (() => {
+    if (diagFindings.length > 0) {
+      return diagFindings.map((f: any) => ({
+        slug: f.id || f.slug || "f",
+        title: f.title, title_fr: f.title_fr,
+        severity: f.severity, category: f.category,
+        description: isFR ? (f.description_fr || f.description) : f.description,
+        description_fr: f.description_fr,
+        impact_min: f.annual_leak || f.impact_min || 0,
+        impact_max: f.potential_savings || f.impact_max || f.annual_leak || 0,
+        confidence: null,
+        action: isFR ? (f.action_items_fr?.[0] || f.action_items?.[0]) : f.action_items?.[0],
+        action_fr: f.action_items_fr?.[0],
+        affiliates: [],
+      }));
+    }
+    return leaks;
+  })();
+  const displayLeaks = allLeaks.slice(0, isPaid ? 6 : 4);
 
   if (loading || authLoading) return (
     <div className="min-h-screen bg-bg flex items-center justify-center"><div className="w-6 h-6 border-2 border-border border-t-brand rounded-full animate-spin" /></div>
@@ -210,7 +253,7 @@ export default function SoloDashboard() {
           <div>
             <h1 className="text-[15px] font-semibold text-ink">{greeting}{user?.name ? ", " + user.name.split(" ")[0] : ""}</h1>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-[10px] text-ink-faint">{profile.industry} - {profile.province}</span>
+              <span className="text-[10px] text-ink-faint">{profile.industry} · {profile.province}</span>
               <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: isFree ? "#F0EFEB" : "rgba(45,122,80,0.08)", color: isFree ? "#8E8C85" : "#1B3A2D" }}>
                 {isFree ? t("Free", "Gratuit") : "Solo"}
               </span>
@@ -224,6 +267,18 @@ export default function SoloDashboard() {
           </div>
           <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[9px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
         </div>
+
+        {/* ANALYZING BANNER */}
+        {isAnalyzing && (
+          <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+            style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)", ...fadeDelay(0.01) }}>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+            <div className="flex-1">
+              <p className="text-[12px] font-semibold text-white">{t("Diagnostic in progress…", "Diagnostic en cours…")}</p>
+              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("This takes 30–60 seconds. Page will refresh automatically.", "Cela prend 30 à 60 secondes. La page se rafraîchira automatiquement.")}</p>
+            </div>
+          </div>
+        )}
 
         {/* PAID NO-DIAGNOSTIC NUDGE — paid user has prescan data but hasn't run a diagnostic */}
         {isPaid && diagFindings.length === 0 && allLeaks.length > 0 && (
@@ -481,7 +536,7 @@ export default function SoloDashboard() {
                     {a.fix_description && <div className="text-[9px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="font-serif text-[13px] font-bold text-positive">+${a.estimated_value.toLocaleString()}</div>
+                    <div className="font-serif text-[13px] font-bold text-positive">+${(a.estimated_value ?? 0).toLocaleString()}</div>
                     <span className="text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "A faire")}</span>
                   </div>
                 </div>
