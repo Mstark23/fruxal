@@ -319,7 +319,10 @@ export async function POST(request: NextRequest) {
 
           const totalLeakAmount = result.leaks.reduce((sum, l) => sum + l.estimated_annual_leak, 0);
 
-          await supabase.from('prescan_results').insert({
+          // Gap 7 fix: await the insert so we know if it failed before returning
+          const { error: insertErr } = await supabase.from('prescan_results').insert({
+            // Gap 2 fix: prescan_run_id as top-level column so dashboard API Path C can join on it
+            prescan_run_id: prescanRunId,
             input_snapshot: {
               province: tags.province || 'QC',
               industry: tags.business_type || 'generic',
@@ -356,10 +359,34 @@ export async function POST(request: NextRequest) {
             tax_last_reviewed: tags.tax_last_reviewed || null,
             vendor_contracts_stale: tags.vendor_contracts_stale === 'yes',
             has_business_insurance: tags.has_business_insurance === 'yes' || tags.insurance_status === 'recently_compared',
-          }).then(({ error }) => {
-            if (error) console.warn('⚠️ prescan_results insert:', error.message);
-            else console.log('✅ prescan_results saved');
           });
+          if (insertErr) {
+            console.warn('⚠️ prescan_results insert failed:', insertErr.message);
+            // Retry once with minimal payload — don't block the response
+            try {
+              await supabase.from('prescan_results').insert({
+                prescan_run_id: prescanRunId,
+                user_id: realUserId || null,
+                province: tags.province || 'QC',
+                industry: tags.business_type || 'generic',
+                structure: tags.structure || 'sole_proprietor',
+                tier: tier || 'solo',
+                teaser_leaks: teaserLeaks,
+                input_snapshot: { prescan_run_id: prescanRunId },
+                summary: {},
+                hidden_leak_count: 0,
+                insights: [],
+                obligation_categories: [],
+                teaser_programs: [],
+                hidden_program_count: 0,
+              });
+              console.log('✅ prescan_results saved on retry');
+            } catch (retryErr: any) {
+              console.error('❌ prescan_results retry also failed:', retryErr.message);
+            }
+          } else {
+            console.log('✅ prescan_results saved');
+          }
         } catch (saveErr: any) {
           console.warn('⚠️ prescan_results save (non-blocking):', saveErr.message);
         }
@@ -367,11 +394,32 @@ export async function POST(request: NextRequest) {
       } catch (engineError: any) {
         console.error('❌ Prescan engine error:', engineError?.message);
         console.error('Stack:', engineError?.stack);
+        // Surface a friendly error message to the user — don't silently swallow
+        const isFR = lang === 'fr';
+        const cleanOriginal = cleanTagsFromText(responseText);
+        return NextResponse.json({
+          sessionId: sessionId || null,
+          message: isFR
+            ? `${cleanOriginal}\n\nJe n'ai pas pu terminer l'analyse en ce moment. Veuillez réessayer dans quelques instants.`
+            : `${cleanOriginal}\n\nI wasn't able to complete the analysis right now. Please try again in a moment.`,
+          rawMessage: responseText,
+          tags,
+          analysis: null,
+          prescanRunId: null,
+          tier: null,
+          pricing: null,
+          completed: false,
+          engineError: true,
+          inputs: {},
+        });
       }
     }
     
     // Clean response text (remove tags for user display)
     const cleanText = cleanTagsFromText(responseText);
+
+    // Gap 1 fix: only set completed=true when engine actually produced a result
+    const engineCompleted = shouldRunAnalysis && analysis !== null && prescanRunId !== null;
     
     return NextResponse.json({
       sessionId: sessionId || null,
@@ -382,10 +430,11 @@ export async function POST(request: NextRequest) {
       prescanRunId,
       tier,
       pricing,
-      completed: shouldRunAnalysis,
+      completed: engineCompleted,
       inputs: {
-        employeeCount: tags.set_employee_count || tags.staffing_count || 0,
-        annualRevenue: tags.set_annual_revenue || tags.set_revenue || (tags.set_monthly_revenue ? tags.set_monthly_revenue * 12 : null) || (tags.set_weekly_earnings ? tags.set_weekly_earnings * 52 : null) || 0,
+        employeeCount: tags.set_employee_count ?? tags.staffing_count ?? 0,
+        // Gap 5 fix: use ?? not || so 0 revenue is preserved
+        annualRevenue: tags.set_annual_revenue ?? tags.set_revenue ?? (tags.set_monthly_revenue ? tags.set_monthly_revenue * 12 : null) ?? (tags.set_weekly_earnings ? tags.set_weekly_earnings * 52 : null) ?? 0,
       },
     });
     

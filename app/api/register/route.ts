@@ -71,20 +71,38 @@ export async function POST(request: NextRequest) {
 
       if (!prescanRunExists) {
         try {
-          const { data: pr } = await sb
+          // Query top-level prescan_run_id column first (set by Gap 2 fix in prescan-chat route)
+          let prData: any = null;
+          const { data: prDirect } = await sb
             .from("prescan_results")
             .select("*")
-            .contains("input_snapshot", { prescan_run_id: prescanRunId })
+            .eq("prescan_run_id", prescanRunId)
             .order("created_at", { ascending: false })
             .limit(1);
 
-          if (pr?.[0]) {
-            const snap = pr[0].input_snapshot || {};
-            industry = snap.industry || pr[0].industry || industry;
-            province = snap.province || pr[0].province || null;
+          if (prDirect?.[0]) {
+            prData = prDirect[0];
+            console.log("✅ Bridge source B: prescan_results via top-level column");
+          } else {
+            // Legacy: prescan_run_id inside input_snapshot JSONB
+            const { data: prJsonb } = await sb
+              .from("prescan_results")
+              .select("*")
+              .contains("input_snapshot", { prescan_run_id: prescanRunId })
+              .order("created_at", { ascending: false })
+              .limit(1);
+            if (prJsonb?.[0]) {
+              prData = prJsonb[0];
+              console.log("✅ Bridge source B: prescan_results via JSONB fallback");
+            }
+          }
+
+          if (prData) {
+            const snap = prData.input_snapshot || {};
+            industry = snap.industry || prData.industry || industry;
+            province = snap.province || prData.province || null;
             revenue = snap.annual_revenue || (snap.monthly_revenue ? snap.monthly_revenue * 12 : null);
-            console.log("✅ Bridge source B: prescan_results found");
-            await sb.from("prescan_results").update({ user_id: userId }).eq("id", pr[0].id);
+            await sb.from("prescan_results").update({ user_id: userId }).eq("id", prData.id);
           }
         } catch (e: any) {
           console.warn("⚠️ Bridge source B (prescan_results):", e.message);
