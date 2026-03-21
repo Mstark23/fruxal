@@ -497,20 +497,22 @@ export default function SoloDashboard() {
             {isPaid && northStar && (
               <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <p className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Your North Star", "Votre etoile polaire")}</p>
-                <p className="text-[13px] font-semibold text-ink mb-2">{northStar.metric}</p>
-                <div className="flex items-center gap-2 text-[11px] mb-2">
-                  <span className="text-ink-faint">{northStar.current_value}</span>
-                  <span className="text-ink-faint/40">-&gt;</span>
-                  <span className="font-semibold text-positive">{northStar.target_value}</span>
-                </div>
-                <p className="text-[10px] text-ink-faint">{northStar.how_to_track_it}</p>
+                {northStar.metric && <p className="text-[13px] font-semibold text-ink mb-2">{northStar.metric}</p>}
+                {(northStar.current_value || northStar.target_value) && (
+                  <div className="flex items-center gap-2 text-[11px] mb-2">
+                    {northStar.current_value && <span className="text-ink-faint">{northStar.current_value}</span>}
+                    {northStar.current_value && northStar.target_value && <span className="text-ink-faint/40">→</span>}
+                    {northStar.target_value && <span className="font-semibold text-positive">{northStar.target_value}</span>}
+                  </div>
+                )}
+                {northStar.how_to_track_it && <p className="text-[10px] text-ink-faint">{northStar.how_to_track_it}</p>}
               </div>
             )}
 
             {isPaid && ninetyDay && (
               <div className="rounded-xl p-4" style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
                 <p className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(45,122,80,0.7)" }}>{t("90-Day Goal", "Objectif 90 jours")}</p>
-                <p className="text-[11px] text-ink-secondary leading-relaxed mb-2">{ninetyDay.success_statement}</p>
+                {ninetyDay.success_statement && <p className="text-[11px] text-ink-secondary leading-relaxed mb-2">{ninetyDay.success_statement}</p>}
                 <div className="space-y-1">
                   {(ninetyDay.key_milestones || []).slice(0, 4).map((m: string, i: number) => (
                     <div key={i} className="flex items-start gap-2 text-[10px] text-ink-faint">
@@ -528,13 +530,14 @@ export default function SoloDashboard() {
                 </div>
                 {strengths.slice(0, 2).map((s, i) => (
                   <div key={i} className="px-4 py-2.5 border-b border-border-light last:border-0">
-                    <p className="text-[11px] font-semibold text-positive mb-0.5">+ {s.title}</p>
-                    <p className="text-[10px] text-ink-faint">{s.description}</p>
+                    {s.title && <p className="text-[11px] font-semibold text-positive mb-0.5">+ {s.title}</p>}
+                    {s.description && <p className="text-[10px] text-ink-faint">{s.description}</p>}
                   </div>
                 ))}
               </div>
             )}
 
+            {!isPaid && (
             <button onClick={() => router.push(upgradeUrl)} className="w-full bg-white rounded-xl border border-border-light p-4 text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all">
               <div className="flex items-center justify-between">
                 <div>
@@ -554,6 +557,7 @@ export default function SoloDashboard() {
                 </span>
               </div>
             </button>
+            )}
           </div>
 
           {/* COL 3: SIDEBAR */}
