@@ -306,8 +306,36 @@ export default function EnterpriseDashboard() {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
+          // Set analyzing state — the poll loop in load() will detect completion
+          // and call load() again to refresh the dashboard without a page reload.
           setIsAnalyzing(true);
-          setTimeout(function() { window.location.reload(); }, 500);
+          setAnalysisFailed(false);
+          // Persist reportId so the "View progress" button works even if user switches tabs
+          try { if (data.reportId) localStorage.setItem("fruxal_analyzing_report", data.reportId); } catch {}
+          // Start polling every 4s — mirrors the load() poll but scoped to rerun
+          let pollCount = 0;
+          const poll = setInterval(async () => {
+            pollCount++;
+            try {
+              const pr  = await fetch("/api/v2/diagnostic/latest");
+              if (!pr.ok) { clearInterval(poll); setIsAnalyzing(false); return; }
+              const pd  = await pr.json();
+              if (pd?.status === "completed") {
+                clearInterval(poll);
+                try { localStorage.removeItem("fruxal_analyzing_report"); } catch {}
+                setIsAnalyzing(false);
+                // Reset fetchedRef so load() will re-run on next effect trigger
+                fetchedRef.current = false;
+                // Re-trigger the useEffect by toggling authLoading guard via a forced re-fetch
+                window.location.reload();
+              } else if (pd?.status === "failed" || pollCount >= 45) {
+                clearInterval(poll);
+                try { localStorage.removeItem("fruxal_analyzing_report"); } catch {}
+                setIsAnalyzing(false);
+                setAnalysisFailed(true);
+              }
+            } catch { clearInterval(poll); setIsAnalyzing(false); setAnalysisFailed(true); }
+          }, 4000);
         } else {
           alert(data.error || t("Failed to start diagnostic", "Echec du lancement"));
         }
