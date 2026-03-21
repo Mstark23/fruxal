@@ -350,6 +350,12 @@ export default function EnterpriseDashboard() {
     </div>
   );
 
+  const calendlyUrl = typeof window !== "undefined"
+    ? (entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || null)
+    : (entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || null);
+  const callHref   = calendlyUrl || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`;
+  const callIsEmail = !calendlyUrl;
+
   const SEV: Record<string, { dot: string; badge: string; text: string }> = {
     critical: { dot: "#B34040", badge: "rgba(179,64,64,0.07)",   text: "#B34040" },
     high:     { dot: "#C4841D", badge: "rgba(196,132,29,0.07)",  text: "#C4841D" },
@@ -440,6 +446,17 @@ export default function EnterpriseDashboard() {
             )}
           </div>
         </div>
+
+        {/* ── Calendly not configured warning (dev/staging only) ─────────── */}
+        {callIsEmail && process.env.NODE_ENV !== "production" && (
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl mb-3 text-left"
+            style={{ background: "rgba(196,132,29,0.04)", border: "1px solid rgba(196,132,29,0.2)" }}>
+            <span className="text-amber-500 text-sm shrink-0">⚠</span>
+            <p className="text-[11px]" style={{ color: "#92400e" }}>
+              <strong>NEXT_PUBLIC_CALENDLY_URL</strong> not set — "Book call" buttons will open mailto: instead of Calendly. Set this in Vercel environment variables.
+            </p>
+          </div>
+        )}
 
         {/* ── Overdue alert ──────────────────────────────────────────────── */}
         {overdue > 0 && (
@@ -1049,7 +1066,7 @@ export default function EnterpriseDashboard() {
                   const freeFindings   = visibleFindings.slice(0, FREE_COUNT);
                   const lockedFindings = visibleFindings.slice(FREE_COUNT);
                   const lockedValue    = lockedFindings.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
-                  const callHref       = entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`;
+                  const callHref       = callHref;
                   return (<>
                     {freeFindings.map((f: any, i: number) => {
                       const sev = SEV[f.severity] || SEV.low;
@@ -1246,7 +1263,7 @@ export default function EnterpriseDashboard() {
         {execSummary && (() => {
           const full = isFr ? (execSummaryFr || execSummary) : execSummary;
           const teaser = full.split(/[.!?]/)[0] + ".";
-          const callHref = entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`;
+          const callHref = callHref;
           return (
             <div className="bg-white rounded-xl border border-border-light px-5 py-4 mb-3"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -1308,7 +1325,7 @@ export default function EnterpriseDashboard() {
         {/* ── Locked sections: CPA Briefing + Priority Sequence + Benchmarks ── */}
         {(briefing || planSequence.length > 0 || benchmarks.length > 0) && (() => {
           const lockedValue = findings.slice(3).reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
-          const callHref = entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`;
+          const callHref = callHref;
           return (
             <div className="bg-white rounded-xl border overflow-hidden mb-3"
               style={{ borderColor: "rgba(27,58,45,0.15)", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -1479,8 +1496,8 @@ export default function EnterpriseDashboard() {
               <div className="flex flex-col gap-1.5 shrink-0">
                 {entStatus.rep.email && (
                   <div className="flex gap-2">
-                  {(entStatus.rep.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL) && (
-                    <a href={entStatus.rep.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL}
+                  {calendlyUrl && (
+                    <a href={calendlyUrl}
                       target="_blank" rel="noopener noreferrer"
                       className="text-[10px] font-bold h-7 px-3 rounded-lg border border-border-light text-ink hover:bg-bg-section transition flex items-center">
                       {t("Book Call","Réserver")}
@@ -1669,7 +1686,7 @@ export default function EnterpriseDashboard() {
         ══════════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4" style={fade(0.14)}>
           {/* Book a call */}
-          <a href={entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`}
+          <a href={callHref}
             target="_blank" rel="noopener noreferrer"
             className="bg-white border border-border-light rounded-xl px-4 py-4 flex flex-col gap-2 hover:border-brand/30 hover:shadow-sm transition group">
             <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-bg-section text-ink-muted group-hover:text-brand transition-colors"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 0112 2.18 2 2 0 0114.09 4v3.09a2 2 0 01-1.45 1.93l-1.37.46a16 16 0 006.29 6.29l.46-1.37a2 2 0 011.93-1.45z"/></svg></span>
