@@ -371,6 +371,7 @@ export async function POST(req: NextRequest) {
 
     // ── 7. Save result ────────────────────────────────────────────────────
     const scores = aiResult?.scores || {};
+    const totals = aiResult?.totals || {};
 
     await supabaseAdmin
       .from("diagnostic_reports")
@@ -386,12 +387,12 @@ export async function POST(req: NextRequest) {
         exit_readiness_score: scores.exit_readiness || 0,
         findings_count:       aiResult?.findings?.length || 0,
         critical_findings:    (aiResult?.findings || []).filter((f: any) => f.severity === "critical").length,
-        total_potential_savings: aiResult?.total_potential_savings || 0,
-        total_annual_leaks:      aiResult?.total_annual_leaks      || 0,
-        total_penalty_exposure:  aiResult?.total_penalty_exposure  || 0,
-        total_programs_value:    aiResult?.total_programs_value    || 0,
-        ebitda_impact:           aiResult?.ebitda_impact           || 0,
-        enterprise_value_impact: aiResult?.enterprise_value_impact || 0,
+        total_potential_savings: totals.potential_savings      || aiResult?.total_potential_savings      || 0,
+        total_annual_leaks:      totals.annual_leaks           || aiResult?.total_annual_leaks           || 0,
+        total_penalty_exposure:  totals.penalty_exposure       || aiResult?.total_penalty_exposure       || 0,
+        total_programs_value:    totals.programs_value         || aiResult?.total_programs_value         || 0,
+        ebitda_impact:           totals.ebitda_impact          || aiResult?.ebitda_impact                || 0,
+        enterprise_value_impact: totals.enterprise_value_impact|| aiResult?.enterprise_value_impact      || 0,
         model_used:           "claude-sonnet-4-6",
         completed_at:         new Date().toISOString(),
         updated_at:           new Date().toISOString(),
