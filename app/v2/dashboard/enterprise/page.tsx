@@ -183,7 +183,12 @@ export default function EnterpriseDashboard() {
 
         if (reportRes?.success && reportRes.data) {
           const r = reportRes.data;
-          setHasReport(true);
+          // Only mark report as present when it's actually complete —
+          // analyzing state returns data but it's partial/empty
+          const reportComplete = r.status === "completed" || (!r.status && r.findings?.length > 0);
+          if (reportComplete) {
+            setHasReport(true);
+          }
           setReportId(reportRes.report_id);
           const _sa = r.savings_anchor;
           if (_sa && typeof _sa === "object") {
