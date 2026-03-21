@@ -51,7 +51,7 @@ export interface PromptInputs {
 
 // ── Tax context ────────────────────────────────────────────────────────────────
 
-function buildTaxContext(inputs: PromptInputs): string {
+export function buildTaxContext(inputs: PromptInputs): string {
   const { province, hasHoldco, passiveOver50k, lcgeEligible, rdtohBalance, hasCDA, sredLastYear } = inputs;
   const lines: string[] = [];
   if (province === "QC") lines.push("QST 9.975% applies. Bill 96 French language obligations. SR&ED additionnel QC available.");
