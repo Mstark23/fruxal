@@ -15,16 +15,13 @@ function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size
   const r = (size - sw) / 2, c = 2 * Math.PI * r;
   return <svg width={size} height={size}><circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#F0EFEB" strokeWidth={sw} /><circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw} strokeDasharray={c} strokeDashoffset={c * (1 - pct)} strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`} style={{ transition: "stroke-dashoffset 1s ease" }} /></svg>;
 }
-function MiniBar({ yours, bench }: { yours: number; bench: number }) {
-  const max = Math.max(yours, bench) * 1.3, over = yours > bench * 1.05;
-  return <div className="flex items-end gap-[3px] h-6"><div className="w-[6px] rounded-t-sm" style={{ height: `${(yours / max) * 100}%`, background: over ? "#B34040" : "#2D7A50" }} /><div className="w-[6px] rounded-t-sm" style={{ height: `${(bench / max) * 100}%`, background: "#E0DED9" }} /></div>;
-}
+
 function LockIcon() {
   return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C5C2BB" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>;
 }
 
 interface Leak { slug: string; title: string; title_fr?: string; severity: string; category: string; description: string; description_fr?: string; impact_min: number; impact_max: number; confidence: number | null; affiliates?: Array<{ name: string; url: string }> }
-interface CostItem { category: string; pct_of_revenue: number; benchmark_pct: number; status: string }
+
 interface Deadline { title: string; days_until: number; penalty_max?: number }
 interface ActionStats { total_recovered: number; actions_completed: number }
 interface ActionItem { id: string; leak_title: string; fix_description: string; estimated_value: number; status: string }
@@ -110,12 +107,15 @@ export default function BusinessDashboard() {
     // — diagnostic layer —
     let analyzePoll: ReturnType<typeof setInterval> | null = null;
 
+    let isAnalyzingNow = false; // sync flag for finally() to read
+
     const loadDiag = async () => {
       try {
         const json = await fetch("/api/v2/diagnostic/latest").then(r => r.json());
         // MUST check status BEFORE checking data — analyzing returns data:null
         if (json.status === "analyzing" || json.data?.status === "analyzing") {
           setIsAnalyzing(true);
+          isAnalyzingNow = true;
           return;
         }
         if (!json.success || !json.data) return;
@@ -154,15 +154,17 @@ export default function BusinessDashboard() {
     Promise.all([v2P, diagP, actP]).finally(() => {
       setLoading(false);
       requestAnimationFrame(() => setMounted(true));
-      // Start polling AFTER initial load if analyzing
-      analyzePoll = setInterval(async () => {
-        try {
-          const json = await fetch("/api/v2/diagnostic/latest").then(r => r.json());
-          if (json.status === "analyzing" || json.data?.status === "analyzing") return; // still running
-          clearInterval(analyzePoll!);
-          await loadDiag(); // reload with completed data
-        } catch {}
-      }, 4000);
+      // Gap 1 fix: only start poll when actually analyzing — not on every page load
+      if (isAnalyzingNow) {
+        analyzePoll = setInterval(async () => {
+          try {
+            const json = await fetch("/api/v2/diagnostic/latest").then(r => r.json());
+            if (json.status === "analyzing" || json.data?.status === "analyzing") return;
+            clearInterval(analyzePoll!);
+            await loadDiag();
+          } catch {}
+        }, 4000);
+      }
     });
 
     return () => { if (analyzePoll) clearInterval(analyzePoll); };
@@ -209,7 +211,7 @@ export default function BusinessDashboard() {
               {streak && streak.current > 0 && (
                 <div className="flex items-center gap-1">
                   <div className="flex gap-[2px]">{streak.week_map?.map((a: boolean, i: number) => <div key={i} className={`w-[4px] h-[4px] rounded-[1px] ${a ? "bg-positive" : "bg-border"}`} />)}</div>
-                  <span className="text-[9px] text-ink-faint">{streak.current}j</span>
+                  <span className="text-[9px] text-ink-faint">{streak.current}{t("d", "j")}</span>
                 </div>
               )}
             </div>
@@ -543,7 +545,7 @@ export default function BusinessDashboard() {
                           {isFR ? (briefing.tax_exposures_fr || briefing.tax_exposures) : briefing.tax_exposures}
                         </p>
                       ) : (
-                        <p className="font-serif text-[16px] font-bold" style={{ color: "#C4841D" }}>${briefing.estimated_tax_exposure.toLocaleString()}</p>
+                        <p className="font-serif text-[16px] font-bold" style={{ color: "#C4841D" }}>${(briefing.estimated_tax_exposure || 0).toLocaleString()}</p>
                       )}
                     </div>
                   )}
@@ -608,7 +610,7 @@ export default function BusinessDashboard() {
                 </div>
                 {diagBenchmarks.map((b, i) => (
                     <div key={i} className="px-4 py-2 border-b border-border-light last:border-0">
-                      <p className="text-[10px] font-semibold text-ink-secondary mb-1.5">{isFR ? (b.metric_fr || b.metric) : b.metric}</p>
+                      <p className="text-[10px] font-semibold text-ink-secondary mb-1.5">{isFR ? (b.metric_name_fr || b.metric_fr || b.metric_name || b.metric || "") : (b.metric_name || b.metric || "")}</p>
                       <div className="grid grid-cols-3 text-center">
                         <div><div className="text-[12px] font-bold text-ink-secondary">{b.your_value}</div><div className="text-[7px] text-ink-faint">{t("You", "Vous")}</div></div>
                         <div><div className="text-[12px] font-bold" style={{ color: "#0369a1" }}>{b.industry_avg}</div><div className="text-[7px] text-ink-faint">{t("Avg", "Moy.")}</div></div>
