@@ -90,6 +90,7 @@ export default function EnterpriseDashboard() {
 
  // Enterprise engagement state 
   const [entStatus,      setEntStatus]      = useState<any>(null);
+  const [entStatusLoaded, setEntStatusLoaded] = useState(false);
   const [docExpanded,    setDocExpanded]    = useState(false);
   const [savingsExpanded,setSavingsExpanded]= useState(false);
   const [findingsTab, setFindingsTab] = useState<"all"|"quick"|"strategic">("all");
@@ -179,7 +180,8 @@ export default function EnterpriseDashboard() {
         if (redirected) return;
         fetch("/api/v2/enterprise/status").then(r => r.ok ? r.json() : null).then(d => {
           if (d?.success) setEntStatus(d.data);
-        }).catch(() => {});
+          setEntStatusLoaded(true);
+        }).catch(() => { setEntStatusLoaded(true); });
 
         if (reportRes?.success && reportRes.data) {
           const r = reportRes.data;
@@ -1566,7 +1568,7 @@ export default function EnterpriseDashboard() {
         {/* ══════════════════════════════════════════════════════════════════
             SECTION 2 — DOCUMENT VAULT
         ══════════════════════════════════════════════════════════════════ */}
-        {entStatus && (
+        {entStatusLoaded && (
           <div className="bg-white border border-border-light rounded-xl overflow-hidden mb-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" , opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s" }}>
             <button onClick={() => setDocExpanded(!docExpanded)}
               className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-bg-section/40 transition">
@@ -1574,8 +1576,8 @@ export default function EnterpriseDashboard() {
                 <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Document Vault","Coffre-fort documents")}</p>
                 <div className="flex items-center gap-3 mt-1">
                   <p className="text-[13px] font-semibold text-ink">
-                    {entStatus.documents?.received || 0} / {entStatus.documents?.total || 0} {t("received","reçus")}
-                  </p>
+                  {entStatus?.documents?.received ?? 0} / {entStatus?.documents?.total ?? 0} {t("received","reçus")}
+                </p>
                   {(entStatus.documents?.total || 0) > 0 && (
                     <div className="flex-1 max-w-[120px] h-[4px] bg-bg-section rounded-full">
                       <div className="h-full rounded-full transition-all duration-500"
@@ -1628,7 +1630,7 @@ export default function EnterpriseDashboard() {
         {/* ══════════════════════════════════════════════════════════════════
             SECTION 1 — OUTREACH PIPELINE TRACKER
         ══════════════════════════════════════════════════════════════════ */}
-        {!entStatus?.pipeline && !entStatus?.engagement && (
+        {entStatusLoaded && !entStatus?.pipeline && !entStatus?.engagement && (
           <div className="bg-white border border-border-light rounded-xl px-5 py-4 mb-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" , opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s" }}>
             <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Outreach Pipeline","Pipeline de prospection")}</p>
             <p className="text-[12px] text-ink mb-3">{t("Your file has not entered the active pipeline yet. Once your diagnostic is reviewed by our team, you'll be contacted to discuss an engagement.","Votre dossier n'est pas encore entré dans le pipeline actif. Une fois votre diagnostic examiné par notre équipe, vous serez contacté.")}</p>
