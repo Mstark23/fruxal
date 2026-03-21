@@ -155,15 +155,23 @@ export default function EnterpriseDashboard() {
 
  // Persist tier so layout sidebar stays enterprise-aware on all pages
           const bt = (d.tier || "free").toLowerCase();
+          const recPlan = (d.recommended_plan || "").toLowerCase();
           try { localStorage.setItem("fruxal_tier", bt === "enterprise" || bt === "corp" ? "enterprise" : bt); } catch {}
 
           if (!isPreview) {
-            if (bt === "free" || bt === "solo" || bt === "pro") {
+            // Only redirect DOWN if the user has an active paid subscription at a lower tier
+            // AND their revenue doesn't qualify for enterprise.
+            // Free/unpaid users who qualify by revenue stay on enterprise — paywall gates their content.
+            const qualifiesForEnterprise = recPlan === "enterprise" || bt === "enterprise" || bt === "corp";
+            const qualifiesForBusiness   = recPlan === "business" || recPlan === "enterprise";
+
+            if (!qualifiesForEnterprise && !qualifiesForBusiness && (bt === "solo" || bt === "pro")) {
               redirected = true; router.replace("/v2/dashboard/solo"); return;
             }
-            if (bt === "business" || bt === "growth" || bt === "team") {
+            if (!qualifiesForEnterprise && (bt === "business" || bt === "growth" || bt === "team")) {
               redirected = true; router.replace("/v2/dashboard/business"); return;
             }
+            // bt === "free" with enterprise revenue → stay on enterprise dashboard
           }
         }
 
