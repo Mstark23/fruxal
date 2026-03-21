@@ -849,7 +849,7 @@ export default function EnterpriseDashboard() {
         )}
 
         {/* ── KPI Row 1: Health | Annual Leak | EBITDA Impact | EV Impact ── */}
-        {scores.overall > 0 && (
+        {hasReport && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3" style={fade(0.05)}>
 
             {/* Health score */}
@@ -857,15 +857,24 @@ export default function EnterpriseDashboard() {
               className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
-              <div className="flex items-end gap-1.5">
-                <span className="font-serif text-[36px] font-bold leading-none tracking-tight"
-                  style={{ color: scores.overall >= 60 ? "#1B3A2D" : "#C4841D" }}>{scores.overall}</span>
-                <span className="text-xs text-ink-faint mb-1">/100</span>
-              </div>
-              <div className="mt-3 h-[3px] bg-bg-section rounded-full">
-                <div className="h-full rounded-full transition-all duration-1000"
-                  style={{ width: scores.overall + "%", background: scores.overall >= 70 ? "#2D7A50" : scores.overall >= 40 ? "#C4841D" : "#B34040" }} />
-              </div>
+              {scores.overall > 0 ? (
+                <>
+                  <div className="flex items-end gap-1.5">
+                    <span className="font-serif text-[36px] font-bold leading-none tracking-tight"
+                      style={{ color: scores.overall >= 60 ? "#1B3A2D" : "#C4841D" }}>{scores.overall}</span>
+                    <span className="text-xs text-ink-faint mb-1">/100</span>
+                  </div>
+                  <div className="mt-3 h-[3px] bg-bg-section rounded-full">
+                    <div className="h-full rounded-full transition-all duration-1000"
+                      style={{ width: scores.overall + "%", background: scores.overall >= 70 ? "#2D7A50" : scores.overall >= 40 ? "#C4841D" : "#B34040" }} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
+                  <div className="text-[10px] text-ink-faint mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
+                </>
+              )}
             </button>
 
             {/* Annual leak */}
@@ -920,35 +929,47 @@ export default function EnterpriseDashboard() {
         )}
 
         {/* ── KPI Row 2: Exit | Bankability | Penalties | Programs ────────── */}
-        {scores.overall > 0 && (
+        {hasReport && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5" style={fade(0.07)}>
 
             {/* Exit Readiness */}
             <div className="bg-white rounded-xl p-5 border border-border-light"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Exit Readiness", "Prêt à vendre")}</div>
-              <div className="flex items-end gap-1.5">
-                <span className="font-serif text-[36px] font-bold leading-none tracking-tight"
-                  style={{ color: scores.exit_readiness >= 70 ? "#2D7A50" : scores.exit_readiness >= 40 ? "#C4841D" : "#B34040" }}>{scores.exit_readiness}</span>
-                <span className="text-xs text-ink-faint mb-1">/100</span>
-              </div>
-              <div className="mt-3 h-[3px] bg-bg-section rounded-full">
-                <div className="h-full rounded-full transition-all duration-1000"
-                  style={{ width: scores.exit_readiness + "%", background: scores.exit_readiness >= 70 ? "#2D7A50" : scores.exit_readiness >= 40 ? "#C4841D" : "#B34040" }} />
-              </div>
+              {scores.exit_readiness > 0 ? (
+                <>
+                  <div className="flex items-end gap-1.5">
+                    <span className="font-serif text-[36px] font-bold leading-none tracking-tight"
+                      style={{ color: scores.exit_readiness >= 70 ? "#2D7A50" : scores.exit_readiness >= 40 ? "#C4841D" : "#B34040" }}>{scores.exit_readiness}</span>
+                    <span className="text-xs text-ink-faint mb-1">/100</span>
+                  </div>
+                  <div className="mt-3 h-[3px] bg-bg-section rounded-full">
+                    <div className="h-full rounded-full transition-all duration-1000"
+                      style={{ width: scores.exit_readiness + "%", background: scores.exit_readiness >= 70 ? "#2D7A50" : scores.exit_readiness >= 40 ? "#C4841D" : "#B34040" }} />
+                  </div>
+                </>
+              ) : (
+                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
+              )}
             </div>
 
             {/* Bankability */}
             <div className="bg-white rounded-xl p-5 border border-border-light"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">BANKABILITY</div>
-              <div className="flex items-end gap-1.5">
-                <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: "#0369a1" }}>{scores.bankability}</span>
-                <span className="text-xs text-ink-faint mb-1">/100</span>
-              </div>
-              <div className="mt-3 h-[3px] bg-bg-section rounded-full">
-                <div className="h-full rounded-full transition-all duration-1000" style={{ width: scores.bankability + "%", background: "#0ea5e9" }} />
-              </div>
+              {scores.bankability > 0 ? (
+                <>
+                  <div className="flex items-end gap-1.5">
+                    <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: "#0369a1" }}>{scores.bankability}</span>
+                    <span className="text-xs text-ink-faint mb-1">/100</span>
+                  </div>
+                  <div className="mt-3 h-[3px] bg-bg-section rounded-full">
+                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: scores.bankability + "%", background: "#0ea5e9" }} />
+                  </div>
+                </>
+              ) : (
+                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
+              )}
             </div>
 
             {/* Penalty Exposure */}
@@ -1174,7 +1195,7 @@ export default function EnterpriseDashboard() {
           <div className="space-y-3">
 
             {/* Score bars */}
-            {scores.overall > 0 && (
+            {hasReport && (
               <div className="bg-white rounded-xl border border-border-light p-4"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-3">{t("Score Breakdown", "Détail des scores")}</div>
