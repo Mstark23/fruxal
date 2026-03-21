@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
       : { type: "image" as const, source: { type: "base64" as const, media_type: mediaType, data: base64 } };
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 1500,
       system: systemPrompt,
       messages: [{

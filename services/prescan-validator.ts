@@ -67,8 +67,13 @@ export function validatePrescanData(tags: Record<string, any>): ValidationResult
     });
   }
 
-  // Payment mix is needed for processing detector
-  if (!tags.payment_mix) {
+  // Payment mix is needed for processing detector — only required for payment-heavy industries
+  const processingIndustries = ['restaurant', 'retail', 'barber_shop', 'trucking', 'rideshare_driver',
+    'construction', 'cafe', 'food_truck', 'beauty_salon', 'auto_repair', 'gym'];
+  const needsPaymentMix = processingIndustries.some(ind => 
+    (tags.business_type || '').toLowerCase().includes(ind)
+  );
+  if (needsPaymentMix && !tags.payment_mix) {
     issues.push({
       field: 'payment_mix',
       severity: 'missing',
@@ -77,15 +82,8 @@ export function validatePrescanData(tags: Record<string, any>): ValidationResult
     });
   }
 
-  // Main costs needed for targeted detectors
-  if (!tags.main_costs) {
-    issues.push({
-      field: 'main_costs',
-      severity: 'missing',
-      message_en: 'What are your biggest monthly expenses?',
-      message_fr: 'Quelles sont vos plus grosses dépenses mensuelles ?',
-    });
-  }
+  // Main costs helpful but not blocking — engine can work without it
+  // if (!tags.main_costs) { /* non-blocking */ }
 
   // ════════════════════════════════════════════════════════════════════
   // 2. REVENUE PLAUSIBILITY

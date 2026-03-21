@@ -363,7 +363,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const response = await anthropic.messages.create({
-        model:      "claude-sonnet-4-6",
+        model:      "claude-sonnet-4-20250514",
         max_tokens: tierMaxTokens(tier),
         system:     systemPrompt,
         messages:   [{ role: "user", content: userPrompt }],
@@ -425,7 +425,7 @@ export async function POST(req: NextRequest) {
         total_programs_value:    (totals.programs_value || aiResult?.total_programs_value) ?? 0,
         ebitda_impact:           (totals.ebitda_impact || aiResult?.ebitda_impact) ?? 0,
         enterprise_value_impact: (totals.enterprise_value_impact || aiResult?.enterprise_value_impact) ?? 0,
-        model_used:           "claude-sonnet-4-6",
+        model_used:           "claude-sonnet-4-20250514",
         completed_at:         new Date().toISOString(),
         updated_at:           new Date().toISOString(),
       })

@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: process.env.AI_MODEL || "claude-sonnet-4-6",
+        model: process.env.AI_MODEL || "claude-sonnet-4-20250514",
         max_tokens: 2048,
         system: systemPrompt,
         messages,
