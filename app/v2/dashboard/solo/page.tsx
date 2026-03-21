@@ -235,7 +235,7 @@ export default function SoloDashboard() {
         )}
 
         {/* FREE UPGRADE BANNER */}
-        {isFree && (
+        {isFree && totalLeak > 0 && (
           <div className="rounded-xl mb-5 p-4 flex items-center justify-between gap-4 flex-wrap" style={{ background: "linear-gradient(135deg, #1B3A2D, #2A5A44)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: "all 0.45s cubic-bezier(0.16,1,0.3,1) 0.03s" }}>
             <div>
               <p className="text-[13px] font-bold text-white mb-1">
