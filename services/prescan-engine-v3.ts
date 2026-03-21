@@ -561,7 +561,7 @@ export function buildPrescanInputFromTags(tags: PrescanTags): PrescanInput {
   }
   
   // Employee count
-  const employeeCount = tags.set_employee_count || tags.staffing_count ?? 0;
+  const employeeCount = (tags.set_employee_count || tags.staffing_count) ?? 0;
   
   // Accounting software usage — handle all language/case variations
   const acctRaw = (

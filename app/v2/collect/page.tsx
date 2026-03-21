@@ -133,9 +133,8 @@ export default function CollectPage() {
 
         {/* Collection Items */}
         <div className="space-y-3">
-          {items.map((item) => (
-            <div
-              key={item.id}
+          {items.map((item, _ki) => (
+            <div key={item.id}
               className={`rounded-xl border p-4 transition-all ${
                 item.status === "done"
                   ? "bg-emerald-500/5 border-emerald-500/20"

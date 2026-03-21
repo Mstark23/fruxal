@@ -17,12 +17,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
 
     // Resolve or create business_id
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await Promise.resolve(await supabaseAdmin
       .from("business_profiles")
       .select("business_id")
       .eq("user_id", userId)
       .single()
-      .catch(() => ({ data: null }));
+      ).catch(() => ({ data: null }));
 
     const businessId = existing?.business_id || crypto.randomUUID();
 
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     if (error) throw error;
 
     // Also update businesses table if it exists for this user
-    await supabaseAdmin
+    await Promise.resolve(await supabaseAdmin
       .from("businesses")
       .update({
         name:          body.business_name || "My Business",
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
         updated_at:    new Date().toISOString(),
       })
       .eq("owner_user_id", userId)
-      .catch(() => {});
+      ).catch(() => {});
 
     return NextResponse.json({ success: true, businessId });
 

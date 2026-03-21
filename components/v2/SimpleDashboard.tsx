@@ -325,7 +325,7 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
             ✅ Done ({actions.completed.length})
           </div>
           {actions.completed.slice(0, 5).map(a => (
-            <div key={a.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/3">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/3">
               <span className="text-[#00c853]">✅</span>
               <span className="text-sm text-gray-500 line-through flex-1">{a.leak_title}</span>
               {a.actual_savings && (

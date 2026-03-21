@@ -57,7 +57,7 @@ export default function TrendingPage() {
   const BarChart = ({ data, valueKey, label, color = "#0F2B46", format = "money" }: { data: Snapshot[]; valueKey: keyof Snapshot; label: string; color?: string; format?: string }) => {
     const max = maxVal(valueKey);
     return (
-      <div key={s.id ?? s.slug ?? i} className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="text-sm font-extrabold text-gray-900 mb-3">{label}</div>
         <div className="flex items-end gap-1 h-32">
           {data.map((s, i) => {
@@ -65,7 +65,7 @@ export default function TrendingPage() {
             const height = max > 0 ? (val / max) * 100 : 0;
             return (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div key={i} className="text-xs text-gray-400 font-bold">
+                <div className="text-xs text-gray-400 font-bold">
                   {format === "money" ? `$${(val / 1000).toFixed(0)}k` : format === "pct" ? `${val.toFixed(0)}%` : val.toFixed(0)}
                 </div>
                 <div className="w-full rounded-t" style={{ height: Math.max(height, 2) + "%", backgroundColor: color, minHeight: "2px" }} />
@@ -161,15 +161,15 @@ export default function TrendingPage() {
                 <table className="w-full text-xs">
                   <thead className="bg-gray-50">
                     <tr>
-                      {["Date", "Revenue", "Collected", "Rate", "Leaks", "Impact", "Fixed", "Recovered", "Clients", "Overdue", "Health"].map((h) => (
-                        <th key={h} className="px-2 py-2 text-left font-bold text-gray-500">{h}</th>
+                      {["Date", "Revenue", "Collected", "Rate", "Leaks", "Impact", "Fixed", "Recovered", "Clients", "Overdue", "Health"].map((h, _ki) => (
+                        <th key={_ki} className="px-2 py-2 text-left font-bold text-gray-500">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody key={h.id ?? h.slug ?? i} className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-100">
                     {snapshots.map((s, i) => (
                       <tr key={i} className="hover:bg-gray-50">
-                        <td key={i} className="px-2 py-2 font-bold text-gray-700">{new Date(s.snapshot_date).toLocaleDateString()}</td>
+                        <td className="px-2 py-2 font-bold text-gray-700">{new Date(s.snapshot_date).toLocaleDateString()}</td>
                         <td className="px-2 py-2">${Number(s.total_revenue).toLocaleString()}</td>
                         <td className="px-2 py-2">${Number(s.total_collected).toLocaleString()}</td>
                         <td className="px-2 py-2">{Number(s.collection_rate).toFixed(1)}%</td>

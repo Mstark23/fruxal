@@ -133,7 +133,7 @@ export default function AnalyticsPage() {
         </div>
 
         {loading ? (
-          <div key={t.id ?? t.slug ?? i} className="text-center py-20 text-gray-400">Loading analytics...</div>
+          <div className="text-center py-20 text-gray-400">Loading analytics...</div>
         ) : (
           <>
             {/* ═══ HEALTH SCORE ═══ */}
@@ -152,18 +152,18 @@ export default function AnalyticsPage() {
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                   <h3 className="text-lg font-extrabold text-gray-900 mb-4">Score Breakdown</h3>
                   <div className="space-y-4">
-                    {health.components.map((comp) => (
+                    {health.components.map((comp, _ki) => (
                       <div key={comp.name}>
-                        <div key={idx} className="flex items-center justify-between mb-1">
-                          <div key={idx} className="text-sm font-bold text-gray-900">{comp.name} <span className="text-gray-400 font-normal">({comp.weight}%)</span></div>
-                          <div key={idx} className={`text-sm font-extrabold ${STATUS_COLORS[comp.status]}`}>{comp.score}/100</div>
+                        <div key={_ki} className="flex items-center justify-between mb-1">
+                          <div className="text-sm font-bold text-gray-900">{comp.name} <span className="text-gray-400 font-normal">({comp.weight}%)</span></div>
+                          <div className={`text-sm font-extrabold ${STATUS_COLORS[comp.status]}`}>{comp.score}/100</div>
                         </div>
-                        <div key={idx} className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                          <div key={idx} className={`h-full rounded-full transition-all ${
+                        <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                          <div className={`h-full rounded-full transition-all ${
                             comp.score >= 80 ? "bg-green-500" : comp.score >= 60 ? "bg-yellow-500" : comp.score >= 40 ? "bg-orange-500" : "bg-red-500"
                           }`} style={{ width: comp.score + "%" }} />
                         </div>
-                        <div key={idx} className="text-xs text-gray-400 mt-1">{comp.detail}</div>
+                        <div className="text-xs text-gray-400 mt-1">{comp.detail}</div>
                       </div>
                     ))}
                   </div>
@@ -195,9 +195,9 @@ export default function AnalyticsPage() {
                     const count = clients.filter((c) => c.tier === tier).length;
                     return (
                       <div key={tier} className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-                        <div key={idx} className="text-2xl mb-1">{TIER_ICONS[tier]}</div>
-                        <div key={idx} className="text-2xl font-black text-gray-900">{count}</div>
-                        <div key={idx} className="text-xs font-bold text-gray-400">{tier.replace("_", " ")}</div>
+                        <div className="text-2xl mb-1">{TIER_ICONS[tier]}</div>
+                        <div className="text-2xl font-black text-gray-900">{count}</div>
+                        <div className="text-xs font-bold text-gray-400">{tier.replace("_", " ")}</div>
                       </div>
                     );
                   })}
@@ -219,37 +219,37 @@ export default function AnalyticsPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {clients.map((c) => (
-                          <tr key={c.clientId} className="hover:bg-gray-50 transition">
-                            <td key={idx} className="px-4 py-3">
-                              <div key={idx} className="font-bold text-gray-900">{c.clientName}</div>
-                              <div key={idx} className="text-xs text-gray-400">#{c.revenueRank} by revenue</div>
+                        {clients.map((c, _ki) => (
+                          <tr key={_ki} className="hover:bg-gray-50 transition">
+                            <td className="px-4 py-3">
+                              <div className="font-bold text-gray-900">{c.clientName}</div>
+                              <div className="text-xs text-gray-400">#{c.revenueRank} by revenue</div>
                             </td>
-                            <td key={idx} className="px-4 py-3 text-right font-bold text-gray-900">${(c.revenue ?? 0).toLocaleString()}</td>
-                            <td key={idx} className="px-4 py-3 text-center">
-                              <span key={c.id ?? c.slug ?? i} className={`font-extrabold ${c.profitabilityScore >= 70 ? "text-green-600" : c.profitabilityScore >= 50 ? "text-yellow-600" : "text-red-600"}`}>
+                            <td className="px-4 py-3 text-right font-bold text-gray-900">${(c.revenue ?? 0).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`font-extrabold ${c.profitabilityScore >= 70 ? "text-green-600" : c.profitabilityScore >= 50 ? "text-yellow-600" : "text-red-600"}`}>
                                 {c.profitabilityScore}
                               </span>
                             </td>
-                            <td key={idx} className="px-4 py-3 text-center">
-                              <div key={idx} className="w-10 h-10 rounded-full mx-auto flex items-center justify-center text-xs font-bold border-2" style={{
+                            <td className="px-4 py-3 text-center">
+                              <div className="w-10 h-10 rounded-full mx-auto flex items-center justify-center text-xs font-bold border-2" style={{
                                 borderColor: c.paymentScore >= 70 ? "#22c55e" : c.paymentScore >= 40 ? "#eab308" : "#ef4444",
                                 color: c.paymentScore >= 70 ? "#22c55e" : c.paymentScore >= 40 ? "#eab308" : "#ef4444",
                               }}>{c.paymentScore}</div>
                             </td>
-                            <td key={idx} className="px-4 py-3 text-center">
+                            <td className="px-4 py-3 text-center">
                               <span className={`text-sm font-bold ${c.growthRate >= 0 ? "text-green-600" : "text-red-600"}`}>
                                 {c.growthRate >= 0 ? "+" : ""}{c.growthRate}%
                               </span>
                             </td>
-                            <td key={idx} className="px-4 py-3 text-center">
+                            <td className="px-4 py-3 text-center">
                               <span className={`text-xs font-bold px-2 py-1 rounded-full border ${TIER_COLORS[c.tier]}`}>
                                 {TIER_ICONS[c.tier]} {c.tier.replace("_", " ")}
                               </span>
                             </td>
-                            <td key={idx} className="px-4 py-3 max-w-xs">
+                            <td className="px-4 py-3 max-w-xs">
                               {c.insights.length > 0 ? (
-                                <div key={idx} className="text-xs text-gray-500 leading-tight">{c.insights[0]}</div>
+                                <div className="text-xs text-gray-500 leading-tight">{c.insights[0]}</div>
                               ) : (
                                 <span className="text-xs text-gray-300">—</span>
                               )}
@@ -267,43 +267,43 @@ export default function AnalyticsPage() {
             {tab === "benchmarks" && (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {benchmarks.map((b) => (
+                  {benchmarks.map((b, _ki) => (
                     <div key={b.metric} className="bg-white rounded-xl border border-gray-200 p-5">
-                      <div key={idx} className="flex items-center justify-between mb-3">
-                        <div key={idx} className="text-sm font-bold text-gray-900">{b.metric}</div>
-                        <span key={b.id ?? b.slug ?? i} className={`text-xs font-bold px-2.5 py-1 rounded-full ${BENCH_COLORS[b.status]}`}>
+                      <div key={_ki} className="flex items-center justify-between mb-3">
+                        <div className="text-sm font-bold text-gray-900">{b.metric}</div>
+                        <span key={String(Math.random())} className={`text-xs font-bold px-2.5 py-1 rounded-full ${BENCH_COLORS[b.status]}`}>
                           {b.status === "ABOVE" ? "✓ Above avg" : b.status === "AT" ? "— On par" : "✗ Below avg"}
                         </span>
                       </div>
 
                       {/* Bar visualization */}
-                      <div key={idx} className="relative mb-3">
-                        <div key={idx} className="flex items-end gap-2 h-16">
+                      <div className="relative mb-3">
+                        <div className="flex items-end gap-2 h-16">
                           {/* Your value */}
-                          <div key={idx} className="flex-1 flex flex-col items-center">
-                            <div key={idx} className="text-lg font-black text-gray-900">{(b.yourValue ?? 0).toLocaleString()}<span className="text-xs font-normal text-gray-400"> {b.unit}</span></div>
-                            <div key={idx} className={`w-full rounded-t transition-all ${b.status === "ABOVE" ? "bg-green-500" : b.status === "AT" ? "bg-yellow-500" : "bg-red-400"}`}
+                          <div className="flex-1 flex flex-col items-center">
+                            <div className="text-lg font-black text-gray-900">{(b.yourValue ?? 0).toLocaleString()}<span className="text-xs font-normal text-gray-400"> {b.unit}</span></div>
+                            <div className={`w-full rounded-t transition-all ${b.status === "ABOVE" ? "bg-green-500" : b.status === "AT" ? "bg-yellow-500" : "bg-red-400"}`}
                               style={{ height: Math.min(100, Math.max(20, (b.yourValue / Math.max(b.industryTop, 1)) * 100)) + "%" }} />
-                            <div key={idx} className="text-xs font-bold text-gray-500 mt-1">You</div>
+                            <div className="text-xs font-bold text-gray-500 mt-1">You</div>
                           </div>
                           {/* Industry avg */}
-                          <div key={idx} className="flex-1 flex flex-col items-center">
-                            <div key={idx} className="text-sm font-bold text-gray-400">{(b.industryAvg ?? 0).toLocaleString()}</div>
-                            <div key={idx} className="w-full bg-gray-300 rounded-t"
+                          <div className="flex-1 flex flex-col items-center">
+                            <div className="text-sm font-bold text-gray-400">{(b.industryAvg ?? 0).toLocaleString()}</div>
+                            <div className="w-full bg-gray-300 rounded-t"
                               style={{ height: Math.min(100, Math.max(20, (b.industryAvg / Math.max(b.industryTop, 1)) * 100)) + "%" }} />
-                            <div key={idx} className="text-xs font-bold text-gray-400 mt-1">Avg</div>
+                            <div className="text-xs font-bold text-gray-400 mt-1">Avg</div>
                           </div>
                           {/* Top performers */}
-                          <div key={idx} className="flex-1 flex flex-col items-center">
-                            <div key={idx} className="text-sm font-bold text-gray-400">{(b.industryTop ?? 0).toLocaleString()}</div>
-                            <div key={idx} className="w-full bg-blue-200 rounded-t"
+                          <div className="flex-1 flex flex-col items-center">
+                            <div className="text-sm font-bold text-gray-400">{(b.industryTop ?? 0).toLocaleString()}</div>
+                            <div className="w-full bg-blue-200 rounded-t"
                               style={{ height: "100%" }} />
-                            <div key={idx} className="text-xs font-bold text-gray-400 mt-1">Top 10%</div>
+                            <div className="text-xs font-bold text-gray-400 mt-1">Top 10%</div>
                           </div>
                         </div>
                       </div>
 
-                      <div key={idx} className="text-xs text-gray-500 leading-snug">{b.recommendation}</div>
+                      <div className="text-xs text-gray-500 leading-snug">{b.recommendation}</div>
                     </div>
                   ))}
                 </div>
@@ -339,22 +339,22 @@ export default function AnalyticsPage() {
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                   <h3 className="text-lg font-extrabold text-gray-900 mb-6">Revenue Forecast — Next 6 Months</h3>
                   <div className="space-y-4">
-                    {forecast.months.map((m) => (
-                      <div key={m.month}>
-                        <div key={idx} className="flex items-center justify-between mb-1">
-                          <span key={m.id ?? m.slug ?? i} className="text-sm font-bold text-gray-700 w-20">{m.month}</span>
+                    {forecast.months.map((m, _ki) => (
+                      <div key={_ki}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-bold text-gray-700 w-20">{m.month}</span>
                           <span className="text-sm font-extrabold text-gray-900">${(m.projected ?? 0).toLocaleString()}</span>
                         </div>
-                        <div key={idx} className="relative h-8 bg-gray-100 rounded-lg overflow-hidden">
+                        <div className="relative h-8 bg-gray-100 rounded-lg overflow-hidden">
                           {/* Pessimistic (light red background) */}
-                          <div key={idx} className="absolute left-0 top-0 h-full bg-red-100 rounded-lg" style={{ width: (m.pessimistic / maxForecast) * 100 + "%" }} />
+                          <div className="absolute left-0 top-0 h-full bg-red-100 rounded-lg" style={{ width: (m.pessimistic / maxForecast) * 100 + "%" }} />
                           {/* Projected (blue) */}
-                          <div key={idx} className="absolute left-0 top-0 h-full bg-blue-500 rounded-lg opacity-80" style={{ width: (m.projected / maxForecast) * 100 + "%" }} />
+                          <div className="absolute left-0 top-0 h-full bg-blue-500 rounded-lg opacity-80" style={{ width: (m.projected / maxForecast) * 100 + "%" }} />
                           {/* Optimistic (green outline) */}
-                          <div key={idx} className="absolute left-0 top-0 h-full border-r-2 border-green-500 border-dashed" style={{ width: (m.optimistic / maxForecast) * 100 + "%" }} />
+                          <div className="absolute left-0 top-0 h-full border-r-2 border-green-500 border-dashed" style={{ width: (m.optimistic / maxForecast) * 100 + "%" }} />
                           {/* At Risk marker */}
                           {m.atRisk > 0 && (
-                            <div key={idx} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-red-600 bg-white px-1.5 py-0.5 rounded">
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-red-600 bg-white px-1.5 py-0.5 rounded">
                               -${(m.atRisk ?? 0).toLocaleString()} at risk
                             </div>
                           )}
@@ -414,7 +414,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="bg-white rounded-xl border border-red-200 p-6 text-center">
                     <div className="text-xs font-bold text-gray-500 uppercase mb-2">🔴 Still Leaking</div>
-                    <div className="text-3xl font-black text-red-600">${(recovery.open.impact + recovery.inProgress.impact).toLocaleString()}</div>
+                    <div className="text-3xl font-black text-red-600">${((recovery.open.impact ?? 0) + (recovery.inProgress?.impact ?? 0)).toLocaleString()}</div>
                     <div className="text-xs text-gray-400 mt-1">/year until resolved</div>
                   </div>
                 </div>

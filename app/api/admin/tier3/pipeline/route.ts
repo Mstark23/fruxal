@@ -109,10 +109,10 @@ export async function GET(req: NextRequest) {
         updatedAt: pipeUpdated,
         agreementStatus: null,
         agreementContact: p.contact_name || null,
-        contactEmail: p.contact_email || null,
-        contactPhone: p.contact_phone || null,
+        contactEmail: (p as any).contact_email || null,
+        contactPhone: (p as any).contact_phone || null,
         source: p.source || "enterprise_page",
-      });
+      } as any);
     }
 
     if (stage !== "all") entries = entries.filter((e: any) => e.stage === stage);

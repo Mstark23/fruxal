@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
             category: dl.category || "general",
             description: dl.description || "",
             impact_min: dl.annual_impact_min ?? 0,
-            impact_max: dl.annual_impact_max || dl.annual_impact_min ?? 0,
+            impact_max: (dl.annual_impact_max || dl.annual_impact_min) ?? 0,
             solution_type: "professional",
             status: "detected", savings_amount: 0,
             confidence: dl.evidence?.confidence_score || null,
@@ -163,8 +163,8 @@ export async function GET(req: NextRequest) {
             severity: jl.severity || "medium",
             category: jl.category || "general",
             description: jl.description || "",
-            impact_min: jl.annual_impact_min || jl.amount ?? 0,
-            impact_max: jl.annual_impact_max || jl.amount ?? 0,
+            impact_min: (jl.annual_impact_min || jl.amount) ?? 0,
+            impact_max: (jl.annual_impact_max || jl.amount) ?? 0,
             solution_type: "professional",
             status: "detected", savings_amount: 0,
             confidence: jl.confidence || null,
@@ -193,8 +193,8 @@ export async function GET(req: NextRequest) {
             severity: jl.severity || "medium",
             category: jl.category || "general",
             description: jl.description || "",
-            impact_min: jl.annual_impact_min || jl.amount ?? 0,
-            impact_max: jl.annual_impact_max || jl.amount ?? 0,
+            impact_min: (jl.annual_impact_min || jl.amount) ?? 0,
+            impact_max: (jl.annual_impact_max || jl.amount) ?? 0,
             solution_type: "professional",
             status: "detected", savings_amount: 0,
             confidence: jl.confidence || null,
@@ -210,7 +210,7 @@ export async function GET(req: NextRequest) {
 
     // Enrich top leaks with explanation/proof/action
     const topUnfixed = detected
-      .sort((a, b) => (b.impact_max || b.impact_min ?? 0) - (a.impact_max || a.impact_min ?? 0))
+      .sort((a, b) => ((b.impact_max || b.impact_min) ?? 0) - ((a.impact_max || a.impact_min) ?? 0))
       .slice(0, 10)
       .map(l => {
         let proof = "", action = "", description = l.description || "";
@@ -225,7 +225,7 @@ export async function GET(req: NextRequest) {
         return {
           slug: l.slug, title: l.title, severity: l.severity,
           category: l.category, description,
-          impact_min: l.impact_min ?? 0, impact_max: l.impact_max || l.impact_min ?? 0,
+          impact_min: l.impact_min ?? 0, impact_max: (l.impact_max || l.impact_min) ?? 0,
           confidence: l.confidence || null, solution_type: l.solution_type || "professional",
           proof, action, affiliates: l.affiliates || [],
         };
@@ -290,7 +290,7 @@ export async function GET(req: NextRequest) {
     let recommended_plan = "solo";
     try {
       // Use exact_annual_revenue (from intake) first, fall back to annual_revenue (from prescan)
-      const rev = profile?.exact_annual_revenue || profile?.annual_revenue ?? 0;
+      const rev = (profile?.exact_annual_revenue || profile?.annual_revenue) ?? 0;
       const empCount = profile?.employee_count ?? 0;
 
       // Revenue-based qualification — solo threshold raised to avoid false enterprise routing

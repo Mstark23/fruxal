@@ -367,7 +367,7 @@ export default function RatesPage() {
                           <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Where to get real quotes</h4>
                           <div className="space-y-1.5">
                             {r.connectors.map((c: any, i: number) => (
-                              <div key={i} className="bg-white rounded-lg p-3 flex items-center gap-3 border">
+                              <div key={String(Math.random())} className="bg-white rounded-lg p-3 flex items-center gap-3 border">
                                 <div className="flex-1">
                                   <div className="text-sm font-semibold text-gray-900">{c.name}</div>
                                   <div className="text-[11px] text-gray-500">{c.note}</div>
@@ -401,7 +401,7 @@ export default function RatesPage() {
                           <ul className="space-y-1">
                             {r.tips.map((t: string, i: number) => (
                               <li key={i} className="text-xs text-green-800 flex items-start gap-1.5">
-                                <span className="text-green-400 mt-0.5">→</span> {t}
+                                <span key={i} className="text-green-400 mt-0.5">→</span> {t}
                               </li>
                             ))}
                           </ul>

@@ -43,7 +43,9 @@ async function refreshTokens(conn: any): Promise<string> {
     `${process.env.QUICKBOOKS_CLIENT_ID}:${process.env.QUICKBOOKS_CLIENT_SECRET}`
   ).toString("base64");
 
-  const res = await fetch(INTUIT_TOKEN_URL, {.catch(() => { throw new Error("Network request failed"); });
+  let res: Response;
+  try {
+    res = await fetch(INTUIT_TOKEN_URL, {
     method: "POST",
     headers: {
       Authorization:  `Basic ${creds}`,
@@ -55,6 +57,9 @@ async function refreshTokens(conn: any): Promise<string> {
       refresh_token: decryptToken(conn.refresh_token_enc),
     }),
   });
+  } catch (e: any) {
+    throw new Error(`Network request failed: ${e.message}`);
+  }
 
   if (!res.ok) {
     await supabaseAdmin.from("quickbooks_connections")
@@ -89,9 +94,14 @@ async function getAccessToken(conn: any): Promise<string> {
 // ── QBO API helpers ───────────────────────────────────────────────────────────
 async function qboGet(realmId: string, token: string, path: string) {
   const url = `${QBO_BASE}/v3/company/${realmId}/${path}`;
-  const res = await fetch(url, {.catch(() => { throw new Error("Network request failed"); });
+  let res: Response;
+  try {
+    res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
   });
+  } catch (e: any) {
+    throw new Error(`Network request failed: ${e.message}`);
+  }
   if (res.status === 401) throw new Error("QB_TOKEN_EXPIRED");
   if (!res.ok) throw new Error(`QBO ${path} failed: ${res.status}`);
   return res.json();

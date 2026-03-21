@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
             <span class="cat">${(leak.category || "").toUpperCase()}</span>
           </div>
           <div class="li">
-            <span class="lr">$${(leak.impact_min ?? 0).toLocaleString()} — $${(leak.impact_max || leak.impact_min ?? 0).toLocaleString()}</span>
+            <span class="lr">$${(leak.impact_min ?? 0).toLocaleString()} — $${((leak.impact_max || leak.impact_min) ?? 0).toLocaleString()}</span>
             <span class="lp">${t("/yr", "/an")}</span>
           </div>
         </div>

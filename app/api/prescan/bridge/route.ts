@@ -51,7 +51,7 @@ function mapSeverity(impactMonthly: number): string {
 }
 
 export async function POST(request: Request) {
-  const _ip_ip_bridge = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const _ip_ip_bridge = (request as any).headers?.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (!ip_bridgeCheck(_ip_ip_bridge)) return NextResponse.json({error: "Too many requests"}, {status: 429});
   try {
     const body = await request.json();
@@ -82,8 +82,8 @@ export async function POST(request: Request) {
       const category = leak.category || "Revenue Leak";
       const layers = CATEGORY_TO_LAYERS[category] || ["omega"];
       const primaryLayer = layers[0];
-      const impactLow = leak.impactMonthly?.low || leak.impactMonthly?.likely ?? 0;
-      const impactHigh = leak.impactMonthly?.high || leak.impactMonthly?.likely ?? 0;
+      const impactLow = (leak.impactMonthly?.low || leak.impactMonthly?.likely) ?? 0;
+      const impactHigh = (leak.impactMonthly?.high || leak.impactMonthly?.likely) ?? 0;
 
       return {
         business_id: businessId,

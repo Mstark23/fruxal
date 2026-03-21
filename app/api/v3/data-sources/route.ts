@@ -8,13 +8,13 @@ export const maxDuration = 30; // Vercel function timeout (seconds)
 
 // ── Ownership helper ──────────────────────────────────────────────────────────
 async function verifyOwnership(userId: string, businessId: string): Promise<boolean> {
-  const { data } = await supabaseAdmin
+  const { data } = await Promise.resolve(await supabaseAdmin
     .from("business_profiles")
     .select("business_id")
     .eq("business_id", businessId)
     .eq("user_id", userId)
     .single()
-    .catch(() => ({ data: null }));
+    ).catch(() => ({ data: null }));
   return !!data;
 }
 

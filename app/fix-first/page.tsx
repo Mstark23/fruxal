@@ -92,7 +92,7 @@ const TIER_CONFIG = {
 const EFFORT_DOTS = (effort: number) => {
   const filled = Math.ceil(effort / 2); // 1-5 dots from 1-10 scale
   return Array.from({ length: 5 }, (_, i) => (
-    <span key={i} className={`inline-block w-1.5 h-1.5 rounded-full ${i < filled ? "bg-current" : "bg-current/20"}`} />
+    <span className={`inline-block w-1.5 h-1.5 rounded-full ${i < filled ? "bg-current" : "bg-current/20"}`} />
   ));
 };
 
@@ -224,12 +224,12 @@ export default function FixFirstPage() {
                   const pct = Math.max(4, (t.savings / maxSav) * 100);
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                      <div key={i} className="text-[9px] text-gray-500 font-medium">
+                      <div className="text-[9px] text-gray-500 font-medium">
                         {t.savings > 0 ? fmt(t.savings) : ""}
                       </div>
-                      <div key={i} className="w-full rounded-t-md bg-gradient-to-t from-green-500 to-emerald-400 transition-all duration-300"
+                      <div className="w-full rounded-t-md bg-gradient-to-t from-green-500 to-emerald-400 transition-all duration-300"
                         style={{ height: pct + "%" }} />
-                      <div key={i} className="text-[9px] text-gray-400">M{t.month}</div>
+                      <div className="text-[9px] text-gray-400">M{t.month}</div>
                     </div>
                   );
                 })}
@@ -282,7 +282,7 @@ export default function FixFirstPage() {
                         className={`bg-white border rounded-xl transition-all ${isDone ? "opacity-50 border-green-200 bg-green-50/30" : "border-gray-200 hover:border-gray-300 hover:shadow-sm"}`}>
 
                         {/* Main row */}
-                        <div key={idx} className="flex items-center gap-3 p-4 cursor-pointer"
+                        <div className="flex items-center gap-3 p-4 cursor-pointer"
                           onClick={() => setExpandedId(isExpanded ? null : item.id)}>
 
                           {/* Checkbox */}
@@ -295,22 +295,22 @@ export default function FixFirstPage() {
                           </button>
 
                           {/* Rank number */}
-                          <div key={idx} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${config.badge}`}>
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${config.badge}`}>
                             {idx + 1}
                           </div>
 
                           {/* Content */}
-                          <div key={idx} className="flex-1 min-w-0">
-                            <div key={idx} className={`text-sm font-semibold ${isDone ? "line-through text-gray-400" : "text-gray-900"}`}>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-sm font-semibold ${isDone ? "line-through text-gray-400" : "text-gray-900"}`}>
                               {item.fix.action}
                             </div>
-                            <div key={idx} className="text-xs text-gray-500 mt-0.5 truncate">{item.title}</div>
+                            <div className="text-xs text-gray-500 mt-0.5 truncate">{item.title}</div>
                           </div>
 
                           {/* Right side stats */}
-                          <div key={idx} className="text-right shrink-0 ml-2">
-                            <div key={idx} className="text-sm font-bold text-red-600">{fmt(item.annualImpact)}/yr</div>
-                            <div key={idx} className="flex items-center gap-1 justify-end mt-0.5">
+                          <div className="text-right shrink-0 ml-2">
+                            <div className="text-sm font-bold text-red-600">{fmt(item.annualImpact)}/yr</div>
+                            <div className="flex items-center gap-1 justify-end mt-0.5">
                               <span className="text-[10px] text-gray-400">effort</span>
                               <span className={`flex gap-0.5 ${config.textColor}`}>
                                 {EFFORT_DOTS(item.fix.effort)}
@@ -319,42 +319,42 @@ export default function FixFirstPage() {
                           </div>
 
                           {/* Expand arrow */}
-                          <div key={idx} className={`text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}>▾</div>
+                          <div className={`text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}>▾</div>
                         </div>
 
                         {/* Expanded detail */}
                         {isExpanded && !isDone && (
-                          <div key={idx} className="px-4 pb-4 pt-0 border-t border-gray-100">
-                            <div key={idx} className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-                              <div key={idx} className="bg-gray-50 rounded-lg p-2.5">
-                                <div key={idx} className="text-[10px] text-gray-500 uppercase">You lose</div>
-                                <div key={idx} className="text-sm font-bold text-red-600">{fmt(item.monthlyImpact)}/mo</div>
+                          <div className="px-4 pb-4 pt-0 border-t border-gray-100">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                              <div className="bg-gray-50 rounded-lg p-2.5">
+                                <div className="text-[10px] text-gray-500 uppercase">You lose</div>
+                                <div className="text-sm font-bold text-red-600">{fmt(item.monthlyImpact)}/mo</div>
                               </div>
-                              <div key={idx} className="bg-gray-50 rounded-lg p-2.5">
-                                <div key={idx} className="text-[10px] text-gray-500 uppercase">Per day</div>
-                                <div key={idx} className="text-sm font-bold text-red-600">{fmt(item.roi_per_day)}/day</div>
+                              <div className="bg-gray-50 rounded-lg p-2.5">
+                                <div className="text-[10px] text-gray-500 uppercase">Per day</div>
+                                <div className="text-sm font-bold text-red-600">{fmt(item.roi_per_day)}/day</div>
                               </div>
-                              <div key={idx} className="bg-gray-50 rounded-lg p-2.5">
-                                <div key={idx} className="text-[10px] text-gray-500 uppercase">Time to fix</div>
-                                <div key={idx} className="text-sm font-bold text-gray-900">
+                              <div className="bg-gray-50 rounded-lg p-2.5">
+                                <div className="text-[10px] text-gray-500 uppercase">Time to fix</div>
+                                <div className="text-sm font-bold text-gray-900">
                                   {item.fix.days <= 1 ? "Today" : item.fix.days <= 7 ? `${item.fix.days} days` : item.fix.days <= 30 ? `${Math.round(item.fix.days / 7)} weeks` : `${Math.round(item.fix.days / 30)} months`}
                                 </div>
                               </div>
-                              <div key={idx} className="bg-gray-50 rounded-lg p-2.5">
-                                <div key={idx} className="text-[10px] text-gray-500 uppercase">Difficulty</div>
-                                <div key={idx} className="text-sm font-bold text-gray-900">{item.fix.effort_label}</div>
+                              <div className="bg-gray-50 rounded-lg p-2.5">
+                                <div className="text-[10px] text-gray-500 uppercase">Difficulty</div>
+                                <div className="text-sm font-bold text-gray-900">{item.fix.effort_label}</div>
                               </div>
                             </div>
 
                             {item.first_month_savings > 0 && (
-                              <div key={idx} className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
-                                <div key={idx} className="text-sm text-green-800">
+                              <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
+                                <div className="text-sm text-green-800">
                                   💰 <strong>If you do this now:</strong> you&apos;ll save roughly <strong>{fmt(item.first_month_savings)}</strong> in your first month alone
                                 </div>
                               </div>
                             )}
 
-                            <div key={idx} className="mt-3 flex items-center gap-2">
+                            <div className="mt-3 flex items-center gap-2">
                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${config.badge}`}>
                                 {item.category}
                               </span>

@@ -20,7 +20,7 @@ export async function GET(
 
     const { data: row, error } = await supabaseAdmin
       .from("diagnostic_reports")
-      .select("id, business_id, user_id, status, report, findings, created_at, updated_at, language")
+      .select("*")
       .eq("id", params.id)
       .eq("user_id", userId)
       .single();
@@ -77,7 +77,7 @@ export async function GET(
       // Normalize findings: add impact_min/impact_max if missing
       if (Array.isArray(data.findings)) {
         data.findings = data.findings.map((f: any) => {
-          const leak = f.annual_leak || f.impact_max || f.impact_min ?? 0;
+          const leak = (f.annual_leak || f.impact_max || f.impact_min) ?? 0;
           return {
             ...f,
             impact_min: f.impact_min || leak,

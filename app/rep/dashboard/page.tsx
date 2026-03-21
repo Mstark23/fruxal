@@ -27,7 +27,7 @@ export default function RepDashboard() {
   useEffect(() => {
     Promise.all([
       fetch("/api/rep/me").then(r => r.json()).catch(() => ({})),
-      fetch("/api/rep/pipeline").then(r => r.json()),
+      fetch("/api/rep/pipeline").then(r => r.json()).catch(() => ({})),
     ]).then(([meData, plData]) => {
       if (meData?.success) setRep(meData.rep);
       if (plData?.success) setClients(plData.clients || []);

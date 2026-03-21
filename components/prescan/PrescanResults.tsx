@@ -426,7 +426,7 @@ export function PrescanResults({ report, onCTA, language = "en", className = "" 
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-orange-400">
-                          ${Number(lk.impact_max || lk.annual_impact_max ?? 0).toLocaleString()}
+                          ${Number((lk.impact_max || lk.annual_impact_max) ?? 0).toLocaleString()}
                         </div>
                         <div className="text-[9px] text-white/20">{L.perYear}</div>
                       </div>

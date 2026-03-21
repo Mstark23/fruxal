@@ -51,7 +51,7 @@ export default function CheckoutPage() {
         const json = await res.json();
 
         if (json.url) {
-          typeof window !== "undefined" && window.location.href = json.url;
+          if (typeof window !== "undefined") window.location.href = json.url;
         } else {
           setError(json.error || "Could not create checkout session");
           setLoading(false);

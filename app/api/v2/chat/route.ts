@@ -17,14 +17,14 @@ async function buildSystemPrompt(userId: string, clientCtx?: any, scanId?: strin
   const industry      = clientCtx?.industry || "small business";
   const province      = clientCtx?.province || "Canada";
   // Handle both field name conventions (page sends overallScore/totalLeaks, some callers send score/totalLeak)
-  const rawLeak       = clientCtx?.totalLeak || clientCtx?.totalLeaks ?? 0;
-  const rawScore      = clientCtx?.score || clientCtx?.overallScore ?? 0;
+  const rawLeak       = (clientCtx?.totalLeak || clientCtx?.totalLeaks) ?? 0;
+  const rawScore      = (clientCtx?.score || clientCtx?.overallScore) ?? 0;
   const rawFindings   = clientCtx?.findings || clientCtx?.topFindings || [];
   const totalLeak     = rawLeak ? "$" + Number(rawLeak).toLocaleString() + "/yr" : "unknown amount";
   const score         = rawScore ? String(rawScore) + "/100" : "not yet calculated";
   const topFindings   = Array.isArray(rawFindings)
     ? rawFindings.slice(0, 5).map((f: any) =>
-        typeof f === "string" ? "- " + f : "- " + (f.title || "") + " ($" + (f.annual_leak || f.impact_max ?? 0).toLocaleString() + "/yr)"
+        typeof f === "string" ? "- " + f : "- " + (f.title || "") + " ($" + ((f.annual_leak || f.impact_max) ?? 0).toLocaleString() + "/yr)"
       ).join("\n")
     : "";
   const savingsAnchor = clientCtx?.savingsAnchor?.headline || clientCtx?.savingsAnchor || "";
@@ -98,12 +98,12 @@ export async function POST(req: NextRequest) {
     const isPaidTier = ["business","growth","team","corp","enterprise","advisor","solo"].includes(bizTier);
 
     // Fallback: check legacy user_progress table
-    const { data: progress } = await supabase
+    const { data: progress } = await Promise.resolve(await supabase
       .from("user_progress")
-      .select("payment_status, total_leak_found")
+      .select("*")
       .eq("userId", userId)
       .single()
-      .catch(() => ({ data: null }));
+      ).catch(() => ({ data: null }));
 
     const isPaid = isPaidTier
       || progress?.payment_status === "active"

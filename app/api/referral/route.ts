@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // Get or create referral code
-    let { data: ref } = await supabase.from("referrals").select("id, referrerId, referredId, status, reward, created_at").eq("referrerId", userId).single();
+    let { data: ref } = await supabase.from("referrals").select("*").eq("referrerId", userId).single();
 
     if (!ref) {
       const code = "LG-" + Math.random().toString(36).substring(2, 8).toUpperCase();

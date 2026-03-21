@@ -205,7 +205,7 @@ export default function PrescanPage() {
                   <Question q="What's your industry?" qfr="Quelle est votre industrie?" isFR={isFR} />
                   <div className="grid grid-cols-2 gap-2">
                     {INDUSTRIES.map(i => (
-                      <OptionButton key={i.value} selected={answers.industry === i.value}
+                      <OptionButton selected={answers.industry === i.value}
                         onClick={() => set("industry", i.value)} label={isFR && i.fr ? i.fr : i.label} icon={i.icon} />
                     ))}
                   </div>
@@ -220,7 +220,7 @@ export default function PrescanPage() {
               <Question q="How is your business set up?" qfr="Comment est structurée votre entreprise?" isFR={isFR} />
               <div className="space-y-2">
                 {STRUCTURES.map(s => (
-                  <OptionButton key={s.value} selected={answers.structure === s.value}
+                  <OptionButton selected={answers.structure === s.value}
                     onClick={() => set("structure", s.value)} label={s.label} icon={s.icon} wide />
                 ))}
               </div>

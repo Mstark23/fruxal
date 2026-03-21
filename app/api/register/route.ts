@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       let prescanRunExists = false;
 
       try {
-        const { data: run } = await sb.from("prescan_runs").select("*").eq("id", prescanRunId).single();
+        const { data: run } = await sb.from("prescan_runs").select("id, user_id, industry_slug, province, annual_revenue, employee_count, created_at").eq("id", prescanRunId).single();
         if (run) {
           prescanRunExists = true;
           industry = run.industry_slug || industry;
@@ -156,9 +156,9 @@ export async function POST(request: NextRequest) {
           .select("id")
           .contains("input_snapshot", { prescan_run_id: prescanRunId });
         if (prResults && prResults.length > 0) {
-          for (const pr of prResults) {
-            await sb.from("prescan_results").update({ user_id: userId }).eq("id", pr.id);
-          }
+          // Batch update — avoid N+1
+          const prIds = prResults.map((pr: any) => pr.id);
+          await sb.from("prescan_results").update({ user_id: userId }).in("id", prIds);
           process.env.NODE_ENV !== "production" && console.log(`✅ Bridge step 3.5: ${prResults.length} prescan_results linked`);
         }
       } catch (e: any) {

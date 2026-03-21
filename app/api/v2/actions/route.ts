@@ -167,7 +167,7 @@ export async function PATCH(req: NextRequest) {
 
     const completed = (allActions || []).filter(a => a.status === "completed");
     const totalRecovered = completed.reduce(
-      (s, a) => s + (a.actual_savings || a.estimated_value ?? 0), 0
+      (s, a) => s + ((a.actual_savings || a.estimated_value) ?? 0), 0
     );
 
     await supabase.from("user_progress").upsert({

@@ -204,12 +204,12 @@ export default function PrivateCompanyPage() {
               <Field label="Industry" hint="required">
                 <select className={SEL} value={form.industry} onChange={e => set("industry", e.target.value)}>
                   <option value="">Select…</option>
-                  {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+                  {INDUSTRIES.map(i => <option value={i}>{i}</option>)}
                 </select>
               </Field>
               <Field label="Corporate Structure">
                 <select className={SEL} value={form.structure} onChange={e => set("structure", e.target.value)}>
-                  {STRUCTURES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  {STRUCTURES.map(s => <option value={s.value}>{s.label}</option>)}
                 </select>
               </Field>
             </div>
@@ -254,7 +254,7 @@ export default function PrivateCompanyPage() {
             <div className="grid grid-cols-3 gap-4">
               <Field label="Exit Horizon">
                 <select className={SEL} value={form.exit_horizon} onChange={e => set("exit_horizon", e.target.value)}>
-                  {EXIT_HORIZONS.map(h => <option key={h.value} value={h.value}>{h.label}</option>)}
+                  {EXIT_HORIZONS.map(h => <option value={h.value}>{h.label}</option>)}
                 </select>
               </Field>
               <Field label="RDTOH Balance" hint="if known">

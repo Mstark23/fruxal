@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     const open = leaks.filter(l => l.status === "detected" || l.status === "shown_free");
-    const totalLeaking = open.reduce((s, l) => s + (l.estimated_annual_leak || l.annual_leak_amount ?? 0), 0);
+    const totalLeaking = open.reduce((s, l) => s + ((l.estimated_annual_leak || l.annual_leak_amount) ?? 0), 0);
 
     await sb.from("shared_results").insert({
       id: shareId,
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       leak_count: open.length,
       top_leaks: JSON.stringify(open.slice(0, 5).map(l => ({
         code: l.leak_type_code || l.leak_type || "",
-        amount: l.estimated_annual_leak || l.annual_leak_amount ?? 0,
+        amount: (l.estimated_annual_leak || l.annual_leak_amount) ?? 0,
         severity: l.severity_score ?? 0,
       }))),
       created_at: new Date().toISOString(),

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     // Query ALL possible columns — some may not exist depending on which migrations ran
     const { data: profile, error } = await supabaseAdmin
       .from("business_profiles")
-      .select("business_id, user_id, industry, province, employee_count, annual_revenue, plan")
+      .select("*")
       .eq("user_id", userId)
       .single();
 

@@ -38,7 +38,7 @@ export function calculateDataHealthScore(input: any): number {
 /** Alias — prescan-engine-v3 imports both names */
 export function calculateFinancialHealthScore(leaks: any[], revenue?: number): number {
   if (!leaks || leaks.length === 0) return 100;
-  const totalLeak = leaks.reduce((s, l) => s + (l.estimated_annual_leak || l.annualImpact ?? 0), 0);
+  const totalLeak = leaks.reduce((s, l) => s + ((l.estimated_annual_leak || l.annualImpact) ?? 0), 0);
   const rev = revenue || 100_000;
   return Math.max(0, Math.min(100, Math.round(100 - (totalLeak / rev) * 100)));
 }
@@ -58,7 +58,7 @@ function makeDim(score: number): BHSDimension {
 }
 
 export function calculateBHS(leaks: any[], input: any, benchmarks?: any): BHSResult {
-  const totalImpact = leaks.reduce((s, l) => s + (l.annual_impact_max || l.annualImpact ?? 0), 0);
+  const totalImpact = leaks.reduce((s, l) => s + ((l.annual_impact_max || l.annualImpact) ?? 0), 0);
   const maxExpected  = 200_000;
   const raw   = Math.max(0, 100 - Math.round((totalImpact / maxExpected) * 100));
   const score = Math.min(100, Math.max(0, raw));

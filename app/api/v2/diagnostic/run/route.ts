@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Prevent duplicate concurrent runs — if one is already analyzing, return it
-    const { data: existingRun } = await supabaseAdmin
+    const { data: existingRun } = await Promise.resolve(await supabaseAdmin
       .from("diagnostic_reports")
       .select("id, status, created_at")
       .eq("business_id", businessId)
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(1)
       .single()
-      .catch(() => ({ data: null }));
+      ).catch(() => ({ data: null }));
 
     if (existingRun?.id) {
       const ageMs = Date.now() - new Date(existingRun.created_at).getTime();
@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
       sredLastYear:   profile.sred_claimed_last_year ?? 0,
       // QB/Plaid/Stripe signals — enriches diagnostic accuracy
       qbArOverdue:    profile.qb_ar_overdue_30 ?? 0,
-      qbBankBalance:  profile.qb_bank_balance || profile.plaid_bank_balance_total ?? 0,
+      qbBankBalance:  (profile.qb_bank_balance || profile.plaid_bank_balance_total) ?? 0,
       qbTopExpenses:  profile.qb_top_expense_cats || [],
       plaidRecurring: profile.plaid_recurring_expenses || [],
       stripeChurnRate:  profile.stripe_churn_rate_pct ?? 0,
@@ -419,12 +419,12 @@ export async function POST(req: NextRequest) {
         exit_readiness_score: scores.exit_readiness ?? 0,
         findings_count:       aiResult?.findings?.length ?? 0,
         critical_findings:    (aiResult?.findings || []).filter((f: any) => f.severity === "critical").length,
-        total_potential_savings: totals.potential_savings      || aiResult?.total_potential_savings      ?? 0,
-        total_annual_leaks:      totals.annual_leaks           || aiResult?.total_annual_leaks           ?? 0,
-        total_penalty_exposure:  totals.penalty_exposure       || aiResult?.total_penalty_exposure       ?? 0,
-        total_programs_value:    totals.programs_value         || aiResult?.total_programs_value         ?? 0,
-        ebitda_impact:           totals.ebitda_impact          || aiResult?.ebitda_impact ?? 0,
-        enterprise_value_impact: totals.enterprise_value_impact|| aiResult?.enterprise_value_impact ?? 0,
+        total_potential_savings: (totals.potential_savings || aiResult?.total_potential_savings) ?? 0,
+        total_annual_leaks:      (totals.annual_leaks || aiResult?.total_annual_leaks) ?? 0,
+        total_penalty_exposure:  (totals.penalty_exposure || aiResult?.total_penalty_exposure) ?? 0,
+        total_programs_value:    (totals.programs_value || aiResult?.total_programs_value) ?? 0,
+        ebitda_impact:           (totals.ebitda_impact || aiResult?.ebitda_impact) ?? 0,
+        enterprise_value_impact: (totals.enterprise_value_impact || aiResult?.enterprise_value_impact) ?? 0,
         model_used:           "claude-sonnet-4-6",
         completed_at:         new Date().toISOString(),
         updated_at:           new Date().toISOString(),

@@ -219,7 +219,7 @@ export default function ObligationsPage() {
           </div>
           <div className="flex bg-white border border-border-light rounded-lg overflow-hidden" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
             {(["timeline","list"] as const).map(m => (
-              <button key={m} onClick={() => setViewMode(m)}
+              <button onClick={() => setViewMode(m)}
                 className={`px-4 py-2 text-[11px] font-medium transition ${viewMode===m?"bg-brand-soft text-brand":"text-ink-muted hover:text-ink"}`}>
                 {m==="timeline" ? t("Timeline","Chronologie") : t("List","Liste")}
               </button>
@@ -233,7 +233,7 @@ export default function ObligationsPage() {
             const cnt = c.key==="all" ? allFlat.length : allFlat.filter(o=>o.category===c.key).length;
             if (c.key!=="all" && cnt===0) return null;
             return (
-              <button key={c.key} onClick={()=>setCatFilter(c.key)}
+              <button onClick={()=>setCatFilter(c.key)}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-[11px] font-medium whitespace-nowrap transition-all border ${
                   catFilter===c.key ? "text-brand border-brand/20 bg-brand/5" : "text-ink-muted border-border-light bg-white hover:border-brand/15"
                 }`}

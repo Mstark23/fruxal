@@ -29,7 +29,7 @@ export function track(event: string, properties?: Record<string, any>) {
   if (posthog) {
     posthog.capture(event, properties);
   } else if (process.env.NODE_ENV === "development") {
-    process.env.NODE_ENV !== "production" && console.log(`[Analytics] ${event}`, properties);
+    (process.env.NODE_ENV as string) !== "production" && console.log(`[Analytics] ${event}`, properties);
   }
 }
 

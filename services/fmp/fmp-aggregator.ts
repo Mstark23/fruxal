@@ -89,7 +89,7 @@ export async function aggregateFMPData(symbol: string): Promise<FMPCompanyData> 
   const netIncome        = i0.netIncome ?? 0;
   const incomeTax        = i0.incomeTaxExpense ?? 0;
   const operatingIncome  = i0.operatingIncome ?? 0;
-  const totalEquity      = b0.totalStockholdersEquity || b0.totalEquity ?? 0;
+  const totalEquity      = (b0.totalStockholdersEquity || b0.totalEquity) ?? 0;
   const currentAssets    = b0.totalCurrentAssets ?? 0;
   const currentLiabilities = b0.totalCurrentLiabilities ?? 0;
   const totalDebt        = b0.totalDebt ?? 0;

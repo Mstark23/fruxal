@@ -71,7 +71,7 @@ export default function CelebrationOverlay({ type, data, onDone }: CelebrationPr
 
     for (let i = 0; i < count; i++) {
       const centerX = typeof window !== 'undefined' ? window.innerWidth / 2 : 400;
-      const centerY = window.innerHeight * 0.35;
+      const centerY = typeof window !== "undefined" ? window.innerHeight * 0.35 : 300;
       const angle = (Math.random() * Math.PI * 2);
       const speed = 2 + Math.random() * 6;
 

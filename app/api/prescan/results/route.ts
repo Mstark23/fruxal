@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
       description:     label.description,
       descriptionFR:   label.descriptionFR,
       category:        leak.leak_category || 'other',
-      estimatedAnnual: leak.estimated_annual_leak || leak.annual_leak_amount ?? 0,
+      estimatedAnnual: (leak.estimated_annual_leak || leak.annual_leak_amount) ?? 0,
       severityScore:   leak.severity_score ?? 0,
       severityLabel:   sev.label,
       severityColor:   sev.color,

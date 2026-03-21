@@ -377,7 +377,7 @@ export default function IntelligenceHub() {
                 </select>
                 <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="text-xs border rounded-lg px-2 py-1.5 bg-white">
                   <option value="all">All Categories</option>
-                  {categories.map(c => <option key={c} value={c}>{catIcon(c)} {catLabel(c)}</option>)}
+                  {(categories as string[]).map(c => <option key={c} value={c}>{catIcon(c)} {catLabel(c)}</option>)}
                 </select>
                 <select value={filterAffiliate} onChange={e => setFilterAffiliate(e.target.value)} className="text-xs border rounded-lg px-2 py-1.5 bg-white">
                   <option value="all">All</option>
@@ -656,15 +656,15 @@ export default function IntelligenceHub() {
                   <div className="bg-white rounded-xl border shadow-sm p-4">
                     <div className="space-y-2">
                       {Object.entries(data?.affiliate.categoryBreakdown || {})
-                        .sort(([, a], [, b]) => b - a)
+                        .sort(([, a], [, b]) => (b as number) - (a as number))
                         .map(([cat, clicks]) => {
-                          const maxClicks = Math.max(...Object.values(data?.affiliate.categoryBreakdown || {}));
+                          const maxClicks = Math.max(...(Object.values(data?.affiliate.categoryBreakdown || {}) as number[]));
                           return (
                             <div key={cat} className="flex items-center gap-3">
                               <span className="text-xs font-medium w-32 truncate" style={{ color: C.text }}>{catIcon(cat)} {catLabel(cat)}</span>
                               <div className="flex-1 h-5 bg-gray-100 rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all"
-                                  style={{ width: maxClicks > 0 ? (clicks / maxClicks * 100) : 0 + "%", background: C.blue }} />
+                                  style={{ width: maxClicks > 0 ? ((clicks as number) / maxClicks * 100) : 0 + "%", background: C.blue }} />
                               </div>
                               <span className="text-xs font-bold w-8 text-right" style={{ color: C.blue }}>{clicks}</span>
                             </div>

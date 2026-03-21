@@ -20,12 +20,12 @@ export async function GET(req: NextRequest) {
     const email  = (token as any)?.email as string | undefined;
 
     // ── 0. Resolve business_id for this user (needed for pipeline lookup) ──
-    const { data: bProfile } = await supabaseAdmin
+    const { data: bProfile } = await Promise.resolve(await supabaseAdmin
       .from("business_profiles")
       .select("business_id")
       .eq("user_id", userId)
       .single()
-      .catch(() => ({ data: null }));
+      ).catch(() => ({ data: null }));
     const businessId = bProfile?.business_id as string | undefined;
 
     // ── 1. Pipeline entry for this user ────────────────────────────────────
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
     const { data: pipeline } = await supabaseAdmin
       .from("tier3_pipeline")
-      .select("id, stage, created_at, updated_at, follow_up_date, notes, diagnostic_id, company_name, contact_name")
+      .select("*")
       .or(orParts.join(","))
       .order("updated_at", { ascending: false })
       .limit(1)
@@ -54,37 +54,37 @@ export async function GET(req: NextRequest) {
     let rep: any = null;
     // Try rep assignment via pipeline's direct rep_id first (fastest path)
     if (pipeline?.rep_id) {
-      const { data: repData } = await supabaseAdmin
+      const { data: repData } = await Promise.resolve(await supabaseAdmin
         .from("tier3_reps")
-        .select("name, email, phone, province, calendly_url")
+        .select("*")
         .eq("id", pipeline.rep_id)
         .single()
-        .catch(() => ({ data: null }));
+        ).catch(() => ({ data: null }));
       if (repData) rep = { ...repData, assignedAt: pipeline.created_at };
     }
     // Fallback: look up via rep_assignments table using diagnostic_id or report_id
     if (!rep && (engagement?.id || pipeline?.diagnostic_id || pipeline?.report_id)) {
       const diagId = engagement?.id
-        ? (await supabaseAdmin.from("tier3_engagements").select("diagnostic_id").eq("id", engagement.id).single().catch(() => ({ data: null }))).data?.diagnostic_id
+        ? (await Promise.resolve(await supabaseAdmin.from("tier3_engagements").select("*").eq("id", engagement.id).single()).catch(() => ({ data: null }))).data?.diagnostic_id
         : (pipeline?.diagnostic_id || pipeline?.report_id);
 
       if (diagId) {
-        const { data: assignment } = await supabaseAdmin
+        const { data: assignment } = await Promise.resolve(await supabaseAdmin
           .from("tier3_rep_assignments")
-          .select("rep_id, assigned_at, notes")
+          .select("*")
           .or(`diagnostic_id.eq.${diagId},report_id.eq.${diagId}`)
           .order("assigned_at", { ascending: false })
           .limit(1)
           .single()
-          .catch(() => ({ data: null }));
+          ).catch(() => ({ data: null }));
 
         if (assignment?.rep_id) {
-          const { data: repData } = await supabaseAdmin
+          const { data: repData } = await Promise.resolve(await supabaseAdmin
             .from("tier3_reps")
-            .select("name, email, phone, province, calendly_url")
+            .select("*")
             .eq("id", assignment.rep_id)
             .single()
-            .catch(() => ({ data: null }));
+            ).catch(() => ({ data: null }));
           if (repData) rep = { ...repData, assignedAt: assignment.assigned_at };
         }
       }

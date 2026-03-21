@@ -43,7 +43,9 @@ export function decryptToken(cipher: string): string {
 
 // ── Plaid API helper ─────────────────────────────────────────────────────────
 async function plaidPost(path: string, body: object): Promise<any> {
-  const res = await fetch(`${PLAID_BASE}${path}`, {.catch(() => { throw new Error("Network request failed"); });
+  let res: Response;
+  try {
+    res = await fetch(`${PLAID_BASE}${path}`, {
     method:  "POST",
     headers: {
       "Content-Type": "application/json",
@@ -52,6 +54,9 @@ async function plaidPost(path: string, body: object): Promise<any> {
     },
     body: JSON.stringify(body),
   });
+  } catch (e: any) {
+    throw new Error(`Network request failed: ${e.message}`);
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error_message: res.statusText }));
     throw new Error(`Plaid ${path} failed: ${err.error_message || err.error_code || res.status}`);

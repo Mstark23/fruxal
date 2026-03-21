@@ -37,7 +37,9 @@ export async function exchangeStripeCode(code: string): Promise<{
   livemode: boolean;
   scope: string;
 }> {
-  const res = await fetch("https://connect.stripe.com/oauth/token", {.catch(() => { throw new Error("Network request failed"); });
+  let res: Response;
+  try {
+    res = await fetch("https://connect.stripe.com/oauth/token", {
     method:  "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -46,6 +48,9 @@ export async function exchangeStripeCode(code: string): Promise<{
       grant_type: "authorization_code",
     }),
   });
+  } catch (e: any) {
+    throw new Error(`Network request failed: ${e.message}`);
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -67,12 +72,17 @@ async function stripeGet(path: string, accessToken: string, params: Record<strin
   const qs  = new URLSearchParams({ limit: "100", ...params }).toString();
   const url = `https://api.stripe.com/v1/${path}${qs ? "?" + qs : ""}`;
 
-  const res = await fetch(url, {.catch(() => { throw new Error("Network request failed"); });
+  let res: Response;
+  try {
+    res = await fetch(url, {
     headers: {
       Authorization:        `Bearer ${accessToken}`,
       "Stripe-Version":     "2024-06-20",
     },
   });
+  } catch (e: any) {
+    throw new Error(`Network request failed: ${e.message}`);
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

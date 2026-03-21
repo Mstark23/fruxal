@@ -100,7 +100,7 @@ export default function BusinessDashboard() {
         setScore(d.health_score || 50);
         setTotalLeak(d.total_leak_estimate ?? 0);
         const sev = (s: any) => { if (typeof s === "string" && ["critical","high","medium","low"].includes(s)) return s; const n = Number(s); return isNaN(n) ? "medium" : n >= 80 ? "critical" : n >= 60 ? "high" : n >= 30 ? "medium" : "low"; };
-        setLeaks(d.leaks.top_unfixed.map((l: any) => ({ slug: l.slug, title: l.title, title_fr: l.title_fr, severity: sev(l.severity), category: l.category || "Général", description: l.description || "", description_fr: l.description_fr, impact_min: l.impact_min ?? 0, impact_max: l.impact_max || l.impact_min ?? 0, confidence: l.confidence, affiliates: l.affiliates || [] })));
+        setLeaks(d.leaks.top_unfixed.map((l: any) => ({ slug: l.slug, title: l.title, title_fr: l.title_fr, severity: sev(l.severity), category: l.category || "Général", description: l.description || "", description_fr: l.description_fr, impact_min: l.impact_min ?? 0, impact_max: (l.impact_max || l.impact_min) ?? 0, confidence: l.confidence, affiliates: l.affiliates || [] })));
       }
     }).catch(() => {});
 
@@ -137,7 +137,7 @@ export default function BusinessDashboard() {
             setPlanSequence(r.action_plan.slice(0, 4).map((a: any, i: number) => ({
               step: a.priority || i + 1,
               action: a.title || a.action || "",
-              value: a.estimated_savings || a.value ?? 0,
+              value: (a.estimated_savings || a.value) ?? 0,
             })));
           }
         }
@@ -170,7 +170,7 @@ export default function BusinessDashboard() {
     return () => { if (analyzePoll) clearInterval(analyzePoll); };
   }, [user?.id]);
 
-  const recovered = actionStats?.total_recovered || totalSavings ?? 0;
+  const recovered = (actionStats?.total_recovered || totalSavings) ?? 0;
   const recovPct = totalLeak > 0 ? Math.min(100, Math.round((recovered / totalLeak) * 100)) : 0;
   const streak = (progress as any)?.streak;
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon après-midi") : t("Good evening", "Bonsoir"); })();
@@ -370,7 +370,7 @@ export default function BusinessDashboard() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={`text-[12px] font-semibold text-ink truncate ${isPaid ? "group-hover:text-brand transition-colors" : ""}`}>{isFR ? (f.title_fr || f.title) : f.title}</span>
-                          <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">${(f.impact_max || f.impact_min).toLocaleString()}</span>
+                          <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">${(f.impact_max ?? f.impact_min ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[9px] text-ink-faint">{f.category}</span>
@@ -389,7 +389,7 @@ export default function BusinessDashboard() {
                 {/* Lock gate for unpaid users */}
                 {!isPaid && diagFindings.length > 3 && (() => {
                   const locked = diagFindings.slice(3);
-                  const lockedVal = locked.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min ?? 0), 0);
+                  const lockedVal = locked.reduce((s: number, f: any) => s + ((f.impact_max || f.impact_min) ?? 0), 0);
                   return (
                     <div className="relative">
                       {locked.slice(0, 2).map((f: any, i: number) => (
@@ -398,7 +398,7 @@ export default function BusinessDashboard() {
                           <div className="flex items-center gap-2">
                             <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: SEV_DOT[f.severity] || "#8E8C85" }} />
                             <span className="text-[12px] font-semibold text-ink flex-1">{isFR ? (f.title_fr || f.title) : f.title}</span>
-                            <span className="font-serif text-[13px] font-bold text-negative">${(f.impact_max || f.impact_min).toLocaleString()}</span>
+                            <span className="font-serif text-[13px] font-bold text-negative">${(f.impact_max ?? f.impact_min ?? 0).toLocaleString()}</span>
                           </div>
                         </div>
                       ))}
@@ -434,12 +434,12 @@ export default function BusinessDashboard() {
                 {leaks.slice(0, isPaid ? 6 : 3).map((l, i) => (
                   <div key={i} onClick={() => isPaid && router.push("/v2/leaks")} className={`px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 transition-colors ${isPaid ? "hover:bg-surface-hover cursor-pointer group" : ""}`}>
                     <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
-                    <div className="flex-1 min-w-0">
+                    <div key={i} className="flex-1 min-w-0">
                       <div className={`text-[12px] font-semibold text-ink truncate ${isPaid ? "group-hover:text-brand transition-colors" : ""}`}>{isFR ? (l.title_fr || l.title) : l.title}</div>
                       <span className="text-[9px] text-ink-faint">{l.category}</span>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max || l.impact_min).toLocaleString()}</div>
+                      <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
                       <div className="text-[7px] text-ink-faint">/{t("yr", "an")}</div>
                     </div>
                   </div>
@@ -611,7 +611,7 @@ export default function BusinessDashboard() {
                 {diagBenchmarks.map((b, i) => (
                     <div key={i} className="px-4 py-2 border-b border-border-light last:border-0">
                       <p key={i} className="text-[10px] font-semibold text-ink-secondary mb-1.5">{isFR ? (b.metric_name_fr || b.metric_fr || b.metric_name || b.metric || "") : (b.metric_name || b.metric || "")}</p>
-                      <div className="grid grid-cols-3 text-center">
+                      <div key={i} className="grid grid-cols-3 text-center">
                         <div><div className="text-[12px] font-bold text-ink-secondary">{b.your_value}</div><div className="text-[7px] text-ink-faint">{t("You", "Vous")}</div></div>
                         <div><div className="text-[12px] font-bold" style={{ color: "#0369a1" }}>{b.industry_avg}</div><div className="text-[7px] text-ink-faint">{t("Avg", "Moy.")}</div></div>
                         <div><div className="text-[12px] font-bold text-positive">{b.top_quartile}</div><div className="text-[7px] text-ink-faint">Top 25%</div></div>
@@ -635,7 +635,7 @@ export default function BusinessDashboard() {
               ) : deadlines.slice(0, 4).map((dl, i) => (
                 <div key={i} onClick={() => router.push("/v2/obligations")} className="px-4 py-2.5 flex items-center justify-between border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer">
                   <div key={i} className="flex-1 min-w-0 mr-2">
-                    <div className="text-[11px] font-medium text-ink truncate">{dl.title}</div>
+                    <div key={i} className="text-[11px] font-medium text-ink truncate">{dl.title}</div>
                     {(dl.penalty_max ?? 0) > 0 && <div className="text-[8px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
                   </div>
                   <div className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-md shrink-0" style={{ background: dl.days_until <= 3 ? "#B34040" : dl.days_until <= 7 ? "rgba(179,64,64,0.06)" : "#F0EFEB", color: dl.days_until <= 3 ? "white" : dl.days_until <= 7 ? "#B34040" : "#8E8C85" }}>{dl.days_until}{t("d", "j")}</div>

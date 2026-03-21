@@ -46,11 +46,19 @@ export async function GET(req: Request) {
       });
 
     // Find best partner for each renewal category
-    for (const r of renewals) {
-      const partner = await prisma.affiliatePartner.findFirst({
-        where: { category: r.category, active: true },
+    // Batch: load best partner per category once, not per renewal
+    const uniqueCategories = [...new Set(renewals.map((r: any) => r.category).filter(Boolean))];
+    const partnersByCategory: Record<string, any> = {} as Record<string, any>;
+    await Promise.all(uniqueCategories.map(async (cat) => {
+      const p = await prisma.affiliatePartner.findFirst({
+        where: { category: cat, active: true },
         orderBy: { qualityScore: "desc" },
       });
+      if (p) (partnersByCategory as Record<string, any>)[String(cat)] = p;
+    }));
+
+    for (const r of renewals) {
+      const partner = (partnersByCategory as Record<string, any>)[String(r.category)];
       if (partner) {
         r.bestPartner = {
           id: partner.id,

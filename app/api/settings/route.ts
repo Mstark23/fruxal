@@ -1,3 +1,4 @@
+export const maxDuration = 30;
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/db/client";
@@ -24,12 +25,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Look up the user's business_id from their profile (ownership verified by user_id)
-    const { data: profile } = await supabaseAdmin
+    const { data: profile } = await Promise.resolve(await supabaseAdmin
       .from("business_profiles")
       .select("business_id")
       .eq("user_id", userId)
       .single()
-      .catch(() => ({ data: null }));
+      ).catch(() => ({ data: null }));
 
     const businessId = profile?.business_id;
 

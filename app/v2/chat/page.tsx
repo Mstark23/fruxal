@@ -36,7 +36,7 @@ function TypingDots() {
   return (
     <div className="flex items-center gap-1 px-4 py-3">
       {[0,1,2].map(i => (
-        <span key={i} className="w-1.5 h-1.5 rounded-full bg-ink-faint"
+        <span className="w-1.5 h-1.5 rounded-full bg-ink-faint"
           style={{ animation:`bounce 1.2s ease-in-out ${i*0.2}s infinite` }} />
       ))}
     </div>
@@ -295,7 +295,7 @@ export default function ChatPage() {
                   <button key={i} onClick={() => send(lang === "fr" ? s.fr : s.en)}
                     className="text-left px-4 py-3 bg-white rounded-xl border border-border-light hover:border-brand/20 hover:bg-brand/[0.02] transition-all group"
                     style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
-                    <p key={i} className="text-[11px] text-ink-secondary group-hover:text-ink transition-colors leading-relaxed">
+                    <p className="text-[11px] text-ink-secondary group-hover:text-ink transition-colors leading-relaxed">
                       {lang === "fr" ? s.fr : s.en}
                     </p>
                   </button>
@@ -309,7 +309,7 @@ export default function ChatPage() {
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 {m.role === "assistant" && (
-                  <div key={i} className="w-7 h-7 rounded-lg flex items-center justify-center mr-2.5 shrink-0 mt-0.5"
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mr-2.5 shrink-0 mt-0.5"
                     style={{ background:"rgba(27,58,45,0.08)", border:"1px solid rgba(27,58,45,0.10)" }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round">
                       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
@@ -332,7 +332,7 @@ export default function ChatPage() {
             ))}
 
             {sending && (
-              <div key={j} className="flex justify-start">
+              <div className="flex justify-start">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center mr-2.5 shrink-0 mt-0.5"
                   style={{ background:"rgba(27,58,45,0.08)", border:"1px solid rgba(27,58,45,0.10)" }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round">

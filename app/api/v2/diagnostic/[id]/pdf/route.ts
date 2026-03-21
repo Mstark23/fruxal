@@ -82,7 +82,7 @@ function buildPDF(report: any, profile: any, isFr: boolean): Promise<Buffer> {
     const execSummary   = isFr
       ? (report.executive_summary_fr || report.executive_summary || "")
       : (report.executive_summary    || "");
-    const anchor        = report.savings_anchor?.headline || fmtM(totals.potential_savings || totals.annual_leaks ?? 0);
+    const anchor        = report.savings_anchor?.headline || fmtM((totals.potential_savings || totals.annual_leaks) ?? 0);
     const companyName   = profile.business_name || profile.industry_label || "Your Business";
     const dateStr       = new Date().toLocaleDateString(isFr ? "fr-CA" : "en-CA", { year: "numeric", month: "long", day: "numeric" });
 

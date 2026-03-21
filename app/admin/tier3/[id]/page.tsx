@@ -41,6 +41,7 @@ export default function AdminTier3DetailPage() {
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
       <div className="w-6 h-6 border-2 border-[#EEECE8] border-t-[#1B3A2D] rounded-full animate-spin" />
     </div>
+    </>
   );
   if (!data) return (
     <>
@@ -49,6 +50,7 @@ export default function AdminTier3DetailPage() {
       <AdminNav />
       <p className="text-sm text-[#8E8C85]">Entry not found.</p>
     </div>
+    </>
   );
 
   const entry    = data.entry || {};

@@ -65,8 +65,8 @@ function normalize(raw: any): any {
   const findings = (raw.findings || []).map((f: any) => {
     // Normalize dollar fields: AI uses annual_leak/potential_savings,
     // dashboard pages read impact_min/impact_max — bridge both
-    const leak    = f.annual_leak    || f.impact_max || f.impact_min || f.potential_savings ?? 0;
-    const savings = f.potential_savings || f.annual_leak || f.impact_max ?? 0;
+    const leak    = (f.annual_leak    || f.impact_max || f.impact_min || f.potential_savings) ?? 0;
+    const savings = (f.potential_savings || f.annual_leak || f.impact_max) ?? 0;
 
     // Add impact_min/impact_max so dashboard pages work regardless of AI field names
     const normalized: any = {

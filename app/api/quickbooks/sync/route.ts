@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
 
     // Dynamically import qb-aggregator to avoid build errors if module missing
     try {
-      const { syncQBFinancials } = await import("@/services/v2/qb-aggregator");
-      await syncQBFinancials(profile.business_id);
+      const { syncQuickBooksFinancials } = await import("@/services/v2/qb-aggregator");
+      await syncQuickBooksFinancials(profile.business_id);
     } catch (importErr: any) {
       // qb-aggregator not available — update status manually
       await supabaseAdmin.from("quickbooks_connections")

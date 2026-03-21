@@ -151,7 +151,7 @@ export function ChatInterface({
       });
       const data = await res.json();
       if (data.url) {
-        typeof window !== "undefined" && window.location.href = data.url;
+        if (typeof window !== "undefined") window.location.href = data.url;
       } else {
         setError("Failed to create checkout session");
       }
@@ -169,8 +169,7 @@ export function ChatInterface({
     return segments.map((seg, i) => {
       if (seg.type === "card" && seg.card) {
         return (
-          <ToolCard
-            key={i}
+          <ToolCard key={i}
             card={seg.card}
             userId={userId}
             onTrackClick={(toolName, url) => { trackToolClick(toolName, url); }}
@@ -179,7 +178,7 @@ export function ChatInterface({
       }
       // Text segment — render with basic formatting
       return (
-        <div key={i} className="whitespace-pre-wrap text-sm leading-relaxed">
+        <div className="whitespace-pre-wrap text-sm leading-relaxed">
           {seg.content.split("\n").map((line, li) => {
             // Bold text
             const parts = line.split(/(\*\*.*?\*\*)/g);
@@ -226,8 +225,7 @@ export function ChatInterface({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
         {messages.map((msg, i) => (
-          <div
-            key={i}
+          <div key={i}
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div

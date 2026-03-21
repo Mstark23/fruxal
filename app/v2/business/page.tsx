@@ -55,7 +55,7 @@ export default function BusinessDashboard() {
   const isFR = lang === "fr";
   const isFree = tier === "free";
   const isPaid = !isFree;
-  const recovered = actionStats?.total_recovered || totalSavings ?? 0;
+  const recovered = (actionStats?.total_recovered || totalSavings) ?? 0;
   const recovPct = totalLeak > 0 ? Math.min(100, Math.round((recovered / totalLeak) * 100)) : 0;
   const streak = progress?.streak;
   const fade = (d = 0) => ({ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: `all 0.45s cubic-bezier(0.16,1,0.3,1) ${d}s` });
@@ -80,7 +80,7 @@ export default function BusinessDashboard() {
           const CAT: Record<string, string> = { processing_rate_high: "Paiements", payroll_ratio_high: "Personnel", tax_optimization_gap: "Fiscalité", insurance_overpayment: "Assurance", software_bloat: "Opérations", banking_fees_high: "Bancaire", inventory_cogs_high: "Inventaire", marketing_waste: "Marketing", utilities_overspend: "Utilitaires", revenue_underpricing: "Revenus", accounting_gap: "Comptabilité", tax_credit_missed: "Fiscalité", compliance_gap: "Conformité", fuel_vehicle_high: "Transport", rent_or_chair_high: "Immobilier" };
           const leakList = p.analysis.leaks.map((l: any) => ({ slug: l.type || l.slug || "unknown", title: l.title || "", title_fr: l.title_fr, severity: sev(l.severity), category: CAT[l.type] || l.category || "Général", description: l.explanation || l.description || "", impact_min: l.amount ?? 0, impact_max: l.amount ?? 0, confidence: l.confidence || null, action: l.action, action_fr: l.action_fr, affiliates: l.affiliates || [] }));
           const derivedTotal = leakList.reduce((s: number, l: any) => s + (l.impact_max ?? 0), 0);
-          setTotalLeak(p.analysis.totalLeak || derivedTotal ?? 0);
+          setTotalLeak((p.analysis.totalLeak || derivedTotal) ?? 0);
           setLeaks(leakList);
           prescanLoaded = true;
         }
@@ -108,7 +108,7 @@ export default function BusinessDashboard() {
       if (!prescanLoaded && d.leaks?.top_unfixed?.length > 0) {
         setScore(d.health_score || 50); setTotalLeak(d.total_leak_estimate ?? 0);
         const sev = (s: any) => { if (typeof s === "string" && ["critical","high","medium","low"].includes(s)) return s; const n = Number(s); return isNaN(n) ? "medium" : n >= 80 ? "critical" : n >= 60 ? "high" : n >= 30 ? "medium" : "low"; };
-        setLeaks(d.leaks.top_unfixed.map((l: any) => ({ slug: l.slug, title: l.title, title_fr: l.title_fr, severity: sev(l.severity), category: l.category || "Général", description: l.description || "", impact_min: l.impact_min ?? 0, impact_max: l.impact_max || l.impact_min ?? 0, confidence: l.confidence, action: l.action, action_fr: l.action_fr, affiliates: l.affiliates || [] })));
+        setLeaks(d.leaks.top_unfixed.map((l: any) => ({ slug: l.slug, title: l.title, title_fr: l.title_fr, severity: sev(l.severity), category: l.category || "Général", description: l.description || "", impact_min: l.impact_min ?? 0, impact_max: (l.impact_max || l.impact_min) ?? 0, confidence: l.confidence, action: l.action, action_fr: l.action_fr, affiliates: l.affiliates || [] })));
       }
     }).catch(() => {});
     const v3Url = rid ? `/api/v3/dashboard?prescanRunId=${rid}` : null;
@@ -136,7 +136,7 @@ export default function BusinessDashboard() {
                   <div className="flex items-center gap-1"><div className={`w-[5px] h-[5px] rounded-full ${actionStats.bank_connected ? "bg-positive" : "bg-border"}`} /><span className="text-[9px] text-ink-faint">{t("Bank", "Banque")}</span></div>
                 </div>
               )}
-              {streak && streak.current > 0 && <div className="flex items-center gap-1"><div className="flex gap-[2px]">{streak.week_map?.map((a: boolean, i: number) => <div key={i} className={`w-[4px] h-[4px] rounded-[1px] ${a ? "bg-positive" : "bg-border"}`} />)}</div><span className="text-[9px] text-ink-faint">{streak.current}j</span></div>}
+              {streak && streak.current > 0 && <div className="flex items-center gap-1"><div className="flex gap-[2px]">{streak.week_map?.map((a: boolean, i: number) => <div className={`w-[4px] h-[4px] rounded-[1px] ${a ? "bg-positive" : "bg-border"}`} />)}</div><span className="text-[9px] text-ink-faint">{streak.current}j</span></div>}
             </div>
           </div>
           <div className="flex items-center bg-border-light rounded-[7px] p-[3px] gap-[2px]">{(["en","fr"] as const).map(l => (<button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); sessionStorage.setItem("lg_prescan_lang", l); } catch { /* non-fatal */ } }} className={`px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wide rounded-[5px] transition-all ${lang === l ? "bg-white text-ink shadow-sm" : "text-ink-muted bg-transparent"}`}>{l.toUpperCase()}</button>))}</div>
@@ -199,14 +199,14 @@ export default function BusinessDashboard() {
                     <div key={i} className="flex items-center gap-2 mb-2"><span className="text-[9px] font-bold text-white bg-negative px-1.5 py-0.5 rounded">#1</span><div className="text-[12px] font-semibold text-ink">{isFR ? (l.title_fr || l.title) : l.title}</div></div>
                     <div className="text-[10px] text-ink-faint mb-2">{l.category}</div>
                     {l.action && <div className="p-2 rounded-lg text-[10px] text-ink-secondary mb-2" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.06)" }}><span className="font-semibold text-brand">{t("Fix: ", "Correction : ")}</span>{isFR ? (l.action_fr || l.action) : l.action}</div>}
-                    {l.affiliates && l.affiliates.length > 0 && <div className="flex gap-1.5 flex-wrap">{l.affiliates.slice(0, 3).map((a, ai) => <a key={ai} href={a.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-semibold text-brand border border-brand/20 px-2 py-0.5 rounded-full hover:bg-brand/5 transition">🔗 {a.name}</a>)}</div>}
-                    <div key={ai} className="mt-2 text-right font-serif text-[14px] font-bold text-negative">${(l.impact_max || l.impact_min).toLocaleString()}/{t("yr", "an")}</div>
+                    {l.affiliates && l.affiliates.length > 0 && <div className="flex gap-1.5 flex-wrap">{l.affiliates.slice(0, 3).map((a, ai) => <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-semibold text-brand border border-brand/20 px-2 py-0.5 rounded-full hover:bg-brand/5 transition">🔗 {a.name}</a>)}</div>}
+                    <div key={`aff-${i}`} className="mt-2 text-right font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}/{t("yr", "an")}</div>
                   </div>
                 ))}
                 {leaks.slice(1, 4).map((l, i) => (
                   <div key={i} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light" style={{ filter: "blur(4px)", userSelect: "none", pointerEvents: "none" }}>
-                    <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0 bg-border" /><div className="flex-1 min-w-0"><div className="text-[12px] font-semibold text-ink truncate">{isFR ? (l.title_fr || l.title) : l.title}</div><div className="text-[10px] text-ink-faint">{l.category}</div></div>
-                    <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max || l.impact_min).toLocaleString()}</div>
+                    <div className="w-[7px] h-[7px] rounded-full shrink-0 bg-border" /><div className="flex-1 min-w-0"><div className="text-[12px] font-semibold text-ink truncate">{isFR ? (l.title_fr || l.title) : l.title}</div><div className="text-[10px] text-ink-faint">{l.category}</div></div>
+                    <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
                   </div>
                 ))}
                 {leaks.length > 1 && <div className="px-4 py-4 text-center" style={{ background: "rgba(250,250,248,0.95)" }}><p className="text-[11px] font-semibold text-ink-muted mb-2">{leaks.length - 1} {t("more leaks hidden", "fuites cachées")}</p><button onClick={() => router.push("/v2/checkout?plan=business")} className="text-[11px] font-bold text-white bg-brand px-4 py-2 rounded-lg hover:opacity-90 transition">{t("Unlock full report — $150/mo →", "Débloquer — 150 $/mois →")}</button></div>}
@@ -215,9 +215,9 @@ export default function BusinessDashboard() {
               <>
                 {leaks.slice(0, 6).map((l, i) => (
                   <div key={i} onClick={() => router.push("/v2/leaks")} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer group" style={{ background: l.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
-                    <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
+                    <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
                     <div className="flex-1 min-w-0"><div className="text-[12px] font-semibold text-ink truncate group-hover:text-brand">{isFR ? (l.title_fr || l.title) : l.title}</div><span className="text-[9px] text-ink-faint">{l.category}</span></div>
-                    <div className="text-right shrink-0"><div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max || l.impact_min).toLocaleString()}</div><div className="text-[7px] text-ink-faint">/{t("yr", "an")}</div></div>
+                    <div className="text-right shrink-0"><div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div><div className="text-[7px] text-ink-faint">/{t("yr", "an")}</div></div>
                   </div>
                 ))}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center"><span className="text-[10px] font-semibold text-ink-muted">Total</span><span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span></div>
@@ -233,8 +233,8 @@ export default function BusinessDashboard() {
               ) : allActions.length === 0 ? (
                 <div className="px-4 py-6 text-center text-[11px] text-ink-muted">{t("Actions will appear after your first diagnostic.", "Actions après votre diagnostic.")}</div>
               ) : allActions.slice(0, 4).map((a, i) => (
-                <div key={a.id} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
-                  <div key={i} className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: `2px solid ${a.status === "in_progress" ? "#C4841D" : "#E8E6E1"}` }}>{a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[9px] font-bold text-ink-faint">{i + 1}</span>}</div>
+                <div key={i} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
+                  <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: `2px solid ${a.status === "in_progress" ? "#C4841D" : "#E8E6E1"}` }}>{a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[9px] font-bold text-ink-faint">{i + 1}</span>}</div>
                   <div className="flex-1 min-w-0"><div className="text-[12px] font-semibold text-ink truncate">{a.leak_title}</div>{a.fix_description && <div className="text-[9px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}</div>
                   <div className="text-right shrink-0"><div className="font-serif text-[13px] font-bold text-positive">+${a.estimated_value.toLocaleString()}</div><span className="text-[7px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "À faire")}</span></div>
                 </div>
@@ -257,14 +257,14 @@ export default function BusinessDashboard() {
             )}
           </div>
           {/* COL 3: SIDEBAR */}
-          <div key={i} className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3">
             <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-2.5 border-b border-border-light flex justify-between items-center"><span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Deadlines", "Échéances")}</span>{isPaid && <button onClick={() => router.push("/v2/obligations")} className="text-[9px] font-semibold text-brand hover:underline">{t("All →", "Tout →")}</button>}</div>
               {!isPaid ? <div className="px-4 py-4 text-center"><div className="flex justify-center mb-1"><LockIcon /></div><p className="text-[10px] text-ink-faint">{t("Upgrade to see deadlines", "Mettre à niveau")}</p></div>
               : deadlines.length === 0 ? <div className="px-4 py-4 text-[11px] text-ink-faint text-center">{t("None upcoming", "Aucune échéance")}</div>
               : deadlines.slice(0, 4).map((dl, i) => (
                 <div key={i} onClick={() => router.push("/v2/obligations")} className="px-4 py-2.5 flex items-center justify-between border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer">
-                  <div key={i} className="flex-1 min-w-0 mr-2"><div className="text-[11px] font-medium text-ink truncate">{dl.title}</div>{(dl.penalty_max ?? 0) > 0 && <div className="text-[8px] text-ink-faint">${dl.penalty_max!.toLocaleString()}</div>}</div>
+                  <div className="flex-1 min-w-0 mr-2"><div className="text-[11px] font-medium text-ink truncate">{dl.title}</div>{(dl.penalty_max ?? 0) > 0 && <div className="text-[8px] text-ink-faint">${dl.penalty_max!.toLocaleString()}</div>}</div>
                   <div className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-md shrink-0" style={{ background: dl.days_until <= 3 ? "#B34040" : dl.days_until <= 7 ? "rgba(179,64,64,0.06)" : "#F0EFEB", color: dl.days_until <= 3 ? "white" : dl.days_until <= 7 ? "#B34040" : "#8E8C85" }}>{dl.days_until}{t("d", "j")}</div>
                 </div>
               ))}

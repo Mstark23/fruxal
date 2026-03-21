@@ -160,7 +160,7 @@ export async function PUT(req: NextRequest) {
     const businessId = existing.business_id || (() => {
       // Auto-generate business_id inline if missing
       const id = crypto.randomUUID();
-      supabaseAdmin.from("business_profiles").update({ business_id: id }).eq("user_id", token.sub).catch(() => {});
+      Promise.resolve(supabaseAdmin.from("business_profiles").update({ business_id: id }).eq("user_id", token.sub)).catch(() => {});
       return id;
     })();
 

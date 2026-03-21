@@ -166,7 +166,7 @@ export default function DiagnosticReportPage() {
 
   const TABS: { key: Tab; label: string; labelFr: string; count?: number }[] = [
     { key: "findings", label: "Findings", labelFr: "Constats", count: (report.findings ?? []).length },
-    { key: "plan", label: t("Action Plan", "Plan d'action"), labelFr: "Plan d'action", count: (report.action_plan?.optimal_sequence ?? []).length },
+    { key: "plan", label: t("Action Plan", "Plan d'action"), labelFr: "Plan d'action", count: ((report.action_plan as any)?.optimal_sequence ?? []).length },
     { key: "risk", label: t("Risk Matrix", "Matrice de risque"), labelFr: "Risques", count: (report.risk_matrix ?? []).length },
     { key: "benchmarks", label: t("Benchmarks", "Repères"), labelFr: "Comparaisons" },
   ];
@@ -327,7 +327,7 @@ export default function DiagnosticReportPage() {
         {/* Action Plan Tab */}
         {tab === "plan" && (
           <div className="space-y-2">
-            {(report.action_plan?.optimal_sequence ?? []).map((a: any, i: number) => (
+            {((report.action_plan as any)?.optimal_sequence ?? []).map((a: any, i: number) => (
               <div key={i} className="flex items-start gap-3 bg-white/[0.02] border border-white/[0.05] rounded-xl p-4"
                 style={{ animation: `fadeUp 0.2s ease-out ${i * 0.04}s both` }}>
                 <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
@@ -386,7 +386,7 @@ export default function DiagnosticReportPage() {
                 <div className="grid grid-cols-3 gap-3 text-center mb-2">
                   <div><div className="text-xs font-bold text-ink-secondary">{b.your_value}</div><div className="text-[9px] text-ink/15">{isFr ? "Vous" : "You"}</div></div>
                   <div><div className="text-xs font-bold text-blue-400/60">{b.industry_avg}</div><div className="text-[9px] text-ink/15">{isFr ? "Moy. industrie" : "Industry Avg"}</div></div>
-                  <div><div className="text-xs font-bold text-brand-accent/60">{b.top_quartile || b.top_performer}</div><div className="text-[9px] text-ink/15">{isFr ? "Top 25%" : "Top 25%"}</div></div>
+                  <div><div className="text-xs font-bold text-brand-accent/60">{(b as any).top_quartile || (b as any).top_performer}</div><div className="text-[9px] text-ink/15">{isFr ? "Top 25%" : "Top 25%"}</div></div>
                 </div>
                 <p className="text-[10px] text-ink-faint">{isFr ? (b.gap_fr || b.gap) : b.gap}</p>
               </div>

@@ -174,6 +174,19 @@ function Snapshot({ analysis, prescanRunId }: { analysis: any; prescanRunId: str
   );
 }
 
+function detectLang(): "en" | "fr" {
+  if (typeof window === "undefined") return "en";
+  try {
+    const stored = sessionStorage.getItem("lg_prescan_lang") || localStorage.getItem("fruxal_lang");
+    if (stored === "en" || stored === "fr") return stored;
+    const html = document.documentElement.lang;
+    if (html?.startsWith("fr")) return "fr";
+    if (navigator.language?.startsWith("fr")) return "fr";
+  } catch { /* non-fatal */ }
+  return "en";
+}
+
+
 export default function PrescanChatPage() {
   const [messages, setMessages]   = useState<ChatMessage[]>([]);
   const [input, setInput]         = useState("");

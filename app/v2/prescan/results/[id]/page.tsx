@@ -106,13 +106,13 @@ export default function PrescanResultsPage() {
           // Staggered reveal for drama
           const _to = setTimeout(() => setRevealPhase(1), 300);   // Score ring
           return () => clearTimeout(_to);
-          const _to = setTimeout(() => setRevealPhase(2), 1200);   // Findings
+          const _to2 = setTimeout(() => setRevealPhase(2), 1200);   // Findings
           return () => clearTimeout(_to);
-          const _to = setTimeout(() => setRevealPhase(3), 2400);   // Obligations
+          const _to3 = setTimeout(() => setRevealPhase(3), 2400);   // Obligations
           return () => clearTimeout(_to);
-          const _to = setTimeout(() => setRevealPhase(4), 3200);   // Programs
+          const _to4 = setTimeout(() => setRevealPhase(4), 3200);   // Programs
           return () => clearTimeout(_to);
-          const _to = setTimeout(() => setRevealPhase(5), 4000);   // CTA
+          const _to5 = setTimeout(() => setRevealPhase(5), 4000);   // CTA
           return () => clearTimeout(_to);
         }
       } catch (err) {

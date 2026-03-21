@@ -342,7 +342,7 @@ export async function GET(request: NextRequest) {
   });
 
   const totalLeak = leaks.reduce((s: number, l: any) => s + l.annual_estimate, 0);
-  const annualRev = prescanRun.annual_revenue || biz.annual_revenue ?? 0;
+  const annualRev = (prescanRun.annual_revenue || biz.annual_revenue) ?? 0;
 
   // Build estimated snapshot from prescan data
   // Revenue: generate 12 months of estimated data based on annual revenue

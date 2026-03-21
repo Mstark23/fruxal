@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
 // ── Old flow: tier3_diagnostics → tier3_engagements ───────────────────────────
 
 async function buildResponseFromDiagnostic(diag: any, userId: string) {
-  const { data: eng } = await supabaseAdmin
+  const { data: eng } = await Promise.resolve(await supabaseAdmin
     .from("tier3_engagements")
     .select("*")
     .eq("diagnostic_id", diag.id)
@@ -78,7 +78,7 @@ async function buildResponseFromDiagnostic(diag: any, userId: string) {
     .limit(1)
     .single()
     .then(r => r)
-    .catch(() => ({ data: null }));
+    ).catch(() => ({ data: null }));
 
   if (!eng) {
     return NextResponse.json({
@@ -129,7 +129,7 @@ async function buildResponseFromReport(report: any, userId: string) {
     // Normalize to the shape the /v2/tier3 page expects:
     //   amount     — single dollar figure (use max for display)
     //   confidence — number 0-100 (page renders as a progress bar)
-    const impactMin = f.impact_min || f.annual_leak ?? 0;
+    const impactMin = (f.impact_min || f.annual_leak) ?? 0;
     const impactMax = f.impact_max || f.potential_savings || impactMin;
     const confidenceMap: Record<string, number> = { critical: 95, high: 80, medium: 55, low: 30 };
     return {
@@ -142,7 +142,7 @@ async function buildResponseFromReport(report: any, userId: string) {
   });
 
   // Check for engagement via report_id
-  const { data: eng } = await supabaseAdmin
+  const { data: eng } = await Promise.resolve(await supabaseAdmin
     .from("tier3_engagements")
     .select("*")
     .eq("report_id", report.id)
@@ -150,7 +150,7 @@ async function buildResponseFromReport(report: any, userId: string) {
     .limit(1)
     .single()
     .then(r => r)
-    .catch(() => ({ data: null }));
+    ).catch(() => ({ data: null }));
 
   const diagData = {
     companyName: profile?.business_name || "Your Business",
@@ -184,14 +184,13 @@ async function buildEngagementResponse(eng: any, diagData: any, source: string) 
       .order("created_at", { ascending: false })
       .limit(1)
       .single()
-      .then(r => r.data)
-      .catch(() => null),
+      .then(r => r.data).then(d => d, () => null),
   ]);
 
-  const confirmedSavings = findings.reduce((s: number, f: any) => s + (f.confirmed_amount ?? 0), 0);
+  const confirmedSavings = (findings ?? []).reduce((s: number, f: any) => s + (f.confirmed_amount ?? 0), 0);
   const feeOwed          = Math.round(confirmedSavings * ((eng.fee_percentage || 12) / 100));
-  const totalDocs        = docs.length;
-  const receivedDocs     = docs.filter((d: any) => ["received", "reviewed"].includes(d.status)).length;
+  const totalDocs        = (docs ?? []).length;
+  const receivedDocs     = (docs ?? []).filter((d: any) => ["received", "reviewed"].includes(d.status)).length;
 
   const STAGES = ["intake","diagnostic","agreement","document_collection","active_recovery","confirmed","invoiced","complete"];
   const currentStageIdx = STAGES.indexOf(eng.status) !== -1 ? STAGES.indexOf(eng.status) : 2;

@@ -1107,8 +1107,7 @@ export default function EnterpriseDashboard() {
                   const FREE_COUNT = 3;
                   const freeFindings   = visibleFindings.slice(0, FREE_COUNT);
                   const lockedFindings = visibleFindings.slice(FREE_COUNT);
-                  const lockedValue    = lockedFindings.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min ?? 0), 0);
-                  const callHref       = callHref;
+                  const lockedValue    = lockedFindings.reduce((s: number, f: any) => s + ((f.impact_max || f.impact_min) ?? 0), 0);
                   return (<>
                     {freeFindings.map((f: any, i: number) => {
                       const sev = SEV[f.severity] || SEV.low;
@@ -1123,7 +1122,7 @@ export default function EnterpriseDashboard() {
                                   {isFr ? (f.title_fr || f.title) : f.title}
                                 </span>
                                 <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">
-                                  {fmtM(f.impact_max || f.impact_min ?? 0)}
+                                  {fmtM((f.impact_max || f.impact_min) ?? 0)}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
@@ -1165,7 +1164,7 @@ export default function EnterpriseDashboard() {
                               style={{ borderLeft: `3px solid ${sev.dot}`, filter: "blur(4px)", opacity: 0.4 }}>
                               <div className="flex items-center gap-2">
                                 <span className="text-[12px] font-semibold text-ink flex-1">{isFr ? (f.title_fr || f.title) : f.title}</span>
-                                <span className="font-serif text-[13px] font-bold text-negative">{fmtM(f.impact_max || f.impact_min ?? 0)}</span>
+                                <span className="font-serif text-[13px] font-bold text-negative">{fmtM((f.impact_max || f.impact_min) ?? 0)}</span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-[9px] text-ink-faint">{f.category}</span>
@@ -1305,7 +1304,6 @@ export default function EnterpriseDashboard() {
         {execSummary && (() => {
           const full = isFr ? (execSummaryFr || execSummary) : execSummary;
           const teaser = full.split(/[.!?]/)[0] + ".";
-          const callHref = callHref;
           return (
             <div className="bg-white rounded-xl border border-border-light px-5 py-4 mb-3"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -1366,8 +1364,7 @@ export default function EnterpriseDashboard() {
 
         {/* ── Locked sections: CPA Briefing + Priority Sequence + Benchmarks ── */}
         {(briefing || planSequence.length > 0 || benchmarks.length > 0) && (() => {
-          const lockedValue = findings.slice(3).reduce((s: number, f: any) => s + (f.impact_max || f.impact_min ?? 0), 0);
-          const callHref = callHref;
+          const lockedValue = findings.slice(3).reduce((s: number, f: any) => s + ((f.impact_max || f.impact_min) ?? 0), 0);
           return (
             <div className="bg-white rounded-xl border overflow-hidden mb-3"
               style={{ borderColor: "rgba(27,58,45,0.15)", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -1405,7 +1402,7 @@ export default function EnterpriseDashboard() {
                 ].map((item, i) => (
                   <div key={i} className="px-5 py-3 flex items-center gap-4" style={{ filter: "blur(0.5px)", opacity: 0.55 }}>
                     <span key={i} className="text-lg shrink-0">{item.icon}</span>
-                    <div className="flex-1 min-w-0">
+                    <div key={i} className="flex-1 min-w-0">
                       <p className="text-[12px] font-semibold text-ink">{item.label}</p>
                       <p className="text-[10px] text-ink-faint truncate">{item.sub}</p>
                     </div>
