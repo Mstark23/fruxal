@@ -97,7 +97,7 @@ export default function AdminTier3Page() {
         setSelected(prev => prev ? { ...prev, pipelineId: json.id, stage: "lead" } : prev);
         load();
       }
-    } catch {}
+    } catch { /* non-fatal */ }
     setSaving(false);
   };
 

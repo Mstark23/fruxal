@@ -20,7 +20,7 @@ export function buildAdvisorSystemPrompt(ctx: AdvisorContext): string {
   const { businessName, industry, province, plan, annualRevenue, totalLeaking, topFindings, isFr } = ctx;
 
   const leakSummary = topFindings.slice(0, 5)
-    .map((f, i) => `${i + 1}. ${f.title} — $${f.annualImpact.toLocaleString()}/yr [${f.category}/${f.severity}]`)
+    .map((f, i) => `${i + 1}. ${f.title} — $${(Number(f.annualImpact) || 0).toLocaleString()}/yr [${f.category}/${f.severity}]`)
     .join("\n");
 
   return `You are the Fruxal AI Business Advisor, speaking directly to the owner of ${businessName}.
@@ -29,8 +29,8 @@ BUSINESS CONTEXT:
 - Industry:       ${industry}
 - Province:       ${province}
 - Plan:           ${plan}
-- Annual revenue: $${annualRevenue.toLocaleString()}
-- Total leaking:  $${totalLeaking.toLocaleString()}/yr
+- Annual revenue: $${(Number(annualRevenue) || 0).toLocaleString()}
+- Total leaking:  $${(Number(totalLeaking) || 0).toLocaleString()}/yr
 
 TOP FINDINGS DETECTED:
 ${leakSummary || "No findings yet — help them understand where to start."}

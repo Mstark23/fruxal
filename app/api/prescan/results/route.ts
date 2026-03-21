@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
       descriptionFR: '',
       icon: '💧',
     };
-    const sev = severityLabel(leak.severity_score || 0);
+    const sev = severityLabel(leak.severity_score ?? 0);
     return {
       id:              leak.id,
       code,
@@ -158,12 +158,12 @@ export async function GET(request: NextRequest) {
       description:     label.description,
       descriptionFR:   label.descriptionFR,
       category:        leak.leak_category || 'other',
-      estimatedAnnual: leak.estimated_annual_leak || leak.annual_leak_amount || 0,
-      severityScore:   leak.severity_score || 0,
+      estimatedAnnual: leak.estimated_annual_leak || leak.annual_leak_amount ?? 0,
+      severityScore:   leak.severity_score ?? 0,
       severityLabel:   sev.label,
       severityColor:   sev.color,
-      confidenceScore: leak.confidence_score || 0,
-      priorityScore:   leak.priority_score || 0,
+      confidenceScore: leak.confidence_score ?? 0,
+      priorityScore:   leak.priority_score ?? 0,
       status:          leak.status || 'detected',
     };
   });
@@ -177,8 +177,8 @@ export async function GET(request: NextRequest) {
     province:      run.province,
     revenueBand:   run.revenue_band,
     annualRevenue: run.annual_revenue,
-    fhScore:       run.health_score       || 0,
-    dhScore:       run.data_health_score  || 0,
+    fhScore:       run.health_score ?? 0,
+    dhScore:       run.data_health_score ?? 0,
     totalLeak,
     totalLeakLow:  Math.round(totalLeak * 0.8),
     totalLeakHigh: Math.round(totalLeak * 1.2),

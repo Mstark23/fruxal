@@ -31,7 +31,7 @@ if (needsUrlFix) {
   const bestUrl = productionUrl || vercelUrl;
   if (bestUrl) {
     process.env.NEXTAUTH_URL = `https://${bestUrl}`;
-    console.log(`[Auth] Auto-set NEXTAUTH_URL to ${process.env.NEXTAUTH_URL}`);
+    process.env.NODE_ENV !== "production" && console.log(`[Auth] Auto-set NEXTAUTH_URL to ${process.env.NEXTAUTH_URL}`);
   }
 }
 

@@ -29,7 +29,7 @@ export default function DashboardRouter() {
           localStorage.setItem("fruxal_tier", tierFromPayment);
           sessionStorage.setItem("fruxal_session_tier", tierFromPayment);
         }
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     // 1. Check localStorage first — fastest path, no API call needed
@@ -39,7 +39,7 @@ export default function DashboardRouter() {
       if (stored === "enterprise") { router.replace("/v2/dashboard/enterprise" + suffix); return; }
       if (stored === "business")   { router.replace("/v2/dashboard/business"   + suffix); return; }
       if (stored === "solo")       { router.replace("/v2/dashboard/solo"        + suffix); return; }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // 2. Check document.referrer — if coming from business dashboard, go back there
     try {
@@ -50,20 +50,20 @@ export default function DashboardRouter() {
         if (cached === "business")   { router.replace("/v2/dashboard/business"   + suffix); return; }
         if (cached === "enterprise") { router.replace("/v2/dashboard/enterprise" + suffix); return; }
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // 2. Check sessionStorage prescan result (new registration flow + returning users)
     try {
       const raw = sessionStorage.getItem("lg_prescan_result");
       if (raw) {
         const p   = JSON.parse(raw);
-        const rev = p.inputs?.annualRevenue || 0;
-        const emp = p.inputs?.employeeCount || 0;
+        const rev = p.inputs?.annualRevenue ?? 0;
+        const emp = p.inputs?.employeeCount ?? 0;
         const plan = (p.tier || "").toLowerCase();
         if (rev >= 1_000_000 || emp >= 50 || plan === "enterprise") { router.replace("/v2/dashboard/enterprise" + suffix); return; }
         if (rev >= 150_000   || emp >= 3  || ["business","growth","team"].includes(plan)) { router.replace("/v2/dashboard/business" + suffix); return; }
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // 3. Call API — use recommended_plan (revenue-based) not just paid tier
     fetch(rid ? "/api/v2/dashboard?prescanRunId=" + rid : "/api/v2/dashboard")
@@ -75,7 +75,7 @@ export default function DashboardRouter() {
                   : (tier === "business" || tier === "growth" || tier === "team" || plan === "business") ? "business"
                   : "solo";
         // Persist so next nav click skips the API call
-        try { localStorage.setItem("fruxal_tier", eff); } catch {}
+        try { localStorage.setItem("fruxal_tier", eff); } catch { /* non-fatal */ }
         if      (eff === "enterprise") router.replace("/v2/dashboard/enterprise" + suffix);
         else if (eff === "business")   router.replace("/v2/dashboard/business"   + suffix);
         else                           router.replace("/v2/dashboard/solo"        + suffix);

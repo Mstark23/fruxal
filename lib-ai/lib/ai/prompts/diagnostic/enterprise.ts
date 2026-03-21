@@ -33,12 +33,12 @@ export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; us
 
   const systemPrompt = `${FRUXAL_VOICE}
 
-You are analyzing ${bizName}, a ${industry} in ${province} generating $${annualRevenue.toLocaleString()} revenue.
+You are analyzing ${bizName}, a ${industry} in ${province} generating $${(Number(annualRevenue) || 0).toLocaleString()} revenue.
 This is a CCPC-level diagnostic. Your mandate: find every dollar of tax leakage, structural inefficiency,
-and compliance risk — and calculate the enterprise value effect at ${evMultiple} (current EV range: $${evLow.toLocaleString()}–$${evHigh.toLocaleString()}).
+and compliance risk — and calculate the enterprise value effect at ${evMultiple} (current EV range: $${(Number(evLow) || 0).toLocaleString()}–$${(Number(evHigh) || 0).toLocaleString()}).
 
-EBITDA: ~$${estimatedEBITDA.toLocaleString()} (${ebitdaSource}) | Gross margin: ${grossMarginPct}%
-Employees: ${employees}${ownerSalary > 0 ? ` | Owner salary: $${ownerSalary.toLocaleString()}` : ""}
+EBITDA: ~$${(Number(estimatedEBITDA) || 0).toLocaleString()} (${ebitdaSource}) | Gross margin: ${grossMarginPct}%
+Employees: ${employees}${ownerSalary > 0 ? ` | Owner salary: $${(Number(ownerSalary) || 0).toLocaleString()}` : ""}
 
 ${taxCtx}
 
@@ -47,14 +47,14 @@ Reason through ALL 10 checks before writing any output. State findings only for 
 you can calculate a real dollar impact from this business's actual numbers.
 
 1. SALARY vs DIVIDEND MIX
-   Owner salary: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "unknown"} | Revenue: $${annualRevenue.toLocaleString()} | EBITDA: ~$${estimatedEBITDA.toLocaleString()}
+   Owner salary: $${ownerSalary > 0 ? (Number(ownerSalary) || 0).toLocaleString() : "unknown"} | Revenue: $${(Number(annualRevenue) || 0).toLocaleString()} | EBITDA: ~$${(Number(estimatedEBITDA) || 0).toLocaleString()}
    → Optimal T4 vs eligible dividend split to minimize combined corporate + personal tax?
    → CPP over-contribution: salary >$68,500 triggers 11.9% total (employer + employee) — quantify if over-contributing.
    → At what salary level does additional T4 become net-negative vs dividends?
    → Model after-tax take-home: current mix vs optimal. Dollar difference = the finding.
 
 2. RDTOH DIVIDEND REFUND
-   Balance: $${rdtohBalance > 0 ? rdtohBalance.toLocaleString() : "unknown — assess if passive income earned"}
+   Balance: $${rdtohBalance > 0 ? (Number(rdtohBalance) || 0).toLocaleString() : "unknown — assess if passive income earned"}
    → Eligible RDTOH refunded at 38.33% per $1 eligible dividend paid.
    → Non-eligible RDTOH refunded at 38.33% per $1 non-eligible dividend.
    → If no dividends declared recently: calculate stranded refund amount.
@@ -80,7 +80,7 @@ you can calculate a real dollar impact from this business's actual numbers.
    → Quantify the annual tax cost at this business's passive income level.
 
 6. IPP vs RRSP
-   Owner salary: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "needed to assess"} | Exit horizon: ${exitHorizon}
+   Owner salary: $${ownerSalary > 0 ? (Number(ownerSalary) || 0).toLocaleString() : "needed to assess"} | Exit horizon: ${exitHorizon}
    → IPP outperforms RRSP from ~age 40 onward. Past service contribution room can be $200K–$500K+.
    → RRSP limit 2024: $31,560. IPP can significantly exceed this with past service.
    → Fully deductible to the corporation. Actuarial cost ~$3K–5K setup. Quantify net benefit.
@@ -94,7 +94,7 @@ you can calculate a real dollar impact from this business's actual numbers.
    → Section 55 safe income analysis if dividends flowed between corps.
 
 8. SR&ED REFUNDABLE CREDITS
-   SR&ED last year: $${sredLastYear > 0 ? sredLastYear.toLocaleString() : "none — are they missing eligible work?"}
+   SR&ED last year: $${sredLastYear > 0 ? (Number(sredLastYear) || 0).toLocaleString() : "none — are they missing eligible work?"}
    → CCPC: 35% REFUNDABLE federal ITC on first $3M eligible R&D.
    ${province === "QC" ? "→ QC: additional 30% refundable provincial credit." : `→ ${province}: check provincial SR&ED rates.`}
    → Eligible work: software development, process improvement, new product R&D, custom manufacturing processes.
@@ -104,11 +104,11 @@ you can calculate a real dollar impact from this business's actual numbers.
    Exit horizon: ${exitHorizon !== "unknown" ? exitHorizon : "not specified — assess if owner 50+"}
    → Section 86 estate freeze: crystallize current FMV, all future growth to next gen or family trust.
    → Freeze before value appreciates + LCGE on future shares = double tax benefit.
-   → Timing: freeze NOW on $${evLow.toLocaleString()} EV vs after growth to $${Math.round(evLow * 1.5).toLocaleString()} = $${Math.round((evLow * 1.5 - evLow) * 0.2676 * 0.5353).toLocaleString()} incremental tax on the growth.
+   → Timing: freeze NOW on $${(Number(evLow) || 0).toLocaleString()} EV vs after growth to $${Math.round(evLow * 1.5).toLocaleString()} = $${Math.round((evLow * 1.5 - evLow) * 0.2676 * 0.5353).toLocaleString()} incremental tax on the growth.
 
 10. COMPLIANCE & AUDIT RISK
-    Obligations: ${obligationsCount} tracked | Overdue: ${overdue} | Penalty exposure: $${penaltyExposure.toLocaleString()}
-    → At $${annualRevenue.toLocaleString()} revenue, what is the CRA audit probability for this industry?
+    Obligations: ${obligationsCount} tracked | Overdue: ${overdue} | Penalty exposure: $${(Number(penaltyExposure) || 0).toLocaleString()}
+    → At $${(Number(annualRevenue) || 0).toLocaleString()} revenue, what is the CRA audit probability for this industry?
     → Director liability: overdue source deductions expose directors personally.
     → Key person risk: if owner is incapacitated, what happens to the business and estate?
 
@@ -129,7 +129,7 @@ ${buildQualityBar("enterprise")}
 ${buildSolutionMatrix("enterprise", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
 STRUCTURAL RULES:
-1. Calculate every dollar from ACTUAL revenue $${annualRevenue.toLocaleString()} (${revenueSource}) and EBITDA $${estimatedEBITDA.toLocaleString()} (${ebitdaSource}).
+1. Calculate every dollar from ACTUAL revenue $${(Number(annualRevenue) || 0).toLocaleString()} (${revenueSource}) and EBITDA $${(Number(estimatedEBITDA) || 0).toLocaleString()} (${ebitdaSource}).
 2. Every finding MUST include ebitda_improvement AND enterprise_value_improvement. Assume ${evMultiple}. Show the math in calculation_shown.
 3. Minimum 8, maximum 12 findings. No finding under $5,000 annual impact.
 4. second_order_effects is a PLAIN STRING — NOT an array. Describe the cascading effect (e.g. fixing salary mix → RDTOH timing → CDA → estate freeze all interact).
@@ -153,30 +153,30 @@ BUSINESS PROFILE
 - Province:         ${province}
 - Structure:        ${structure}
 - Fiscal Year End:  Month ${profile.fiscal_year_end_month || 12}
-- Annual Revenue:   $${annualRevenue.toLocaleString()} (${revenueSource})
+- Annual Revenue:   $${(Number(annualRevenue) || 0).toLocaleString()} (${revenueSource})
 - Employees:        ${employees}
 - Gross Margin:     ${grossMarginPct}%
-- Est. EBITDA:      $${estimatedEBITDA.toLocaleString()} (${ebitdaSource})
-${estimatedPayroll > 0 ? `- Est. Payroll:     $${estimatedPayroll.toLocaleString()}` : ""}
+- Est. EBITDA:      $${(Number(estimatedEBITDA) || 0).toLocaleString()} (${ebitdaSource})
+${estimatedPayroll > 0 ? `- Est. Payroll:     $${(Number(estimatedPayroll) || 0).toLocaleString()}` : ""}
 
 OWNER FINANCIALS
-- Owner Salary:     ${ownerSalary > 0 ? `$${ownerSalary.toLocaleString()}` : "Not provided"}
-- Net Income (LY):  ${exactNetIncome > 0 ? `$${exactNetIncome.toLocaleString()}` : "Not provided"}
-- Est. Tax Drag:    ${estimatedTaxDrag > 0 ? `$${estimatedTaxDrag.toLocaleString()}/yr` : "Not calculated"}
+- Owner Salary:     ${ownerSalary > 0 ? `$${(Number(ownerSalary) || 0).toLocaleString()}` : "Not provided"}
+- Net Income (LY):  ${exactNetIncome > 0 ? `$${(Number(exactNetIncome) || 0).toLocaleString()}` : "Not provided"}
+- Est. Tax Drag:    ${estimatedTaxDrag > 0 ? `$${(Number(estimatedTaxDrag) || 0).toLocaleString()}/yr` : "Not calculated"}
 - Exit Horizon:     ${exitHorizon !== "unknown" ? exitHorizon : "Not specified"}
 
 CORPORATE TAX FLAGS
 - Holdco:                ${hasHoldco      ? "YES" : "NO/Unknown"}
 - Passive Income >$50K:  ${passiveOver50k ? "YES — SBD grind-down" : "NO/Unknown"}
 - LCGE Eligible:         ${lcgeEligible   ? "YES" : "Not confirmed"}
-- RDTOH Balance:         ${rdtohBalance > 0 ? `$${rdtohBalance.toLocaleString()}` : "Unknown"}
+- RDTOH Balance:         ${rdtohBalance > 0 ? `$${(Number(rdtohBalance) || 0).toLocaleString()}` : "Unknown"}
 - CDA Balance:           ${hasCDA         ? "YES" : "NO/Unknown"}
-- SR&ED Last Year:       ${sredLastYear > 0 ? `$${sredLastYear.toLocaleString()}` : "None"}
+- SR&ED Last Year:       ${sredLastYear > 0 ? `$${(Number(sredLastYear) || 0).toLocaleString()}` : "None"}
 
 COMPLIANCE
 - Obligations tracked:   ${obligationsCount}
 - Overdue:               ${overdue}
-- Penalty exposure:      $${penaltyExposure.toLocaleString()}
+- Penalty exposure:      $${(Number(penaltyExposure) || 0).toLocaleString()}
 
 BUSINESS FLAGS
 - Has Payroll:       ${profile.has_payroll          ? "YES" : "NO"}

@@ -2,10 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 
+const _ip_shareRl = new Map<string, {c: number; r: number}>();
+function ip_shareCheck(ip: string): boolean {
+  const now = Date.now();
+  const e = _ip_shareRl.get(ip);
+  if (!e || e.r < now) { _ip_shareRl.set(ip, {c: 1, r: now + 3600000}); return true; }
+  e.c++; return e.c <= 20;
+}
+
+
+
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 // POST — create share link
 export async function POST(req: NextRequest) {
+  const _ip_ip_share = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!ip_shareCheck(_ip_ip_share)) return NextResponse.json({error: "Too many requests"}, {status: 429});
   try {
     const { businessId } = await req.json();
     if (!businessId) return NextResponse.json({ error: "businessId required" }, { status: 400 });
@@ -40,21 +52,21 @@ export async function POST(req: NextRequest) {
     }
 
     const open = leaks.filter(l => l.status === "detected" || l.status === "shown_free");
-    const totalLeaking = open.reduce((s, l) => s + (l.estimated_annual_leak || l.annual_leak_amount || 0), 0);
+    const totalLeaking = open.reduce((s, l) => s + (l.estimated_annual_leak || l.annual_leak_amount ?? 0), 0);
 
     await sb.from("shared_results").insert({
       id: shareId,
       business_id: businessId,
       business_name: biz?.name || "Business",
       industry: biz?.industry_slug || biz?.industry || "",
-      health_score: prescanRun?.health_score || 0,
+      health_score: prescanRun?.health_score ?? 0,
       total_leaking: totalLeaking,
       total_saved: 0,
       leak_count: open.length,
       top_leaks: JSON.stringify(open.slice(0, 5).map(l => ({
         code: l.leak_type_code || l.leak_type || "",
-        amount: l.estimated_annual_leak || l.annual_leak_amount || 0,
-        severity: l.severity_score || 0,
+        amount: l.estimated_annual_leak || l.annual_leak_amount ?? 0,
+        severity: l.severity_score ?? 0,
       }))),
       created_at: new Date().toISOString(),
       expires_at: new Date(Date.now() + 30 * 86400000).toISOString(),

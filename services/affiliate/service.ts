@@ -184,7 +184,7 @@ export async function trackClick(params: {
   // 4. Increment partner click count
   await supabase
     .from("affiliate_partners")
-    .update({ total_clicks: (partner.total_clicks || 0) + 1 })
+    .update({ total_clicks: (partner.total_clicks ?? 0) + 1 })
     .eq("id", params.partnerId);
 
   return {
@@ -222,7 +222,7 @@ export async function recordConversion(
       .single();
 
     if (partner) {
-      const newConversions = (partner.total_conversions || 0) + 1;
+      const newConversions = (partner.total_conversions ?? 0) + 1;
       await supabase
         .from("affiliate_partners")
         .update({
@@ -265,9 +265,9 @@ export async function getAffiliateStats(businessId?: string) {
   });
 
   return {
-    totalClicks: totalClicks || 0,
-    totalConversions: totalConversions || 0,
-    conversionRate: totalClicks ? ((totalConversions || 0) / totalClicks * 100).toFixed(1) + "%" : "0%",
+    totalClicks: totalClicks ?? 0,
+    totalConversions: totalConversions ?? 0,
+    conversionRate: totalClicks ? ((totalConversions ?? 0) / totalClicks * 100).toFixed(1) + "%" : "0%",
     topPartners: topPartners || [],
     categoryBreakdown,
   };

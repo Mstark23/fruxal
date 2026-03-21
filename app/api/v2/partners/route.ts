@@ -13,6 +13,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSmartPartners } from "@/services/intelligence";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+const _ip_partnersRl = new Map<string, {c: number; r: number}>();
+function ip_partnersCheck(ip: string): boolean {
+  const now = Date.now();
+  const e = _ip_partnersRl.get(ip);
+  if (!e || e.r < now) { _ip_partnersRl.set(ip, {c: 1, r: now + 3600000}); return true; }
+  e.c++; return e.c <= 30;
+}
+
+
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -61,6 +71,8 @@ export async function GET(req: NextRequest) {
 
 // Track partner clicks for affiliate attribution
 export async function POST(req: NextRequest) {
+  const _ip_ip_partners = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!ip_partnersCheck(_ip_ip_partners)) return NextResponse.json({error: "Too many requests"}, {status: 429});
   try {
     const body = await req.json();
     const { partnerSlug, businessId, leakId, source } = body;

@@ -39,7 +39,7 @@ export async function POST(
       reopen: "detected",
     };
     const newStatus = statusMap[action];
-    const savingsAmount = action === "fix" ? (savings || 0) : 0;
+    const savingsAmount = action === "fix" ? (savings ?? 0) : 0;
 
     // Upsert into leak_actions
     try {
@@ -85,7 +85,7 @@ export async function POST(
         .eq("status", "fixed");
 
       const totalRecovered = (fixedLeaks || []).reduce(
-        (sum: number, l: any) => sum + (l.savings_amount || 0),
+        (sum: number, l: any) => sum + (l.savings_amount ?? 0),
         0
       );
       const fixedCount = (fixedLeaks || []).length;

@@ -11,6 +11,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+export const maxDuration = 60; // Vercel function timeout (seconds)
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2024-12-18.acacia" as any,
@@ -20,6 +23,28 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+
+// Sync businesses.tier so dashboard tier resolver picks it up immediately
+async function syncBusinessTier(userId: string, plan: string, active: boolean) {
+  const PLAN_TO_TIER: Record<string, string> = {
+    solo: "solo", business: "business", advisor: "business",
+    report: "solo", team: "business", enterprise: "enterprise",
+  };
+  const tier = active ? (PLAN_TO_TIER[plan] || "solo") : "free";
+  try {
+    const { data: biz } = await supabaseAdmin
+      .from("businesses").select("id").eq("owner_user_id", userId).maybeSingle();
+    if (biz?.id) {
+      await supabaseAdmin.from("businesses")
+        .update({ tier, updated_at: new Date().toISOString() }).eq("id", biz.id);
+    }
+    await supabaseAdmin.from("business_profiles")
+      .update({ plan: tier, updated_at: new Date().toISOString() }).eq("user_id", userId);
+  } catch (e: any) {
+    console.warn("[Checkout] syncBusinessTier failed:", e.message);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -160,6 +185,10 @@ export async function POST(req: NextRequest) {
     }
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionConfig);
+
+    // Sync businesses.tier immediately — don't wait for Stripe webhook
+    // This ensures the user sees the correct dashboard right after payment
+    await syncBusinessTier(userId, plan, true);
 
     return NextResponse.json({ url: checkoutSession.url });
 

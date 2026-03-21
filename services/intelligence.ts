@@ -62,9 +62,9 @@ export async function generateIntelligence(params: {
     p_municipality: params.municipality || null,
     p_structure: params.structure || "sole_proprietor",
     p_is_incorporated: params.isIncorporated || false,
-    p_employee_count: params.employeeCount || 0,
-    p_annual_revenue: params.annualRevenue || 0,
-    p_monthly_revenue: params.monthlyRevenue || 0,
+    p_employee_count: params.employeeCount ?? 0,
+    p_annual_revenue: params.annualRevenue ?? 0,
+    p_monthly_revenue: params.monthlyRevenue ?? 0,
     p_industry: params.industry || "general",
     p_fiscal_year_end_month: params.fiscalYearEndMonth || 12,
     p_language: params.language || "fr",
@@ -136,8 +136,8 @@ export async function getGovernmentPrograms(params: {
   const { data, error } = await supabaseAdmin.rpc("get_qc_government_programs", {
     p_industry: params.industry || null,
     p_structure: params.structure || null,
-    p_employee_count: params.employeeCount || 0,
-    p_annual_revenue: params.annualRevenue || 0,
+    p_employee_count: params.employeeCount ?? 0,
+    p_annual_revenue: params.annualRevenue ?? 0,
     p_is_incorporated: params.isIncorporated || false,
   });
 
@@ -167,8 +167,8 @@ export async function getSmartPartners(params: {
     p_province: params.province || null,
     p_industry: params.industry || null,
     p_structure: params.structure || null,
-    p_employee_count: params.employeeCount || 0,
-    p_annual_revenue: params.annualRevenue || 0,
+    p_employee_count: params.employeeCount ?? 0,
+    p_annual_revenue: params.annualRevenue ?? 0,
     p_language: params.language || "en",
     p_include_government: params.includeGovernment ?? true,
     p_limit: params.limit || 10,
@@ -193,8 +193,8 @@ export async function getLeakDetectors(params: {
   const { data, error } = await supabaseAdmin.rpc("get_qc_leak_detectors", {
     p_industry: params.industry || null,
     p_structure: params.structure || null,
-    p_employee_count: params.employeeCount || 0,
-    p_annual_revenue: params.annualRevenue || 0,
+    p_employee_count: params.employeeCount ?? 0,
+    p_annual_revenue: params.annualRevenue ?? 0,
   });
 
   if (error) {

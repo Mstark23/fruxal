@@ -29,6 +29,7 @@ export default function EngagementDetailPage() {
   const router  = useRouter();
   const params  = useParams();
   const id      = params?.id as string;
+  const [error, setError] = useState<string | null>(null);
   const [eng, setEng]             = useState<Engagement|null>(null);
   const [loading, setLoading]     = useState(true);
   const [cyclingDoc, setCyclingDoc] = useState<string|null>(null);
@@ -83,15 +84,17 @@ export default function EngagementDetailPage() {
     docGroups[cat].push(d);
   });
 
-  const totalDocs = eng.documents?.length || 0;
-  const receivedDocs = eng.documents?.filter(d => d.status==="received"||d.status==="reviewed").length || 0;
+  const totalDocs = eng.documents?.length ?? 0;
+  const receivedDocs = eng.documents?.filter(d => d.status==="received"||d.status==="reviewed").length ?? 0;
   const topLeaks = eng.diagnostic?.result?.topLeaks || [];
-  const savings = eng.confirmedSavings || 0;
+  const savings = eng.confirmedSavings ?? 0;
   const feeOwed = savings * (eng.feePercentage/100);
-  const estMid  = eng.diagnostic?.result ? ((eng.diagnostic.result.estimatedLow||0)+(eng.diagnostic.result.estimatedHigh||0))/2 : 0;
+  const estMid  = eng.diagnostic?.result ? ((eng.diagnostic.result.estimatedLow ?? 0)+(eng.diagnostic.result.estimatedHigh ?? 0))/2 : 0;
   const pctOfMid = estMid > 0 ? Math.round((savings/estMid)*100) : null;
 
   return (
+    <>
+    {error && <div className="text-red-400 p-4">{error}</div>}
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <button onClick={() => router.push("/admin/tier3/engagements")}
@@ -164,7 +167,7 @@ export default function EngagementDetailPage() {
                       <label className="text-[9px] font-bold text-[#B5B3AD] uppercase tracking-wider block mb-1">Leak</label>
                       <select onChange={e => {
                         const lk = topLeaks.find((l:any) => l.id===e.target.value);
-                        if (lk) setAddForm(f=>({...f,leakId:lk.id,leakName:lk.name,category:lk.category,estimatedLow:lk.estimatedLow||0,estimatedHigh:lk.estimatedHigh||0}));
+                        if (lk) setAddForm(f=>({...f,leakId:lk.id,leakName:lk.name,category:lk.category,estimatedLow:lk.estimatedLow ?? 0,estimatedHigh:lk.estimatedHigh ?? 0}));
                       }} className="w-full px-3 py-2 bg-white border border-[#E8E6E1] rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1B3A2D]">
                         <option value="">Select a leak…</option>
                         {topLeaks.map((l:any) => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -272,5 +275,6 @@ export default function EngagementDetailPage() {
         </div>
       </div>
     </div>
+  </>
   );
 }

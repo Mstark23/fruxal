@@ -311,12 +311,12 @@ export async function POST(req: NextRequest) {
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
       });
-      promptTokens = response.usage?.input_tokens || 0;
-      completionTokens = response.usage?.output_tokens || 0;
+      promptTokens = response.usage?.input_tokens ?? 0;
+      completionTokens = response.usage?.output_tokens ?? 0;
       const textBlock = response.content.find((b: any) => b.type === "text");
       const rawText = (textBlock as any)?.text || "";
       const jsonStr = rawText.replace(/```json\n?|```\n?/g, "").trim();
-      aiResult = JSON.parse(jsonStr);
+      try { aiResult = JSON.parse(jsonStr); } catch { throw new Error('AI returned invalid JSON'); }
     } catch (aiErr: any) {
       await supabaseAdmin.from("diagnostic_reports")
         .update({ status: "failed", updated_at: new Date().toISOString() })
@@ -354,9 +354,9 @@ export async function POST(req: NextRequest) {
       companyName: fmpData.name,
       ticker: fmpData.symbol,
       duration_ms: duration,
-      findings_count: aiResult?.findings?.length || 0,
+      findings_count: aiResult?.findings?.length ?? 0,
       critical_findings: (aiResult?.findings || []).filter((f: any) => f.severity === "critical").length,
-      total_potential_savings: aiResult?.totals?.potential_savings || 0,
+      total_potential_savings: aiResult?.totals?.potential_savings ?? 0,
       data_source: "public_filings",
     });
 

@@ -52,7 +52,7 @@ export async function GET() {
           };
         }
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Path B: business_profiles (V2 schema — register always creates this)
     if (!business) {
@@ -78,7 +78,7 @@ export async function GET() {
             role: "owner",
           };
         }
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     // Path C: prescan_runs (last resort — find any prescan linked to this user)
@@ -107,7 +107,7 @@ export async function GET() {
             role: "owner",
           };
         }
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     return NextResponse.json({

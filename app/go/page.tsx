@@ -34,12 +34,12 @@ export default function GoPage() {
       const s = sessionStorage.getItem("lg_go_result");
       if (s) { setResult(JSON.parse(s)); setStarted(true); }
       const m = sessionStorage.getItem("lg_go_msgs");
-      if (m) setMessages(JSON.parse(m));
+      try { if (m) setMessages(JSON.parse(m)); } catch { /* non-fatal */ }
       const sid = sessionStorage.getItem("lg_go_sid");
       if (sid) setSessionId(sid);
       const h = sessionStorage.getItem("lg_go_hist");
-      if (h) setRawHistory(JSON.parse(h));
-    } catch {}
+      try { if (h) setRawHistory(JSON.parse(h)); } catch { /* non-fatal */ }
+    } catch { /* non-fatal */ }
   }, []);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function GoPage() {
         sessionStorage.setItem("lg_go_msgs", JSON.stringify(messages));
         if (sessionId) sessionStorage.setItem("lg_go_sid", sessionId);
         if (rawHistory.length > 0) sessionStorage.setItem("lg_go_hist", JSON.stringify(rawHistory));
-      } catch {}
+      } catch { /* non-fatal */ }
     }
   }, [messages, loading, sessionId, rawHistory]);
 
@@ -95,7 +95,7 @@ export default function GoPage() {
           setPreparing(false);
           const r = {analysis:d.analysis!,prescanRunId:d.prescanRunId!};
           setResult(r);
-          try { sessionStorage.setItem("lg_go_result", JSON.stringify(r)); } catch {}
+          try { sessionStorage.setItem("lg_go_result", JSON.stringify(r)); } catch { /* non-fatal */ }
         }, 1800);
       } else {
         setMessages(p => [...p, {id:`a${Date.now()}`,role:"assistant",content:d.message}]);
@@ -301,7 +301,7 @@ export default function GoPage() {
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:1,background:"#EEECE8",borderRadius:10,overflow:"hidden",marginBottom:20}}>
               {[
                 {label:t("Health Score","Score santé"), val:`${result.analysis.fhScore}/100`, color:"#1A1A18"},
-                {label:t("Est. Annual Leak","Fuite annuelle est."), val:`$${result.analysis.totalLeak.toLocaleString()}`, color:"#B34040"},
+                {label:t("Est. Annual Leak","Fuite annuelle est."), val:`$${(result.analysis.totalLeak ?? 0).toLocaleString()}`, color:"#B34040"},
                 {label:t("Leaks Found","Fuites trouvées"), val:String(result.analysis.leaks.length), color:"#1A1A18"},
               ].map(s => (
                 <div key={s.label} style={{background:"white",padding:"16px 14px",textAlign:"center"}}>
@@ -319,7 +319,7 @@ export default function GoPage() {
                     <p className="sans" style={{fontSize:13,fontWeight:600,color:"#1A1A18",marginBottom:3}}>{isFR?leak.title_fr:leak.title}</p>
                     <p className="sans" style={{fontSize:11,color:"#8E8C85",lineHeight:1.5}}>{isFR?leak.action_fr:leak.action}</p>
                   </div>
-                  <p className="serif" style={{fontSize:16,fontWeight:700,color:"#B34040",whiteSpace:"nowrap"}}>${leak.amount.toLocaleString()}<span className="sans" style={{fontSize:10,color:"#B5B3AD",fontWeight:400}}>{t("/yr","/an")}</span></p>
+                  <p className="serif" style={{fontSize:16,fontWeight:700,color:"#B34040",whiteSpace:"nowrap"}}>${(leak.amount ?? 0).toLocaleString()}<span className="sans" style={{fontSize:10,color:"#B5B3AD",fontWeight:400}}>{t("/yr","/an")}</span></p>
                 </div>
               ))}
               {result.analysis.leaks.length > 3 && (

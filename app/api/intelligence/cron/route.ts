@@ -31,26 +31,26 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    console.log("🧠 Weekly Intelligence Cycle starting...");
+    process.env.NODE_ENV !== "production" && console.log("🧠 Weekly Intelligence Cycle starting...");
     const startTime = Date.now();
 
     // Step 1: Recalculate benchmarks from real user data
-    console.log("   📊 Step 1: Market Learning — updating benchmarks from real data...");
+    process.env.NODE_ENV !== "production" && console.log("   📊 Step 1: Market Learning — updating benchmarks from real data...");
     const benchResult = await recalculateBenchmarks();
-    console.log(`   → Updated ${benchResult.updated} benchmarks across ${benchResult.industries.length} industries`);
+    process.env.NODE_ENV !== "production" && console.log(`   → Updated ${benchResult.updated} benchmarks across ${benchResult.industries.length} industries`);
 
     // Step 2: Run batch analysis across all businesses
-    console.log("   🔍 Step 2: Pattern Discovery — analyzing cross-business data...");
+    process.env.NODE_ENV !== "production" && console.log("   🔍 Step 2: Pattern Discovery — analyzing cross-business data...");
     const patterns = await tier2_WeeklyBatchAnalysis();
-    console.log(`   → Discovered ${patterns.length} new patterns`);
+    process.env.NODE_ENV !== "production" && console.log(`   → Discovered ${patterns.length} new patterns`);
 
     // Step 3: Auto-validate high-confidence patterns
-    console.log("   ✅ Step 3: Auto-validation — absorbing proven patterns into Tier 1...");
+    process.env.NODE_ENV !== "production" && console.log("   ✅ Step 3: Auto-validation — absorbing proven patterns into Tier 1...");
     const absorbed = await autoValidatePatterns();
-    console.log(`   → Absorbed ${absorbed} patterns (now run as free code)`);
+    process.env.NODE_ENV !== "production" && console.log(`   → Absorbed ${absorbed} patterns (now run as free code)`);
 
     const duration = Math.round((Date.now() - startTime) / 1000);
-    console.log(`🧠 Intelligence cycle complete in ${duration}s`);
+    process.env.NODE_ENV !== "production" && console.log(`🧠 Intelligence cycle complete in ${duration}s`);
 
     return NextResponse.json({
       success: true,

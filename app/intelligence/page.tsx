@@ -94,7 +94,7 @@ export default function IntelligencePage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20 text-gray-400">Loading enterprise analytics...</div>
+          <div key={t.id ?? t.slug ?? i} className="text-center py-20 text-gray-400">Loading enterprise analytics...</div>
         ) : (
           <>
             {/* ═══════════════════════════════════════════════════════════════ */}
@@ -106,20 +106,20 @@ export default function IntelligencePage() {
                 <div className="grid grid-cols-4 gap-4">
                   <div className="bg-white rounded-xl border border-gray-200 p-5 text-center">
                     <div className="text-xs font-bold text-gray-500 uppercase mb-1">Gross Revenue</div>
-                    <div className="text-2xl font-black text-gray-900">${waterfall.grossRevenue.toLocaleString()}</div>
+                    <div className="text-2xl font-black text-gray-900">${(waterfall.grossRevenue ?? 0).toLocaleString()}</div>
                   </div>
                   <div className="bg-white rounded-xl border border-gray-200 p-5 text-center">
                     <div className="text-xs font-bold text-gray-500 uppercase mb-1">Net Collected</div>
-                    <div className="text-2xl font-black text-blue-600">${waterfall.netCollected.toLocaleString()}</div>
+                    <div className="text-2xl font-black text-blue-600">${(waterfall.netCollected ?? 0).toLocaleString()}</div>
                   </div>
                   <div className="bg-white rounded-xl border border-red-200 p-5 text-center">
                     <div className="text-xs font-bold text-gray-500 uppercase mb-1">Total Leakage</div>
-                    <div className="text-2xl font-black text-red-600">${waterfall.totalLeakage.toLocaleString()}</div>
+                    <div className="text-2xl font-black text-red-600">${(waterfall.totalLeakage ?? 0).toLocaleString()}</div>
                     <div className="text-xs text-red-400">{waterfall.leakagePercent}% of gross</div>
                   </div>
                   <div className="bg-white rounded-xl border border-green-200 p-5 text-center">
                     <div className="text-xs font-bold text-gray-500 uppercase mb-1">Secure Revenue</div>
-                    <div className="text-2xl font-black text-green-600">${waterfall.secureRevenue.toLocaleString()}</div>
+                    <div className="text-2xl font-black text-green-600">${(waterfall.secureRevenue ?? 0).toLocaleString()}</div>
                     <div className="text-xs text-green-500">Pocket margin: {waterfall.pocketMargin}%</div>
                   </div>
                 </div>
@@ -137,11 +137,11 @@ export default function IntelligencePage() {
 
                       return (
                         <div key={i} className={`flex items-center gap-4 ${isSubtotal ? "pt-2 border-t border-gray-200" : ""}`}>
-                          <div className="w-48 text-right shrink-0">
-                            <div className={`text-sm font-bold ${isLoss ? "text-gray-600" : "text-gray-900"}`}>{step.label}</div>
+                          <div key={i} className="w-48 text-right shrink-0">
+                            <div key={i} className={`text-sm font-bold ${isLoss ? "text-gray-600" : "text-gray-900"}`}>{step.label}</div>
                           </div>
-                          <div className="flex-1 relative">
-                            <div className={`h-10 rounded-lg flex items-center transition-all ${isLoss ? "justify-end" : ""}`}
+                          <div key={i} className="flex-1 relative">
+                            <div key={i} className={`h-10 rounded-lg flex items-center transition-all ${isLoss ? "justify-end" : ""}`}
                               style={{
                                 width: `${Math.max(barWidth, 2)}%`,
                                 backgroundColor: step.color + (isLoss ? "30" : ""),
@@ -153,7 +153,7 @@ export default function IntelligencePage() {
                               </span>
                             </div>
                           </div>
-                          <div className="w-16 text-right shrink-0">
+                          <div key={i} className="w-16 text-right shrink-0">
                             <span className={`text-xs font-bold ${isLoss ? "text-red-500" : "text-gray-400"}`}>
                               {isLoss ? `−${step.percentage}%` : `${step.percentage}%`}
                             </span>
@@ -167,12 +167,12 @@ export default function IntelligencePage() {
                   <div className="mt-6 grid grid-cols-2 gap-3">
                     {waterfall.steps.filter((s) => s.type === "loss" && s.value !== 0).map((step, i) => (
                       <div key={i} className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: step.color }} />
-                          <span className="text-xs font-bold text-gray-700">{step.label}</span>
+                        <div key={i} className="flex items-center gap-2 mb-1">
+                          <div key={i} className="w-3 h-3 rounded-full" style={{ backgroundColor: step.color }} />
+                          <span key={i} className="text-xs font-bold text-gray-700">{step.label}</span>
                           <span className="text-xs font-extrabold text-red-600 ml-auto">−${Math.abs(step.value).toLocaleString()}</span>
                         </div>
-                        <div className="text-xs text-gray-500">{step.detail}</div>
+                        <div key={i} className="text-xs text-gray-500">{step.detail}</div>
                       </div>
                     ))}
                   </div>
@@ -194,10 +194,10 @@ export default function IntelligencePage() {
                     { key: "atRisk", label: "At Risk", icon: "💀", count: matrix.quadrantCounts.atRisk, rev: matrix.quadrantRevenue.atRisk, color: "red" },
                   ].map((q) => (
                     <div key={q.key} className={`bg-white rounded-xl border border-${q.color}-200 p-5 text-center`}>
-                      <div className="text-2xl mb-1">{q.icon}</div>
-                      <div className="text-2xl font-black text-gray-900">{q.count}</div>
-                      <div className="text-xs font-bold text-gray-500">{q.label}</div>
-                      <div className="text-sm font-bold text-gray-400 mt-1">${q.rev.toLocaleString()}</div>
+                      <div key={idx} className="text-2xl mb-1">{q.icon}</div>
+                      <div key={idx} className="text-2xl font-black text-gray-900">{q.count}</div>
+                      <div key={idx} className="text-xs font-bold text-gray-500">{q.label}</div>
+                      <div key={idx} className="text-sm font-bold text-gray-400 mt-1">${(q.rev ?? 0).toLocaleString()}</div>
                     </div>
                   ))}
                 </div>
@@ -246,7 +246,7 @@ export default function IntelligencePage() {
                           onClick={() => setSelectedClient(selectedClient === c.clientId ? null : c.clientId)}
                           className={`absolute rounded-full border-2 ${qs.border} ${qs.bg} flex items-center justify-center text-xs font-bold ${qs.text} hover:scale-125 hover:z-20 transition-all shadow-sm ${selectedClient === c.clientId ? "ring-2 ring-navy scale-125 z-20" : ""}`}
                           style={{ left: x + "%", top: y + "%", width: size + "px", height: size + "px", transform: "translate(-50%, -50%)" }}
-                          title={`${c.clientName}: $${c.revenue.toLocaleString()} | Health: ${c.healthScore}`}
+                          title={`${c.clientName}: $${(c.revenue ?? 0).toLocaleString()} | Health: ${c.healthScore}`}
                         >
                           {c.clientName.slice(0, 2)}
                         </button>
@@ -269,7 +269,7 @@ export default function IntelligencePage() {
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-bold text-gray-400">Revenue</div>
-                          <div className="text-xl font-black text-gray-900">${c.revenue.toLocaleString()}</div>
+                          <div className="text-xl font-black text-gray-900">${(c.revenue ?? 0).toLocaleString()}</div>
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-4 mb-4">
@@ -304,7 +304,7 @@ export default function IntelligencePage() {
                         <div className="grid grid-cols-2 gap-2">
                           {c.actions.map((a, i) => (
                             <div key={i} className="flex items-start gap-2 text-xs text-gray-600 bg-white rounded-lg p-2 border border-gray-200">
-                              <span className="text-green-500 font-bold shrink-0">#{i + 1}</span> {a}
+                              <span key={i} className="text-green-500 font-bold shrink-0">#{i + 1}</span> {a}
                             </div>
                           ))}
                         </div>
@@ -331,20 +331,20 @@ export default function IntelligencePage() {
                         const qs = QUADRANT_STYLES[c.quadrant];
                         return (
                           <tr key={c.clientId} className="hover:bg-gray-50 cursor-pointer transition" onClick={() => setSelectedClient(c.clientId)}>
-                            <td className="px-4 py-3 font-bold text-gray-900">{c.clientName}</td>
-                            <td className="px-4 py-3 text-center">
-                              <span className={`text-xs font-bold px-2 py-1 rounded-full border ${qs.border} ${qs.text} ${qs.bg}`}>
+                            <td key={idx} className="px-4 py-3 font-bold text-gray-900">{c.clientName}</td>
+                            <td key={idx} className="px-4 py-3 text-center">
+                              <span key={c.id ?? c.slug ?? i} className={`text-xs font-bold px-2 py-1 rounded-full border ${qs.border} ${qs.text} ${qs.bg}`}>
                                 {qs.icon} {qs.label}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-right font-bold text-gray-900">${c.revenue.toLocaleString()}</td>
-                            <td className="px-4 py-3 text-center">
+                            <td key={idx} className="px-4 py-3 text-right font-bold text-gray-900">${(c.revenue ?? 0).toLocaleString()}</td>
+                            <td key={idx} className="px-4 py-3 text-center">
                               <span className={`font-extrabold ${c.healthScore >= 70 ? "text-green-600" : c.healthScore >= 50 ? "text-yellow-600" : "text-red-600"}`}>{c.healthScore}</span>
                             </td>
-                            <td className="px-4 py-3 text-center">
+                            <td key={idx} className="px-4 py-3 text-center">
                               <span className={`font-bold ${c.growthRate >= 0 ? "text-green-600" : "text-red-600"}`}>{c.growthRate >= 0 ? "+" : ""}{c.growthRate}%</span>
                             </td>
-                            <td className="px-4 py-3 text-xs text-gray-500 max-w-xs truncate">{c.strategy}</td>
+                            <td key={idx} className="px-4 py-3 text-xs text-gray-500 max-w-xs truncate">{c.strategy}</td>
                           </tr>
                         );
                       })}
@@ -376,7 +376,7 @@ export default function IntelligencePage() {
                             {Array.from({ length: Math.max(...cohorts.map((c) => c.months.length), 1) }, (_, i) => (
                               <th key={i} className="text-center text-xs font-bold text-gray-500 uppercase px-3 py-2">M{i + 1}</th>
                             ))}
-                            <th className="text-right text-xs font-bold text-gray-500 uppercase px-3 py-2">Total</th>
+                            <th key={c.id ?? c.slug ?? i} className="text-right text-xs font-bold text-gray-500 uppercase px-3 py-2">Total</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -384,8 +384,8 @@ export default function IntelligencePage() {
                             const maxMonthRev = Math.max(...cohort.months.map((m) => m.revenue), 1);
                             return (
                               <tr key={cohort.cohortLabel}>
-                                <td className="px-3 py-3 font-bold text-gray-900 sticky left-0 bg-white whitespace-nowrap">{cohort.cohortLabel}</td>
-                                <td className="px-3 py-3 text-center text-gray-600">{cohort.clientCount}</td>
+                                <td key={cohort.id ?? cohort.slug ?? i} className="px-3 py-3 font-bold text-gray-900 sticky left-0 bg-white whitespace-nowrap">{cohort.cohortLabel}</td>
+                                <td key={m.id ?? m.slug ?? i} className="px-3 py-3 text-center text-gray-600">{cohort.clientCount}</td>
                                 <td className="px-3 py-3 text-center">
                                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                                     cohort.trend === "GROWING" ? "bg-green-100 text-green-700" : cohort.trend === "DECLINING" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"
@@ -398,7 +398,7 @@ export default function IntelligencePage() {
                                   const b = Math.round(200 - intensity * 100);
                                   return (
                                     <td key={m.month} className="px-3 py-3 text-center" title={`${m.retainedClients} clients (${m.retentionPct}% retention)`}>
-                                      <div className="rounded px-2 py-1 text-xs font-bold" style={{
+                                      <div key={idx} className="rounded px-2 py-1 text-xs font-bold" style={{
                                         backgroundColor: `rgba(${15 + Math.round(intensity * 20)}, ${43 + Math.round(intensity * 50)}, ${70 + Math.round(intensity * 100)}, ${0.1 + intensity * 0.3})`,
                                         color: intensity > 0.5 ? "#0F2B46" : "#9CA3AF",
                                       }}>
@@ -411,7 +411,7 @@ export default function IntelligencePage() {
                                 {Array.from({ length: Math.max(...cohorts.map((c) => c.months.length)) - cohort.months.length }, (_, i) => (
                                   <td key={`pad-${i}`} className="px-3 py-3 text-center text-xs text-gray-300">—</td>
                                 ))}
-                                <td className="px-3 py-3 text-right font-extrabold text-gray-900">${cohort.totalRevenue.toLocaleString()}</td>
+                                <td key={c.id ?? c.slug ?? i} className="px-3 py-3 text-right font-extrabold text-gray-900">${(cohort.totalRevenue ?? 0).toLocaleString()}</td>
                               </tr>
                             );
                           })}
@@ -448,11 +448,11 @@ export default function IntelligencePage() {
                 <div className="grid grid-cols-4 gap-4">
                   <div className="bg-white rounded-xl border border-gray-200 p-5 text-center">
                     <div className="text-xs font-bold text-gray-500 uppercase mb-1">Expected Revenue</div>
-                    <div className="text-xl font-black text-gray-900">${variance.totalExpected.toLocaleString()}</div>
+                    <div className="text-xl font-black text-gray-900">${(variance.totalExpected ?? 0).toLocaleString()}</div>
                   </div>
                   <div className="bg-white rounded-xl border border-gray-200 p-5 text-center">
                     <div className="text-xs font-bold text-gray-500 uppercase mb-1">Actual Revenue</div>
-                    <div className="text-xl font-black text-blue-600">${variance.totalActual.toLocaleString()}</div>
+                    <div className="text-xl font-black text-blue-600">${(variance.totalActual ?? 0).toLocaleString()}</div>
                   </div>
                   <div className={`bg-white rounded-xl border p-5 text-center ${variance.totalVariance >= 0 ? "border-green-200" : "border-red-200"}`}>
                     <div className="text-xs font-bold text-gray-500 uppercase mb-1">Total Variance</div>
@@ -505,22 +505,22 @@ export default function IntelligencePage() {
                     <tbody className="divide-y divide-gray-100">
                       {variance.items.map((item) => (
                         <tr key={item.clientId} className="hover:bg-gray-50 transition group">
-                          <td className="px-4 py-3">
-                            <div className="font-bold text-gray-900">{item.clientName}</div>
-                            <div className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition">{item.explanation}</div>
+                          <td key={idx} className="px-4 py-3">
+                            <div key={idx} className="font-bold text-gray-900">{item.clientName}</div>
+                            <div key={idx} className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition">{item.explanation}</div>
                           </td>
-                          <td className="px-4 py-3 text-right text-gray-500">${item.expectedRevenue.toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right font-bold text-gray-900">${item.actualRevenue.toLocaleString()}</td>
-                          <td className={`px-4 py-3 text-right font-extrabold ${item.totalVariance >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          <td key={idx} className="px-4 py-3 text-right text-gray-500">${(item.expectedRevenue ?? 0).toLocaleString()}</td>
+                          <td key={idx} className="px-4 py-3 text-right font-bold text-gray-900">${(item.actualRevenue ?? 0).toLocaleString()}</td>
+                          <td key={idx} className={`px-4 py-3 text-right font-extrabold ${item.totalVariance >= 0 ? "text-green-600" : "text-red-600"}`}>
                             {item.totalVariance >= 0 ? "+" : ""}${item.totalVariance.toLocaleString()}
                           </td>
-                          <td className={`px-4 py-3 text-right text-xs font-bold ${item.priceVariance >= 0 ? "text-green-500" : "text-red-500"}`}>
+                          <td key={idx} className={`px-4 py-3 text-right text-xs font-bold ${item.priceVariance >= 0 ? "text-green-500" : "text-red-500"}`}>
                             {item.priceVariance >= 0 ? "+" : ""}${item.priceVariance.toLocaleString()}
                           </td>
-                          <td className={`px-4 py-3 text-right text-xs font-bold ${item.volumeVariance >= 0 ? "text-green-500" : "text-red-500"}`}>
+                          <td key={idx} className={`px-4 py-3 text-right text-xs font-bold ${item.volumeVariance >= 0 ? "text-green-500" : "text-red-500"}`}>
                             {item.volumeVariance >= 0 ? "+" : ""}${item.volumeVariance.toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 text-center">
+                          <td key={idx} className="px-4 py-3 text-center">
                             <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
                               item.status === "FAVORABLE" ? "bg-green-100 text-green-700" : item.status === "UNFAVORABLE" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"
                             }`}>{item.status === "FAVORABLE" ? "✓" : item.status === "UNFAVORABLE" ? "✗" : "—"} {item.variancePercent}%</span>

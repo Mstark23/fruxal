@@ -37,7 +37,7 @@ export async function exchangeStripeCode(code: string): Promise<{
   livemode: boolean;
   scope: string;
 }> {
-  const res = await fetch("https://connect.stripe.com/oauth/token", {
+  const res = await fetch("https://connect.stripe.com/oauth/token", {.catch(() => { throw new Error("Network request failed"); });
     method:  "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -67,7 +67,7 @@ async function stripeGet(path: string, accessToken: string, params: Record<strin
   const qs  = new URLSearchParams({ limit: "100", ...params }).toString();
   const url = `https://api.stripe.com/v1/${path}${qs ? "?" + qs : ""}`;
 
-  const res = await fetch(url, {
+  const res = await fetch(url, {.catch(() => { throw new Error("Network request failed"); });
     headers: {
       Authorization:        `Bearer ${accessToken}`,
       "Stripe-Version":     "2024-06-20",
@@ -143,9 +143,9 @@ export async function syncStripeFinancials(businessId: string): Promise<void> {
     const refunded  = charges.filter((c: any) => c.refunded || c.amount_refunded > 0);
     const disputes  = charges.filter((c: any) => c.disputed);
 
-    const grossTTM   = succeeded.reduce((s: number, c: any) => s + (c.amount || 0), 0) / 100;
-    const refundsTTM = succeeded.reduce((s: number, c: any) => s + (c.amount_refunded || 0), 0) / 100;
-    const feesTTM    = succeeded.reduce((s: number, c: any) => s + (c.application_fee_amount || 0) + (c.balance_transaction?.fee || 0), 0) / 100;
+    const grossTTM   = succeeded.reduce((s: number, c: any) => s + (c.amount ?? 0), 0) / 100;
+    const refundsTTM = succeeded.reduce((s: number, c: any) => s + (c.amount_refunded ?? 0), 0) / 100;
+    const feesTTM    = succeeded.reduce((s: number, c: any) => s + (c.application_fee_amount ?? 0) + (c.balance_transaction?.fee ?? 0), 0) / 100;
 
     results.revenue_ttm      = grossTTM;
     results.net_revenue_ttm  = grossTTM - refundsTTM;
@@ -190,7 +190,7 @@ export async function syncStripeFinancials(businessId: string): Promise<void> {
     let mrr = 0;
     for (const sub of activeSubs) {
       for (const item of sub.items?.data || []) {
-        const amount   = (item.price?.unit_amount || 0) / 100 * (item.quantity || 1);
+        const amount   = (item.price?.unit_amount ?? 0) / 100 * (item.quantity || 1);
         const interval = item.price?.recurring?.interval;
         if (interval === "month")  mrr += amount;
         if (interval === "year")   mrr += amount / 12;
@@ -258,14 +258,14 @@ export async function syncStripeFinancials(businessId: string): Promise<void> {
     last_sync_at: new Date().toISOString(),
     last_error:   null,
     sync_summary: {
-      mrr:              results.mrr           || 0,
-      arr:              results.arr           || 0,
-      revenue_ttm:      results.revenue_ttm   || 0,
-      refund_rate_pct:  results.refund_rate_pct || 0,
-      churn_rate:       results.churn_rate    || 0,
-      active_subs:      results.active_subs   || 0,
-      customer_count:   results.customer_count || 0,
-      stripe_fees_ttm:  results.stripe_fees_ttm || 0,
+      mrr:              results.mrr           ?? 0,
+      arr:              results.arr           ?? 0,
+      revenue_ttm:      results.revenue_ttm ?? 0,
+      refund_rate_pct:  results.refund_rate_pct ?? 0,
+      churn_rate:       results.churn_rate ?? 0,
+      active_subs:      results.active_subs ?? 0,
+      customer_count:   results.customer_count ?? 0,
+      stripe_fees_ttm:  results.stripe_fees_ttm ?? 0,
       synced_at:        new Date().toISOString(),
     },
   }).eq("id", conn.id);

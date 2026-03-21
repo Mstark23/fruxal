@@ -176,7 +176,7 @@ export default function SettingsPage() {
   const [indSearch, setIndSearch] = useState("");
 
   useEffect(() => {
-    fetch("/api/me").then(r => r.json()).then(d => {
+    fetch("/api/me").then(r => r.json()).catch(() => ({})).then(d => {
       setCtx(d);
       setForm({
         name: d.user?.name || "",
@@ -197,7 +197,7 @@ export default function SettingsPage() {
         body: JSON.stringify({ ...form, notifPrefs, userId: ctx?.user?.id, businessId: ctx?.business?.id }),
       });
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      const _to = setTimeout(() => setSaved(false), 2000);
     } catch (e) { console.error(e); }
     setSaving(false);
   };

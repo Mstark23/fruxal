@@ -40,7 +40,7 @@ export default function CheckoutPage() {
             const p = JSON.parse(raw);
             scanId = p.prescanRunId || "";
           }
-        } catch {}
+        } catch { /* non-fatal */ }
 
         const res = await fetch("/api/v2/checkout", {
           method: "POST",
@@ -51,7 +51,7 @@ export default function CheckoutPage() {
         const json = await res.json();
 
         if (json.url) {
-          window.location.href = json.url;
+          typeof window !== "undefined" && window.location.href = json.url;
         } else {
           setError(json.error || "Could not create checkout session");
           setLoading(false);

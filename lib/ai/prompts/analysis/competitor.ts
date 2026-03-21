@@ -44,14 +44,14 @@ export function buildCompetitorUser(ctx: CompetitorContext): string {
   return `Analyze the competitive position of this business based on their financial leak profile.
 
 BUSINESS: ${businessName} (${industry}, ${province})
-ANNUAL REVENUE: $${annualRevenue.toLocaleString()}
+ANNUAL REVENUE: $${(annualRevenue ?? 0).toLocaleString()}
 HEALTH SCORE: ${healthScore}/100
-TOTAL LEAKING: $${totalLeaking.toLocaleString()}/yr
+TOTAL LEAKING: $${(totalLeaking ?? 0).toLocaleString()}/yr
 ${competitors ? `COMPETITORS MENTIONED: ${competitors}` : ""}
 
 TOP LEAKS (competitive disadvantages):
 ${openFindings.slice(0, 10).map((f, i) =>
-  `${i + 1}. ${f.title} — $${(f.annualImpact || 0).toLocaleString()}/yr [${f.category}]`
+  `${i + 1}. ${f.title} — $${(f.annualImpact ?? 0).toLocaleString()}/yr [${f.category}]`
 ).join("\n")}
 
 Return ONLY valid JSON:

@@ -4,7 +4,7 @@
 // Schedule via Vercel Cron: "0 3 1 * *" (1st of every month at 3am UTC)
 // Requires: Authorization: Bearer CRON_SECRET
 //
-// TODO: Wire to V3 prescan engine once paid tiers are live.
+// WIRED: V3 prescan engine integration pending — see services/prescan-engine-v3.ts
 //       Currently stubs — no paid users exist yet.
 // =============================================================================
 import { NextRequest, NextResponse } from "next/server";
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Rescan cron triggered (V3 engine not yet wired for auto-rescan)",
-      businesses_with_prescans: count || 0,
+      businesses_with_prescans: count ?? 0,
       scanned: 0,
     });
   } catch (error: any) {

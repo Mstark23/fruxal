@@ -70,14 +70,14 @@ export default function BusinessDashboard() {
   const isFR = lang === "fr";
 
   useEffect(() => {
-    try { const s = sessionStorage.getItem("lg_prescan_lang"); if (s === "en" || s === "fr") setLang(s); } catch {}
+    try { const s = sessionStorage.getItem("lg_prescan_lang"); if (s === "en" || s === "fr") setLang(s); } catch { /* non-fatal */ }
 
     const params = new URLSearchParams(window.location.search);
     const rid = params.get("prescanRunId");
     const isPreview = params.get("preview") === "1";
     const v2Url = rid ? `/api/v2/dashboard?prescanRunId=${rid}` : "/api/v2/dashboard";
 
-    const v2P = fetch(v2Url).then(r => r.json()).then(json => {
+    const v2P = fetch(v2Url).then(r => r.json()).catch(() => ({})).then(json => {
       if (!json.success || !json.data) return;
       const d = json.data;
       const detectedTier = (d.tier || "business").toLowerCase();
@@ -89,18 +89,18 @@ export default function BusinessDashboard() {
       // Paid = has an active business-level subscription
       setIsPaid(detectedTier === "business" || detectedTier === "growth" || detectedTier === "team" || detectedTier === "corp");
       setProfile(d.profile || { province: "QC", industry: "Small Business", structure: "" });
-      setObligationsTotal(d.obligations?.total || 0);
-      setOverdue(d.obligations?.overdue || 0);
-      setPenaltyExposure(d.obligations?.penalty_exposure || 0);
+      setObligationsTotal(d.obligations?.total ?? 0);
+      setOverdue(d.obligations?.overdue ?? 0);
+      setPenaltyExposure(d.obligations?.penalty_exposure ?? 0);
       setDeadlines(d.obligations?.upcoming_deadlines || []);
-      setProgramsAvailable(d.programs?.available || 0);
-      setLeaksFixed(d.leaks?.fixed || 0);
-      setTotalSavings(d.leaks?.total_savings || 0);
+      setProgramsAvailable(d.programs?.available ?? 0);
+      setLeaksFixed(d.leaks?.fixed ?? 0);
+      setTotalSavings(d.leaks?.total_savings ?? 0);
       if (d.leaks?.top_unfixed?.length > 0) {
         setScore(d.health_score || 50);
-        setTotalLeak(d.total_leak_estimate || 0);
+        setTotalLeak(d.total_leak_estimate ?? 0);
         const sev = (s: any) => { if (typeof s === "string" && ["critical","high","medium","low"].includes(s)) return s; const n = Number(s); return isNaN(n) ? "medium" : n >= 80 ? "critical" : n >= 60 ? "high" : n >= 30 ? "medium" : "low"; };
-        setLeaks(d.leaks.top_unfixed.map((l: any) => ({ slug: l.slug, title: l.title, title_fr: l.title_fr, severity: sev(l.severity), category: l.category || "Général", description: l.description || "", description_fr: l.description_fr, impact_min: l.impact_min || 0, impact_max: l.impact_max || l.impact_min || 0, confidence: l.confidence, affiliates: l.affiliates || [] })));
+        setLeaks(d.leaks.top_unfixed.map((l: any) => ({ slug: l.slug, title: l.title, title_fr: l.title_fr, severity: sev(l.severity), category: l.category || "Général", description: l.description || "", description_fr: l.description_fr, impact_min: l.impact_min ?? 0, impact_max: l.impact_max || l.impact_min ?? 0, confidence: l.confidence, affiliates: l.affiliates || [] })));
       }
     }).catch(() => {});
 
@@ -137,11 +137,11 @@ export default function BusinessDashboard() {
             setPlanSequence(r.action_plan.slice(0, 4).map((a: any, i: number) => ({
               step: a.priority || i + 1,
               action: a.title || a.action || "",
-              value: a.estimated_savings || a.value || 0,
+              value: a.estimated_savings || a.value ?? 0,
             })));
           }
         }
-      } catch {}
+      } catch { /* non-fatal */ }
     };
 
     const diagP = loadDiag();
@@ -162,7 +162,7 @@ export default function BusinessDashboard() {
             if (json.status === "analyzing" || json.data?.status === "analyzing") return;
             clearInterval(analyzePoll!);
             await loadDiag();
-          } catch {}
+          } catch { /* non-fatal */ }
         }, 4000);
       }
     });
@@ -170,7 +170,7 @@ export default function BusinessDashboard() {
     return () => { if (analyzePoll) clearInterval(analyzePoll); };
   }, [user?.id]);
 
-  const recovered = actionStats?.total_recovered || totalSavings || 0;
+  const recovered = actionStats?.total_recovered || totalSavings ?? 0;
   const recovPct = totalLeak > 0 ? Math.min(100, Math.round((recovered / totalLeak) * 100)) : 0;
   const streak = (progress as any)?.streak;
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon après-midi") : t("Good evening", "Bonsoir"); })();
@@ -304,7 +304,7 @@ export default function BusinessDashboard() {
 
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
-            <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${totalLeak.toLocaleString()}</div>
+            <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
             <div className="text-[10px] text-ink-faint mt-1.5">
               {displayLeaks.length} {t("findings", "constats")}
               {!isPaid && (diagFindings.length > 3 || leaks.length > 3) && (
@@ -319,7 +319,7 @@ export default function BusinessDashboard() {
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Recovered", "Récupéré")}</div>
             <div className="flex items-start justify-between">
               <div>
-                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${recovered.toLocaleString()}</div>
+                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
                 <div className="text-[10px] text-ink-faint mt-1.5">{leaksFixed} {t("fixed", "corrigés")}</div>
               </div>
               <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
@@ -374,7 +374,7 @@ export default function BusinessDashboard() {
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[9px] text-ink-faint">{f.category}</span>
-                          {(f.cost_of_inaction_90_days || 0) > 0 && <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(196,132,29,0.06)", color: "#C4841D" }}>⏱ 90d: ${f.cost_of_inaction_90_days.toLocaleString()}</span>}
+                          {(f.cost_of_inaction_90_days ?? 0) > 0 && <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(196,132,29,0.06)", color: "#C4841D" }}>⏱ 90d: ${f.cost_of_inaction_90_days.toLocaleString()}</span>}
                         </div>
                       </div>
                     </div>
@@ -389,7 +389,7 @@ export default function BusinessDashboard() {
                 {/* Lock gate for unpaid users */}
                 {!isPaid && diagFindings.length > 3 && (() => {
                   const locked = diagFindings.slice(3);
-                  const lockedVal = locked.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
+                  const lockedVal = locked.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min ?? 0), 0);
                   return (
                     <div className="relative">
                       {locked.slice(0, 2).map((f: any, i: number) => (
@@ -410,7 +410,7 @@ export default function BusinessDashboard() {
                           </p>
                           {lockedVal > 0 && (
                             <p className="text-[10px] text-ink-faint mb-3">
-                              {t("Additional", "Supplémentaire")} <span className="font-bold text-negative">${lockedVal.toLocaleString()}</span> {t("in recoverable savings", "en économies récupérables")}
+                              {t("Additional", "Supplémentaire")} <span className="font-bold text-negative">${(lockedVal ?? 0).toLocaleString()}</span> {t("in recoverable savings", "en économies récupérables")}
                             </p>
                           )}
                           <button onClick={() => router.push(upgradeUrl)}
@@ -425,7 +425,7 @@ export default function BusinessDashboard() {
                 })()}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
-                  <span className="font-serif text-[14px] font-bold text-negative">${totalLeak.toLocaleString()}/{t("yr", "an")}</span>
+                  <span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span>
                 </div>
               </>
             ) : (
@@ -433,7 +433,7 @@ export default function BusinessDashboard() {
               <>
                 {leaks.slice(0, isPaid ? 6 : 3).map((l, i) => (
                   <div key={i} onClick={() => isPaid && router.push("/v2/leaks")} className={`px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 transition-colors ${isPaid ? "hover:bg-surface-hover cursor-pointer group" : ""}`}>
-                    <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
+                    <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
                     <div className="flex-1 min-w-0">
                       <div className={`text-[12px] font-semibold text-ink truncate ${isPaid ? "group-hover:text-brand transition-colors" : ""}`}>{isFR ? (l.title_fr || l.title) : l.title}</div>
                       <span className="text-[9px] text-ink-faint">{l.category}</span>
@@ -454,7 +454,7 @@ export default function BusinessDashboard() {
                 )}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
-                  <span className="font-serif text-[14px] font-bold text-negative">${totalLeak.toLocaleString()}/{t("yr", "an")}</span>
+                  <span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span>
                 </div>
               </>
             )}
@@ -480,7 +480,7 @@ export default function BusinessDashboard() {
                 <div className="px-4 py-6 text-center text-[11px] text-ink-muted">{t("Actions appear after your first diagnostic.", "Les actions apparaissent après votre diagnostic.")}</div>
               ) : allActions.slice(0, 4).map((a, i) => (
                 <div key={a.id} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
-                  <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: `2px solid ${a.status === "in_progress" ? "#C4841D" : "#E8E6E1"}` }}>
+                  <div key={i} className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: `2px solid ${a.status === "in_progress" ? "#C4841D" : "#E8E6E1"}` }}>
                     {a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[9px] font-bold text-ink-faint">{i + 1}</span>}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -488,7 +488,7 @@ export default function BusinessDashboard() {
                     {a.fix_description && <div className="text-[9px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="font-serif text-[13px] font-bold text-positive">+${a.estimated_value.toLocaleString()}</div>
+                    <div className="font-serif text-[13px] font-bold text-positive">+${(a.estimated_value ?? 0).toLocaleString()}</div>
                     <span className="text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "À faire")}</span>
                   </div>
                 </div>
@@ -496,7 +496,7 @@ export default function BusinessDashboard() {
               {completedActions.length > 0 && (
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] text-ink-muted">{completedActions.length} {t("completed", "terminées")}</span>
-                  <span className="text-[10px] font-bold text-positive">+${recovered.toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-positive">+${(recovered ?? 0).toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -545,7 +545,7 @@ export default function BusinessDashboard() {
                           {isFR ? (briefing.tax_exposures_fr || briefing.tax_exposures) : briefing.tax_exposures}
                         </p>
                       ) : (
-                        <p className="font-serif text-[16px] font-bold" style={{ color: "#C4841D" }}>${(briefing.estimated_tax_exposure || 0).toLocaleString()}</p>
+                        <p className="font-serif text-[16px] font-bold" style={{ color: "#C4841D" }}>${(briefing.estimated_tax_exposure ?? 0).toLocaleString()}</p>
                       )}
                     </div>
                   )}
@@ -610,7 +610,7 @@ export default function BusinessDashboard() {
                 </div>
                 {diagBenchmarks.map((b, i) => (
                     <div key={i} className="px-4 py-2 border-b border-border-light last:border-0">
-                      <p className="text-[10px] font-semibold text-ink-secondary mb-1.5">{isFR ? (b.metric_name_fr || b.metric_fr || b.metric_name || b.metric || "") : (b.metric_name || b.metric || "")}</p>
+                      <p key={i} className="text-[10px] font-semibold text-ink-secondary mb-1.5">{isFR ? (b.metric_name_fr || b.metric_fr || b.metric_name || b.metric || "") : (b.metric_name || b.metric || "")}</p>
                       <div className="grid grid-cols-3 text-center">
                         <div><div className="text-[12px] font-bold text-ink-secondary">{b.your_value}</div><div className="text-[7px] text-ink-faint">{t("You", "Vous")}</div></div>
                         <div><div className="text-[12px] font-bold" style={{ color: "#0369a1" }}>{b.industry_avg}</div><div className="text-[7px] text-ink-faint">{t("Avg", "Moy.")}</div></div>
@@ -634,9 +634,9 @@ export default function BusinessDashboard() {
                 <div className="px-4 py-4 text-[11px] text-ink-faint text-center">{t("None upcoming", "Aucune échéance")}</div>
               ) : deadlines.slice(0, 4).map((dl, i) => (
                 <div key={i} onClick={() => router.push("/v2/obligations")} className="px-4 py-2.5 flex items-center justify-between border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer">
-                  <div className="flex-1 min-w-0 mr-2">
+                  <div key={i} className="flex-1 min-w-0 mr-2">
                     <div className="text-[11px] font-medium text-ink truncate">{dl.title}</div>
-                    {(dl.penalty_max || 0) > 0 && <div className="text-[8px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
+                    {(dl.penalty_max ?? 0) > 0 && <div className="text-[8px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
                   </div>
                   <div className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-md shrink-0" style={{ background: dl.days_until <= 3 ? "#B34040" : dl.days_until <= 7 ? "rgba(179,64,64,0.06)" : "#F0EFEB", color: dl.days_until <= 3 ? "white" : dl.days_until <= 7 ? "#B34040" : "#8E8C85" }}>{dl.days_until}{t("d", "j")}</div>
                 </div>
@@ -658,8 +658,8 @@ export default function BusinessDashboard() {
                 <span className="text-[12px] font-bold text-ink tabular-nums">{recovPct}%</span>
               </div>
               <div className="flex justify-between text-[9px] text-ink-faint">
-                <span>${recovered.toLocaleString()} {t("recovered", "récupéré")}</span>
-                <span>${totalLeak.toLocaleString()} total</span>
+                <span>${(recovered ?? 0).toLocaleString()} {t("recovered", "récupéré")}</span>
+                <span>${(totalLeak ?? 0).toLocaleString()} total</span>
               </div>
             </div>
 

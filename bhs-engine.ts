@@ -30,7 +30,7 @@ export function scoreLeakV2(leak: any, input: any, benchmarks?: any): any {
 }
 
 export function calculateBHS(leaks: any[], input: any, benchmarks?: any): BHSResult {
-  const totalImpact = leaks.reduce((s, l) => s + (l.annual_impact_max || l.annualImpact || 0), 0);
+  const totalImpact = leaks.reduce((s, l) => s + (l.annual_impact_max || l.annualImpact ?? 0), 0);
   const maxExpected = 200_000;
   const raw   = Math.max(0, 100 - Math.round((totalImpact / maxExpected) * 100));
   const score = Math.min(100, Math.max(0, raw));

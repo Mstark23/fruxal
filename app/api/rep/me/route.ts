@@ -23,8 +23,8 @@ export async function GET() {
         ...rep,
         stats: {
           clients:             assignments.length,
-          commissions_paid:    commissions.filter((c:any)=>c.status==="paid").reduce((s:number,c:any)=>s+(c.commission_amount||0),0),
-          commissions_pending: commissions.filter((c:any)=>c.status==="pending").reduce((s:number,c:any)=>s+(c.commission_amount||0),0),
+          commissions_paid:    commissions.filter((c:any)=>c.status==="paid").reduce((s:number,c:any)=>s+(c.commission_amount??0),0),
+          commissions_pending: commissions.filter((c:any)=>c.status==="pending").reduce((s:number,c:any)=>s+(c.commission_amount??0),0),
         },
       },
     });

@@ -61,9 +61,9 @@ export function buildTaxContext(inputs: PromptInputs): string {
   if (hasHoldco)         lines.push("Holdco structure — assess RDTOH, CDA, inter-corporate dividends.");
   if (passiveOver50k)    lines.push("Passive income > $50K — small business deduction grind-down applies.");
   if (lcgeEligible)      lines.push("LCGE eligible — optimize for $971,190 capital gains exemption.");
-  if (rdtohBalance > 0)  lines.push(`RDTOH balance: $${rdtohBalance.toLocaleString()} — dividend timing opportunity.`);
+  if (rdtohBalance > 0)  lines.push(`RDTOH balance: $${(rdtohBalance ?? 0).toLocaleString()} — dividend timing opportunity.`);
   if (hasCDA)            lines.push("CDA balance present — tax-free capital dividend opportunity.");
-  if (sredLastYear > 0)  lines.push(`SR&ED claimed last year: $${sredLastYear.toLocaleString()}`);
+  if (sredLastYear > 0)  lines.push(`SR&ED claimed last year: $${(sredLastYear ?? 0).toLocaleString()}`);
   return lines.join(" ");
 }
 
@@ -79,8 +79,8 @@ export function computeYourBenchmarks(inputs: PromptInputs): string {
   if (employees > 0) lines.push(`• Revenue per Employee: your_value = "$${Math.round(annualRevenue / employees).toLocaleString()}"`);
   if (estimatedPayroll > 0) lines.push(`• Payroll Ratio %: your_value = "${((estimatedPayroll / annualRevenue) * 100).toFixed(1)}%"`);
   if (estimatedTaxDrag > 0) lines.push(`• Effective Tax Rate %: your_value = "${((estimatedTaxDrag / annualRevenue) * 100).toFixed(1)}%"`);
-  const totalAssets = (profile as any).total_assets || 0;
-  const totalLiabilities = (profile as any).total_liabilities || 0;
+  const totalAssets = (profile as any).total_assets ?? 0;
+  const totalLiabilities = (profile as any).total_liabilities ?? 0;
   if (totalAssets > 0 && totalLiabilities > 0) lines.push(`• Debt Ratio %: your_value = "${((totalLiabilities / totalAssets) * 100).toFixed(1)}%"`);
   return lines.length > 1 ? lines.join("\n") : "";
 }
@@ -227,7 +227,7 @@ function buildEnterpriseInstructions(inputs: PromptInputs, taxCtx: string): stri
   return `
 ENTERPRISE instructions:
 Every finding must calculate the enterprise value effect (EBITDA x ${evMultiple}x multiple).
-Revenue: $${annualRevenue.toLocaleString()} (${revenueSource}), EBITDA: $${estimatedEBITDA.toLocaleString()} (${ebitdaSource}), gross margin: ${grossMarginPct}%.
+Revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}), EBITDA: $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}), gross margin: ${grossMarginPct}%.
 ${exactNetIncome > 0 ? `Net income last year: $${exactNetIncome.toLocaleString()}` : ""}
 ${ownerSalary > 0 ? `Owner salary: $${ownerSalary.toLocaleString()} — assess T4 vs dividends vs IPP` : ""}
 RDTOH / CDA: ${profile.has_cda_balance ? "CDA balance — tax-free capital dividend opportunity" : "N/A"}, passive income vs $50K threshold.
@@ -259,7 +259,7 @@ ${buildBenchmarkList(benchmarks)}
 
 INSTRUCTIONS:
 1. FINDINGS: Identify up to ${maxFindings} specific revenue leaks. Every finding needs:
-   - Exact dollar amount calculated from actual revenue $${annualRevenue.toLocaleString()}
+   - Exact dollar amount calculated from actual revenue $${(annualRevenue ?? 0).toLocaleString()}
    - The formula used (calculation_shown)
    - Concrete action steps
    - Specific government programs that apply to THIS finding
@@ -280,7 +280,7 @@ INSTRUCTIONS:
    - Legal: relevant law firms for the issue
 
 4. CALCULATIONS: Every dollar figure must be derived from:
-   Revenue = $${annualRevenue.toLocaleString()}
+   Revenue = $${(annualRevenue ?? 0).toLocaleString()}
    ${estimatedPayroll > 0 ? `Payroll = $${estimatedPayroll.toLocaleString()} (${employees} employees)` : ""}
    ${overdue > 0 ? `Overdue obligations = ${overdue}, penalty exposure = $${penaltyExposure.toLocaleString()}` : ""}
    ${province ? `Province = ${province}` : ""}
@@ -315,7 +315,7 @@ BUSINESS PROFILE:
 - Industry: ${profile.industry_label || profile.industry || "Unknown"}
 - Province: ${province}
 - Structure: ${profile.structure || profile.business_structure || "Unknown"}
-- Annual revenue: $${annualRevenue.toLocaleString()} (${revenueSource})
+- Annual revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource})
 - Employees: ${employees}
 - Fiscal year end: month ${profile.fiscal_year_end_month || 12}
 ${estimatedPayroll > 0  ? `- Total payroll: $${estimatedPayroll.toLocaleString()}` : ""}
@@ -343,42 +343,42 @@ ${(() => {
   if (d.t2) {
     lines.push("\nVERIFIED T2 CORPORATE RETURN DATA (treat as authoritative — from actual CRA filing):");
     if (d.t2.tax_year)                lines.push(`  Tax year: ${d.t2.tax_year}`);
-    if (d.t2.net_income_before_tax)   lines.push(`  Net income before tax: $${d.t2.net_income_before_tax.toLocaleString()}`);
-    if (d.t2.taxable_income)          lines.push(`  Taxable income: $${d.t2.taxable_income.toLocaleString()}`);
-    if (d.t2.total_tax_payable)       lines.push(`  Total tax payable: $${d.t2.total_tax_payable.toLocaleString()}`);
-    if (d.t2.small_business_deduction)lines.push(`  SBD claimed: $${d.t2.small_business_deduction.toLocaleString()}`);
-    if (d.t2.sred_credit_claimed)     lines.push(`  SR&ED credit: $${d.t2.sred_credit_claimed.toLocaleString()}`);
-    if (d.t2.rdtoh_balance)           lines.push(`  RDTOH balance: $${d.t2.rdtoh_balance.toLocaleString()}`);
-    if (d.t2.passive_income)          lines.push(`  Passive income: $${d.t2.passive_income.toLocaleString()}`);
+    if (d.t2.net_income_before_tax)   lines.push(`  Net income before tax: $${(d.t2.net_income_before_tax ?? 0).toLocaleString()}`);
+    if (d.t2.taxable_income)          lines.push(`  Taxable income: $${(d.t2.taxable_income ?? 0).toLocaleString()}`);
+    if (d.t2.total_tax_payable)       lines.push(`  Total tax payable: $${(d.t2.total_tax_payable ?? 0).toLocaleString()}`);
+    if (d.t2.small_business_deduction)lines.push(`  SBD claimed: $${(d.t2.small_business_deduction ?? 0).toLocaleString()}`);
+    if (d.t2.sred_credit_claimed)     lines.push(`  SR&ED credit: $${(d.t2.sred_credit_claimed ?? 0).toLocaleString()}`);
+    if (d.t2.rdtoh_balance)           lines.push(`  RDTOH balance: $${(d.t2.rdtoh_balance ?? 0).toLocaleString()}`);
+    if (d.t2.passive_income)          lines.push(`  Passive income: $${(d.t2.passive_income ?? 0).toLocaleString()}`);
     if (d.t2.confidence)              lines.push(`  Parse confidence: ${d.t2.confidence}`);
   }
   if (d.financials) {
     lines.push("\nVERIFIED FINANCIAL STATEMENTS DATA (treat as authoritative):");
-    if (d.financials.total_revenue)   lines.push(`  Total revenue: $${d.financials.total_revenue.toLocaleString()}`);
-    if (d.financials.gross_profit)    lines.push(`  Gross profit: $${d.financials.gross_profit.toLocaleString()}`);
+    if (d.financials.total_revenue)   lines.push(`  Total revenue: $${(d.financials.total_revenue ?? 0).toLocaleString()}`);
+    if (d.financials.gross_profit)    lines.push(`  Gross profit: $${(d.financials.gross_profit ?? 0).toLocaleString()}`);
     if (d.financials.gross_margin_pct)lines.push(`  Gross margin: ${d.financials.gross_margin_pct.toFixed(1)}%`);
-    if (d.financials.ebitda)          lines.push(`  EBITDA: $${d.financials.ebitda.toLocaleString()}`);
-    if (d.financials.net_income)      lines.push(`  Net income: $${d.financials.net_income.toLocaleString()}`);
-    if (d.financials.total_assets)    lines.push(`  Total assets: $${d.financials.total_assets.toLocaleString()}`);
-    if (d.financials.total_liabilities)lines.push(`  Total liabilities: $${d.financials.total_liabilities.toLocaleString()}`);
-    if (d.financials.accounts_receivable)lines.push(`  Accounts receivable: $${d.financials.accounts_receivable.toLocaleString()}`);
-    if (d.financials.accounts_payable)lines.push(`  Accounts payable: $${d.financials.accounts_payable.toLocaleString()}`);
+    if (d.financials.ebitda)          lines.push(`  EBITDA: $${(d.financials.ebitda ?? 0).toLocaleString()}`);
+    if (d.financials.net_income)      lines.push(`  Net income: $${(d.financials.net_income ?? 0).toLocaleString()}`);
+    if (d.financials.total_assets)    lines.push(`  Total assets: $${(d.financials.total_assets ?? 0).toLocaleString()}`);
+    if (d.financials.total_liabilities)lines.push(`  Total liabilities: $${(d.financials.total_liabilities ?? 0).toLocaleString()}`);
+    if (d.financials.accounts_receivable)lines.push(`  Accounts receivable: $${(d.financials.accounts_receivable ?? 0).toLocaleString()}`);
+    if (d.financials.accounts_payable)lines.push(`  Accounts payable: $${(d.financials.accounts_payable ?? 0).toLocaleString()}`);
     if (d.financials.confidence)      lines.push(`  Parse confidence: ${d.financials.confidence}`);
   }
   if (d.gst) {
     lines.push("\nVERIFIED GST/HST RETURN DATA:");
-    if (d.gst.total_sales_and_other_revenue) lines.push(`  Reported GST sales: $${d.gst.total_sales_and_other_revenue.toLocaleString()}`);
-    if (d.gst.gst_hst_collected)             lines.push(`  GST/HST collected: $${d.gst.gst_hst_collected.toLocaleString()}`);
-    if (d.gst.input_tax_credits)             lines.push(`  ITCs claimed: $${d.gst.input_tax_credits.toLocaleString()}`);
-    if (d.gst.net_tax_remitted)              lines.push(`  Net remitted: $${d.gst.net_tax_remitted.toLocaleString()}`);
+    if (d.gst.total_sales_and_other_revenue) lines.push(`  Reported GST sales: $${(d.gst.total_sales_and_other_revenue ?? 0).toLocaleString()}`);
+    if (d.gst.gst_hst_collected)             lines.push(`  GST/HST collected: $${(d.gst.gst_hst_collected ?? 0).toLocaleString()}`);
+    if (d.gst.input_tax_credits)             lines.push(`  ITCs claimed: $${(d.gst.input_tax_credits ?? 0).toLocaleString()}`);
+    if (d.gst.net_tax_remitted)              lines.push(`  Net remitted: $${(d.gst.net_tax_remitted ?? 0).toLocaleString()}`);
     if (d.gst.quick_method !== undefined)    lines.push(`  Quick method elected: ${d.gst.quick_method ? "YES" : "NO"}`);
   }
   if (d.t4) {
     lines.push("\nVERIFIED T4 SUMMARY DATA:");
-    if (d.t4.total_employment_income) lines.push(`  Total T4 employment income: $${d.t4.total_employment_income.toLocaleString()}`);
+    if (d.t4.total_employment_income) lines.push(`  Total T4 employment income: $${(d.t4.total_employment_income ?? 0).toLocaleString()}`);
     if (d.t4.number_of_t4s)           lines.push(`  Number of T4s issued: ${d.t4.number_of_t4s}`);
-    if (d.t4.total_cpp_deducted)      lines.push(`  Total CPP deducted: $${d.t4.total_cpp_deducted.toLocaleString()}`);
-    if (d.t4.total_ei_deducted)       lines.push(`  Total EI deducted: $${d.t4.total_ei_deducted.toLocaleString()}`);
+    if (d.t4.total_cpp_deducted)      lines.push(`  Total CPP deducted: $${(d.t4.total_cpp_deducted ?? 0).toLocaleString()}`);
+    if (d.t4.total_ei_deducted)       lines.push(`  Total EI deducted: $${(d.t4.total_ei_deducted ?? 0).toLocaleString()}`);
   }
   return lines.join("\n");
 })()}
@@ -386,7 +386,7 @@ ${(() => {
 COMPLIANCE:
 - Obligations tracked: ${obligations.length}
 - Overdue: ${overdue}
-- Penalty exposure: $${penaltyExposure.toLocaleString()}
+- Penalty exposure: $${(penaltyExposure ?? 0).toLocaleString()}
 
 BUSINESS ACTIVITIES:
 - Has payroll: ${profile.has_payroll ? "YES" : "NO"}

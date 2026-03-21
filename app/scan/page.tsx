@@ -25,6 +25,7 @@ const SCAN_STEPS = [
 
 export default function ScanPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState<"pick" | "name" | "connect" | "questions" | "scanning" | "results">("pick");
   const [industry, setIndustry] = useState<string | null>(null);
   const [bizName, setBizName] = useState("");
@@ -69,11 +70,13 @@ export default function ScanPage() {
   // Load questions when industry is selected
   const loadQuestions = async (ind: string) => {
     try {
-      const res = await fetch(`/api/scan/questions?industry=${ind}`);
+      setIsLoading(true);
+    const res = await fetch(`/api/scan/questions?industry=${ind}`);
       if (res.ok) {
         const data = await res.json();
         setQuestions(data.questions || []);
       }
+    setIsLoading(false);
     } catch (e) { console.error(e); }
   };
 
@@ -139,7 +142,7 @@ export default function ScanPage() {
       // Store results for dashboard fallback (in case DB save failed)
       try {
         sessionStorage.setItem("lastScanResult", JSON.stringify({ ...result, businessId, timestamp: Date.now() }));
-      } catch (e) {}
+      } catch (e) { /* non-fatal */ }
 
       setTimeout(() => setStep("results"), 800);
     } catch (e: any) {
@@ -154,6 +157,8 @@ export default function ScanPage() {
   // ─── Colors & helpers ──────────────────────────────────────────────────────
   const fmt = (n: number) => n >= 1000 ? "$" + (n / 1000).toFixed(1) + "K" : "$" + n.toLocaleString();
   const G = "#00c853";
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
 
   return (
     <AppShell>

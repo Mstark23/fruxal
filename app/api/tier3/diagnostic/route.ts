@@ -12,6 +12,8 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { runDiagnostic, DiagnosticInput } from "@/services/tier3/diagnostic-engine";
 import crypto from "crypto";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 // ─── POST: Run diagnostic + save ─────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
@@ -76,9 +78,9 @@ export async function POST(req: NextRequest) {
     };
 
     // Run the diagnostic engine
-    console.log(`[Tier3] Running diagnostic for "${input.companyName}" — ${input.industry}, ${input.province}, ${input.revenueBracket}`);
+    process.env.NODE_ENV !== "production" && console.log(`[Tier3] Running diagnostic for "${input.companyName}" — ${input.industry}, ${input.province}, ${input.revenueBracket}`);
     const result = runDiagnostic(input);
-    console.log(`[Tier3] Complete: ${result.topLeaks.length} leaks, $${result.summary.totalEstimatedLow.toLocaleString()}-$${result.summary.totalEstimatedHigh.toLocaleString()} total exposure`);
+    process.env.NODE_ENV !== "production" && console.log(`[Tier3] Complete: ${result.topLeaks.length} leaks, $${(result.summary.totalEstimatedLow ?? 0).toLocaleString()}-$${(result.summary.totalEstimatedHigh ?? 0).toLocaleString()} total exposure`);
 
     // Save to Supabase
     const recordId = crypto.randomUUID();
@@ -172,8 +174,8 @@ export async function GET(req: NextRequest) {
       status: row.status,
       createdAt: row.created_at,
       summary: row.result?.summary || null,
-      leakCount: row.result?.topLeaks?.length || 0,
-      highConfidenceCount: row.result?.summary?.highConfidenceCount || 0,
+      leakCount: row.result?.topLeaks?.length ?? 0,
+      highConfidenceCount: row.result?.summary?.highConfidenceCount ?? 0,
     }));
 
     return NextResponse.json({

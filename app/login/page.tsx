@@ -81,10 +81,10 @@ function LoginForm() {
         // Non-rep: use prescan tier to pick dashboard variant
         const raw = sessionStorage.getItem("lg_prescan_result");
         if (raw) {
-          const p = JSON.parse(raw);
+          let p: any = null; try { p = JSON.parse(raw); } catch { p = null; }
           const prescanTier = p.tier || "";
-          const emp = p.inputs?.employeeCount || 0;
-          const rev = p.inputs?.annualRevenue || 0;
+          const emp = p.inputs?.employeeCount ?? 0;
+          const rev = p.inputs?.annualRevenue ?? 0;
           if (rev >= 1_000_000 || prescanTier === "enterprise") {
             dashBase = "/v2/dashboard/enterprise";
           } else if (prescanTier === "growth" || Number(emp) > 0 || Number(rev) >= 500_000) {
@@ -95,8 +95,8 @@ function LoginForm() {
         try {
           if (dashBase.includes("enterprise")) localStorage.setItem("fruxal_tier", "enterprise");
           else if (dashBase.includes("business")) localStorage.setItem("fruxal_tier", "business");
-        } catch {}
-      } catch {}
+        } catch { /* non-fatal */ }
+      } catch { /* non-fatal */ }
       const dest = redirectTo || callbackUrl || dashBase;
       const safeDest = dest.startsWith("/") ? dest : dashBase;
       // Hard redirect so fresh session cookie is sent with the next request

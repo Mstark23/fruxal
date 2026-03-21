@@ -11,6 +11,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/client";
 import { createClient } from "@supabase/supabase-js";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -77,12 +79,12 @@ export async function POST(req: NextRequest) {
       }, 0) / Math.max(1, overdueInvoices.length);
 
       findings.push({
-        title: `$${totalOverdue.toLocaleString()} in overdue invoices`,
+        title: `$${(totalOverdue ?? 0).toLocaleString()} in overdue invoices`,
         description: `${overdueInvoices.length} invoices are past due, averaging ${Math.round(avgDaysOverdue)} days overdue. Total outstanding: $${totalOverdue.toLocaleString()}.`,
         category: "Cash Flow Leak",
         severity: totalOverdue > 10000 ? "critical" : totalOverdue > 5000 ? "high" : "medium",
         annualImpact: Math.round(totalOverdue * 0.15), // cost of delayed cash
-        evidence: `${overdueInvoices.length} overdue invoices totaling $${totalOverdue.toLocaleString()} from QuickBooks`,
+        evidence: `${overdueInvoices.length} overdue invoices totaling $${(totalOverdue ?? 0).toLocaleString()} from QuickBooks`,
         fix: "Set up automated payment reminders. Consider offering 2% discount for payment within 10 days. Use collection follow-up for 60+ days overdue.",
         source: "quickbooks",
       });
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest) {
       for (const inv of invoices) {
         if (!inv.clientId) continue;
         const existing = clientRevenue.get(inv.clientId) || { name: "Unknown", total: 0 };
-        existing.total += inv.amount || 0;
+        existing.total += inv.amount ?? 0;
         const client = clients.find((c) => c.id === inv.clientId);
         if (client) existing.name = client.name;
         clientRevenue.set(inv.clientId, existing);
@@ -110,7 +112,7 @@ export async function POST(req: NextRequest) {
         if (topPct > 40) {
           findings.push({
             title: `${topPct}% of revenue from one client`,
-            description: `"${topClient.name}" accounts for ${topPct}% of your total invoiced revenue ($${topClient.total.toLocaleString()} of $${totalRev.toLocaleString()}). Losing this client would be devastating.`,
+            description: `"${topClient.name}" accounts for ${topPct}% of your total invoiced revenue ($${(topClient.total ?? 0).toLocaleString()} of $${(totalRev ?? 0).toLocaleString()}). Losing this client would be devastating.`,
             category: "Revenue Leak",
             severity: topPct > 60 ? "critical" : "high",
             annualImpact: Math.round(topClient.total * 0.1), // risk-adjusted
@@ -130,7 +132,7 @@ export async function POST(req: NextRequest) {
             category: "Growth Leak",
             severity: "high",
             annualImpact: Math.round(top3Total * 0.05),
-            evidence: `Top 3: ${sorted.slice(0, 3).map((c) => c.name).join(", ")} = $${top3Total.toLocaleString()} of $${totalRev.toLocaleString()}`,
+            evidence: `Top 3: ${sorted.slice(0, 3).map((c) => c.name).join(", ")} = $${(top3Total ?? 0).toLocaleString()} of $${(totalRev ?? 0).toLocaleString()}`,
             fix: "Build a pipeline targeting new client segments. Consider marketing campaigns to attract clients in different industries.",
             source: "quickbooks",
           });
@@ -208,7 +210,7 @@ export async function POST(req: NextRequest) {
 
         findings.push({
           title: `${subscriptions.length} recurring subscriptions detected`,
-          description: `Found ${subscriptions.length} recurring charges totaling ~$${totalSubSpend.toLocaleString()}/year. Top charges: ${subList}.`,
+          description: `Found ${subscriptions.length} recurring charges totaling ~$${(totalSubSpend ?? 0).toLocaleString()}/year. Top charges: ${subList}.`,
           category: "Cost Leak",
           severity: totalSubSpend > 5000 ? "high" : "medium",
           annualImpact: Math.round(totalSubSpend * 0.15), // assume 15% waste
@@ -251,7 +253,7 @@ export async function POST(req: NextRequest) {
         const totalDupes = duplicates.reduce((s, d) => s + d.amount * (d.count - 1), 0);
         findings.push({
           title: `${duplicates.length} possible duplicate payments`,
-          description: `Found ${duplicates.length} cases where the same vendor was paid the same amount within 7 days. Potential duplicates totaling $${totalDupes.toLocaleString()}.`,
+          description: `Found ${duplicates.length} cases where the same vendor was paid the same amount within 7 days. Potential duplicates totaling $${(totalDupes ?? 0).toLocaleString()}.`,
           category: "Cost Leak",
           severity: totalDupes > 1000 ? "high" : "medium",
           annualImpact: Math.round(totalDupes),
@@ -271,7 +273,7 @@ export async function POST(req: NextRequest) {
         (s, inv) => s + (inv.amount - (inv.amountPaid || 0)), 0
       );
       findings.push({
-        title: `$${totalPartial.toLocaleString()} in partially paid invoices`,
+        title: `$${(totalPartial ?? 0).toLocaleString()} in partially paid invoices`,
         description: `${partialInvoices.length} invoices have been partially paid but still have outstanding balances.`,
         category: "Cash Flow Leak",
         severity: totalPartial > 5000 ? "high" : "medium",
@@ -288,7 +290,7 @@ export async function POST(req: NextRequest) {
       const txnResults: any[] = [];
       engineLeaks = txnResults || [];
     } catch (e: any) {
-      console.log("Transaction engine skipped:", e.message);
+      process.env.NODE_ENV !== "production" && console.log("Transaction engine skipped:", e.message);
     }
 
     // Convert engine leaks to findings
@@ -298,7 +300,7 @@ export async function POST(req: NextRequest) {
         description: leak.description,
         category: leak.category || "Cost Leak",
         severity: leak.severity || "medium",
-        annualImpact: leak.annualImpact || 0,
+        annualImpact: leak.annualImpact ?? 0,
         evidence: `Verified from QuickBooks transaction data`,
         fix: leak.recommendation || "",
         source: "engine",
@@ -314,14 +316,14 @@ export async function POST(req: NextRequest) {
           description: leak.description,
           category: leak.category || "Cost Leak",
           severity: leak.severity || "medium",
-          annualImpact: leak.annualImpact || 0,
+          annualImpact: leak.annualImpact ?? 0,
           evidence: `Verified from connected financial data`,
           fix: leak.recommendation || "",
           source: "engine",
         });
       }
     } catch (e: any) {
-      console.log("Financial blindspots engine skipped:", e.message);
+      process.env.NODE_ENV !== "production" && console.log("Financial blindspots engine skipped:", e.message);
     }
 
     // ─── SAVE FINDINGS AS VERIFIED USER_ACTIONS ─────────────────────────────
@@ -385,8 +387,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     const newTotal = Math.max(
-      currentProgress?.total_leak_found || 0,
-      totalVerified + (currentProgress?.total_leak_found || 0)
+      currentProgress?.total_leak_found ?? 0,
+      totalVerified + (currentProgress?.total_leak_found ?? 0)
     );
 
     await supabase.from("user_progress").upsert({
@@ -394,10 +396,10 @@ export async function POST(req: NextRequest) {
       businessId: businessId,
       total_leak_found: newTotal,
       total_verified_leak: totalVerified,
-      actions_total: (currentProgress?.actions_total || 0) + newActions.length,
+      actions_total: (currentProgress?.actions_total ?? 0) + newActions.length,
       last_deep_scan_date: new Date().toISOString(),
       quickbooks_connected: true,
-      scan_count: (currentProgress?.scan_count || 0) + 1,
+      scan_count: (currentProgress?.scan_count ?? 0) + 1,
     }, { onConflict: "userId" });
 
     return NextResponse.json({

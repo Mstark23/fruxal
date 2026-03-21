@@ -472,7 +472,7 @@ export function calculateBusinessTier(
   annualRevenue: number | null,
   employeeCount: number
 ): 'solo' | 'small' | 'growth' {
-  const revenue = annualRevenue || 0;
+  const revenue = annualRevenue ?? 0;
 
   // Enterprise: $5M+ → handled separately (contingency model)
   // Business tier: $500K+ revenue OR 6+ employees → Business $150/mo
@@ -561,7 +561,7 @@ export function buildPrescanInputFromTags(tags: PrescanTags): PrescanInput {
   }
   
   // Employee count
-  const employeeCount = tags.set_employee_count || tags.staffing_count || 0;
+  const employeeCount = tags.set_employee_count || tags.staffing_count ?? 0;
   
   // Accounting software usage — handle all language/case variations
   const acctRaw = (
@@ -1782,8 +1782,8 @@ export function detectLeaks(
 ): DetectedLeak[] {
   const leaks: DetectedLeak[] = [];
   
-  console.log('🔬 ═══ DETECTOR ENGINE START ═══');
-  console.log('📊 Input:', JSON.stringify({
+  process.env.NODE_ENV === "development" && console.log('🔬 ═══ DETECTOR ENGINE START ═══');
+  process.env.NODE_ENV === "development" && console.log('📊 Input:', JSON.stringify({
     industrySlug: input.industrySlug,
     province: input.province,
     annualRevenue: input.annualRevenue,
@@ -1794,7 +1794,7 @@ export function detectLeaks(
     usesAccountingSoftware: input.usesAccountingSoftware,
     tier: input.tier,
   }));
-  console.log('📈 Benchmarks:', benchmarks.length, 'loaded:', benchmarks.map(b => b.metric_key).join(', '));
+  process.env.NODE_ENV === "development" && console.log('📈 Benchmarks:', benchmarks.length, 'loaded:', benchmarks.map(b => b.metric_key).join(', '));
   
   const detectors: [string, (i: PrescanInput, b: Benchmark[]) => DetectedLeak | null][] = [
     ['processing', detectProcessingLeak],
@@ -1829,16 +1829,16 @@ export function detectLeaks(
       const leak = detector(input, benchmarks);
       if (leak) {
         leaks.push(leak);
-        console.log(`  ✅ ${name}: $${leak.estimated_annual_leak} (${leak.leak_type_code})`);
+        process.env.NODE_ENV === "development" && console.log(`  ✅ ${name}: $${leak.estimated_annual_leak} (${leak.leak_type_code})`);
       } else {
-        console.log(`  ⬚ ${name}: no leak detected`);
+        process.env.NODE_ENV === "development" && console.log(`  ⬚ ${name}: no leak detected`);
       }
     } catch (e: any) {
       console.error(`  ❌ ${name}: ERROR —`, e.message);
     }
   }
   
-  console.log(`🔬 ═══ DETECTOR ENGINE END — ${leaks.length} leaks found ═══`);
+  process.env.NODE_ENV === "development" && console.log(`🔬 ═══ DETECTOR ENGINE END — ${leaks.length} leaks found ═══`);
   
   // Sort by priority descending
   leaks.sort((a, b) => b.priority_score - a.priority_score);

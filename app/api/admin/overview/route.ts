@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function startOfMonth(): string {
@@ -104,48 +106,48 @@ export async function GET(req: NextRequest) {
     // ─── USERS ───
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("users").select("id", { count: "exact", head: true });
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("user_progress").select("userId", { count: "exact", head: true }).neq("paid_plan", null).neq("paid_plan", "free").neq("paid_plan", "");
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("created_at", weekStart);
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("created_at", monthStart);
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("last_sign_in_at", h24);
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     // ─── PRESCANS ───
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("prescan_runs").select("id", { count: "exact", head: true }).gte("created_at", todayStart);
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("prescan_runs").select("id", { count: "exact", head: true }).gte("created_at", d7);
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("prescan_runs").select("id", { count: "exact", head: true }).gte("created_at", d30);
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     safeQuery(async () => {
       const { count } = await supabaseAdmin.from("prescan_runs").select("id", { count: "exact", head: true });
-      return count || 0;
+      return count ?? 0;
     }, 0),
 
     safeQuery(async () => {
@@ -191,7 +193,7 @@ export async function GET(req: NextRequest) {
     safeQuery(async () => {
       const { data } = await supabaseAdmin.from("affiliate_referrals").select("commission_amount").gte("created_at", monthStart).not("commission_amount", "is", null);
       if (!data) return 0;
-      return data.reduce((sum: number, r: any) => sum + (r.commission_amount || 0), 0);
+      return data.reduce((sum: number, r: any) => sum + (r.commission_amount ?? 0), 0);
     }, 0),
   ]);
 
@@ -214,7 +216,7 @@ export async function GET(req: NextRequest) {
     const s = d.status as keyof typeof tier3ByStatus;
     if (s in tier3ByStatus) tier3ByStatus[s]++;
     if (s !== "archived") {
-      const high = d.result?.summary?.totalEstimatedHigh || 0;
+      const high = d.result?.summary?.totalEstimatedHigh ?? 0;
       tier3PipelineValue += high;
     }
   }
@@ -235,7 +237,7 @@ export async function GET(req: NextRequest) {
   for (const ag of tier3Agreements) {
     // Look up the diagnostic to get the estimated savings
     const diag = tier3All.find((d: any) => d.id === ag.diagnostic_id);
-    const feeRangeLow = diag?.result?.summary?.feeRangeLow || 0;
+    const feeRangeLow = diag?.result?.summary?.feeRangeLow ?? 0;
 
     if (ag.status === "signed") {
       tier3FeesEarned += feeRangeLow;

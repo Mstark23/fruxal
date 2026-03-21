@@ -68,7 +68,7 @@ export default function AdminOverviewPage() {
   );
 
   const d = data!;
-  const convPct = Math.min(100, Math.round(d.prescan.conversionRate || 0));
+  const convPct = Math.min(100, Math.round(d.prescan.conversionRate ?? 0));
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">

@@ -39,7 +39,7 @@ export default function ROIPage() {
           <div>
             <label className="text-xs text-gray-400 mb-1 block">Annual Revenue</label>
             <input type="range" min={50000} max={5000000} step={25000} value={revenue} onChange={e => setRevenue(+e.target.value)} className="w-full accent-[#00c853]" />
-            <div className="text-2xl font-black text-center mt-1">${revenue.toLocaleString()}</div>
+            <div className="text-2xl font-black text-center mt-1">${(revenue ?? 0).toLocaleString()}</div>
           </div>
           <div>
             <label className="text-xs text-gray-400 mb-2 block">Industry</label>
@@ -89,22 +89,22 @@ export default function ROIPage() {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center">
               <div className="text-xs text-gray-500">Estimated Annual Leakage</div>
-              <div className="text-2xl font-black text-[#ff3d57]">${estimatedLeaking.toLocaleString()}</div>
+              <div className="text-2xl font-black text-[#ff3d57]">${(estimatedLeaking ?? 0).toLocaleString()}</div>
               <div className="text-[10px] text-gray-600">{(leakRate * 100).toFixed(0)}% of revenue ({getDisplayName(industry)} avg)</div>
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500">Recoverable (65% fix rate)</div>
-              <div className="text-2xl font-black text-[#00c853]">${recoverable.toLocaleString()}</div>
+              <div className="text-2xl font-black text-[#00c853]">${(recoverable ?? 0).toLocaleString()}</div>
             </div>
           </div>
           <div className="border-t border-white/10 pt-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-400">Annual plan cost</span>
-              <span className="text-sm font-bold text-[#ff3d57]">-${planCost.toLocaleString()}</span>
+              <span className="text-sm font-bold text-[#ff3d57]">-${(planCost ?? 0).toLocaleString()}</span>
             </div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-400">Net annual savings</span>
-              <span className="text-lg font-black text-[#00c853]">${netSavings.toLocaleString()}</span>
+              <span className="text-lg font-black text-[#00c853]">${(netSavings ?? 0).toLocaleString()}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-400">Return on Investment</span>

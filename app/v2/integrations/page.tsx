@@ -219,7 +219,8 @@ export default function IntegrationsPage() {
     const qbParam = sp.get("qb");
     const stParam = sp.get("stripe");
     if (qbParam === "connected" || stParam === "connected") {
-      setTimeout(() => {
+      const _to = setTimeout(() => {
+      return () => clearTimeout(_to);
         fetch("/api/quickbooks/status").then(r => r.json()).then(setQb).catch(() => {});
         fetch("/api/stripe-connect/status").then(r => r.json()).then(setStripe).catch(() => {});
         window.history.replaceState({}, "", "/v2/integrations");
@@ -250,7 +251,8 @@ export default function IntegrationsPage() {
           if (ex.success) {
             setSyncMsg(m => ({ ...m, plaid: "Connected — syncing…" }));
             setTimeout(async () => {
-              const fresh = await fetch("/api/plaid/status").then(r => r.json());
+              const fresh = await fetch("/api/plaid/status").then(r => r.json()).catch(() => null);
+      if (!fresh) return;
               setPlaid(fresh);
               setSyncMsg(m => ({ ...m, plaid: "" }));
             }, 4000);
@@ -365,7 +367,7 @@ export default function IntegrationsPage() {
             loading={loadingId === "qb"}
             signals={qb.connected ? [
               { label: "Revenue TTM", value: fmt(qb.summary?.revenue_ttm) },
-              { label: "AR 90d+",     value: fmt(qb.summary?.ar_overdue_90), alert: (qb.summary?.ar_overdue_90 || 0) > 0 },
+              { label: "AR 90d+",     value: fmt(qb.summary?.ar_overdue_90), alert: (qb.summary?.ar_overdue_90 ?? 0) > 0 },
               { label: "Payroll TTM", value: fmt(qb.summary?.payroll_ttm) },
             ] : [
               { label: "Revenue TTM",   value: "" },
@@ -389,7 +391,7 @@ export default function IntegrationsPage() {
             signals={plaid.connected ? [
               { label: "Bank balance", value: fmt(plaid.summary?.bank_balance) },
               { label: "Revenue 90d",  value: fmt(plaid.summary?.revenue_90d) },
-              { label: "Low balance",  value: fmt(plaid.summary?.lowest_bal_30d), alert: (plaid.summary?.lowest_bal_30d || 0) < 10000 },
+              { label: "Low balance",  value: fmt(plaid.summary?.lowest_bal_30d), alert: (plaid.summary?.lowest_bal_30d ?? 0) < 10000 },
               { label: "Debt service", value: fmt(plaid.summary?.loan_payments) },
             ] : [
               { label: "Cash balance",      value: "" },
@@ -411,8 +413,8 @@ export default function IntegrationsPage() {
             loading={loadingId === "stripe"}
             signals={stripe.connected ? [
               { label: "MRR",         value: stripe.summary?.mrr ? fmt(stripe.summary.mrr) + "/mo" : "—" },
-              { label: "Churn",       value: stripe.summary?.churn_rate_pct ? `${stripe.summary.churn_rate_pct}%` : "—", alert: (stripe.summary?.churn_rate_pct || 0) > 5 },
-              { label: "Refund rate", value: stripe.summary?.refund_rate_pct ? `${stripe.summary.refund_rate_pct}%` : "—", alert: (stripe.summary?.refund_rate_pct || 0) > 3 },
+              { label: "Churn",       value: stripe.summary?.churn_rate_pct ? `${stripe.summary.churn_rate_pct}%` : "—", alert: (stripe.summary?.churn_rate_pct ?? 0) > 5 },
+              { label: "Refund rate", value: stripe.summary?.refund_rate_pct ? `${stripe.summary.refund_rate_pct}%` : "—", alert: (stripe.summary?.refund_rate_pct ?? 0) > 3 },
               { label: "Stripe fees", value: fmt(stripe.summary?.stripe_fees_ttm) },
               { label: "Customers",   value: stripe.summary?.customer_count ? String(stripe.summary.customer_count) : "—" },
             ] : [

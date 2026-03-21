@@ -34,7 +34,8 @@ export async function fireWebhook(event: string, businessId: string, data: any):
 
     for (const hook of hooks) {
       // Check if this hook is subscribed to this event
-      const events = hook.events ? JSON.parse(hook.events) : ["*"];
+      let events = ["*"];
+  try { events = hook.events ? JSON.parse(hook.events) : ["*"]; } catch { events = ["*"]; }
       if (!events.includes("*") && !events.includes(event)) continue;
 
       // Fire webhook (non-blocking, with retry)

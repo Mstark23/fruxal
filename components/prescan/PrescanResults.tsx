@@ -49,7 +49,7 @@ function AnimatedNumber({ value, duration = 1500, prefix = "$" }: { value: numbe
     };
     requestAnimationFrame(tick);
   }, [value, duration]);
-  return <>{prefix}{display.toLocaleString()}</>;
+  return <>{prefix}{(Number(display) || 0).toLocaleString()}</>;
 }
 
 // ─── Score ring ───────────────────────────────────────────────────────────────
@@ -59,9 +59,10 @@ function ScoreRing({ score, size = 100, label }: { score: number; size?: number;
   const [offset, setOffset] = useState(circumference);
 
   useEffect(() => {
-    setTimeout(() => {
+    const _st = setTimeout(() => {
       setOffset(circumference - (score / 100) * circumference);
     }, 300);
+    return () => clearTimeout(_st);
   }, [score, circumference]);
 
   const color = score >= 70 ? "#10b981" : score >= 40 ? "#f59e0b" : "#ef4444";
@@ -196,7 +197,8 @@ export function PrescanResults({ report, onCTA, language = "en", className = "" 
 
   // Scroll into view on mount
   useEffect(() => {
-    setTimeout(() => {
+    const _to = setTimeout(() => {
+    return () => clearTimeout(_to);
       resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 200);
   }, []);
@@ -251,18 +253,18 @@ export function PrescanResults({ report, onCTA, language = "en", className = "" 
       <div className="grid grid-cols-3 gap-2 mb-4">
         <MoneyCard
           label={L.penaltyExposure}
-          value={money.penalty_exposure?.max || 0}
+          value={money.penalty_exposure?.max ?? 0}
           color="red"
         />
         <MoneyCard
           label={L.leakImpact}
-          value={money.leak_impact?.max || 0}
+          value={money.leak_impact?.max ?? 0}
           suffix={L.perYear}
           color="orange"
         />
         <MoneyCard
           label={L.programFunding}
-          value={money.program_funding?.available || 0}
+          value={money.program_funding?.available ?? 0}
           color="emerald"
           isPositive
         />
@@ -272,7 +274,7 @@ export function PrescanResults({ report, onCTA, language = "en", className = "" 
       <div className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-red-500/10 border border-red-500/15 rounded-xl px-5 py-3 mb-4 flex items-center justify-between">
         <span className="text-xs text-white/50 uppercase tracking-wider font-medium">{L.totalAtStake}</span>
         <span className="text-xl font-black text-red-400">
-          <AnimatedNumber value={money.total_at_stake?.max || 0} />
+          <AnimatedNumber value={money.total_at_stake?.max ?? 0} />
           <span className="text-xs text-red-400/60 ml-1">{L.perYear}</span>
         </span>
       </div>
@@ -333,16 +335,16 @@ export function PrescanResults({ report, onCTA, language = "en", className = "" 
                         <p className="text-sm text-white/80 font-medium">{item.title}</p>
                         {(item.penalty_max || item.impact_max || item.max_funding) && (
                           <p className="text-xs text-white/30 mt-0.5">
-                            {item.penalty_max ? `${L.penalty}: $${item.penalty_max.toLocaleString()}` : ""}
-                            {item.impact_max ? `${L.impact}: $${item.impact_max.toLocaleString()}${L.perYear}` : ""}
-                            {item.max_funding ? `${L.maxFunding} $${item.max_funding.toLocaleString()}` : ""}
+                            {item.penalty_max ? `${L.penalty}: $${(Number(item.penalty_max) || 0).toLocaleString()}` : ""}
+                            {item.impact_max ? `${L.impact}: $${(Number(item.impact_max) || 0).toLocaleString()}${L.perYear}` : ""}
+                            {item.max_funding ? `${L.maxFunding} $${(Number(item.max_funding) || 0).toLocaleString()}` : ""}
                           </p>
                         )}
                       </div>
                     </div>
                   );
                 })}
-                {(top_actions?.length || 0) > 5 && !showAllActions && (
+                {(top_actions?.length ?? 0) > 5 && !showAllActions && (
                   <button onClick={() => setShowAllActions(true)} className="w-full py-2.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
                     {L.viewAll} ({top_actions.length})
                   </button>
@@ -424,7 +426,7 @@ export function PrescanResults({ report, onCTA, language = "en", className = "" 
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-orange-400">
-                          ${Number(lk.impact_max || lk.annual_impact_max || 0).toLocaleString()}
+                          ${Number(lk.impact_max || lk.annual_impact_max ?? 0).toLocaleString()}
                         </div>
                         <div className="text-[9px] text-white/20">{L.perYear}</div>
                       </div>

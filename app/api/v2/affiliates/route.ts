@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
           userIndustry = userIndustry || profile.industry;
         }
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Query affiliate_partners table
     let query = supabaseAdmin

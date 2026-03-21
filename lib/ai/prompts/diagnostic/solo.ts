@@ -27,7 +27,7 @@ export function buildSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userProm
   const systemPrompt = `${FRUXAL_VOICE}
 
 You are analyzing ${bizName}, a ${industry} operating in ${province} as a ${structure}.
-Annual revenue: $${annualRevenue.toLocaleString()} (${revenueSource}).
+Annual revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}).
 Employees: ${employees}.
 
 ${taxCtx}
@@ -36,7 +36,7 @@ ${taxCtx}
 Before producing any JSON, reason through these questions in order:
 
 1. HST/GST THRESHOLD
-   Revenue is $${annualRevenue.toLocaleString()}. The mandatory registration threshold is $30,000.
+   Revenue is $${(annualRevenue ?? 0).toLocaleString()}. The mandatory registration threshold is $30,000.
    ${annualRevenue < 30_000
      ? "They are BELOW the threshold. Should they register voluntarily for ITC recovery? Calculate the net benefit."
      : annualRevenue < 50_000
@@ -83,7 +83,7 @@ ${buildQualityBar("solo")}
 ${buildSolutionMatrix("solo", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
 STRUCTURAL RULES:
-1. Calculate every dollar from ACTUAL revenue $${annualRevenue.toLocaleString()} (${revenueSource}).
+1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}).
 2. Keep language plain. This owner has no CFO, no accountant on retainer. No jargon.
 3. Maximum 5 findings. No finding under $500 annual impact.
 4. second_order_effects is a PLAIN STRING — NOT an array. One sentence on the cascade.
@@ -104,7 +104,7 @@ PROFILE:
 - Industry:          ${industry}
 - Province:          ${province}
 - Structure:         ${structure}
-- Annual revenue:    $${annualRevenue.toLocaleString()} (${revenueSource})
+- Annual revenue:    $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource})
 - Employees:         ${employees}
 - Has accountant:    ${profile.has_accountant  ? "YES" : "NO"}
 - Has bookkeeper:    ${profile.has_bookkeeper  ? "YES" : "NO"}

@@ -9,6 +9,8 @@ import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const STAGES = ["lead","contacted","called","diagnostic_sent","agreement_out","signed","in_engagement","fee_collected","lost"];
 
 const DOC_MAP: Record<string, Array<{ type: string; label: string }>> = {
@@ -39,8 +41,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (diag) {
       const { data: pipe } = await supabaseAdmin.from("tier3_pipeline").select("*").eq("diagnostic_id", id).single();
       const result    = diag.result || {};
-      const low       = result.summary?.totalEstimatedLow  || 0;
-      const high      = result.summary?.totalEstimatedHigh || 0;
+      const low       = result.summary?.totalEstimatedLow ?? 0;
+      const high      = result.summary?.totalEstimatedHigh ?? 0;
       const updatedAt = pipe?.updated_at || diag.created_at;
       const daysInStage = Math.floor((Date.now() - new Date(updatedAt).getTime()) / 86400000);
 
@@ -53,7 +55,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           stage: pipe?.stage || diag.status, notes: pipe?.notes || null,
           followUpDate: pipe?.follow_up_date || null, agreementStatus: null,
           estimatedLow: low, estimatedHigh: high,
-          highConfidenceCount: result.summary?.highConfidenceCount || 0,
+          highConfidenceCount: result.summary?.highConfidenceCount ?? 0,
           daysInStage,
         },
         diagnostic: diag,
@@ -93,8 +95,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             : "—",
           stage: pipe.stage, notes: pipe.notes || null,
           followUpDate: pipe.follow_up_date || null, agreementStatus: null,
-          estimatedLow: report?.total_annual_leaks || 0,
-          estimatedHigh: report?.total_potential_savings || 0,
+          estimatedLow: report?.total_annual_leaks ?? 0,
+          estimatedHigh: report?.total_potential_savings ?? 0,
           highConfidenceCount: findings.filter((f: any) => f.severity === "critical" || f.severity === "high").length,
           daysInStage,
         },
@@ -186,8 +188,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
               .single();
             if (diag) {
               companyName   = diag.company_name;
-              estimatedLow  = diag.result?.summary?.totalEstimatedLow  || 0;
-              estimatedHigh = diag.result?.summary?.totalEstimatedHigh || 0;
+              estimatedLow  = diag.result?.summary?.totalEstimatedLow ?? 0;
+              estimatedHigh = diag.result?.summary?.totalEstimatedHigh ?? 0;
             }
           } else if (pipe.report_id) {
             const { data: report } = await supabaseAdmin
@@ -202,8 +204,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 .eq("business_id", report.business_id)
                 .single();
               companyName   = profile?.business_name || "Unknown";
-              estimatedLow  = report.total_annual_leaks       || 0;
-              estimatedHigh = report.total_potential_savings   || 0;
+              estimatedLow  = report.total_annual_leaks       ?? 0;
+              estimatedHigh = report.total_potential_savings   ?? 0;
             }
           }
 
@@ -264,7 +266,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             await supabaseAdmin.from("tier3_engagement_documents").insert(docRows);
           }
 
-          console.log(`[Pipeline] Engagement auto-created: ${engId} for pipeline ${id}`);
+          process.env.NODE_ENV !== "production" && console.log(`[Pipeline] Engagement auto-created: ${engId} for pipeline ${id}`);
           return NextResponse.json({ success: true, entry: pipe, engagementId: engId, action: "engagement_created" });
         }
       } catch (engErr: any) {

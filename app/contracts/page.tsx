@@ -39,7 +39,7 @@ export default function ContractsPage() {
         const data = await res.json();
         setDocuments(data.documents);
       }
-    } catch {}
+    } catch { /* non-fatal */ }
     setLoading(false);
   }, []);
 
@@ -330,7 +330,7 @@ export default function ContractsPage() {
                                 <div className="flex items-center justify-between">
                                   <div className="text-sm font-bold text-gray-900">{gap.issue}</div>
                                   {gap.estimatedImpact && (
-                                    <span className="text-sm font-extrabold text-accent">${gap.estimatedImpact.toLocaleString()}</span>
+                                    <span className="text-sm font-extrabold text-accent">${(gap.estimatedImpact ?? 0).toLocaleString()}</span>
                                   )}
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1">{gap.recommendation}</div>

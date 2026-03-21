@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -109,7 +111,7 @@ export async function GET(req: NextRequest) {
         .eq("engagement_id", engagement.id)
         .order("confirmed_amount", { ascending: false });
       confirmedFindings = findings || [];
-      confirmedSavingsTotal = confirmedFindings.reduce((s, f) => s + (f.confirmed_amount || 0), 0);
+      confirmedSavingsTotal = confirmedFindings.reduce((s, f) => s + (f.confirmed_amount ?? 0), 0);
     }
 
     const feeOwed = engagement?.fee_percentage

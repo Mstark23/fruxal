@@ -82,7 +82,7 @@ function buildPDF(report: any, profile: any, isFr: boolean): Promise<Buffer> {
     const execSummary   = isFr
       ? (report.executive_summary_fr || report.executive_summary || "")
       : (report.executive_summary    || "");
-    const anchor        = report.savings_anchor?.headline || fmtM(totals.potential_savings || totals.annual_leaks || 0);
+    const anchor        = report.savings_anchor?.headline || fmtM(totals.potential_savings || totals.annual_leaks ?? 0);
     const companyName   = profile.business_name || profile.industry_label || "Your Business";
     const dateStr       = new Date().toLocaleDateString(isFr ? "fr-CA" : "en-CA", { year: "numeric", month: "long", day: "numeric" });
 
@@ -131,10 +131,10 @@ function buildPDF(report: any, profile: any, isFr: boolean): Promise<Buffer> {
     y = Math.max(col1Y, col2Y) + 12;
 
     const kpis = [
-      { label: t("Annual Leaks",      "Pertes annuelles"),          val: fmtM(totals.annual_leaks        || 0) },
-      { label: t("Potential Savings", "Économies potentielles"),     val: fmtM(totals.potential_savings   || 0) },
-      { label: t("EBITDA Impact",     "Impact BAIIA"),               val: fmtM(totals.ebitda_impact       || 0) },
-      { label: t("EV Impact",         "Impact valeur d'entreprise"), val: fmtM(totals.enterprise_value_impact || 0) },
+      { label: t("Annual Leaks",      "Pertes annuelles"),          val: fmtM(totals.annual_leaks ?? 0) },
+      { label: t("Potential Savings", "Économies potentielles"),     val: fmtM(totals.potential_savings ?? 0) },
+      { label: t("EBITDA Impact",     "Impact BAIIA"),               val: fmtM(totals.ebitda_impact ?? 0) },
+      { label: t("EV Impact",         "Impact valeur d'entreprise"), val: fmtM(totals.enterprise_value_impact ?? 0) },
     ];
     const boxW = (CW - 12) / 4;
     kpis.forEach((k, i) => {
@@ -173,7 +173,7 @@ function buildPDF(report: any, profile: any, isFr: boolean): Promise<Buffer> {
         const rec         = isFr ? (f.recommendation_fr || f.recommendation || "") : (f.recommendation || "");
         const sev         = f.severity || "medium";
         const sevColor    = severityColor(sev);
-        const impactRange = (f.impact_min || f.impact_max) ? `${fmtM(f.impact_min || 0)} – ${fmtM(f.impact_max || 0)}` : "—";
+        const impactRange = (f.impact_min || f.impact_max) ? `${fmtM(f.impact_min ?? 0)} – ${fmtM(f.impact_max ?? 0)}` : "—";
         const effort      = f.effort ? f.effort.charAt(0).toUpperCase() + f.effort.slice(1) : "—";
         const estH = 80;
         if (y + estH > H - M - 20) {

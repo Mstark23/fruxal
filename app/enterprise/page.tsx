@@ -29,6 +29,7 @@ const PROCESS_STEPS = [
 
 export default function EnterprisePage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [lang, setLang] = useState<"en"|"fr">("en");
   const isFR = lang === "fr";
   const t = (en: string, fr: string) => isFR ? fr : en;
@@ -46,7 +47,7 @@ export default function EnterprisePage() {
     try {
       const stored = localStorage.getItem("fruxal_lang");
       if (stored === "fr" || stored === "en") { setLang(stored); return; }
-    } catch {}
+    } catch { /* non-fatal */ }
     if (navigator.language?.toLowerCase().startsWith("fr")) setLang("fr");
   }, []);
 
@@ -57,7 +58,8 @@ export default function EnterprisePage() {
     }
     setSubmitting(true); setError("");
     try {
-      const res = await fetch("/api/v2/enterprise/contact", {
+      setIsLoading(true);
+    const res = await fetch("/api/v2/enterprise/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, lang }),
@@ -65,10 +67,13 @@ export default function EnterprisePage() {
       const json = await res.json();
       if (json.success) setSubmitted(true);
       else setError(json.error || t("Something went wrong.","Une erreur s'est produite."));
+    setIsLoading(false);
     } catch {
       setError(t("Something went wrong. Please email us at enterprise@fruxal.com","Une erreur s'est produite. Envoyez-nous un courriel à enterprise@fruxal.com"));
     } finally { setSubmitting(false); }
   };
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
 
   return (
     <div style={{ fontFamily: "'Georgia', serif", background: "#FAFAF8", minHeight: "100vh" }}>
@@ -100,7 +105,7 @@ export default function EnterprisePage() {
           {/* EN / FR pill toggle */}
           <div style={{ display: "flex", alignItems: "center", background: "#EEECE8", borderRadius: 8, padding: 3, gap: 2 }}>
             {(["en", "fr"] as const).map(l => (
-              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch {} }} className="sans"
+              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch { /* non-fatal */ } }} className="sans"
                 style={{
                   padding: "4px 12px", fontSize: 11, fontWeight: 700,
                   color: lang === l ? "#1A1A18" : "#8E8C85",

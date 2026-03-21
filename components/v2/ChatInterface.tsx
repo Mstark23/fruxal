@@ -151,7 +151,7 @@ export function ChatInterface({
       });
       const data = await res.json();
       if (data.url) {
-        window.location.href = data.url;
+        typeof window !== "undefined" && window.location.href = data.url;
       } else {
         setError("Failed to create checkout session");
       }

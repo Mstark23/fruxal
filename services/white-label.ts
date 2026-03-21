@@ -33,7 +33,7 @@ export async function getWhiteLabelConfig(businessId: string): Promise<WhiteLabe
     if (data?.whiteLabelConfig) {
       return { ...DEFAULT_CONFIG, ...JSON.parse(data.whiteLabelConfig) };
     }
-  } catch (e) {}
+  } catch (e) { /* non-fatal */ }
   return DEFAULT_CONFIG;
 }
 

@@ -87,7 +87,8 @@ export async function callClaudeJSON<T = any>(opts: ClaudeCallOptions): Promise<
   const result = await callClaude(opts);
   const clean  = result.text.replace(/```json\n?|```\n?/g, "").trim();
 
-  const parsed = JSON.parse(clean) as T;
+  let parsed: T;
+  try { parsed = JSON.parse(clean) as T; } catch (e: any) { throw new Error(`AI JSON parse failed: ${e.message}`); }
   return {
     ...parsed,
     _meta: {

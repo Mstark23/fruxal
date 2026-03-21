@@ -17,14 +17,14 @@ async function buildSystemPrompt(userId: string, clientCtx?: any, scanId?: strin
   const industry      = clientCtx?.industry || "small business";
   const province      = clientCtx?.province || "Canada";
   // Handle both field name conventions (page sends overallScore/totalLeaks, some callers send score/totalLeak)
-  const rawLeak       = clientCtx?.totalLeak || clientCtx?.totalLeaks || 0;
-  const rawScore      = clientCtx?.score || clientCtx?.overallScore || 0;
+  const rawLeak       = clientCtx?.totalLeak || clientCtx?.totalLeaks ?? 0;
+  const rawScore      = clientCtx?.score || clientCtx?.overallScore ?? 0;
   const rawFindings   = clientCtx?.findings || clientCtx?.topFindings || [];
   const totalLeak     = rawLeak ? "$" + Number(rawLeak).toLocaleString() + "/yr" : "unknown amount";
   const score         = rawScore ? String(rawScore) + "/100" : "not yet calculated";
   const topFindings   = Array.isArray(rawFindings)
     ? rawFindings.slice(0, 5).map((f: any) =>
-        typeof f === "string" ? "- " + f : "- " + (f.title || "") + " ($" + (f.annual_leak || f.impact_max || 0).toLocaleString() + "/yr)"
+        typeof f === "string" ? "- " + f : "- " + (f.title || "") + " ($" + (f.annual_leak || f.impact_max ?? 0).toLocaleString() + "/yr)"
       ).join("\n")
     : "";
   const savingsAnchor = clientCtx?.savingsAnchor?.headline || clientCtx?.savingsAnchor || "";
@@ -48,7 +48,7 @@ async function buildSystemPrompt(userId: string, clientCtx?: any, scanId?: strin
 
   return {
     systemPrompt,
-    context: { userId, scanId, industry, province, leakCount: (clientCtx?.findings || []).length, totalLeak: clientCtx?.totalLeak || 0, industryDisplay: industry },
+    context: { userId, scanId, industry, province, leakCount: (clientCtx?.findings || []).length, totalLeak: clientCtx?.totalLeak ?? 0, industryDisplay: industry },
   };
 }
 
@@ -116,14 +116,14 @@ export async function POST(req: NextRequest) {
         .select("message_count")
         .eq("userId", userId);
 
-      const totalMessages = (convs || []).reduce((s: number, c: any) => s + (c.message_count || 0), 0);
+      const totalMessages = (convs || []).reduce((s: number, c: any) => s + (c.message_count ?? 0), 0);
       const userMessageCount = Math.floor(totalMessages / 2);
 
       if (userMessageCount >= 2) {
         return NextResponse.json({
           error: "paywall",
           message: "You've used your 2 free messages.",
-          totalLeak: progress?.total_leak_found || 0,
+          totalLeak: progress?.total_leak_found ?? 0,
           paywallType: "chat_limit",
         }, { status: 402 });
       }

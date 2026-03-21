@@ -7,6 +7,8 @@ import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 async function safe<T>(fn: () => Promise<T>, fb: T): Promise<T> {
   try { return await fn(); } catch { return fb; }
 }
@@ -38,8 +40,8 @@ export async function GET(req: NextRequest) {
     const enriched = reps.map((r: any) => {
       const repAssignments = assignmentsByRep[r.id] || [];
       const repCommissions = commissionsByRep[r.id] || [];
-      const totalEarned = repCommissions.filter((c: any) => c.status === "paid").reduce((s: number, c: any) => s + (c.commission_amount || 0), 0);
-      const totalPending = repCommissions.filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + (c.commission_amount || 0), 0);
+      const totalEarned = repCommissions.filter((c: any) => c.status === "paid").reduce((s: number, c: any) => s + (c.commission_amount ?? 0), 0);
+      const totalPending = repCommissions.filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + (c.commission_amount ?? 0), 0);
 
       return {
         id: r.id, name: r.name, email: r.email, phone: r.phone,
@@ -52,8 +54,8 @@ export async function GET(req: NextRequest) {
     });
 
     const totalReps = reps.filter((r: any) => r.status === "active").length;
-    const totalPaid = commissions.filter((c: any) => c.status === "paid").reduce((s: number, c: any) => s + (c.commission_amount || 0), 0);
-    const totalPending = commissions.filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + (c.commission_amount || 0), 0);
+    const totalPaid = commissions.filter((c: any) => c.status === "paid").reduce((s: number, c: any) => s + (c.commission_amount ?? 0), 0);
+    const totalPending = commissions.filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + (c.commission_amount ?? 0), 0);
 
     return NextResponse.json({
       success: true, reps: enriched,

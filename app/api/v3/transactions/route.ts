@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 // ── Ownership helper ──────────────────────────────────────────────────────────
 // Returns the userId's verified businessId, or null if they don't own it.
 async function verifyOwnership(userId: string, businessId: string): Promise<boolean> {
@@ -72,13 +74,13 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     transactions: data || [],
-    pagination: { page, limit, total: count || 0, totalPages: Math.ceil((count || 0) / limit) },
+    pagination: { page, limit, total: count ?? 0, totalPages: Math.ceil((count ?? 0) / limit) },
     summary: {
-      total_transactions: summary?.length || 0,
+      total_transactions: summary?.length ?? 0,
       total_income: totalIncome,
       total_expenses: totalExpenses,
       categorized: categorizedCount,
-      uncategorized: (summary?.length || 0) - categorizedCount,
+      uncategorized: (summary?.length ?? 0) - categorizedCount,
       categorization_pct: summary?.length ? Math.round((categorizedCount / summary.length) * 100) : 0,
     },
   });

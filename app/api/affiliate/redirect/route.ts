@@ -13,6 +13,8 @@ import { NextResponse } from "next/server";
 import { db, insert, findById, update } from "@/lib/db/service";
 import { withAuth, apiError, AffiliateClickSchema } from "@/lib/api/middleware";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const partnerId = url.searchParams.get("pid");
@@ -82,7 +84,7 @@ export async function GET(req: Request) {
   await db()
     .from("affiliate_partners")
     .update({ 
-      total_clicks: (partner.total_clicks || 0) + 1,
+      total_clicks: (partner.total_clicks ?? 0) + 1,
       updated_at: new Date().toISOString(),
     })
     .eq("id", partnerId);
@@ -127,7 +129,7 @@ export async function POST(req: Request) {
     if (referral?.partner_id) {
       const { data: partner } = await findById("affiliate_partners", referral.partner_id);
       if (partner) {
-        const newConversions = (partner.total_conversions || 0) + 1;
+        const newConversions = (partner.total_conversions ?? 0) + 1;
         const newRate = partner.total_clicks > 0 ? newConversions / partner.total_clicks : 0;
         await update("affiliate_partners", { id: partner.id }, {
           total_conversions: newConversions,

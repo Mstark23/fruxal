@@ -54,11 +54,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         data: {
-          total_matched: syncData?.total_matched || 0,
-          new_obligations: syncData?.new_obligations || 0,
-          overdue: deadlineData?.filter((d: any) => d.is_overdue)?.length || 0,
-          upcoming_30_days: deadlineData?.filter((d: any) => d.days_until >= 0 && d.days_until <= 30)?.length || 0,
-          deadlines_computed: deadlineData?.length || 0,
+          total_matched: syncData?.total_matched ?? 0,
+          new_obligations: syncData?.new_obligations ?? 0,
+          overdue: deadlineData?.filter((d: any) => d.is_overdue)?.length ?? 0,
+          upcoming_30_days: deadlineData?.filter((d: any) => d.days_until >= 0 && d.days_until <= 30)?.length ?? 0,
+          deadlines_computed: deadlineData?.length ?? 0,
         },
       });
     }

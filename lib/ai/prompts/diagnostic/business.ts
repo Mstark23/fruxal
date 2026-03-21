@@ -28,7 +28,7 @@ export function buildBusinessPrompts(ctx: DiagCtx): { systemPrompt: string; user
   const systemPrompt = `${FRUXAL_VOICE}
 
 You are analyzing ${bizName}, a ${industry} operating in ${province}.
-Revenue: $${annualRevenue.toLocaleString()} (${revenueSource}) | EBITDA: ~$${estimatedEBITDA.toLocaleString()} (${ebitdaSource})
+Revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}) | EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource})
 Employees: ${employees} | Gross margin: ${grossMarginPct}%${ownerSalary > 0 ? ` | Owner salary: $${ownerSalary.toLocaleString()}` : ""}
 
 ${taxCtx}
@@ -39,7 +39,7 @@ have calculated a real dollar impact from this business's actual numbers.
 
 1. T4 SALARY vs DIVIDENDS
    Owner salary: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "not provided"}
-   Revenue: $${annualRevenue.toLocaleString()} | EBITDA: ~$${estimatedEBITDA.toLocaleString()}
+   Revenue: $${(annualRevenue ?? 0).toLocaleString()} | EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()}
    → What is the after-tax optimal T4 vs eligible dividend split?
    → CPP: T4 salary above $68,500 triggers 11.9% combined (employer + employee). Over-contributing?
    → At what salary level does additional T4 become net-negative vs dividends?
@@ -52,7 +52,7 @@ have calculated a real dollar impact from this business's actual numbers.
    ${profile.has_payroll ? "→ Is the current payroll tool Canadian? Handling ROEs, T4s, direct deposit correctly?" : "→ Manual payroll = compliance risk. What is the penalty exposure?"}
 
 3. HST / GST
-   → Quick Method election: at $${annualRevenue.toLocaleString()} revenue, is it applicable?
+   → Quick Method election: at $${(annualRevenue ?? 0).toLocaleString()} revenue, is it applicable?
    Quick Method rates: service ~8.8% (ON), retail ~4.4%. Compare to actual remittance.
    → Input tax credits: are all eligible business expenses claiming full ITCs?
    → Any exempt supplies being incorrectly taxed or vice versa?
@@ -91,7 +91,7 @@ ${buildQualityBar("business")}
 ${buildSolutionMatrix("business", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
 STRUCTURAL RULES:
-1. Calculate every dollar from ACTUAL revenue $${annualRevenue.toLocaleString()} and EBITDA $${estimatedEBITDA.toLocaleString()}.
+1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()}.
 2. Maximum 7 findings. No finding under $2,000 annual impact.
 3. Every finding MUST include ebitda_improvement AND enterprise_value_improvement. Assume 3–5× EBITDA multiple. Show the math.
 4. second_order_effects is a PLAIN STRING — NOT an array.
@@ -113,9 +113,9 @@ PROFILE:
 - Industry:          ${industry}
 - Province:          ${province}
 - Structure:         ${structure}
-- Annual revenue:    $${annualRevenue.toLocaleString()} (${revenueSource})
+- Annual revenue:    $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource})
 - Gross margin:      ${grossMarginPct}%
-- Est. EBITDA:       $${estimatedEBITDA.toLocaleString()} (${ebitdaSource})
+- Est. EBITDA:       $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource})
 - Employees:         ${employees}
 ${estimatedPayroll > 0 ? `- Est. payroll:      $${estimatedPayroll.toLocaleString()}` : ""}
 ${ownerSalary > 0      ? `- Owner salary:      $${ownerSalary.toLocaleString()}` : ""}

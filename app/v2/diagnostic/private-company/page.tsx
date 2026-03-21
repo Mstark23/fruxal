@@ -134,8 +134,8 @@ export default function PrivateCompanyPage() {
         body: JSON.stringify({
           ...form,
           annual_revenue:   parseNum(form.annual_revenue) || 0,
-          employee_count:   Number(form.employee_count || 0),
-          gross_margin_pct: Number(form.gross_margin_pct || 0),
+          employee_count:   Number(form.employee_count ?? 0),
+          gross_margin_pct: Number(form.gross_margin_pct ?? 0),
           ebitda_estimate:  parseNum(form.ebitda_estimate),
           owner_salary:     parseNum(form.owner_salary),
           rdtoh_balance:    parseNum(form.rdtoh_balance),

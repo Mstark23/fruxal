@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 // ── Ownership helper ──────────────────────────────────────────────────────────
 async function verifyOwnership(userId: string, businessId: string): Promise<boolean> {
   const { data } = await supabaseAdmin

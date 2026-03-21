@@ -68,7 +68,7 @@ export default function EmbedWidget() {
       {step === "result" && result && (
         <div className="bg-[#0a0e17] text-white rounded-2xl p-6">
           <div className="text-center mb-4">
-            <div className="text-4xl font-black text-[#ff3d57]">${result.total.toLocaleString()}<span className="text-lg">/yr</span></div>
+            <div className="text-4xl font-black text-[#ff3d57]">${(result.total ?? 0).toLocaleString()}<span className="text-lg">/yr</span></div>
             <div className="text-xs text-gray-400 mt-1">Estimated leaking from {result.leakCount} areas</div>
           </div>
           <div className="flex items-center gap-3 mb-4">

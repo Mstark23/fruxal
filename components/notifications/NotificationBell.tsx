@@ -51,9 +51,9 @@ export function NotificationBell({ language = "fr" }: Props) {
       const json = await res.json();
       if (json.success) {
         setNotifications(json.data.items || []);
-        setUnreadCount(json.data.unread_count || 0);
+        setUnreadCount(json.data.unread_count ?? 0);
       }
-    } catch {}
+    } catch { /* non-fatal */ }
   }, []);
 
   // Poll every 60 seconds
@@ -168,21 +168,21 @@ export function NotificationBell({ language = "fr" }: Props) {
                 const actionLabel = isFr ? (notif.action_label_fr || notif.action_label) : notif.action_label;
 
                 return (
-                  <div
+                  <div key={i}
                     key={notif.id}
                     className={`px-4 py-3 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors cursor-pointer ${!notif.read ? "bg-white/[0.02]" : ""}`}
                     onClick={() => {
                       if (!notif.read) markRead(notif.id);
-                      if (notif.action_url) window.location.href = notif.action_url;
+                      if (notif.action_url) if (typeof window !== "undefined") window.location.href = notif.action_url;
                     }}
                   >
-                    <div className="flex gap-3">
+                    <div key={i} className="flex gap-3">
                       {/* Dot */}
-                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${notif.read ? "bg-white/10" : us.dot}`} />
+                      <div key={i} className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${notif.read ? "bg-white/10" : us.dot}`} />
 
-                      <div className="flex-1 min-w-0">
+                      <div key={i} className="flex-1 min-w-0">
                         {/* Title + time */}
-                        <div className="flex items-start justify-between gap-2">
+                        <div key={i} className="flex items-start justify-between gap-2">
                           <p className={`text-xs font-medium leading-tight ${notif.read ? "text-white/40" : "text-white/80"}`}>{title}</p>
                           <span className="text-[10px] text-white/15 shrink-0">{timeAgo(notif.created_at)}</span>
                         </div>
@@ -191,7 +191,7 @@ export function NotificationBell({ language = "fr" }: Props) {
                         <p className={`text-[11px] mt-0.5 line-clamp-2 ${notif.read ? "text-white/20" : "text-white/35"}`}>{body}</p>
 
                         {/* Footer: penalty + action */}
-                        <div className="flex items-center gap-2 mt-1.5">
+                        <div key={i} className="flex items-center gap-2 mt-1.5">
                           {notif.penalty_amount && notif.penalty_amount > 0 && (
                             <span className="text-[10px] text-red-400/60">${Number(notif.penalty_amount).toLocaleString()}</span>
                           )}

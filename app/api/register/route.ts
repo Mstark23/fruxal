@@ -6,7 +6,26 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
+// Rate limiter: 5 registrations per IP per hour — prevents account spam
+const _regRl = new Map<string, { c: number; r: number }>();
+function regRateCheck(ip: string): boolean {
+  const now = Date.now();
+  const entry = _regRl.get(ip);
+  if (!entry || entry.r < now) { _regRl.set(ip, { c: 1, r: now + 3_600_000 }); return true; }
+  entry.c++;
+  return entry.c <= 5;
+}
+setInterval(() => { const now = Date.now(); for (const [k,v] of _regRl) if (v.r < now) _regRl.delete(k); }, 1_800_000);
+
 export async function POST(request: NextRequest) {
+  // Rate limit
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!regRateCheck(ip)) {
+    return NextResponse.json({ error: "Too many registration attempts. Try again later." }, { status: 429 });
+  }
+
   try {
     const { email: rawEmail, password, name, prescanRunId } = await request.json();
 
@@ -63,7 +82,7 @@ export async function POST(request: NextRequest) {
           province = run.province || null;
           revenue = run.annual_revenue || null;
           employeeCount = run.employee_count || null;
-          console.log("✅ Bridge source A: prescan_runs found");
+          process.env.NODE_ENV !== "production" && console.log("✅ Bridge source A: prescan_runs found");
         }
       } catch (e: any) {
         console.warn("⚠️ Bridge source A (prescan_runs):", e.message);
@@ -82,7 +101,7 @@ export async function POST(request: NextRequest) {
 
           if (prDirect?.[0]) {
             prData = prDirect[0];
-            console.log("✅ Bridge source B: prescan_results via top-level column");
+            process.env.NODE_ENV !== "production" && console.log("✅ Bridge source B: prescan_results via top-level column");
           } else {
             // Legacy: prescan_run_id inside input_snapshot JSONB
             const { data: prJsonb } = await sb
@@ -93,7 +112,7 @@ export async function POST(request: NextRequest) {
               .limit(1);
             if (prJsonb?.[0]) {
               prData = prJsonb[0];
-              console.log("✅ Bridge source B: prescan_results via JSONB fallback");
+              process.env.NODE_ENV !== "production" && console.log("✅ Bridge source B: prescan_results via JSONB fallback");
             }
           }
 
@@ -117,7 +136,7 @@ export async function POST(request: NextRequest) {
             user_id: userId,
             business_id: businessId,
           }).eq("id", prescanRunId);
-          console.log("✅ Bridge step 2: prescan_runs linked");
+          process.env.NODE_ENV !== "production" && console.log("✅ Bridge step 2: prescan_runs linked");
         } catch (e: any) {
           console.warn("⚠️ Bridge step 2:", e.message);
         }
@@ -140,7 +159,7 @@ export async function POST(request: NextRequest) {
           for (const pr of prResults) {
             await sb.from("prescan_results").update({ user_id: userId }).eq("id", pr.id);
           }
-          console.log(`✅ Bridge step 3.5: ${prResults.length} prescan_results linked`);
+          process.env.NODE_ENV !== "production" && console.log(`✅ Bridge step 3.5: ${prResults.length} prescan_results linked`);
         }
       } catch (e: any) {
         console.warn("⚠️ Bridge step 3.5:", e.message);
@@ -162,7 +181,7 @@ export async function POST(request: NextRequest) {
           tour_step_reached: hasProfileData ? 5 : 0,
           updated_at: new Date().toISOString(),
         }, { onConflict: "business_id" });
-        console.log("✅ Bridge step 4: business_profiles created");
+        process.env.NODE_ENV !== "production" && console.log("✅ Bridge step 4: business_profiles created");
       } catch (e: any) {
         console.warn("⚠️ Bridge step 4 (full):", e.message);
         try {
@@ -176,7 +195,7 @@ export async function POST(request: NextRequest) {
             onboarding_completed: hasProfileData,
             updated_at: new Date().toISOString(),
           }, { onConflict: "business_id" });
-          console.log("✅ Bridge step 4 fallback 1: without tour columns");
+          process.env.NODE_ENV !== "production" && console.log("✅ Bridge step 4 fallback 1: without tour columns");
         } catch (e2: any) {
           console.warn("⚠️ Bridge step 4 fallback 1:", e2.message);
           try {
@@ -186,8 +205,8 @@ export async function POST(request: NextRequest) {
               onboarding_completed: hasProfileData,
               updated_at: new Date().toISOString(),
             }, { onConflict: "user_id" });
-            console.log("✅ Bridge step 4 fallback 2: minimal");
-          } catch {}
+            process.env.NODE_ENV !== "production" && console.log("✅ Bridge step 4 fallback 2: minimal");
+          } catch { /* non-fatal */ }
         }
       }
 
@@ -220,7 +239,7 @@ export async function POST(request: NextRequest) {
 
       try {
         await sb.rpc("auto_detect_flags", { p_business_id: businessId });
-      } catch {}
+      } catch { /* non-fatal */ }
 
       try {
         const { data: detectedLeaks } = await sb
@@ -233,10 +252,10 @@ export async function POST(request: NextRequest) {
             user_id: userId,
             leak_slug: l.leak_type_code || l.title?.toLowerCase().replace(/\s+/g, "_") || "unknown",
             status: "detected",
-            savings_amount: l.annual_impact_min || 0,
+            savings_amount: l.annual_impact_min ?? 0,
           }));
           await sb.from("user_leak_status").upsert(leakRows, { onConflict: "user_id,leak_slug" });
-          console.log(`✅ Bridge step 8: ${leakRows.length} leaks seeded from detected_leaks`);
+          process.env.NODE_ENV !== "production" && console.log(`✅ Bridge step 8: ${leakRows.length} leaks seeded from detected_leaks`);
         } else {
           const { data: pr } = await sb
             .from("prescan_results")
@@ -250,10 +269,10 @@ export async function POST(request: NextRequest) {
               user_id: userId,
               leak_slug: l.slug || "unknown",
               status: "detected",
-              savings_amount: l.impact_min || 0,
+              savings_amount: l.impact_min ?? 0,
             }));
             await sb.from("user_leak_status").upsert(leakRows, { onConflict: "user_id,leak_slug" });
-            console.log(`✅ Bridge step 8: ${leakRows.length} leaks seeded from prescan_results`);
+            process.env.NODE_ENV !== "production" && console.log(`✅ Bridge step 8: ${leakRows.length} leaks seeded from prescan_results`);
           } else if (province) {
             const { data: genericLeaks } = await sb
               .from("provincial_leak_detectors")
@@ -263,10 +282,10 @@ export async function POST(request: NextRequest) {
             if (genericLeaks && genericLeaks.length > 0) {
               const leakRows = genericLeaks.map((g: any) => ({
                 user_id: userId, leak_slug: g.slug,
-                status: "detected", savings_amount: g.annual_impact_min || 0,
+                status: "detected", savings_amount: g.annual_impact_min ?? 0,
               }));
               await sb.from("user_leak_status").upsert(leakRows, { onConflict: "user_id,leak_slug" });
-              console.log(`✅ Bridge step 8: ${genericLeaks.length} leaks from provincial defaults`);
+              process.env.NODE_ENV !== "production" && console.log(`✅ Bridge step 8: ${genericLeaks.length} leaks from provincial defaults`);
             }
           }
         }
@@ -274,7 +293,7 @@ export async function POST(request: NextRequest) {
         console.warn("⚠️ Bridge step 8 (leak seeding):", e.message);
       }
 
-      console.log(`✅ Prescan bridge complete: user=${userId}, biz=${businessId}, prescan=${prescanRunId}`);
+      process.env.NODE_ENV !== "production" && console.log(`✅ Prescan bridge complete: user=${userId}, biz=${businessId}, prescan=${prescanRunId}`);
     }
 
     return NextResponse.json(

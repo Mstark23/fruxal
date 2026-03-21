@@ -78,8 +78,10 @@ export default function PlaidConnectBanner() {
           const exchData = await exchRes.json();
           if (exchData.success) {
             setSyncMsg("Connected — syncing…");
-            setTimeout(async () => {
-              const fresh = await fetch("/api/plaid/status").then(r => r.json());
+            const _to = setTimeout(async () => {
+            return () => clearTimeout(_to);
+              const fresh = await fetch("/api/plaid/status").then(r => r.json()).catch(() => null);
+      if (!fresh) return;
               setStatus(fresh);
               setSyncMsg("");
               setSyncing(false);
@@ -104,7 +106,7 @@ export default function PlaidConnectBanner() {
       const data = await res.json();
       if (data.success) {
         setSyncMsg("Synced");
-        const fresh = await fetch("/api/plaid/status").then(r => r.json());
+        const fresh = await fetch("/api/plaid/status").then(r => r.json()).catch(() => null);
         setStatus(fresh);
       } else {
         setSyncMsg(data.error || "Sync failed");

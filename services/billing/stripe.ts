@@ -193,7 +193,7 @@ export async function handleWebhookEvent(event: Stripe.Event): Promise<void> {
           .from("businesses")
           .update({ tier: plan, stripe_subscription_id: subscriptionId, stripe_customer_id: session.customer as string, updated_at: new Date().toISOString() })
           .eq("id", businessId);
-        console.log(`✅ Business ${businessId} upgraded to ${plan}`);
+        process.env.NODE_ENV === "development" && console.log(`✅ Business ${businessId} upgraded to ${plan}`);
       }
       break;
     }
@@ -219,7 +219,7 @@ export async function handleWebhookEvent(event: Stripe.Event): Promise<void> {
           .from("businesses")
           .update({ tier: "free", stripe_subscription_id: null, updated_at: new Date().toISOString() })
           .eq("id", businessId);
-        console.log(`⚠️ Business ${businessId} downgraded to free`);
+        process.env.NODE_ENV === "development" && console.log(`⚠️ Business ${businessId} downgraded to free`);
       }
       break;
     }
@@ -234,7 +234,7 @@ export async function handleWebhookEvent(event: Stripe.Event): Promise<void> {
         .eq("stripe_customer_id", customerId)
         .maybeSingle();
       if (business) {
-        console.log(`❌ Payment failed for business ${business.id}`);
+        process.env.NODE_ENV === "development" && console.log(`❌ Payment failed for business ${business.id}`);
         // Could trigger a notification here
       }
       break;

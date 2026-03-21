@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+const _entCtRl = new Map<string, { c: number; r: number }>();
+function entCtRateCheck(ip: string): boolean {
+  const now = Date.now();
+  const e = _entCtRl.get(ip);
+  if (!e || e.r < now) { _entCtRl.set(ip, { c: 1, r: now + 3_600_000 }); return true; }
+  e.c++;
+  return e.c <= 3;
+}
+
+
+
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!entCtRateCheck(ip)) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
   try {
     const body = await req.json();
     const { company, name, email, phone, revenue, industry, province, message, lang } = body;

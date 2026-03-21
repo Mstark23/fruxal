@@ -43,7 +43,7 @@ async function refreshTokens(conn: any): Promise<string> {
     `${process.env.QUICKBOOKS_CLIENT_ID}:${process.env.QUICKBOOKS_CLIENT_SECRET}`
   ).toString("base64");
 
-  const res = await fetch(INTUIT_TOKEN_URL, {
+  const res = await fetch(INTUIT_TOKEN_URL, {.catch(() => { throw new Error("Network request failed"); });
     method: "POST",
     headers: {
       Authorization:  `Basic ${creds}`,
@@ -66,7 +66,8 @@ async function refreshTokens(conn: any): Promise<string> {
   const tokens = await res.json();
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-  await supabaseAdmin.from("quickbooks_connections").update({
+  // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
+    await supabaseAdmin.from("quickbooks_connections").update({
     access_token_enc:  encryptToken(tokens.access_token),
     refresh_token_enc: encryptToken(tokens.refresh_token),
     token_expires_at:  expiresAt,
@@ -88,7 +89,7 @@ async function getAccessToken(conn: any): Promise<string> {
 // ── QBO API helpers ───────────────────────────────────────────────────────────
 async function qboGet(realmId: string, token: string, path: string) {
   const url = `${QBO_BASE}/v3/company/${realmId}/${path}`;
-  const res = await fetch(url, {
+  const res = await fetch(url, {.catch(() => { throw new Error("Network request failed"); });
     headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
   });
   if (res.status === 401) throw new Error("QB_TOKEN_EXPIRED");
@@ -239,14 +240,14 @@ export async function syncQuickBooksFinancials(businessId: string): Promise<void
     });
     const bsRows = bs?.Rows?.Row || [];
     results.bank_balance = findReportRow(bsRows, "Total Bank");
-  } catch {}
+  } catch { /* non-fatal */ }
 
   // ── 5. Company info for employee count ───────────────────────────────────
   try {
     const info = await qboGet(realmId, token, "companyinfo/" + realmId);
     const emp  = info?.CompanyInfo?.EmployeeCount;
     if (emp) results.employee_count = Number(emp);
-  } catch {}
+  } catch { /* non-fatal */ }
 
   // ── 6. Owner draws (if sole prop / partnership) ───────────────────────────
   try {
@@ -255,7 +256,7 @@ export async function syncQuickBooksFinancials(businessId: string): Promise<void
     });
     results.owner_draws_ttm = findReportRow(draws?.Rows?.Row || [], "Owner Draw") ||
                               findReportRow(draws?.Rows?.Row || [], "Owner Contribution");
-  } catch {}
+  } catch { /* non-fatal */ }
 
   // ── 7. Write to business_profiles ────────────────────────────────────────
   const grossMarginPct = results.revenue_ttm > 0
@@ -308,11 +309,11 @@ export async function syncQuickBooksFinancials(businessId: string): Promise<void
     last_sync_at: new Date().toISOString(),
     last_error:   null,
     sync_summary: {
-      revenue_ttm:    results.revenue_ttm    || 0,
-      ar_overdue_90:  results.ar_overdue_90  || 0,
-      ar_overdue_60:  results.ar_overdue_60  || 0,
-      payroll_ttm:    results.payroll_ttm    || 0,
-      net_income_ttm: results.net_income_ttm || 0,
+      revenue_ttm:    results.revenue_ttm ?? 0,
+      ar_overdue_90:  results.ar_overdue_90 ?? 0,
+      ar_overdue_60:  results.ar_overdue_60 ?? 0,
+      payroll_ttm:    results.payroll_ttm ?? 0,
+      net_income_ttm: results.net_income_ttm ?? 0,
       synced_at:      new Date().toISOString(),
     },
   }).eq("id", conn.id);

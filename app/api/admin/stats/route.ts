@@ -22,6 +22,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const PERIOD_DAYS: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
 
 export async function GET(req: NextRequest) {
@@ -58,7 +60,7 @@ export async function GET(req: NextRequest) {
       .eq("status", "active")
       .lt("created_at", since);
 
-    const prevMrr = ((prevPaidCount || 0) * 29); // Rough estimate
+    const prevMrr = ((prevPaidCount ?? 0) * 29); // Rough estimate
     const mrrGrowth = prevMrr > 0 ? Math.round(((mrr - prevMrr) / prevMrr) * 100 * 10) / 10 : 0;
 
     // Churn: canceled in period / active at start of period
@@ -68,8 +70,8 @@ export async function GET(req: NextRequest) {
       .eq("status", "canceled")
       .gte("canceled_at", since);
 
-    const activeAtStart = (prevPaidCount || 0) + (canceledCount || 0);
-    const churnRate = activeAtStart > 0 ? Math.round(((canceledCount || 0) / activeAtStart) * 100 * 10) / 10 : 0;
+    const activeAtStart = (prevPaidCount ?? 0) + (canceledCount ?? 0);
+    const churnRate = activeAtStart > 0 ? Math.round(((canceledCount ?? 0) / activeAtStart) * 100 * 10) / 10 : 0;
 
     // Total revenue (all payments)
     const { data: payments } = await supabaseAdmin
@@ -77,7 +79,7 @@ export async function GET(req: NextRequest) {
       .select("amount")
       .eq("status", "succeeded");
 
-    const totalRevenue = (payments || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalRevenue = (payments || []).reduce((sum, p) => sum + (p.amount ?? 0), 0);
     const paidTotal = proCount + growthCount;
     const arpu = paidTotal > 0 ? Math.round(mrr / paidTotal) : 0;
     const ltv = churnRate > 0 ? Math.round(arpu / (churnRate / 100)) : arpu * 24;
@@ -87,7 +89,7 @@ export async function GET(req: NextRequest) {
       .from("users")
       .select("*", { count: "exact", head: true });
 
-    const freeCount = (totalUsers || 0) - paidTotal;
+    const freeCount = (totalUsers ?? 0) - paidTotal;
 
     // ─── Funnel metrics ──────────────────────────────────────────
 
@@ -129,14 +131,14 @@ export async function GET(req: NextRequest) {
       .gte("created_at", since);
 
     // Conversion rates
-    const prescanToSignup = (prescans30d || 0) > 0
-      ? Math.round(((signups30d || 0) / (prescans30d || 1)) * 100 * 10) / 10 : 0;
-    const signupToDiag = (signups30d || 0) > 0
-      ? Math.round(((diag30d || 0) / (signups30d || 1)) * 100 * 10) / 10 : 0;
-    const diagToPaid = (diag30d || 0) > 0
-      ? Math.round(((paid30d || 0) / (diag30d || 1)) * 100 * 10) / 10 : 0;
-    const overallConversion = (prescans30d || 0) > 0
-      ? Math.round(((paid30d || 0) / (prescans30d || 1)) * 100 * 10) / 10 : 0;
+    const prescanToSignup = (prescans30d ?? 0) > 0
+      ? Math.round(((signups30d ?? 0) / (prescans30d || 1)) * 100 * 10) / 10 : 0;
+    const signupToDiag = (signups30d ?? 0) > 0
+      ? Math.round(((diag30d ?? 0) / (signups30d || 1)) * 100 * 10) / 10 : 0;
+    const diagToPaid = (diag30d ?? 0) > 0
+      ? Math.round(((paid30d ?? 0) / (diag30d || 1)) * 100 * 10) / 10 : 0;
+    const overallConversion = (prescans30d ?? 0) > 0
+      ? Math.round(((paid30d ?? 0) / (prescans30d || 1)) * 100 * 10) / 10 : 0;
 
     // ─── Prescan analytics ───────────────────────────────────────
 
@@ -147,7 +149,7 @@ export async function GET(req: NextRequest) {
     const byProvince = (byProvinceRaw || []).map((r: any) => ({
       province: r.province,
       count: Number(r.scan_count),
-      conversion: Number(r.conversion_rate || 0),
+      conversion: Number(r.conversion_rate ?? 0),
     }));
 
     // By industry
@@ -198,8 +200,8 @@ export async function GET(req: NextRequest) {
       id: p.id,
       province: p.province,
       industry: p.industry,
-      score: p.summary?.health_score || 0,
-      leak_max: p.summary?.leak_range_max || 0,
+      score: p.summary?.health_score ?? 0,
+      leak_max: p.summary?.leak_range_max ?? 0,
       converted: !!p.converted_at,
       created_at: new Date(p.created_at).toLocaleDateString("en-CA", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
     }));
@@ -226,8 +228,8 @@ export async function GET(req: NextRequest) {
       .select("*", { count: "exact", head: true })
       .eq("status", "completed");
 
-    const completionRate = (totalTracked || 0) > 0
-      ? Math.round(((completedCount || 0) / (totalTracked || 1)) * 100) : 0;
+    const completionRate = (totalTracked ?? 0) > 0
+      ? Math.round(((completedCount ?? 0) / (totalTracked || 1)) * 100) : 0;
 
     // ─── Top leaks detected ──────────────────────────────────────
 
@@ -239,8 +241,8 @@ export async function GET(req: NextRequest) {
 
     const topLeaks = (leakStats || []).map((l: any) => ({
       title: l.title,
-      count: l.detection_count || 0,
-      avg_impact: l.annual_impact_max || 0,
+      count: l.detection_count ?? 0,
+      avg_impact: l.annual_impact_max ?? 0,
       severity: l.severity,
     }));
 
@@ -314,8 +316,8 @@ export async function GET(req: NextRequest) {
 
       dailyPrescans.push({
         date: date.toLocaleDateString("en-CA", { month: "short", day: "numeric" }),
-        count: dayCount || 0,
-        conversions: dayConv || 0,
+        count: dayCount ?? 0,
+        conversions: dayConv ?? 0,
       });
     }
 
@@ -333,7 +335,7 @@ export async function GET(req: NextRequest) {
         .gte("created_at", dateStr)
         .lt("created_at", nextDate);
 
-      const dayTotal = (dayPayments || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+      const dayTotal = (dayPayments || []).reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
       dailyRevenue.push({
         date: date.toLocaleDateString("en-CA", { month: "short", day: "numeric" }),
@@ -351,26 +353,26 @@ export async function GET(req: NextRequest) {
           avg_revenue_per_user: arpu, churn_rate: churnRate, ltv,
         },
         funnel: {
-          prescans_total: prescansTotal || 0, prescans_30d: prescans30d || 0,
-          signups_total: signupsTotal || 0, signups_30d: signups30d || 0,
-          diagnostics_total: diagTotal || 0, diagnostics_30d: diag30d || 0,
-          paid_total: paidTotal, paid_30d: paid30d || 0,
+          prescans_total: prescansTotal ?? 0, prescans_30d: prescans30d ?? 0,
+          signups_total: signupsTotal ?? 0, signups_30d: signups30d ?? 0,
+          diagnostics_total: diagTotal ?? 0, diagnostics_30d: diag30d ?? 0,
+          paid_total: paidTotal, paid_30d: paid30d ?? 0,
           prescan_to_signup: prescanToSignup, signup_to_diagnostic: signupToDiag,
           diagnostic_to_paid: diagToPaid, overall_conversion: overallConversion,
         },
         plans: { free: freeCount, pro: proCount, growth: growthCount },
         prescan: {
-          total: prescansTotal || 0,
-          avg_health_score: Number(avgStats.avg_health_score || 0),
-          avg_leak_max: Number(avgStats.avg_leak_max || 0),
+          total: prescansTotal ?? 0,
+          avg_health_score: Number(avgStats.avg_health_score ?? 0),
+          avg_leak_max: Number(avgStats.avg_leak_max ?? 0),
           by_province: byProvince,
           by_industry: byIndustry,
           recent: recentPrescanList,
         },
         obligations: {
-          total_tracked: totalTracked || 0,
-          overdue: overdueCount || 0,
-          upcoming_7d: upcoming7d || 0,
+          total_tracked: totalTracked ?? 0,
+          overdue: overdueCount ?? 0,
+          upcoming_7d: upcoming7d ?? 0,
           completion_rate: completionRate,
         },
         top_leaks: topLeaks,

@@ -33,14 +33,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log("[Cron] Starting intelligence refresh...");
+    process.env.NODE_ENV !== "production" && console.log("[Cron] Starting intelligence refresh...");
 
     const results = await refreshAllIntelligence();
 
     const changed = results.filter((r) => r.obligations_changed);
     const withPrograms = results.filter((r) => r.new_programs);
 
-    console.log(
+    process.env.NODE_ENV !== "production" && console.log(
       `[Cron] Refreshed ${results.length} businesses. ` +
         `${changed.length} had obligation changes. ` +
         `${withPrograms.length} have new programs.`

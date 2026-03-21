@@ -58,7 +58,8 @@ export default function StripeConnectBanner() {
       const data = await res.json();
       if (data.success) {
         setSyncMsg("Synced");
-        const fresh = await fetch("/api/stripe-connect/status").then(r => r.json());
+        const fresh = await fetch("/api/stripe-connect/status").then(r => r.json()).catch(() => null);
+      if (!fresh) return;
         setStatus(fresh);
       } else {
         setSyncMsg(data.error || "Sync failed");
@@ -67,7 +68,7 @@ export default function StripeConnectBanner() {
       setSyncMsg("Sync failed");
     } finally {
       setSyncing(false);
-      setTimeout(() => setSyncMsg(""), 3000);
+      const _to = setTimeout(() => setSyncMsg(""), 3000);
     }
   }
 

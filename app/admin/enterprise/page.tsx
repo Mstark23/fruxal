@@ -27,7 +27,7 @@ const SEV: Record<string,{bg:string;text:string}> = {
   low:      { bg:"bg-white/5",      text:"text-white/30"   },
 };
 
-function fmt(n:number){ return "$"+(n||0).toLocaleString("en-CA"); }
+function fmt(n:number){ return "$"+(n ?? 0).toLocaleString("en-CA"); }
 function pct(n:number|null){ return n!==null ? n.toFixed(1)+"%" : "N/A"; }
 
 export default function AdminEnterprisePage() {

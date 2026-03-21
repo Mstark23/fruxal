@@ -115,7 +115,7 @@ export function ToolCard({
     }
 
     // Open affiliate link
-    window.open(card.link, "_blank", "noopener");
+    typeof window !== "undefined" && window.open(card.link, "_blank", "noopener");
   };
 
   const prosArr = card.pros ? card.pros.split(",").map(p => p.trim()).filter(Boolean) : [];

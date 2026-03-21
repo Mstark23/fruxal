@@ -14,12 +14,12 @@ async function getUserTier(userId: string): Promise<string> {
     const { data: biz } = await supabaseAdmin
       .from("businesses").select("tier").eq("owner_user_id", userId).single();
     if (biz?.tier) return biz.tier.toLowerCase();
-  } catch {}
+  } catch { /* non-fatal */ }
   try {
     const { data: prog } = await supabaseAdmin
       .from("user_progress").select("paid_plan").eq("userId", userId).single();
     if (prog?.paid_plan) return prog.paid_plan.toLowerCase();
-  } catch {}
+  } catch { /* non-fatal */ }
   return "free";
 }
 
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     const totalCount  = result.length;
     const lockedCount = gated ? Math.max(0, totalCount - FREE_LEAK_LIMIT) : 0;
     const lockedValue = gated
-      ? result.slice(FREE_LEAK_LIMIT).reduce((s, l) => s + (l.impact_max || 0), 0)
+      ? result.slice(FREE_LEAK_LIMIT).reduce((s, l) => s + (l.impact_max ?? 0), 0)
       : 0;
 
     if (gated) result = result.slice(0, FREE_LEAK_LIMIT);

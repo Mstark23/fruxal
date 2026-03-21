@@ -94,8 +94,8 @@ export async function verifyFixes(businessId: string, newLeaks: any[]): Promise<
       id: notif.id, businessId, type: notif.type, priority: r.verified ? "routine" : "important",
       title: r.verified ? `✅ ${r.title} — fix confirmed!` : `⚠️ ${r.title} — still leaking`,
       body: r.verified
-        ? `Your fix saved $${r.previousAmount.toLocaleString()}/yr (${r.improvement}% improvement)`
-        : `Despite marking as fixed, this leak is still at $${r.newAmount.toLocaleString()}/yr. We've reopened it.`,
+        ? `Your fix saved $${(r.previousAmount ?? 0).toLocaleString()}/yr (${r.improvement}% improvement)`
+        : `Despite marking as fixed, this leak is still at $${(r.newAmount ?? 0).toLocaleString()}/yr. We've reopened it.`,
       cta: r.verified ? "See progress" : "Review leak",
       ctaUrl: r.verified ? "/dashboard?tab=trends" : "/dashboard?tab=leaks",
       channel: "push", createdAt: new Date().toISOString(),

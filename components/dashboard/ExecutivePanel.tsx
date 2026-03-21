@@ -26,7 +26,7 @@ export function ExecutivePanel({ fhScore, fhChange, totalLeak, leakCount, monito
       />
       <KpiCard
         label={t("Estimated Annual Leak", "Fuite annuelle estimée")}
-        value={`$${totalLeak.toLocaleString()}`}
+        value={`$${(Number(totalLeak) || 0).toLocaleString()}`}
         sub={`${leakCount} ${t("active leaks", "fuites actives")}`}
         accent="negative"
       />

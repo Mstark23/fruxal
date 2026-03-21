@@ -6,6 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try { return await fn(); } catch { return fallback; }
 }
@@ -31,7 +33,9 @@ export async function GET(req: NextRequest) {
       .select("id, email, name, image, role, created_at", { count: "exact" });
 
     if (search) {
-      query = query.or(`email.ilike.%${search}%,name.ilike.%${search}%`);
+      // Sanitize search term before interpolation
+    const safeSearch = search.replace(/[^a-zA-Z0-9@._\-+ ]/g, '');
+    query = query.or(`email.ilike.%${safeSearch}%,name.ilike.%${safeSearch}%`);
     }
 
     // Sort
@@ -51,7 +55,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         success: true,
         users: [],
-        pagination: { page, limit, total: totalCount || 0, totalPages: Math.ceil((totalCount || 0) / limit) },
+        pagination: { page, limit, total: totalCount ?? 0, totalPages: Math.ceil((totalCount ?? 0) / limit) },
         stats: await getStats(),
       });
     }
@@ -126,7 +130,7 @@ export async function GET(req: NextRequest) {
         prescanCount: prescanCounts[u.id] || 0,
         diagnosticCount: diagnosticCounts[u.id] || 0,
         healthScore: prog.health_score ?? null,
-        totalRecovered: prog.total_recovered || 0,
+        totalRecovered: prog.total_recovered ?? 0,
         stripeCustomerId: prog.stripe_customer_id || null,
       };
     });
@@ -139,7 +143,7 @@ export async function GET(req: NextRequest) {
 
     // Sort by health_score if requested (post-enrichment)
     if (sort === "health_score") {
-      enriched.sort((a: any, b: any) => (b.healthScore || 0) - (a.healthScore || 0));
+      enriched.sort((a: any, b: any) => (b.healthScore ?? 0) - (a.healthScore ?? 0));
     }
 
     const response = NextResponse.json({
@@ -148,8 +152,8 @@ export async function GET(req: NextRequest) {
       pagination: {
         page,
         limit,
-        total: totalCount || 0,
-        totalPages: Math.ceil((totalCount || 0) / limit),
+        total: totalCount ?? 0,
+        totalPages: Math.ceil((totalCount ?? 0) / limit),
       },
       stats: await getStats(),
     });
@@ -171,20 +175,20 @@ async function getStats() {
   const [total, paid, newWeek, newMonth] = await Promise.all([
     safe(async () => {
       const { count } = await supabaseAdmin.from("users").select("id", { count: "exact", head: true });
-      return count || 0;
+      return count ?? 0;
     }, 0),
     safe(async () => {
       const { count } = await supabaseAdmin.from("user_progress").select("userId", { count: "exact", head: true })
         .neq("paid_plan", null).neq("paid_plan", "free").neq("paid_plan", "");
-      return count || 0;
+      return count ?? 0;
     }, 0),
     safe(async () => {
       const { count } = await supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("created_at", weekStart);
-      return count || 0;
+      return count ?? 0;
     }, 0),
     safe(async () => {
       const { count } = await supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("created_at", monthStart);
-      return count || 0;
+      return count ?? 0;
     }, 0),
   ]);
 

@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const industry  = profile.industry_slug || profile.industry || "generic_small_business";
     const structure = profile.business_structure || null;
     const employees = profile.employee_count || 1;
-    const revenue   = profile.annual_revenue || 0;
+    const revenue   = profile.annual_revenue ?? 0;
 
     // Fetch matching obligation rules
     let query = supabaseAdmin

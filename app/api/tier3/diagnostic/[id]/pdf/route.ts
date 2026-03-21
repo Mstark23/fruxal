@@ -49,7 +49,7 @@ export async function GET(
     }
 
     // Generate PDF
-    console.log(`[Tier3:PDF] Generating report for "${data.company_name}" (${id})`);
+    process.env.NODE_ENV !== "production" && console.log(`[Tier3:PDF] Generating report for "${data.company_name}" (${id})`);
 
     const pdfBuffer = await generateTier3Report({
       id: data.id,
@@ -62,7 +62,7 @@ export async function GET(
       summary: result.summary,
     });
 
-    console.log(`[Tier3:PDF] Generated ${(pdfBuffer.length / 1024).toFixed(1)}KB PDF`);
+    process.env.NODE_ENV !== "production" && console.log(`[Tier3:PDF] Generated ${(pdfBuffer.length / 1024).toFixed(1)}KB PDF`);
 
     // Update status to "sent" if currently "draft"
     if (data.status === "draft") {
@@ -72,7 +72,7 @@ export async function GET(
           .update({ status: "sent", updated_at: new Date().toISOString() })
           .eq("id", id)
           .eq("user_id", userId);
-        console.log(`[Tier3:PDF] Status updated to "sent"`);
+        process.env.NODE_ENV !== "production" && console.log(`[Tier3:PDF] Status updated to "sent"`);
       } catch (updateErr) {
         console.warn("[Tier3:PDF] Status update failed:", updateErr);
       }

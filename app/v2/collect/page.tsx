@@ -36,7 +36,7 @@ export default function CollectPage() {
     ]).then(([me, data]) => {
       setUserId(me.user?.id);
       setItems((data.items || []).map((i: any) => ({ ...i, status: "pending" })));
-      setCompletedCount(data.completedCount || 0);
+      setCompletedCount(data.completedCount ?? 0);
       setLoading(false);
     }).catch(() => {
       router.push("/login?redirect=/v2/collect");
@@ -44,7 +44,7 @@ export default function CollectPage() {
   }, [router]);
 
   const handleQuickBooksConnect = () => {
-    window.location.href = "/api/quickbooks/connect";
+    if (typeof window !== "undefined") window.location.href = "/api/quickbooks/connect";
   };
 
   const handleFileUpload = async (itemId: string, file: File) => {

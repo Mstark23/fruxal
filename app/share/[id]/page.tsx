@@ -41,13 +41,13 @@ export default function SharePage() {
         <div className="text-center mb-8">
           <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">{data.industry} Business</div>
           <h1 className="text-2xl font-black mb-2">{data.businessName}</h1>
-          <div className="text-4xl font-black text-[#ff3d57]">${(data.totalLeaking || 0).toLocaleString()}<span className="text-lg text-gray-400">/yr leaking</span></div>
+          <div className="text-4xl font-black text-[#ff3d57]">${(data.totalLeaking ?? 0).toLocaleString()}<span className="text-lg text-gray-400">/yr leaking</span></div>
           <div className="flex items-center justify-center gap-4 mt-4 text-sm">
             <span className="text-gray-400">{data.leakCount} leaks</span>
             <span className="text-gray-600">·</span>
             <span style={{ color: data.healthScore >= 70 ? "#00c853" : data.healthScore >= 40 ? "#ff8f00" : "#ff3d57" }}>{data.healthScore}/100 health</span>
             <span className="text-gray-600">·</span>
-            <span className="text-[#00c853]">${(data.totalSaved || 0).toLocaleString()} saved</span>
+            <span className="text-[#00c853]">${(data.totalSaved ?? 0).toLocaleString()} saved</span>
           </div>
         </div>
 
@@ -56,7 +56,7 @@ export default function SharePage() {
             <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="text-sm font-bold pr-2">{leak.title}</div>
-                <div className="text-sm font-black whitespace-nowrap" style={{ color: sevColor(leak.severity) }}>${(leak.annualImpact || 0).toLocaleString()}/yr</div>
+                <div className="text-sm font-black whitespace-nowrap" style={{ color: sevColor(leak.severity) }}>${(leak.annualImpact ?? 0).toLocaleString()}/yr</div>
               </div>
               <div className="text-xs text-gray-500">You: {leak.yours} → Benchmark: {leak.benchmark}</div>
             </div>

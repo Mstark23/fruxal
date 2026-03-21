@@ -13,9 +13,11 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { findUserLeaks } from "@/lib/find-user-leaks";
 import crypto from "crypto";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 // Safe import — leak-explanations may not be deployed yet
 let getLeakExplanation: any = null;
-try { getLeakExplanation = require("@/lib/leak-explanations").getLeakExplanation; } catch {}
+try { getLeakExplanation = require("@/lib/leak-explanations").getLeakExplanation; } catch { /* non-fatal */ }
 
 export async function GET(req: NextRequest) {
   try {
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest) {
         .eq("user_id", userId)
         .single();
       profile = data;
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // If no profile but we have prescanRunId, build one from prescan_runs
     if (!profile && prescanRunId) {
@@ -131,15 +133,15 @@ export async function GET(req: NextRequest) {
             severity: dl.severity || "medium",
             category: dl.category || "general",
             description: dl.description || "",
-            impact_min: dl.annual_impact_min || 0,
-            impact_max: dl.annual_impact_max || dl.annual_impact_min || 0,
+            impact_min: dl.annual_impact_min ?? 0,
+            impact_max: dl.annual_impact_max || dl.annual_impact_min ?? 0,
             solution_type: "professional",
             status: "detected", savings_amount: 0,
             confidence: dl.evidence?.confidence_score || null,
             affiliates: dl.affiliates || [],
           }));
         }
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     // Path C: prescan_results JSONB by prescanRunId
@@ -161,15 +163,15 @@ export async function GET(req: NextRequest) {
             severity: jl.severity || "medium",
             category: jl.category || "general",
             description: jl.description || "",
-            impact_min: jl.annual_impact_min || jl.amount || 0,
-            impact_max: jl.annual_impact_max || jl.amount || 0,
+            impact_min: jl.annual_impact_min || jl.amount ?? 0,
+            impact_max: jl.annual_impact_max || jl.amount ?? 0,
             solution_type: "professional",
             status: "detected", savings_amount: 0,
             confidence: jl.confidence || null,
             affiliates: jl.affiliates || [],
           }));
         }
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     // Path D: prescan_results JSONB by user_id
@@ -191,39 +193,39 @@ export async function GET(req: NextRequest) {
             severity: jl.severity || "medium",
             category: jl.category || "general",
             description: jl.description || "",
-            impact_min: jl.annual_impact_min || jl.amount || 0,
-            impact_max: jl.annual_impact_max || jl.amount || 0,
+            impact_min: jl.annual_impact_min || jl.amount ?? 0,
+            impact_max: jl.annual_impact_max || jl.amount ?? 0,
             solution_type: "professional",
             status: "detected", savings_amount: 0,
             confidence: jl.confidence || null,
             affiliates: jl.affiliates || [],
           }));
         }
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     const detected = allLeaks.filter(l => l.status === "detected");
     const fixed = allLeaks.filter(l => l.status === "fixed");
-    const totalLeak = detected.reduce((s, l) => s + (l.impact_min || 0), 0);
+    const totalLeak = detected.reduce((s, l) => s + (l.impact_min ?? 0), 0);
 
     // Enrich top leaks with explanation/proof/action
     const topUnfixed = detected
-      .sort((a, b) => (b.impact_max || b.impact_min || 0) - (a.impact_max || a.impact_min || 0))
+      .sort((a, b) => (b.impact_max || b.impact_min ?? 0) - (a.impact_max || a.impact_min ?? 0))
       .slice(0, 10)
       .map(l => {
         let proof = "", action = "", description = l.description || "";
         if (getLeakExplanation) {
           try {
-            const expl = getLeakExplanation(l.slug, {}, l.impact_min || 0, "en");
+            const expl = getLeakExplanation(l.slug, {}, l.impact_min ?? 0, "en");
             proof = expl?.proof || "";
             action = expl?.action || "";
             if (!description) description = expl?.explanation || "";
-          } catch {}
+          } catch { /* non-fatal */ }
         }
         return {
           slug: l.slug, title: l.title, severity: l.severity,
           category: l.category, description,
-          impact_min: l.impact_min || 0, impact_max: l.impact_max || l.impact_min || 0,
+          impact_min: l.impact_min ?? 0, impact_max: l.impact_max || l.impact_min ?? 0,
           confidence: l.confidence || null, solution_type: l.solution_type || "professional",
           proof, action, affiliates: l.affiliates || [],
         };
@@ -252,7 +254,7 @@ export async function GET(req: NextRequest) {
           overdue: overdueObs.length,
           penalty_exposure: obs
             .filter(o => o.status !== "completed")
-            .reduce((s, o) => s + ((o as any).obligation_rules?.penalty_max || 0), 0),
+            .reduce((s, o) => s + ((o as any).obligation_rules?.penalty_max ?? 0), 0),
           upcoming_deadlines: upcoming
             .filter(o => o.next_deadline! <= thirtyDays)
             .slice(0, 5)
@@ -263,11 +265,11 @@ export async function GET(req: NextRequest) {
               risk_level: (o as any).obligation_rules?.risk_level || "medium",
               deadline: o.next_deadline,
               days_until: Math.ceil((new Date(o.next_deadline!).getTime() - Date.now()) / 86400000),
-              penalty_max: (o as any).obligation_rules?.penalty_max || 0,
+              penalty_max: (o as any).obligation_rules?.penalty_max ?? 0,
             })),
         };
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Tier — check businesses.tier first (owner_user_id), fallback to user_progress
     let tier = "free";
@@ -275,21 +277,21 @@ export async function GET(req: NextRequest) {
       const { data: biz } = await supabaseAdmin
         .from("businesses").select("tier").eq("owner_user_id", userId).single();
       if (biz?.tier) tier = biz.tier.toLowerCase();
-    } catch {}
+    } catch { /* non-fatal */ }
     if (tier === "free") {
       try {
         const { data: prog } = await supabaseAdmin
           .from("user_progress").select("paid_plan").eq("userId", userId).single();
         if (prog?.paid_plan) tier = prog.paid_plan.toLowerCase();
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     // Recommended plan -- from revenue + prescan tier + paid tier
     let recommended_plan = "solo";
     try {
       // Use exact_annual_revenue (from intake) first, fall back to annual_revenue (from prescan)
-      const rev = profile?.exact_annual_revenue || profile?.annual_revenue || 0;
-      const empCount = profile?.employee_count || 0;
+      const rev = profile?.exact_annual_revenue || profile?.annual_revenue ?? 0;
+      const empCount = profile?.employee_count ?? 0;
 
       // Revenue-based qualification — solo threshold raised to avoid false enterprise routing
       if (rev >= 1_000_000 || empCount >= 50)   recommended_plan = "enterprise";
@@ -313,7 +315,7 @@ export async function GET(req: NextRequest) {
           else if (pt === "enterprise") recommended_plan = "enterprise";
         }
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Programs count — use affiliate_partners with is_government_program flag
     let programsAvailable = 0;
@@ -329,9 +331,9 @@ export async function GET(req: NextRequest) {
     // Health score
     let score = 72;
     const struct = profile.business_structure || "";
-    if (struct === "sole_proprietor" && (profile.annual_revenue || 0) > 50000) score -= 12;
+    if (struct === "sole_proprietor" && (profile.annual_revenue ?? 0) > 50000) score -= 12;
     if (!profile.has_accountant) score -= 8;
-    score -= Math.min(20, (obligations.overdue || 0) * 4);
+    score -= Math.min(20, (obligations.overdue ?? 0) * 4);
     score += Math.min(12, fixed.length * 2);
     score = Math.max(8, Math.min(95, score));
 
@@ -356,8 +358,8 @@ export async function GET(req: NextRequest) {
           total: allLeaks.length,
           detected: detected.length,
           fixed: fixed.length,
-          total_savings: fixed.reduce((s, l) => s + (l.savings_amount || 0), 0),
-          potential_savings: detected.reduce((s, l) => s + (l.impact_max || 0), 0),
+          total_savings: fixed.reduce((s, l) => s + (l.savings_amount ?? 0), 0),
+          potential_savings: detected.reduce((s, l) => s + (l.impact_max ?? 0), 0),
           top_unfixed: topUnfixed,
         },
         obligations,

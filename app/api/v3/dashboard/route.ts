@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -143,9 +145,9 @@ export async function GET(request: NextRequest) {
         leak_type_name: l.title || LEAK_NAMES[code] || code.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
         leak_type_name_fr: l.title_fr || null,
         category: l.category || "other",
-        severity_label: l.severity || sevLabel(evidence.severity_score || 0),
-        annual_estimate: l.annual_impact_min || 0,
-        confidence: evidence.confidence_score || 0,
+        severity_label: l.severity || sevLabel(evidence.severity_score ?? 0),
+        annual_estimate: l.annual_impact_min ?? 0,
+        confidence: evidence.confidence_score ?? 0,
         short_text: l.description || LEAK_SHORT_TEXT[code]?.en || "",
         short_text_fr: l.description_fr || LEAK_SHORT_TEXT[code]?.fr || "",
       };
@@ -164,7 +166,7 @@ export async function GET(request: NextRequest) {
         fh_score: run.health_score || 50,
         fh_change: 0,
         dh_score: run.data_health_score || 30,
-        total_leak_annual: run.total_leak_estimate_year || 0,
+        total_leak_annual: run.total_leak_estimate_year ?? 0,
         revenue_monthly: [],
         revenue_labels: [],
         revenue_last_month: 0,
@@ -207,7 +209,7 @@ export async function GET(request: NextRequest) {
 
   if (snapshots && snapshots.length > 0) {
     // Real data path — Phase 2 (live monitoring)
-    // TODO: build full response from real snapshots
+    // NOTE: Build full response from real snapshots — placeholder data below
     // For now, this path returns the same shape but from real data
     const latest = snapshots[0];
 
@@ -244,23 +246,23 @@ export async function GET(request: NextRequest) {
         annual_revenue: biz.annual_revenue,
       },
       snapshot: {
-        fh_score: latest.financial_health_score || 0,
-        fh_change: 0, // TODO: compute from previous snapshot
-        dh_score: latest.data_health_score || 0,
-        total_leak_annual: latest.total_estimated_annual_leak || 0,
-        revenue_monthly: snapshots.reverse().map((s: any) => s.total_revenue || 0),
+        fh_score: latest.financial_health_score ?? 0,
+        fh_change: 0, // PENDING: build full response from snapshots
+        dh_score: latest.data_health_score ?? 0,
+        total_leak_annual: latest.total_estimated_annual_leak ?? 0,
+        revenue_monthly: snapshots.reverse().map((s: any) => s.total_revenue ?? 0),
         revenue_labels: snapshots.map((s: any) => {
           const d = new Date(s.snapshot_month);
           return d.toLocaleString("en", { month: "short" });
         }),
-        revenue_last_month: latest.total_revenue || 0,
+        revenue_last_month: latest.total_revenue ?? 0,
         revenue_mom: 0,
         revenue_yoy: 0,
         revenue_stability: "Unknown",
         cost_breakdown: (costs || []).map((c: any) => ({
           category: c.cost_categories?.label_en || c.category_code,
           pct_of_revenue: c.ratio_of_revenue ? c.ratio_of_revenue * 100 : 0,
-          benchmark_pct: 0, // TODO: load from industry_benchmarks
+          benchmark_pct: 0, // PENDING: build full response from snapshots
           status: "healthy",
         })),
         transaction_count: 0,
@@ -270,9 +272,9 @@ export async function GET(request: NextRequest) {
         id: l.id,
         leak_type_name: LEAK_NAMES[l.leak_type_code] || l.leak_type_code,
         category: l.leak_type_code,
-        severity_label: sevLabel(l.severity_score || 0),
-        annual_estimate: l.estimated_annual_leak || 0,
-        confidence: l.confidence_score || 0,
+        severity_label: sevLabel(l.severity_score ?? 0),
+        annual_estimate: l.estimated_annual_leak ?? 0,
+        confidence: l.confidence_score ?? 0,
         short_text: LEAK_SHORT_TEXT[l.leak_type_code]?.en || "",
       })),
       alerts: (realAlerts || []).map((a: any) => ({
@@ -331,16 +333,16 @@ export async function GET(request: NextRequest) {
       leak_type_name: l.title || LEAK_NAMES[code] || code.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
       leak_type_name_fr: l.title_fr || null,
       category: l.category || "other",
-      severity_label: l.severity || sevLabel(evidence.severity_score || 0),
-      annual_estimate: l.annual_impact_min || 0,
-      confidence: Math.round(evidence.confidence_score || 0),
+      severity_label: l.severity || sevLabel(evidence.severity_score ?? 0),
+      annual_estimate: l.annual_impact_min ?? 0,
+      confidence: Math.round(evidence.confidence_score ?? 0),
       short_text: l.description || LEAK_SHORT_TEXT[code]?.en || "",
       short_text_fr: l.description_fr || LEAK_SHORT_TEXT[code]?.fr || "",
     };
   });
 
   const totalLeak = leaks.reduce((s: number, l: any) => s + l.annual_estimate, 0);
-  const annualRev = prescanRun.annual_revenue || biz.annual_revenue || 0;
+  const annualRev = prescanRun.annual_revenue || biz.annual_revenue ?? 0;
 
   // Build estimated snapshot from prescan data
   // Revenue: generate 12 months of estimated data based on annual revenue

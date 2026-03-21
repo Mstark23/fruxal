@@ -103,8 +103,8 @@ export async function findUserLeaks(userId: string): Promise<LeakLookupResult> {
             severity: l.severity || "medium",
             category: l.category || "general",
             description: l.description || "",
-            annual_impact_min: l.impact_min || 0,
-            annual_impact_max: l.impact_max || 0,
+            annual_impact_min: l.impact_min ?? 0,
+            annual_impact_max: l.impact_max ?? 0,
             evidence: { confidence_score: l.confidence || null },
             priority_score: l.severity === "critical" ? 90 : l.severity === "high" ? 70 : 50,
             affiliates: l.affiliates || [],
@@ -116,8 +116,8 @@ export async function findUserLeaks(userId: string): Promise<LeakLookupResult> {
             severity: l.severity || "medium",
             category: l.category || "general",
             description: l.benchmark || "",
-            annual_impact_min: l.low || 0,
-            annual_impact_max: l.high || 0,
+            annual_impact_min: l.low ?? 0,
+            annual_impact_max: l.high ?? 0,
             evidence: { confidence_score: l.confidence || null },
             priority_score: l.severity === "critical" ? 90 : l.severity === "high" ? 70 : 50,
             affiliates: l.affiliates || [],
@@ -125,7 +125,7 @@ export async function findUserLeaks(userId: string): Promise<LeakLookupResult> {
         }
 
         if (rawLeaks.length > 0) {
-          console.log(`✅ findUserLeaks PATH 0: ${rawLeaks.length} leaks from prescan_results`);
+          process.env.NODE_ENV !== "production" && console.log(`✅ findUserLeaks PATH 0: ${rawLeaks.length} leaks from prescan_results`);
         }
       }
     } catch (e: any) {
@@ -252,10 +252,10 @@ export async function findUserLeaks(userId: string): Promise<LeakLookupResult> {
           slug: g.slug, title: g.title || g.slug,
           severity: g.severity || "medium", category: g.category || "general",
           description: g.description || "",
-          impact_min: g.annual_impact_min || 0, impact_max: g.annual_impact_max || 0,
+          impact_min: g.annual_impact_min ?? 0, impact_max: g.annual_impact_max ?? 0,
           impact_pct: null, solution_type: g.solution_type || "professional",
           solution_steps: g.solution_steps || [],
-          status: tracked?.status || "detected", savings_amount: tracked?.savings_amount || 0,
+          status: tracked?.status || "detected", savings_amount: tracked?.savings_amount ?? 0,
           fixed_at: tracked?.fixed_at || null, confidence: null, priority: 50,
           affiliates: [],
         };
@@ -275,13 +275,13 @@ export async function findUserLeaks(userId: string): Promise<LeakLookupResult> {
       severity: dl.severity || "medium",
       category: dl.category || "general",
       description: dl.description || "",
-      impact_min: dl.annual_impact_min || 0,
-      impact_max: dl.annual_impact_max || 0,
+      impact_min: dl.annual_impact_min ?? 0,
+      impact_max: dl.annual_impact_max ?? 0,
       impact_pct: dl.impact_pct || null,
       solution_type: "professional",
       solution_steps: [],
       status: tracked?.status || "detected",
-      savings_amount: tracked?.savings_amount || 0,
+      savings_amount: tracked?.savings_amount ?? 0,
       fixed_at: tracked?.fixed_at || null,
       confidence: evidence.confidence_score || null,
       priority: dl.priority_score || 50,

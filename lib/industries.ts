@@ -243,7 +243,7 @@ export function getIndustryById(id: string): Industry | undefined {
 }
 
 export function getLeakRate(id: string): number {
-  return getIndustryById(id)?.leakRate || 0.10;
+  return getIndustryById(id)?.leakRate ?? 0.10;
 }
 
 export function getIcon(id: string): string {

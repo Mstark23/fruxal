@@ -171,7 +171,7 @@ export default function AdminDashboard() {
 
             {/* KPI Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <KpiCard label="MRR" value={`$${r.mrr.toLocaleString()}`}
+              <KpiCard label="MRR" value={`$${(r.mrr ?? 0).toLocaleString()}`}
                 change={r.mrr_growth} positive />
               <KpiCard label="Active Paid" value={`${f.paid_total}`}
                 sub={`${f.paid_30d} new this month`} />
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
                         <p className="text-white/40 text-[11px] truncate group-hover:text-white/60 transition-colors">{leak.title}</p>
                       </div>
                       <span className="text-white/15 text-[9px] font-mono">{leak.count}x</span>
-                      <span className="text-red-400/50 text-[9px] font-mono">${leak.avg_impact.toLocaleString()}</span>
+                      <span className="text-red-400/50 text-[9px] font-mono">${(leak.avg_impact ?? 0).toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -318,7 +318,7 @@ export default function AdminDashboard() {
                         <div className={`${step.color} h-full rounded-lg transition-all duration-1000 flex items-center px-3`}
                           style={{ width: Math.max(step.pct, 3) + "%" }}>
                           <span className="text-white/80 text-[10px] font-bold whitespace-nowrap">
-                            {step.count.toLocaleString()}
+                            {(step.count ?? 0).toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -383,9 +383,9 @@ export default function AdminDashboard() {
 
             {/* Prescan KPIs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <KpiCard label="Total Prescans" value={stats.prescan.total.toLocaleString()} />
+              <KpiCard label="Total Prescans" value={(stats.prescan.total ?? 0).toLocaleString()} />
               <KpiCard label="Avg Health Score" value={`${stats.prescan.avg_health_score}`} sub="Lower = more leaks found" />
-              <KpiCard label="Avg Leak Exposure" value={`$${stats.prescan.avg_leak_max.toLocaleString()}`} sub="Per business" />
+              <KpiCard label="Avg Leak Exposure" value={`$${(stats.prescan.avg_leak_max ?? 0).toLocaleString()}`} sub="Per business" />
               <KpiCard label="Prescan → Signup" value={`${f.prescan_to_signup}%`} highlight />
             </div>
 
@@ -464,7 +464,7 @@ export default function AdminDashboard() {
                         <td className={`py-2 pr-3 text-right font-mono ${
                           p.score < 40 ? "text-red-400/60" : p.score < 70 ? "text-amber-400/60" : "text-emerald-400/60"
                         }`}>{p.score}</td>
-                        <td className="py-2 pr-3 text-right text-red-400/40 font-mono">${p.leak_max.toLocaleString()}</td>
+                        <td className="py-2 pr-3 text-right text-red-400/40 font-mono">${(p.leak_max ?? 0).toLocaleString()}</td>
                         <td className="py-2 pr-3">
                           {p.converted ? (
                             <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-500/10 text-emerald-400/60">CONVERTED</span>
@@ -490,9 +490,9 @@ export default function AdminDashboard() {
 
             {/* Revenue KPIs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <KpiCard label="MRR" value={`$${r.mrr.toLocaleString()}`} change={r.mrr_growth} positive highlight />
-              <KpiCard label="ARR" value={`$${r.arr.toLocaleString()}`} />
-              <KpiCard label="Total Revenue" value={`$${r.total_revenue.toLocaleString()}`} sub="All time" />
+              <KpiCard label="MRR" value={`$${(r.mrr ?? 0).toLocaleString()}`} change={r.mrr_growth} positive highlight />
+              <KpiCard label="ARR" value={`$${(r.arr ?? 0).toLocaleString()}`} />
+              <KpiCard label="Total Revenue" value={`$${(r.total_revenue ?? 0).toLocaleString()}`} sub="All time" />
               <KpiCard label="LTV" value={`$${r.ltv}`} sub={`ARPU: $${r.avg_revenue_per_user}`} />
             </div>
 
@@ -530,7 +530,7 @@ export default function AdminDashboard() {
                   <div className="pt-3 border-t border-white/[0.04]">
                     <div className="flex justify-between">
                       <span className="text-white/20 text-[10px]">Total MRR</span>
-                      <span className="text-emerald-400 text-sm font-black">${r.mrr.toLocaleString()}</span>
+                      <span className="text-emerald-400 text-sm font-black">${(r.mrr ?? 0).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -609,7 +609,7 @@ function FunnelBar({ label, count, pct, color }: {
     <div className="mb-2">
       <div className="flex justify-between mb-0.5">
         <span className="text-white/30 text-[10px]">{label}</span>
-        <span className="text-white/15 text-[9px] font-mono">{count.toLocaleString()} ({pct}%)</span>
+        <span className="text-white/15 text-[9px] font-mono">{(count ?? 0).toLocaleString()} ({pct}%)</span>
       </div>
       <div className="h-5 bg-white/[0.02] rounded overflow-hidden">
         <div className={"h-full " + color + "/40 rounded transition-all duration-1000"} style={{ width: Math.max(pct, 2) + "%" }} />
@@ -667,7 +667,7 @@ function RevenuePlanRow({ label, count, revenue, color }: {
         <p className="text-white/10 text-[9px]">{count} subscribers</p>
       </div>
       <p className={`text-sm font-black ${color === "emerald" ? "text-emerald-400/70" : "text-amber-400/70"}`}>
-        ${revenue.toLocaleString()}/mo
+        ${(revenue ?? 0).toLocaleString()}/mo
       </p>
     </div>
   );

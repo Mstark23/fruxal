@@ -171,6 +171,7 @@ const INDUSTRIES = [
 export default function OnboardingPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState(0);
   const [data, setData] = useState<OnboardingData>(INITIAL_DATA);
   const [saving, setSaving] = useState(false);
@@ -248,6 +249,8 @@ export default function OnboardingPage() {
   // ═══════════════════════════════════════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════════════════════════════════════
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
 
   return (
     <div className="min-h-screen bg-[#0a0e14] flex flex-col">
@@ -571,10 +574,10 @@ export default function OnboardingPage() {
               {syncResult && (
                 <div className="text-center space-y-1 pt-4" style={{ animation: "fadeUp 0.5s ease-out" }}>
                   <p className="text-emerald-400 text-sm font-semibold">
-                    ✓ {syncResult.total_matched || 0} {isFr ? "obligations détectées" : "obligations detected"}
+                    ✓ {syncResult.total_matched ?? 0} {isFr ? "obligations détectées" : "obligations detected"}
                   </p>
                   <p className="text-xs text-white/30">
-                    {syncResult.overdue || 0} {isFr ? "en retard" : "overdue"} · {syncResult.upcoming_30_days || 0} {isFr ? "dans 30 jours" : "in 30 days"}
+                    {syncResult.overdue ?? 0} {isFr ? "en retard" : "overdue"} · {syncResult.upcoming_30_days ?? 0} {isFr ? "dans 30 jours" : "in 30 days"}
                   </p>
                 </div>
               )}

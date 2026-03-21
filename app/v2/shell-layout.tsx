@@ -47,13 +47,13 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
     );
     if (onEnterprisePath) {
       setIsEnterprise(true);
-      try { localStorage.setItem("fruxal_tier", "enterprise"); } catch {}
+      try { localStorage.setItem("fruxal_tier", "enterprise"); } catch { /* non-fatal */ }
     } else {
       try {
         const stored = localStorage.getItem("fruxal_tier");
         if (stored === "enterprise") setIsEnterprise(true);
         else if (stored && stored !== "enterprise") setIsEnterprise(false);
-      } catch {}
+      } catch { /* non-fatal */ }
     }
   }, [pathname]);
 

@@ -70,7 +70,7 @@ export default function ChatPage() {
       if (stored === "en" || stored === "fr") setLang(stored as "en"|"fr");
       else if (navigator.language?.startsWith("fr")) setLang("fr");
       setIsEnt(localStorage.getItem("fruxal_tier") === "enterprise");
-    } catch {}
+    } catch { /* non-fatal */ }
 
     async function init() {
       try {
@@ -230,7 +230,7 @@ export default function ChatPage() {
           )}
           <div className="flex bg-bg-section border border-border-light rounded-[7px] p-[3px] gap-[2px]">
             {(["en","fr"] as const).map(l => (
-              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch {} }}
+              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch { /* non-fatal */ } }}
                 className={`px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wide rounded-[5px] transition-all ${
                   lang === l ? "bg-white text-ink shadow-sm" : "text-ink-muted"}`}>
                 {l.toUpperCase()}
@@ -295,7 +295,7 @@ export default function ChatPage() {
                   <button key={i} onClick={() => send(lang === "fr" ? s.fr : s.en)}
                     className="text-left px-4 py-3 bg-white rounded-xl border border-border-light hover:border-brand/20 hover:bg-brand/[0.02] transition-all group"
                     style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
-                    <p className="text-[11px] text-ink-secondary group-hover:text-ink transition-colors leading-relaxed">
+                    <p key={i} className="text-[11px] text-ink-secondary group-hover:text-ink transition-colors leading-relaxed">
                       {lang === "fr" ? s.fr : s.en}
                     </p>
                   </button>
@@ -309,7 +309,7 @@ export default function ChatPage() {
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 {m.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mr-2.5 shrink-0 mt-0.5"
+                  <div key={i} className="w-7 h-7 rounded-lg flex items-center justify-center mr-2.5 shrink-0 mt-0.5"
                     style={{ background:"rgba(27,58,45,0.08)", border:"1px solid rgba(27,58,45,0.10)" }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round">
                       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
@@ -332,7 +332,7 @@ export default function ChatPage() {
             ))}
 
             {sending && (
-              <div className="flex justify-start">
+              <div key={j} className="flex justify-start">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center mr-2.5 shrink-0 mt-0.5"
                   style={{ background:"rgba(27,58,45,0.08)", border:"1px solid rgba(27,58,45,0.10)" }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round">

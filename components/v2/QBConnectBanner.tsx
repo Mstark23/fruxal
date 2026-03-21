@@ -51,7 +51,8 @@ export default function QBConnectBanner() {
       const data = await res.json();
       if (data.success) {
         setSyncMsg("Synced");
-        const fresh = await fetch("/api/quickbooks/status").then(r => r.json());
+        const fresh = await fetch("/api/quickbooks/status").then(r => r.json()).catch(() => null);
+      if (!fresh) return;
         setStatus(fresh);
       } else {
         setSyncMsg(data.error || "Sync failed");
@@ -60,7 +61,7 @@ export default function QBConnectBanner() {
       setSyncMsg("Sync failed");
     } finally {
       setSyncing(false);
-      setTimeout(() => setSyncMsg(""), 3000);
+      const _to = setTimeout(() => setSyncMsg(""), 3000);
     }
   }
 

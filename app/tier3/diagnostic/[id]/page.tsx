@@ -100,7 +100,7 @@ export default function DiagnosticResultPage() {
         body: JSON.stringify({ id, status: "sent" }),
       });
       setStatus("sent");
-    } catch {}
+    } catch { /* non-fatal */ }
     setMarking(false);
   };
 
@@ -169,7 +169,7 @@ export default function DiagnosticResultPage() {
             <div>
               <div className="text-[10px] font-bold text-[#4a5578] uppercase tracking-widest mb-1.5">Total Recoverable</div>
               <div className="text-2xl font-bold text-white tracking-tight">
-                ${s.totalEstimatedLow.toLocaleString()} <span className="text-[#4a5578] font-normal">–</span> ${s.totalEstimatedHigh.toLocaleString()}
+                ${(s.totalEstimatedLow ?? 0).toLocaleString()} <span className="text-[#4a5578] font-normal">–</span> ${(s.totalEstimatedHigh ?? 0).toLocaleString()}
               </div>
               <div className="text-xs text-[#4a5578] mt-1">{data.topLeaks.length} identified leaks</div>
             </div>
@@ -181,7 +181,7 @@ export default function DiagnosticResultPage() {
             <div>
               <div className="text-[10px] font-bold text-[#4a5578] uppercase tracking-widest mb-1.5">Your Fee (12%)</div>
               <div className="text-2xl font-bold text-white tracking-tight">
-                ${s.feeRangeLow.toLocaleString()} <span className="text-[#4a5578] font-normal">–</span> ${s.feeRangeHigh.toLocaleString()}
+                ${(s.feeRangeLow ?? 0).toLocaleString()} <span className="text-[#4a5578] font-normal">–</span> ${(s.feeRangeHigh ?? 0).toLocaleString()}
               </div>
               <div className="text-xs text-[#4a5578] mt-1">contingency basis</div>
             </div>
@@ -196,7 +196,7 @@ export default function DiagnosticResultPage() {
             const isExpanded = expandedLeak === leak.leak_id;
 
             return (
-              <div
+              <div key={idx}
                 key={leak.leak_id}
                 className="rounded-xl border transition-all cursor-pointer"
                 style={{
@@ -205,16 +205,16 @@ export default function DiagnosticResultPage() {
                 }}
                 onClick={() => setExpandedLeak(isExpanded ? null : leak.leak_id)}
               >
-                <div className="px-5 py-4 flex items-center gap-4">
+                <div key={idx} className="px-5 py-4 flex items-center gap-4">
                   {/* Rank */}
-                  <div className="w-8 h-8 rounded-lg bg-[#1a2238] flex items-center justify-center shrink-0">
+                  <div key={idx} className="w-8 h-8 rounded-lg bg-[#1a2238] flex items-center justify-center shrink-0">
                     <span className="text-xs font-bold text-[#6b7694]">#{leak.rank}</span>
                   </div>
 
                   {/* Name + meta */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-white truncate">{leak.name}</div>
-                    <div className="flex items-center gap-2 mt-1">
+                  <div key={idx} className="flex-1 min-w-0">
+                    <div key={idx} className="text-sm font-semibold text-white truncate">{leak.name}</div>
+                    <div key={idx} className="flex items-center gap-2 mt-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded" style={{ background: cat.bg, color: cat.text }}>
                         {CAT_LABELS[leak.category] || leak.category}
                       </span>
@@ -226,11 +226,11 @@ export default function DiagnosticResultPage() {
                   </div>
 
                   {/* Dollar range */}
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-bold text-white tabular-nums">
-                      ${leak.estimatedLow.toLocaleString()} – ${leak.estimatedHigh.toLocaleString()}
+                  <div key={idx} className="text-right shrink-0">
+                    <div key={idx} className="text-sm font-bold text-white tabular-nums">
+                      ${(leak.estimatedLow ?? 0).toLocaleString()} – ${(leak.estimatedHigh ?? 0).toLocaleString()}
                     </div>
-                    <div className="text-[10px] text-[#4a5578]">/yr</div>
+                    <div key={idx} className="text-[10px] text-[#4a5578]">/yr</div>
                   </div>
 
                   {/* Chevron */}
@@ -244,23 +244,23 @@ export default function DiagnosticResultPage() {
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="px-5 pb-5 pt-0 border-t border-[#1a2238]">
-                    <div className="pt-4 space-y-4">
-                      <div>
-                        <div className="text-[10px] font-bold text-[#4a5578] uppercase tracking-wider mb-1">Description</div>
+                  <div key={idx} className="px-5 pb-5 pt-0 border-t border-[#1a2238]">
+                    <div key={idx} className="pt-4 space-y-4">
+                      <div key={idx}>
+                        <div key={idx} className="text-[10px] font-bold text-[#4a5578] uppercase tracking-wider mb-1">Description</div>
                         <p className="text-xs text-[#94a3b8] leading-relaxed">{leak.description}</p>
                       </div>
-                      <div>
-                        <div className="text-[10px] font-bold text-[#4a5578] uppercase tracking-wider mb-1">Confidence Reason</div>
+                      <div key={idx}>
+                        <div key={idx} className="text-[10px] font-bold text-[#4a5578] uppercase tracking-wider mb-1">Confidence Reason</div>
                         <p className="text-xs text-[#94a3b8] leading-relaxed">{leak.confidenceReason}</p>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-[10px] font-bold text-[#4a5578] uppercase tracking-wider mb-1.5">Data Needed</div>
+                      <div key={idx} className="grid grid-cols-2 gap-4">
+                        <div key={idx}>
+                          <div key={idx} className="text-[10px] font-bold text-[#4a5578] uppercase tracking-wider mb-1.5">Data Needed</div>
                           <ul className="space-y-1">
                             {leak.dataNeeded.map((d, i) => (
                               <li key={i} className="text-xs text-[#6b7694] flex items-start gap-2">
-                                <span className="w-1 h-1 rounded-full bg-[#2a3552] mt-1.5 shrink-0" />
+                                <span key={i} className="w-1 h-1 rounded-full bg-[#2a3552] mt-1.5 shrink-0" />
                                 {d}
                               </li>
                             ))}

@@ -16,7 +16,7 @@ interface EmailOptions {
 
 export async function sendEmail({ to, subject, html, text }: EmailOptions): Promise<boolean> {
   if (!RESEND_API_KEY) {
-    console.log(`📧 [DEV] Email to ${to}: ${subject}`);
+    process.env.NODE_ENV === "development" && console.log(`📧 [DEV] Email to ${to}: ${subject}`);
     return true;
   }
 
@@ -55,9 +55,9 @@ export function emailTemplate(title: string, body: string, ctaText: string, ctaU
 export async function sendScanComplete(to: string, businessName: string, totalLeaking: number, leakCount: number, urgentCount: number): Promise<boolean> {
   return sendEmail({
     to,
-    subject: `We found $${totalLeaking.toLocaleString()} leaking from ${businessName}`,
+    subject: `We found $${(totalLeaking ?? 0).toLocaleString()} leaking from ${businessName}`,
     html: emailTemplate(
-      `$${totalLeaking.toLocaleString()}/yr leaking from ${businessName}`,
+      `$${(totalLeaking ?? 0).toLocaleString()}/yr leaking from ${businessName}`,
       `We found <strong>${leakCount} leaks</strong> across your business. <strong>${urgentCount} need urgent attention.</strong><br><br>Open your dashboard to see exactly where the money is going and how to fix each one.`,
       "See Your Leaks →",
       `${process.env.NEXTAUTH_URL || "https://fruxal.com"}/dashboard`
@@ -68,10 +68,10 @@ export async function sendScanComplete(to: string, businessName: string, totalLe
 export async function sendLeakFixed(to: string, leakTitle: string, savings: number): Promise<boolean> {
   return sendEmail({
     to,
-    subject: `${leakTitle} fixed! Saving $${savings.toLocaleString()}/yr`,
+    subject: `${leakTitle} fixed! Saving $${(savings ?? 0).toLocaleString()}/yr`,
     html: emailTemplate(
       `🎉 ${leakTitle} fixed!`,
-      `That fix saves you <strong>$${savings.toLocaleString()}/yr</strong>. Nice work.<br><br>Check your dashboard to see your updated health score and find the next leak to fix.`,
+      `That fix saves you <strong>$${(savings ?? 0).toLocaleString()}/yr</strong>. Nice work.<br><br>Check your dashboard to see your updated health score and find the next leak to fix.`,
       "See Your Progress →",
       `${process.env.NEXTAUTH_URL || "https://fruxal.com"}/dashboard?tab=trends`
     ),
@@ -81,10 +81,10 @@ export async function sendLeakFixed(to: string, leakTitle: string, savings: numb
 export async function sendWeeklyDigest(to: string, businessName: string, openLeaks: number, totalLeaking: number, fixedThisWeek: number): Promise<boolean> {
   return sendEmail({
     to,
-    subject: `Weekly: ${openLeaks} leaks open, $${totalLeaking.toLocaleString()} still leaking`,
+    subject: `Weekly: ${openLeaks} leaks open, $${(totalLeaking ?? 0).toLocaleString()} still leaking`,
     html: emailTemplate(
       `Weekly update for ${businessName}`,
-      `<strong>${openLeaks} leaks</strong> still open · <strong>$${totalLeaking.toLocaleString()}/yr</strong> still leaking${fixedThisWeek > 0 ? ` · <strong>${fixedThisWeek} fixed</strong> this week 🎉` : ""}<br><br>Your biggest open leak is waiting on your fix list.`,
+      `<strong>${openLeaks} leaks</strong> still open · <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> still leaking${fixedThisWeek > 0 ? ` · <strong>${fixedThisWeek} fixed</strong> this week 🎉` : ""}<br><br>Your biggest open leak is waiting on your fix list.`,
       "Open Fix List →",
       `${process.env.NEXTAUTH_URL || "https://fruxal.com"}/dashboard?tab=fix`
     ),
@@ -98,7 +98,7 @@ export async function sendNudge(to: string, totalLeaking: number): Promise<boole
     subject: `You're losing $${daily}/day — let's fix that`,
     html: emailTemplate(
       `$${daily} lost today. And yesterday. And the day before.`,
-      `Your scan found <strong>$${totalLeaking.toLocaleString()}/yr</strong> in leaks. Every day without action costs <strong>$${daily}</strong>.<br><br>The average user fixes their first leak within 48 hours. You can do it in one click.`,
+      `Your scan found <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> in leaks. Every day without action costs <strong>$${daily}</strong>.<br><br>The average user fixes their first leak within 48 hours. You can do it in one click.`,
       "Fix My First Leak →",
       `${process.env.NEXTAUTH_URL || "https://fruxal.com"}/dashboard?tab=fix`
     ),

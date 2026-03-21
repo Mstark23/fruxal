@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
       if (potentialSavings > 200) {
         findings.push({
           id: "cc_fees",
-          title: `~$${annualCCFees.toLocaleString()}/year in card fees — could save $${potentialSavings.toLocaleString()}`,
+          title: `~$${(annualCCFees ?? 0).toLocaleString()}/year in card fees — could save $${(potentialSavings ?? 0).toLocaleString()}`,
           description: `With ${Math.round(ccPct * 100)}% of your $${mRev.toLocaleString()}/month on cards at ~${ccRate}%, you pay ~$${annualCCFees.toLocaleString()}/year. Negotiating to ${negotiatedRate.toFixed(1)}% saves $${potentialSavings.toLocaleString()}/year.`,
           category: "Cost Leak",
           severity: potentialSavings > 2000 ? "high" : "medium",
@@ -211,8 +211,8 @@ export async function POST(req: NextRequest) {
 
       findings.push({
         id: "slow_payment",
-        title: `$${cashTied.toLocaleString()} tied up waiting for payment (${daysToPay} days)`,
-        description: `At $${mRev.toLocaleString()}/month, waiting ${daysToPay} days means ~$${cashTied.toLocaleString()} is always sitting in unpaid invoices. That cash gap costs ~$${annualCost.toLocaleString()}/year in opportunity cost and potential borrowing.`,
+        title: `$${(cashTied ?? 0).toLocaleString()} tied up waiting for payment (${daysToPay} days)`,
+        description: `At $${(mRev ?? 0).toLocaleString()}/month, waiting ${daysToPay} days means ~$${(cashTied ?? 0).toLocaleString()} is always sitting in unpaid invoices. That cash gap costs ~$${(annualCost ?? 0).toLocaleString()}/year in opportunity cost and potential borrowing.`,
         category: "Cash Flow Leak",
         severity: daysToPay > 45 ? "critical" : "high",
         impactAnnual: annualCost,
@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
       const missedDeductions = Math.round(aRev * 0.03);
       findings.push({
         id: "diy_bookkeeping",
-        title: `DIY bookkeeping → ~$${missedDeductions.toLocaleString()}/year in missed deductions`,
+        title: `DIY bookkeeping → ~$${(missedDeductions ?? 0).toLocaleString()}/year in missed deductions`,
         description: `Doing your own books means you're likely missing 3-8% in legitimate deductions.${taxRate ? ` At ${taxRate.value}% combined tax rate in ${provName}` : ""}, that's real money left on the table. A bookkeeper at $300-$600/month typically saves 3-5x their cost.`,
         category: "Tax Leak",
         severity: missedDeductions > 5000 ? "critical" : "high",
@@ -273,7 +273,7 @@ export async function POST(req: NextRequest) {
       findings.push({
         id: "software_overspend",
         title: `$${monthlySoftware}/mo on software (${Math.round(monthlySoftware / mRev * 100)}% of revenue)`,
-        description: `You're spending $${monthlySoftware}/month on software subscriptions. For a $${mRev.toLocaleString()}/month business, benchmark is 2-3% ($${target}/month). You may have duplicate or unused subscriptions.`,
+        description: `You're spending $${monthlySoftware}/month on software subscriptions. For a $${(mRev ?? 0).toLocaleString()}/month business, benchmark is 2-3% ($${target}/month). You may have duplicate or unused subscriptions.`,
         category: "Cost Leak",
         severity: overspend > 3000 ? "high" : "medium",
         impactAnnual: overspend,
@@ -287,8 +287,8 @@ export async function POST(req: NextRequest) {
       const timeLost = Math.round(emp * 3 * 52 * 20); // 3 hrs/wk × $20/hr per employee
       findings.push({
         id: "no_software",
-        title: `$0 on software → ~$${timeLost.toLocaleString()}/year in manual work`,
-        description: `With ${emp} employees and no business software, your team spends ~${emp * 3} hours/week on tasks software handles in minutes. That's ~$${timeLost.toLocaleString()}/year in lost productivity.`,
+        title: `$0 on software → ~$${(timeLost ?? 0).toLocaleString()}/year in manual work`,
+        description: `With ${emp} employees and no business software, your team spends ~${emp * 3} hours/week on tasks software handles in minutes. That's ~$${(timeLost ?? 0).toLocaleString()}/year in lost productivity.`,
         category: "Technology Leak",
         severity: emp > 3 ? "high" : "medium",
         impactAnnual: timeLost,
@@ -385,7 +385,7 @@ export async function POST(req: NextRequest) {
           : sizeTier === "growth"
           ? `For a ${emp}-person ${DISPLAY[slug] || "business"} at $${Math.round(mRev / 1000)}K/month in ${provName}, we identified ~$${Math.round(totalAnnual / 12).toLocaleString()}/month in leaks.`
           : `Based on your numbers and ${provName} data, we found ~$${Math.round(totalAnnual / 12).toLocaleString()}/month in leaks.`,
-        subheadline: `That's $${totalAnnual.toLocaleString()}/year leaving your business.`,
+        subheadline: `That's $${(totalAnnual ?? 0).toLocaleString()}/year leaving your business.`,
       },
       confirmedLeaks: confirmed,
       probableLeaks: probable,
@@ -430,7 +430,7 @@ function restaurantAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
     const overspend = Math.round((foodCostPct - bmFoodCost) / 100 * aRev);
     f.push({
       id: "high_food_cost", title: `Food cost ${foodCostPct}% vs ${bmFoodCost}% benchmark`,
-      description: `Your food cost is ${foodCostPct - bmFoodCost}% above the ${prov} target of ${bmFoodCost}%. On $${aRev.toLocaleString()}/year revenue, that's $${overspend.toLocaleString()}/year.`,
+      description: `Your food cost is ${foodCostPct - bmFoodCost}% above the ${prov} target of ${bmFoodCost}%. On $${(aRev ?? 0).toLocaleString()}/year revenue, that's $${(overspend ?? 0).toLocaleString()}/year.`,
       category: "Cost Leak", severity: overspend > 10000 ? "critical" : "high", confidence: "high",
       impactAnnual: overspend, benchmark: `${bmFoodCost}% (${prov})`, yourNumber: `${foodCostPct}%`,
       source: "your_answer + restaurants_canada", fixHint: "Renegotiate with suppliers. Reduce portion sizes by 5%. Eliminate lowest-margin menu items.",
@@ -444,7 +444,7 @@ function restaurantAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
       const overspend = Math.round((labourPct - bmLabourCost) / 100 * aRev);
       f.push({
         id: "high_labour", title: `Labour cost ${labourPct}% vs ${bmLabourCost}% benchmark`,
-        description: `Your labour at $${monthlyLabour.toLocaleString()}/month is ${labourPct}% of revenue. ${prov} target is ${bmLabourCost}%. That's $${overspend.toLocaleString()}/year over benchmark.`,
+        description: `Your labour at $${(monthlyLabour ?? 0).toLocaleString()}/month is ${labourPct}% of revenue. ${prov} target is ${bmLabourCost}%. That's $${(overspend ?? 0).toLocaleString()}/year over benchmark.`,
         category: "People Leak", severity: overspend > 10000 ? "critical" : "high", confidence: "high",
         impactAnnual: overspend, benchmark: `${bmLabourCost}% (${prov})`, yourNumber: `${labourPct}%`,
         source: "your_answer + restaurants_canada", fixHint: "Review scheduling against sales patterns. Cross-train staff. Use a POS-linked scheduling tool.",
@@ -470,7 +470,7 @@ function restaurantAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
     const potentialSavings = Math.round(deliveryCost * 0.5 * 12); // could save 50% by going direct
     f.push({
       id: "delivery_fees", title: `$${deliveryCost}/mo in delivery app fees`,
-      description: `You're paying $${deliveryCost}/month to delivery apps (25-35% commission). Building your own ordering page could save ~$${potentialSavings.toLocaleString()}/year.`,
+      description: `You're paying $${deliveryCost}/month to delivery apps (25-35% commission). Building your own ordering page could save ~$${(potentialSavings ?? 0).toLocaleString()}/year.`,
       category: "Cost Leak", severity: potentialSavings > 5000 ? "high" : "medium", confidence: "medium",
       impactAnnual: potentialSavings, benchmark: "Direct ordering (0% commission)", yourNumber: `$${deliveryCost}/mo`,
       source: "your_answer", fixHint: "Set up Square Online or Owner.com (free). Offer 10% off for direct orders.",
@@ -492,8 +492,8 @@ function dentalAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: Ma
     const annualLoss = Math.round(weeklyNoShows * avgVisitRev * 50);
 
     f.push({
-      id: "no_shows", title: `${weeklyNoShows} no-shows/week = $${annualLoss.toLocaleString()}/year lost`,
-      description: `${weeklyNoShows} no-shows out of ${weeklyAppts} appointments (${noShowRate}%). At ~$${avgVisitRev} per visit, that's $${annualLoss.toLocaleString()}/year. ${prov} target: under ${bmTarget}%.`,
+      id: "no_shows", title: `${weeklyNoShows} no-shows/week = $${(annualLoss ?? 0).toLocaleString()}/year lost`,
+      description: `${weeklyNoShows} no-shows out of ${weeklyAppts} appointments (${noShowRate}%). At ~$${avgVisitRev} per visit, that's $${(annualLoss ?? 0).toLocaleString()}/year. ${prov} target: under ${bmTarget}%.`,
       category: "Revenue Leak", severity: annualLoss > 20000 ? "critical" : "high", confidence: "high",
       impactAnnual: annualLoss, benchmark: `<${bmTarget}% no-show rate`, yourNumber: `${noShowRate}% (${weeklyNoShows}/week)`,
       source: "your_answer + cda_benchmark", fixHint: "Automated text reminders reduce no-shows 40-60%. Charge $50 no-show fee for repeats.",
@@ -509,7 +509,7 @@ function dentalAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: Ma
       const potentialRevenue = Math.round(emptySlots * avgVisitRev * 0.3 * 50); // could fill 30% of empty
       f.push({
         id: "low_utilization", title: `Chairs at ${utilization}% capacity — ${emptySlots} empty slots/week`,
-        description: `${chairs} chairs × 8 slots/day = ${maxAppts} possible per week. You're doing ${weeklyAppts} (${utilization}%). Filling 30% of empty slots = $${potentialRevenue.toLocaleString()}/year.`,
+        description: `${chairs} chairs × 8 slots/day = ${maxAppts} possible per week. You're doing ${weeklyAppts} (${utilization}%). Filling 30% of empty slots = $${(potentialRevenue ?? 0).toLocaleString()}/year.`,
         category: "Revenue Leak", severity: potentialRevenue > 30000 ? "critical" : "high", confidence: "medium",
         impactAnnual: potentialRevenue, benchmark: ">80% utilization", yourNumber: `${utilization}%`,
         source: "your_answer", fixHint: "Reduce appointment gaps. Offer last-minute booking discounts. Extend hours by 1 day.",
@@ -522,7 +522,7 @@ function dentalAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: Ma
     const insuranceRev = mRev * insurancePct;
     const cashTied = Math.round(insuranceRev * insuranceDays / 30);
     f.push({
-      id: "insurance_delay", title: `$${cashTied.toLocaleString()} tied up in insurance claims (${insuranceDays} days)`,
+      id: "insurance_delay", title: `$${(cashTied ?? 0).toLocaleString()} tied up in insurance claims (${insuranceDays} days)`,
       description: `${Math.round(insurancePct * 100)}% of your revenue goes through insurance, taking ~${insuranceDays} days. That's $${cashTied.toLocaleString()} constantly in unpaid claims.`,
       category: "Cash Flow Leak", severity: cashTied > 20000 ? "high" : "medium", confidence: "high",
       impactAnnual: Math.round(cashTied * 0.06), benchmark: "<14 days insurance payment", yourNumber: `~${insuranceDays} days`,
@@ -550,8 +550,8 @@ function constructionAnalysis(f: Finding[], a: any, mRev: number, aRev: number, 
   } else if (overbudgetPct > 10 && avgOverrun > 0) {
     const annualOverrun = Math.round(aRev * (overbudgetPct / 100) * (avgOverrun / 100));
     f.push({
-      id: "budget_overruns", title: `${overbudgetPct}% of jobs over budget by ~${avgOverrun}% = $${annualOverrun.toLocaleString()}/year`,
-      description: `${overbudgetPct}% of your jobs go over budget by an average of ${avgOverrun}%. On $${aRev.toLocaleString()}/year, that's ~$${annualOverrun.toLocaleString()}/year in overruns.`,
+      id: "budget_overruns", title: `${overbudgetPct}% of jobs over budget by ~${avgOverrun}% = $${(annualOverrun ?? 0).toLocaleString()}/year`,
+      description: `${overbudgetPct}% of your jobs go over budget by an average of ${avgOverrun}%. On $${(aRev ?? 0).toLocaleString()}/year, that's ~$${(annualOverrun ?? 0).toLocaleString()}/year in overruns.`,
       category: "Cost Leak", severity: annualOverrun > 20000 ? "critical" : "high", confidence: "high",
       impactAnnual: annualOverrun, benchmark: "<5% of jobs, <5% overrun", yourNumber: `${overbudgetPct}% of jobs, ${avgOverrun}% overrun`,
       source: "your_answer", fixHint: "Add 10% contingency to estimates. Track change orders. Review estimates vs actuals monthly.",
@@ -562,8 +562,8 @@ function constructionAnalysis(f: Finding[], a: any, mRev: number, aRev: number, 
     const wastePct = parseFloat(bm.get("material_waste_pct")?.value || "10");
     const wasteValue = Math.round(monthlyMaterials * (wastePct / 100) * 12);
     f.push({
-      id: "material_waste", title: `~$${wasteValue.toLocaleString()}/year in material waste`,
-      description: `On $${monthlyMaterials.toLocaleString()}/month in materials, industry average waste is ${wastePct}%. That's ~$${wasteValue.toLocaleString()}/year. Better ordering and leftover management can cut this in half.`,
+      id: "material_waste", title: `~$${(wasteValue ?? 0).toLocaleString()}/year in material waste`,
+      description: `On $${(monthlyMaterials ?? 0).toLocaleString()}/month in materials, industry average waste is ${wastePct}%. That's ~$${(wasteValue ?? 0).toLocaleString()}/year. Better ordering and leftover management can cut this in half.`,
       category: "Cost Leak", severity: wasteValue > 10000 ? "high" : "medium", confidence: "medium",
       impactAnnual: Math.round(wasteValue * 0.5), benchmark: `<${Math.round(wastePct / 2)}% material waste`, yourNumber: `~${wastePct}% (industry avg)`,
       source: "your_answer + cca_benchmark", fixHint: "Track leftover materials per job. Reuse on next project. Return unused to supplier.",
@@ -574,8 +574,8 @@ function constructionAnalysis(f: Finding[], a: any, mRev: number, aRev: number, 
     const avgProject = avgProjectValue || Math.round(mRev / Math.max(1, projects));
     const holdback = Math.round(avgProject * 0.10 * projects); // 10% holdback on active projects
     f.push({
-      id: "slow_final_payment", title: `Final payments take ${finalPaymentDays} days — $${holdback.toLocaleString()} tied up`,
-      description: `Waiting ${finalPaymentDays} days for final payment on ${projects} active projects means ~$${holdback.toLocaleString()} is always sitting in receivables. Plus ${prov} holdback requirements.`,
+      id: "slow_final_payment", title: `Final payments take ${finalPaymentDays} days — $${(holdback ?? 0).toLocaleString()} tied up`,
+      description: `Waiting ${finalPaymentDays} days for final payment on ${projects} active projects means ~$${(holdback ?? 0).toLocaleString()} is always sitting in receivables. Plus ${prov} holdback requirements.`,
       category: "Cash Flow Leak", severity: holdback > 20000 ? "high" : "medium", confidence: "high",
       impactAnnual: Math.round(holdback * 0.08), benchmark: "<30 days final payment", yourNumber: `${finalPaymentDays} days`,
       source: "your_answer", fixHint: "Use progress billing. Invoice milestones, not just completion. Send invoices day of completion.",
@@ -594,8 +594,8 @@ function salonAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: Map
   if (weeklyNoShows > 0) {
     const loss = Math.round(weeklyNoShows * avgPrice * 50);
     f.push({
-      id: "no_shows", title: `${weeklyNoShows} no-shows/week = $${loss.toLocaleString()}/year lost`,
-      description: `At ~$${avgPrice} per service, ${weeklyNoShows} missed appointments per week costs $${loss.toLocaleString()}/year.`,
+      id: "no_shows", title: `${weeklyNoShows} no-shows/week = $${(loss ?? 0).toLocaleString()}/year lost`,
+      description: `At ~$${avgPrice} per service, ${weeklyNoShows} missed appointments per week costs $${(loss ?? 0).toLocaleString()}/year.`,
       category: "Revenue Leak", severity: loss > 10000 ? "critical" : "high", confidence: "high",
       impactAnnual: loss, benchmark: `<${parseFloat(bm.get("no_show_rate_target")?.value || "10")}% no-show rate`, yourNumber: `${weeklyNoShows}/week`,
       source: "your_answer", fixHint: "Require card on file for bookings. Send text reminders 24h + 2h before. Charge 50% for no-shows.",
@@ -609,7 +609,7 @@ function salonAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: Map
     if (gap > 1000) {
       f.push({
         id: "low_retail", title: `Retail revenue $${retailRev}/mo vs $${targetRetail}/mo potential`,
-        description: `You spend $${productCost}/month on products but only sell $${retailRev}/month retail. Industry target is 15% of revenue ($${targetRetail}/month). That's $${gap.toLocaleString()}/year in missed retail revenue.`,
+        description: `You spend $${productCost}/month on products but only sell $${retailRev}/month retail. Industry target is 15% of revenue ($${targetRetail}/month). That's $${(gap ?? 0).toLocaleString()}/year in missed retail revenue.`,
         category: "Revenue Leak", severity: gap > 10000 ? "high" : "medium", confidence: "medium",
         impactAnnual: gap, benchmark: `15% of revenue ($${targetRetail}/mo)`, yourNumber: `$${retailRev}/mo`,
         source: "your_answer", fixHint: "Display products at checkout. Train staff to recommend products used during service. Offer bundles.",
@@ -625,7 +625,7 @@ function salonAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: Map
       const emptyValue = Math.round((maxClients - weeklyClients) * avgPrice * 0.25 * 50);
       f.push({
         id: "low_chair_util", title: `Chairs at ${util}% utilization`,
-        description: `${stations} stations could serve ~${maxClients} clients/week. You're at ${weeklyClients} (${util}%). Filling 25% of empty slots = $${emptyValue.toLocaleString()}/year.`,
+        description: `${stations} stations could serve ~${maxClients} clients/week. You're at ${weeklyClients} (${util}%). Filling 25% of empty slots = $${(emptyValue ?? 0).toLocaleString()}/year.`,
         category: "Revenue Leak", severity: emptyValue > 15000 ? "high" : "medium", confidence: "medium",
         impactAnnual: emptyValue, benchmark: ">75% utilization", yourNumber: `${util}%`,
         source: "your_answer", fixHint: "Run midweek promotions. Extend hours. Add services (nails, lashes) to fill gaps.",
@@ -678,8 +678,8 @@ function retailAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: Ma
   } else if (shrinkage > 0) {
     const annualShrinkage = shrinkage * 12;
     f.push({
-      id: "shrinkage", title: `~$${annualShrinkage.toLocaleString()}/year in shrinkage`,
-      description: `You estimate ~$${shrinkage}/month in missing, broken, or expired goods. That's $${annualShrinkage.toLocaleString()}/year.`,
+      id: "shrinkage", title: `~$${(annualShrinkage ?? 0).toLocaleString()}/year in shrinkage`,
+      description: `You estimate ~$${shrinkage}/month in missing, broken, or expired goods. That's $${(annualShrinkage ?? 0).toLocaleString()}/year.`,
       category: "Cost Leak", severity: annualShrinkage > 5000 ? "high" : "medium", confidence: "high",
       impactAnnual: Math.round(annualShrinkage * 0.5), benchmark: `<$${Math.round(aRev * 0.01 / 12)}/month`, yourNumber: `~$${shrinkage}/month`,
       source: "your_answer", fixHint: "Identify top stolen/wasted items. Improve display security. Adjust ordering for perishables.",
@@ -712,7 +712,7 @@ function accountingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
     const rateGap = Math.round((potentialRate - hourlyRate) * billableHrs * 50);
     f.push({
       id: "low_rate", title: `Charging $${hourlyRate}/hr vs $${bmRate}/hr ${prov} average`,
-      description: `Your rate of $${hourlyRate}/hour is below the ${prov} average of $${bmRate}. Raising to $${potentialRate} would add $${rateGap.toLocaleString()}/year.`,
+      description: `Your rate of $${hourlyRate}/hour is below the ${prov} average of $${bmRate}. Raising to $${potentialRate} would add $${(rateGap ?? 0).toLocaleString()}/year.`,
       category: "Pricing Leak", severity: rateGap > 15000 ? "critical" : "high", confidence: "high",
       impactAnnual: rateGap, benchmark: `$${bmRate}/hr (${prov} avg)`, yourNumber: `$${hourlyRate}/hr`,
       source: "your_answer + cpa_canada", fixHint: "Raise rates 10% for new clients immediately. Phase in increases for existing clients over 6 months.",
@@ -738,8 +738,8 @@ function accountingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
   if (collectionRate !== -1 && collectionRate < 95) {
     const writeOff = Math.round(aRev * (100 - collectionRate) / 100);
     f.push({
-      id: "low_collection", title: `Collection rate ${collectionRate}% — writing off $${writeOff.toLocaleString()}/year`,
-      description: `You're collecting ${collectionRate}% of billed work. The other ${100 - collectionRate}% = $${writeOff.toLocaleString()}/year in write-downs and uncollected fees.`,
+      id: "low_collection", title: `Collection rate ${collectionRate}% — writing off $${(writeOff ?? 0).toLocaleString()}/year`,
+      description: `You're collecting ${collectionRate}% of billed work. The other ${100 - collectionRate}% = $${(writeOff ?? 0).toLocaleString()}/year in write-downs and uncollected fees.`,
       category: "Revenue Leak", severity: writeOff > 10000 ? "critical" : "high", confidence: "high",
       impactAnnual: writeOff, benchmark: ">98% collection rate", yourNumber: `${collectionRate}%`,
       source: "your_answer + cpa_canada", fixHint: "Require retainers for new clients. Bill monthly not quarterly. Follow up on day 31.",
@@ -749,7 +749,7 @@ function accountingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
   if (topClientPct > 40) {
     const atRisk = Math.round(aRev * topClientPct / 100);
     f.push({
-      id: "client_concentration", title: `${topClientPct}% of revenue from top 3 clients — $${atRisk.toLocaleString()} at risk`,
+      id: "client_concentration", title: `${topClientPct}% of revenue from top 3 clients — $${(atRisk ?? 0).toLocaleString()} at risk`,
       description: `If one of your top 3 clients leaves, you lose up to ${Math.round(topClientPct / 3)}% of revenue overnight. Diversification target is <20%.`,
       category: "Revenue Leak", severity: topClientPct > 60 ? "critical" : "high", confidence: "high",
       impactAnnual: Math.round(atRisk * 0.10), benchmark: "<20% from top 3 clients", yourNumber: `${topClientPct}%`,
@@ -772,7 +772,7 @@ function fitnessAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: M
     const annualRetention = 100 - (monthlyChurnPct * 12);
     const lostRevenue = Math.round(cancellations * price * 6); // avg member stays 6 more months
     f.push({
-      id: "high_churn", title: `${cancellations} cancellations/month = $${lostRevenue.toLocaleString()}/year lost`,
+      id: "high_churn", title: `${cancellations} cancellations/month = $${(lostRevenue ?? 0).toLocaleString()}/year lost`,
       description: `${cancellations} of ${members} members cancel monthly (${monthlyChurnPct}%/month, ~${100 - Math.max(0, annualRetention)}% annual). Each cancellation = ~$${price * 6} in future revenue lost.`,
       category: "Revenue Leak", severity: lostRevenue > 20000 ? "critical" : "high", confidence: "high",
       impactAnnual: lostRevenue, benchmark: `<${Math.round(100 - bmRetention)}% annual churn`, yourNumber: `${monthlyChurnPct}%/month`,
@@ -784,7 +784,7 @@ function fitnessAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: M
     const priceGap = Math.round((bmPrice - price) * members * 12);
     f.push({
       id: "low_price", title: `Membership $${price}/mo vs $${bmPrice}/mo ${prov} average`,
-      description: `At $${price}/month × ${members} members, raising to $${bmPrice} would add $${priceGap.toLocaleString()}/year.`,
+      description: `At $${price}/month × ${members} members, raising to $${bmPrice} would add $${(priceGap ?? 0).toLocaleString()}/year.`,
       category: "Pricing Leak", severity: priceGap > 15000 ? "high" : "medium", confidence: "medium",
       impactAnnual: priceGap, benchmark: `$${bmPrice}/mo (${prov} avg)`, yourNumber: `$${price}/mo`,
       source: "your_answer + ihrsa", fixHint: "Granfather existing members. Raise rates for new sign-ups. Add value (classes, app) to justify increase.",
@@ -795,7 +795,7 @@ function fitnessAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: M
     const potential = Math.round(members * 15 * 12); // $15/member/month in ancillary
     f.push({
       id: "no_ancillary", title: "$0 in personal training/classes/supplements",
-      description: `With ${members} members and $0 in ancillary revenue, you're leaving ~$${potential.toLocaleString()}/year on the table. Top gyms make 20-30% from non-membership sources.`,
+      description: `With ${members} members and $0 in ancillary revenue, you're leaving ~$${(potential ?? 0).toLocaleString()}/year on the table. Top gyms make 20-30% from non-membership sources.`,
       category: "Revenue Leak", severity: "high", confidence: "medium",
       impactAnnual: potential, benchmark: "$15-25/member/month in ancillary", yourNumber: "$0/month",
       source: "your_answer + ihrsa", fixHint: "Start with group classes (low cost). Sell protein shakes/supplements. Offer 3-pack PT sessions.",
@@ -818,7 +818,7 @@ function consultingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
       const lostRev = Math.round((totalHours * 0.65 - billable) * rate * 50);
       f.push({
         id: "low_billable", title: `Only ${billable} billable hours/week out of ${totalHours} total`,
-        description: `You spend ${nonBillable} hours/week on admin, proposals, and marketing — that's ${100 - utilization}% non-billable time. Getting to 65% billable adds $${lostRev.toLocaleString()}/year.`,
+        description: `You spend ${nonBillable} hours/week on admin, proposals, and marketing — that's ${100 - utilization}% non-billable time. Getting to 65% billable adds $${(lostRev ?? 0).toLocaleString()}/year.`,
         category: "Revenue Leak", severity: lostRev > 20000 ? "critical" : "high", confidence: "high",
         impactAnnual: lostRev, benchmark: "65%+ billable time", yourNumber: `${utilization}% billable`,
         source: "your_answer", fixHint: "Automate proposals (PandaDoc). Batch admin to Fridays. Hire a VA for $15-25/hr.",
@@ -830,7 +830,7 @@ function consultingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
     const atRisk = Math.round(aRev * topClientPct / 100);
     f.push({
       id: "client_concentration", title: `${topClientPct}% of revenue from one client`,
-      description: `If that client leaves, you lose $${atRisk.toLocaleString()}/year overnight. Target: no single client >25%.`,
+      description: `If that client leaves, you lose $${(atRisk ?? 0).toLocaleString()}/year overnight. Target: no single client >25%.`,
       category: "Revenue Leak", severity: topClientPct > 50 ? "critical" : "high", confidence: "high",
       impactAnnual: Math.round(atRisk * 0.15), benchmark: "<25% from any single client", yourNumber: `${topClientPct}%`,
       source: "your_answer", fixHint: "Actively pursue 2-3 new clients. Create retainer packages for stable recurring revenue.",
@@ -850,8 +850,8 @@ function plumbingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: 
     const lostBillableHours = Math.round((driveHours - 1) * 250); // 250 work days
     const lostRev = lostBillableHours * rate;
     f.push({
-      id: "drive_time", title: `${driveHours} hours/day driving = $${lostRev.toLocaleString()}/year lost`,
-      description: `Your crew spends ${driveHours} hours/day in the truck. Every hour driving is an hour not billing at $${rate}/hr. That's $${lostRev.toLocaleString()}/year.`,
+      id: "drive_time", title: `${driveHours} hours/day driving = $${(lostRev ?? 0).toLocaleString()}/year lost`,
+      description: `Your crew spends ${driveHours} hours/day in the truck. Every hour driving is an hour not billing at $${rate}/hr. That's $${(lostRev ?? 0).toLocaleString()}/year.`,
       category: "Operational Leak", severity: lostRev > 15000 ? "high" : "medium", confidence: "high",
       impactAnnual: lostRev, benchmark: "<1 hour/day driving", yourNumber: `${driveHours} hours/day`,
       source: "your_answer", fixHint: "Route-optimize with Google Maps. Cluster jobs by neighbourhood. Charge travel time for distant jobs.",
@@ -862,7 +862,7 @@ function plumbingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: 
     const potentialRepeat = Math.round(aRev * 0.15);
     f.push({
       id: "low_repeat", title: `Only ${repeatPct}% repeat customers`,
-      description: `${repeatPct}% of your calls are repeat customers. Industry leaders are at 60%+. Repeat customers cost nothing to acquire and spend more. Potential: $${potentialRepeat.toLocaleString()}/year.`,
+      description: `${repeatPct}% of your calls are repeat customers. Industry leaders are at 60%+. Repeat customers cost nothing to acquire and spend more. Potential: $${(potentialRepeat ?? 0).toLocaleString()}/year.`,
       category: "Growth Leak", severity: "high", confidence: "medium",
       impactAnnual: potentialRepeat, benchmark: ">60% repeat customers", yourNumber: `${repeatPct}%`,
       source: "your_answer", fixHint: "Send maintenance reminders (annual drain cleaning, water heater flush). Follow up 6 months after every job.",
@@ -884,7 +884,7 @@ function landscapingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, b
     if (contractPct < 60) {
       const target = Math.round(aRev * 0.70);
       f.push({
-        id: "low_contract_base", title: `Only ${contractPct}% recurring revenue ($${contractRev.toLocaleString()}/year)`,
+        id: "low_contract_base", title: `Only ${contractPct}% recurring revenue ($${(contractRev ?? 0).toLocaleString()}/year)`,
         description: `Recurring maintenance contracts are ${contractPct}% of revenue. Target is 70%+. Non-contract work is less predictable and harder to schedule.`,
         category: "Revenue Leak", severity: "high", confidence: "medium",
         impactAnnual: Math.round((target - contractRev) * 0.3), benchmark: ">70% from contracts", yourNumber: `${contractPct}%`,
@@ -898,7 +898,7 @@ function landscapingAnalysis(f: Finding[], a: any, mRev: number, aRev: number, b
     const overspend = Math.round((fuel - target) * 12);
     f.push({
       id: "high_fuel", title: `Fuel at $${fuel}/mo (${Math.round(fuel / mRev * 100)}% of revenue)`,
-      description: `You spend $${fuel}/month on fuel. Target is 3-5% of revenue ($${target}/month). You're overspending $${overspend.toLocaleString()}/year.`,
+      description: `You spend $${fuel}/month on fuel. Target is 3-5% of revenue ($${target}/month). You're overspending $${(overspend ?? 0).toLocaleString()}/year.`,
       category: "Cost Leak", severity: overspend > 3000 ? "high" : "medium", confidence: "high",
       impactAnnual: overspend, benchmark: `3-5% of revenue ($${target}/mo)`, yourNumber: `$${fuel}/mo`,
       source: "your_answer", fixHint: "Cluster routes by area. Maintain trucks (tire pressure alone saves 5%). Get a fleet fuel card for discounts.",
@@ -917,8 +917,8 @@ function ecommerceAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm:
   if (returnRate > 5) {
     const returnCost = Math.round(monthlyOrders * (returnRate / 100) * aov * 0.3 * 12); // 30% of value lost on returns
     f.push({
-      id: "high_returns", title: `${returnRate}% return rate = ~$${returnCost.toLocaleString()}/year in losses`,
-      description: `${returnRate}% of orders get returned. Each return costs ~30% of order value (shipping, restocking, damage). That's ~$${returnCost.toLocaleString()}/year.`,
+      id: "high_returns", title: `${returnRate}% return rate = ~$${(returnCost ?? 0).toLocaleString()}/year in losses`,
+      description: `${returnRate}% of orders get returned. Each return costs ~30% of order value (shipping, restocking, damage). That's ~$${(returnCost ?? 0).toLocaleString()}/year.`,
       category: "Cost Leak", severity: returnCost > 10000 ? "high" : "medium", confidence: "high",
       impactAnnual: returnCost, benchmark: "<3% return rate", yourNumber: `${returnRate}%`,
       source: "your_answer", fixHint: "Improve product photos/descriptions. Add size guides. Offer exchanges instead of refunds.",
@@ -929,7 +929,7 @@ function ecommerceAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm:
     const potentialRepeat = Math.round(aRev * 0.20);
     f.push({
       id: "low_repeat", title: `Only ${repeatPct}% repeat customers`,
-      description: `Acquiring a new customer costs 5-7x more than keeping one. At ${repeatPct}% repeat rate, you're spending too much on acquisition. Getting to 30% adds ~$${potentialRepeat.toLocaleString()}/year.`,
+      description: `Acquiring a new customer costs 5-7x more than keeping one. At ${repeatPct}% repeat rate, you're spending too much on acquisition. Getting to 30% adds ~$${(potentialRepeat ?? 0).toLocaleString()}/year.`,
       category: "Growth Leak", severity: "high", confidence: "medium",
       impactAnnual: potentialRepeat, benchmark: ">30% repeat rate", yourNumber: `${repeatPct}%`,
       source: "your_answer", fixHint: "Launch email sequences post-purchase. Offer loyalty discounts. Run retargeting ads to past buyers.",
@@ -960,7 +960,7 @@ function autoRepairAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
     const lostHours = (7 - productiveHrs) * bays * 250;
     const lostRev = Math.round(lostHours * labourRate);
     f.push({
-      id: "low_bay_efficiency", title: `Bays productive ${productiveHrs}h/day — losing $${lostRev.toLocaleString()}/year`,
+      id: "low_bay_efficiency", title: `Bays productive ${productiveHrs}h/day — losing $${(lostRev ?? 0).toLocaleString()}/year`,
       description: `${bays} bays × ${productiveHrs} productive hours out of 8 = ${Math.round(productiveHrs / 8 * 100)}% efficiency. Getting to 7h/day adds $${lostRev.toLocaleString()}/year.`,
       category: "Revenue Leak", severity: lostRev > 30000 ? "critical" : "high", confidence: "high",
       impactAnnual: lostRev, benchmark: "7+ productive hours/day", yourNumber: `${productiveHrs}h/day`,
@@ -975,7 +975,7 @@ function autoRepairAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
     const gap = Math.round(targetProfit - currentProfit);
     f.push({
       id: "low_parts_markup", title: `Parts markup ${partsMarkup}% vs 50-70% benchmark`,
-      description: `Your parts markup of ${partsMarkup}% is below the industry standard of 50-70%. On ~$${partsRev.toLocaleString()}/year in parts, that's $${gap.toLocaleString()}/year in lost margin.`,
+      description: `Your parts markup of ${partsMarkup}% is below the industry standard of 50-70%. On ~$${(partsRev ?? 0).toLocaleString()}/year in parts, that's $${(gap ?? 0).toLocaleString()}/year in lost margin.`,
       category: "Pricing Leak", severity: gap > 10000 ? "high" : "medium", confidence: "high",
       impactAnnual: gap, benchmark: "50-70% parts markup", yourNumber: `${partsMarkup}%`,
       source: "your_answer", fixHint: "Raise parts markup to at least 50%. Most customers don't compare parts prices.",
@@ -994,7 +994,7 @@ function daycareAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm: M
     const emptySpots = capacity - filled;
     const lostRev = Math.round(emptySpots * dailyRate * 250);
     f.push({
-      id: "empty_spots", title: `${emptySpots} empty spots = $${lostRev.toLocaleString()}/year`,
+      id: "empty_spots", title: `${emptySpots} empty spots = $${(lostRev ?? 0).toLocaleString()}/year`,
       description: `You have ${emptySpots} unfilled spots out of ${capacity} capacity (${Math.round(filled / capacity * 100)}% full). At $${dailyRate}/day, that's $${lostRev.toLocaleString()}/year in empty spots.`,
       category: "Revenue Leak", severity: lostRev > 20000 ? "critical" : "high", confidence: "high",
       impactAnnual: lostRev, benchmark: ">95% capacity", yourNumber: `${Math.round(filled / capacity * 100)}%`,
@@ -1016,8 +1016,8 @@ function healthcareAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
     const weeklyTotal = dailyPatients * 5;
     const noShowRate = weeklyTotal > 0 ? Math.round((weeklyNoShows / weeklyTotal) * 100) : 0;
     f.push({
-      id: "no_shows", title: `${weeklyNoShows} no-shows/week = $${loss.toLocaleString()}/year`,
-      description: `${weeklyNoShows} missed appointments per week (${noShowRate}%). At $${avgVisitRev}/visit = $${loss.toLocaleString()}/year. ${prov} target: under 5%.`,
+      id: "no_shows", title: `${weeklyNoShows} no-shows/week = $${(loss ?? 0).toLocaleString()}/year`,
+      description: `${weeklyNoShows} missed appointments per week (${noShowRate}%). At $${avgVisitRev}/visit = $${(loss ?? 0).toLocaleString()}/year. ${prov} target: under 5%.`,
       category: "Revenue Leak", severity: loss > 20000 ? "critical" : "high", confidence: "high",
       impactAnnual: loss, benchmark: "<5% no-show rate", yourNumber: `${noShowRate}% (${weeklyNoShows}/week)`,
       source: "your_answer + cma_benchmark", fixHint: "Automated text reminders 48h + 2h before. Allow easy rescheduling. Waitlist to fill cancellations.",
@@ -1028,7 +1028,7 @@ function healthcareAnalysis(f: Finding[], a: any, mRev: number, aRev: number, bm
     const overspend = Math.round((adminPct - bmAdmin) / 100 * aRev);
     f.push({
       id: "high_admin", title: `Admin overhead ${adminPct}% vs ${bmAdmin}% benchmark`,
-      description: `Your admin/overhead costs are ${adminPct}% of revenue — ${adminPct - bmAdmin}% above the ${prov} benchmark. That's $${overspend.toLocaleString()}/year over target.`,
+      description: `Your admin/overhead costs are ${adminPct}% of revenue — ${adminPct - bmAdmin}% above the ${prov} benchmark. That's $${(overspend ?? 0).toLocaleString()}/year over target.`,
       category: "Cost Leak", severity: overspend > 15000 ? "high" : "medium", confidence: "high",
       impactAnnual: overspend, benchmark: `<${bmAdmin}% admin overhead`, yourNumber: `${adminPct}%`,
       source: "your_answer + cma_benchmark", fixHint: "Automate scheduling and intake forms. Use EMR with integrated billing. Consider virtual admin support.",

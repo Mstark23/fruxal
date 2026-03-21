@@ -29,9 +29,7 @@ function isAuthorized(req: NextRequest): boolean {
 
 export const maxDuration = 300; // Vercel function timeout (seconds)
 
-export async function GET(req: NextRequest) {
-  return POST(req);
-}
+
 
 export async function POST(req: NextRequest) {
   const start = Date.now();
@@ -44,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // ─── STEP 1: Generate daily notifications ───────────────────────
-    console.log("[Cron:Daily] Generating notifications...");
+    process.env.NODE_ENV !== "production" && console.log("[Cron:Daily] Generating notifications...");
     const { data: notifResult, error: notifErr } = await supabaseAdmin.rpc(
       "generate_daily_notifications"
     );
@@ -56,7 +54,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ─── STEP 2: Process email queue ────────────────────────────────
-    console.log("[Cron:Daily] Processing email queue...");
+    process.env.NODE_ENV !== "production" && console.log("[Cron:Daily] Processing email queue...");
     const { data: emails, error: queueErr } = await supabaseAdmin.rpc(
       "process_email_queue",
       { p_batch_size: 100 }
@@ -93,7 +91,7 @@ export async function POST(req: NextRequest) {
     const today = new Date();
     if (today.getDay() === 1) {
       // Monday
-      console.log("[Cron:Daily] Monday — generating weekly digests...");
+      process.env.NODE_ENV !== "production" && console.log("[Cron:Daily] Monday — generating weekly digests...");
       const { data: digestCount, error: digestErr } = await supabaseAdmin.rpc(
         "generate_weekly_digest"
       );
@@ -105,7 +103,7 @@ export async function POST(req: NextRequest) {
     }
 
     const took = Date.now() - start;
-    console.log(`[Cron:Daily] Complete in ${took}ms`, results);
+    process.env.NODE_ENV !== "production" && console.log(`[Cron:Daily] Complete in ${took}ms`, results);
 
     return NextResponse.json({
       success: true,
@@ -135,7 +133,7 @@ async function sendEmail(email: any): Promise<void> {
     await sendViaSendGrid(email);
   } else {
     // Log-only mode (development)
-    console.log(`[Email:Dev] Would send to ${email.to_email}: ${email.subject}`);
+    process.env.NODE_ENV !== "production" && console.log(`[Email:Dev] Would send to ${email.to_email}: ${email.subject}`);
   }
 }
 
@@ -287,26 +285,26 @@ function buildWeeklyDigestHtml(d: any, isFr: boolean): string {
     <table style="width:100%;border-collapse:collapse;">
       <tr>
         <td style="text-align:center;padding:8px;">
-          <div style="color:${(d.overdue_count || 0) > 0 ? "#ef4444" : "#10b981"};font-size:24px;font-weight:800;">${d.overdue_count || 0}</div>
+          <div style="color:${(d.overdue_count ?? 0) > 0 ? "#ef4444" : "#10b981"};font-size:24px;font-weight:800;">${d.overdue_count ?? 0}</div>
           <div style="color:rgba(255,255,255,0.3);font-size:10px;text-transform:uppercase;">${isFr ? "En retard" : "Overdue"}</div>
         </td>
         <td style="text-align:center;padding:8px;">
-          <div style="color:#f59e0b;font-size:24px;font-weight:800;">${d.due_this_week || 0}</div>
+          <div style="color:#f59e0b;font-size:24px;font-weight:800;">${d.due_this_week ?? 0}</div>
           <div style="color:rgba(255,255,255,0.3);font-size:10px;text-transform:uppercase;">${isFr ? "Cette sem." : "This Week"}</div>
         </td>
         <td style="text-align:center;padding:8px;">
-          <div style="color:#3b82f6;font-size:24px;font-weight:800;">${d.due_this_month || 0}</div>
+          <div style="color:#3b82f6;font-size:24px;font-weight:800;">${d.due_this_month ?? 0}</div>
           <div style="color:rgba(255,255,255,0.3);font-size:10px;text-transform:uppercase;">${isFr ? "Ce mois" : "This Month"}</div>
         </td>
         <td style="text-align:center;padding:8px;">
-          <div style="color:#10b981;font-size:24px;font-weight:800;">${d.completed_this_year || 0}</div>
+          <div style="color:#10b981;font-size:24px;font-weight:800;">${d.completed_this_year ?? 0}</div>
           <div style="color:rgba(255,255,255,0.3);font-size:10px;text-transform:uppercase;">${isFr ? "Complétées" : "Completed"}</div>
         </td>
       </tr>
     </table>
   </div>
 
-  ${(d.total_penalty_exposure || 0) > 0 ? `
+  ${(d.total_penalty_exposure ?? 0) > 0 ? `
   <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);border-radius:12px;padding:14px;margin-bottom:16px;text-align:center;">
     <span style="color:rgba(255,255,255,0.4);font-size:11px;">${isFr ? "Exposition aux pénalités" : "Penalty Exposure"}: </span>
     <span style="color:#ef4444;font-size:16px;font-weight:800;">$${Number(d.total_penalty_exposure).toLocaleString()}</span>

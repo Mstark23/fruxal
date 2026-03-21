@@ -111,7 +111,7 @@ export default function ObligationsPage() {
   ].filter(filterOb) : [];
 
   const sum = calendar?.summary;
-  const penExposure = sum?.total_penalty_exposure || 0;
+  const penExposure = sum?.total_penalty_exposure ?? 0;
 
   const RISK_COLOR: Record<string, {dot:string; bg:string; text:string}> = {
     critical: { dot:"#B34040", bg:"rgba(179,64,64,0.07)", text:"#B34040" },
@@ -166,7 +166,7 @@ export default function ObligationsPage() {
         {/* ── KPI strip ─────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
           {[
-            { val: sum?.total_tracked||0,   label:t("Total Tracked","Total suivies"),   color:"#1A1A18" },
+            { val: sum?.total_tracked??0,   label:t("Total Tracked","Total suivies"),   color:"#1A1A18" },
             { val: sum?.overdue||0,          label:t("Overdue","En retard"),              color:"#B34040", pulse:!!(sum?.overdue) },
             { val: (sum?.due_this_week||0)+(sum?.due_this_month||0), label:t("Due This Month","Ce mois-ci"), color:"#C4841D" },
             { val: penExposure, label:t("Penalty Exposure","Exposition pénalités"), color:"#B34040", money:true },
@@ -191,7 +191,7 @@ export default function ObligationsPage() {
                   {t("Penalty exposure — overdue obligations","Exposition aux pénalités — obligations en retard")}
                 </span>
                 <span className="font-serif text-[18px] font-bold" style={{ color:"#B34040" }}>
-                  ${penExposure.toLocaleString()}
+                  ${(penExposure ?? 0).toLocaleString()}
                 </span>
               </div>
               <div className="h-1 bg-bg-section rounded-full overflow-hidden">
@@ -310,8 +310,8 @@ export default function ObligationsPage() {
                     ) : <span className="text-[10px] text-ink-faint">—</span>}
                   </div>
                   <div className="col-span-2 flex items-center">
-                    {(ob.penalty_max||0)>0
-                      ? <span className="text-[11px] font-semibold" style={{ color:"#B34040" }}>${(ob.penalty_max||0).toLocaleString()}</span>
+                    {(ob.penalty_max??0)>0
+                      ? <span className="text-[11px] font-semibold" style={{ color:"#B34040" }}>${(ob.penalty_max??0).toLocaleString()}</span>
                       : <span className="text-[10px] text-ink-faint">—</span>}
                   </div>
                   <div className="col-span-2 flex items-center justify-end gap-1.5">
@@ -443,9 +443,9 @@ function TimelineSection({ title, items, accentColor, lang, onComplete, onSnooze
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    {(ob.penalty_max||0)>0 && (
+                    {(ob.penalty_max??0)>0 && (
                       <div className="text-right">
-                        <div className="text-[11px] font-bold" style={{ color:"#B34040" }}>${(ob.penalty_max||0).toLocaleString()}</div>
+                        <div className="text-[11px] font-bold" style={{ color:"#B34040" }}>${(ob.penalty_max??0).toLocaleString()}</div>
                         <div className="text-[8px] text-ink-faint">{t("max penalty","pénalité max")}</div>
                       </div>
                     )}

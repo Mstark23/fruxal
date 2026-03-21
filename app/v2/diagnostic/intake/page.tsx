@@ -252,7 +252,7 @@ export default function DiagnosticIntakePage() {
             total_assets:          p.total_assets          || null,
             total_liabilities:     p.total_liabilities     || null,
             has_payroll:           p.has_payroll           ?? false,
-            employee_count:        p.employee_count        || 0,
+            employee_count:        p.employee_count        ?? 0,
             has_accountant:        p.has_accountant        ?? false,
             has_bookkeeper:        p.has_bookkeeper        ?? false,
             uses_payroll_software: p.uses_payroll_software ?? false,

@@ -211,7 +211,7 @@ export default function OnboardingTour() {
                 <div className="bg-red-500/5 border border-red-500/10 rounded-xl px-5 py-3 inline-block">
                   <p className="text-white/15 text-[9px] uppercase tracking-wider">Estimated Annual Leak</p>
                   <p className="text-red-400 text-xl font-black">
-                    ${data.leaks.range_min.toLocaleString()} — ${data.leaks.range_max.toLocaleString()}
+                    ${(data.leaks.range_min ?? 0).toLocaleString()} — ${(data.leaks.range_max ?? 0).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -235,7 +235,7 @@ export default function OnboardingTour() {
               <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
                 <div>
                   <p className="text-amber-400/40 text-[9px] uppercase tracking-wider">Penalty Exposure</p>
-                  <p className="text-amber-400 text-lg font-black">${data.obligations.penalty_exposure.toLocaleString()}</p>
+                  <p className="text-amber-400 text-lg font-black">${(data.obligations.penalty_exposure ?? 0).toLocaleString()}</p>
                 </div>
                 {data.obligations.next_deadline && (
                   <div className="text-right">
@@ -264,7 +264,7 @@ export default function OnboardingTour() {
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-white/15 text-[9px]">{ob.agency}</span>
                         {ob.penalty_max > 0 && (
-                          <span className="text-red-400/40 text-[9px]">Up to ${ob.penalty_max.toLocaleString()}</span>
+                          <span className="text-red-400/40 text-[9px]">Up to ${(ob.penalty_max ?? 0).toLocaleString()}</span>
                         )}
                       </div>
                     </div>
@@ -297,7 +297,7 @@ export default function OnboardingTour() {
               <div className="bg-red-500/5 border border-red-500/10 rounded-xl px-4 py-3 mb-4 text-center">
                 <p className="text-red-400/40 text-[9px] uppercase tracking-wider">You're Leaving on the Table</p>
                 <p className="text-red-400 text-2xl font-black">
-                  ${data.leaks.range_min.toLocaleString()} — ${data.leaks.range_max.toLocaleString()}/yr
+                  ${(data.leaks.range_min ?? 0).toLocaleString()} — ${(data.leaks.range_max ?? 0).toLocaleString()}/yr
                 </p>
               </div>
 
@@ -317,7 +317,7 @@ export default function OnboardingTour() {
                       <p className="text-white/50 text-xs font-medium mb-1">{leak.title}</p>
                       <div className="flex items-center justify-between">
                         <span className="text-red-400/60 text-xs font-bold">
-                          ${leak.impact_min.toLocaleString()} — ${leak.impact_max.toLocaleString()}/yr
+                          ${(leak.impact_min ?? 0).toLocaleString()} — ${(leak.impact_max ?? 0).toLocaleString()}/yr
                         </span>
                         <span className="text-white/10 text-[9px]">
                           {leak.solution_type === "free_fix" ? "🆓 Free fix" :

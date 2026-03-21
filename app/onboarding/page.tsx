@@ -296,7 +296,7 @@ export default function OnboardingPage() {
           localStorage.removeItem("prescanResults"); localStorage.removeItem("prescanIndustry");
           localStorage.removeItem("prescanRevenue"); localStorage.removeItem("prescanEmployees");
         }
-      } catch (e) {}
+      } catch (e) { /* non-fatal */ }
       router.push("/dashboard");
     } catch { setErr("Something went wrong."); setLoading(false); }
   };

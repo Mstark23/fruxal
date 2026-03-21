@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { rateLimit, rateLimitResponse } from "@/lib/security";
 
+export const maxDuration = 60; // Vercel function timeout (seconds)
+
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 export async function POST(req: NextRequest) {
@@ -19,7 +21,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     const open = (leaks || []).filter(l => l.status !== "FIXED" && l.status !== "fixed");
-    const totalLeaking = open.reduce((s, l) => s + (l.annualImpact || 0), 0);
+    const totalLeaking = open.reduce((s, l) => s + (l.annualImpact ?? 0), 0);
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
         analysis: {
           strengths: categories.length < 3 ? ["Low leak concentration — problems are focused, not systemic"] : [],
           weaknesses: categories.slice(0, 3).map(c => `${String(c).replace(/_/g, " ")} needs attention`),
-          opportunities: ["Address top 3 leaks to recover $" + Math.round(open.slice(0, 3).reduce((s, l) => s + (l.annualImpact || 0), 0)).toLocaleString() + "/yr"],
+          opportunities: ["Address top 3 leaks to recover $" + Math.round(open.slice(0, 3).reduce((s, l) => s + (l.annualImpact ?? 0), 0)).toLocaleString() + "/yr"],
           threats: totalLeaking > 50000 ? ["Total leakage exceeds $50K/yr — competitors with tighter operations have a cost advantage"] : [],
           recommendation: `Focus on ${String(categories[0] ?? "").replace(/_/g, " ") || "operational efficiency"} first. Quick wins available.`,
         },
@@ -39,8 +41,8 @@ export async function POST(req: NextRequest) {
     const prompt = `You are a business strategy consultant. Analyze this business's competitive position.
 
 BUSINESS: ${biz?.name} (${biz?.industry})
-HEALTH SCORE: ${snapshot?.healthScore || 0}/100
-TOTAL LEAKING: $${totalLeaking.toLocaleString()}/yr
+HEALTH SCORE: ${snapshot?.healthScore ?? 0}/100
+TOTAL LEAKING: $${(totalLeaking ?? 0).toLocaleString()}/yr
 TOP LEAKS:
 ${open.slice(0, 10).map((l, i) => `${i + 1}. ${l.title} — $${l.annualImpact}/yr [${l.category}]`).join("\n")}
 ${competitors ? `\nCOMPETITORS MENTIONED: ${competitors}` : ""}
@@ -63,7 +65,8 @@ Return ONLY valid JSON:
     });
     const data = await res.json();
     const text = data.content?.[0]?.text || "";
-    const analysis = JSON.parse(text.replace(/```json|```/g, "").trim());
+    let analysis: any = {};
+    try { analysis = JSON.parse(text.replace(/```json|```/g, "").trim()); } catch { analysis = {}; }
 
     return NextResponse.json({ analysis });
   } catch (error: any) {

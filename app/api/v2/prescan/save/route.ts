@@ -63,16 +63,16 @@ export async function POST(req: NextRequest) {
       title: l.title,
       category: l.category,
       severity: l.severity,
-      low: l.impactAnnual?.low || (l.impactMonthly?.low || 0) * 12,
-      high: l.impactAnnual?.high || (l.impactMonthly?.high || 0) * 12,
-      midpoint: l.impactAnnual?.likely || (l.impactMonthly?.likely || 0) * 12,
+      low: l.impactAnnual?.low || (l.impactMonthly?.low ?? 0) * 12,
+      high: l.impactAnnual?.high || (l.impactMonthly?.high ?? 0) * 12,
+      midpoint: l.impactAnnual?.likely || (l.impactMonthly?.likely ?? 0) * 12,
       benchmark: l.impactStatement || l.description || "",
       fix: l.fix || "",
       tool_name: null,
       tool_url: null,
       verified: false,
       source: l.type || "prescan",
-      confidence: l.confidence || 0.7,
+      confidence: l.confidence ?? 0.7,
     }));
 
     const passedChecks = (prescanResult.confirmedLeaks || [])
@@ -84,14 +84,14 @@ export async function POST(req: NextRequest) {
       .filter((l: any) => l.source === "statistical_residual")
       .map((l: any) => ({ title: l.title, category: l.category }));
 
-    const totalLeak = prescanResult.summary?.totalAnnual || 0;
+    const totalLeak = prescanResult.summary?.totalAnnual ?? 0;
     const leakCount = allLeaks.length;
     const questionCount = 5; // standard quiz size
 
     const categoryBreakdown: Record<string, number> = {};
     for (const l of allLeaks) {
       const cat = l.category || "Other";
-      categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + (l.impactAnnual?.likely || (l.impactMonthly?.likely || 0) * 12);
+      categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + (l.impactAnnual?.likely || (l.impactMonthly?.likely ?? 0) * 12);
     }
 
     const industryDisplay = prescanResult.industry?.name || industry;
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
 
     // Sort by impact
     actionLeaks.sort((a: any, b: any) =>
-      (b.impactMonthly?.likely || 0) - (a.impactMonthly?.likely || 0)
+      (b.impactMonthly?.likely ?? 0) - (a.impactMonthly?.likely ?? 0)
     );
 
     const actions = actionLeaks.map((leak: any, i: number) => ({
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
       leak_description: leak.impactStatement || leak.description || "",
       leak_category: leak.category,
       severity: leak.severity || "medium",
-      estimated_value: leak.impactAnnual?.likely || (leak.impactMonthly?.likely || 0) * 12,
+      estimated_value: leak.impactAnnual?.likely || (leak.impactMonthly?.likely ?? 0) * 12,
       verified: false,
       fix_description: leak.fix || "",
       status: "pending",

@@ -53,8 +53,8 @@ export async function GET(req: NextRequest) {
         province = profile.province || province;
         industry = profile.industry || industry;
         structure = profile.business_structure || structure;
-        employees = profile.employee_count || 0;
-        annualRevenue = profile.annual_revenue || (profile.monthly_revenue || 0) * 12;
+        employees = profile.employee_count ?? 0;
+        annualRevenue = profile.annual_revenue || (profile.monthly_revenue ?? 0) * 12;
         hasAccountant = !!profile.has_accountant;
         hasEmployees = !!profile.has_employees;
         handlesData = !!profile.handles_data;
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
       matchedObligations = (obligations || []).filter((ob: any) => ob.priority_score >= 60);
       criticalObs = matchedObligations.filter((o: any) => o.risk_level === "critical").length;
       highObs = matchedObligations.filter((o: any) => o.risk_level === "high").length;
-      penaltyExposure = matchedObligations.reduce((sum: number, o: any) => sum + (o.penalty_max || 0), 0);
+      penaltyExposure = matchedObligations.reduce((sum: number, o: any) => sum + (o.penalty_max ?? 0), 0);
     } catch (err) {
       console.warn("[Tour:Data] obligation_rules query failed:", err);
     }
@@ -122,8 +122,8 @@ export async function GET(req: NextRequest) {
 
       matchedLeaks = leaks || [];
       criticalLeaks = matchedLeaks.filter((l: any) => l.severity === "critical").length;
-      leakMin = matchedLeaks.reduce((sum: number, l: any) => sum + (l.annual_impact_min || 0), 0);
-      leakMax = matchedLeaks.reduce((sum: number, l: any) => sum + (l.annual_impact_max || 0), 0);
+      leakMin = matchedLeaks.reduce((sum: number, l: any) => sum + (l.annual_impact_min ?? 0), 0);
+      leakMax = matchedLeaks.reduce((sum: number, l: any) => sum + (l.annual_impact_max ?? 0), 0);
     } catch (err) {
       console.warn("[Tour:Data] provincial_leak_detectors query failed:", err);
     }
@@ -211,7 +211,7 @@ export async function GET(req: NextRequest) {
             risk_level: o.risk_level,
             frequency: o.frequency,
             agency: o.agency,
-            penalty_max: o.penalty_max || 0,
+            penalty_max: o.penalty_max ?? 0,
           })),
         },
         leaks: {
@@ -223,8 +223,8 @@ export async function GET(req: NextRequest) {
             title: l.title,
             severity: l.severity,
             category: l.category,
-            impact_min: l.annual_impact_min || 0,
-            impact_max: l.annual_impact_max || 0,
+            impact_min: l.annual_impact_min ?? 0,
+            impact_max: l.annual_impact_max ?? 0,
             solution_type: l.solution_type,
           })),
         },

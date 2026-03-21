@@ -8,6 +8,8 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import Anthropic from "@anthropic-ai/sdk";
 import crypto from "crypto";
 
+export const maxDuration = 60; // Vercel function timeout (seconds)
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 const REVENUE_LABELS: Record<string, string> = {
@@ -118,7 +120,7 @@ Calculate totalEstimatedLow/High as sum of all leaks. feeRangeLow/High = 12% of 
 
     const raw = (response.content[0] as any).text || "";
     const clean = raw.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(clean);
+    let result: any = {}; try { result = JSON.parse(clean); } catch { result = {}; }
 
     // Add metadata
     result.companyName = companyName;

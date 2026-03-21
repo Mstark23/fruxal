@@ -396,7 +396,7 @@ export default function DiagnosticReportPage() {
 
         {/* Footer meta */}
         <div className="text-center text-[10px] text-ink/10 mt-8 pb-4">
-          {isFr ? "Généré en" : "Generated in"} {((report.meta?.duration_ms || 0) / 1000).toFixed(1)}s ·
+          {isFr ? "Généré en" : "Generated in"} {((report.meta?.duration_ms ?? 0) / 1000).toFixed(1)}s ·
           {report.meta?.model} ·
           {new Date(report.meta?.created_at).toLocaleDateString(isFr ? "fr-CA" : "en-CA")}
         </div>

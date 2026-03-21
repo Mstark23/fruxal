@@ -10,6 +10,16 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+const _ip_bridgeRl = new Map<string, {c: number; r: number}>();
+function ip_bridgeCheck(ip: string): boolean {
+  const now = Date.now();
+  const e = _ip_bridgeRl.get(ip);
+  if (!e || e.r < now) { _ip_bridgeRl.set(ip, {c: 1, r: now + 3600000}); return true; }
+  e.c++; return e.c <= 10;
+}
+
+
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -41,6 +51,8 @@ function mapSeverity(impactMonthly: number): string {
 }
 
 export async function POST(request: Request) {
+  const _ip_ip_bridge = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!ip_bridgeCheck(_ip_ip_bridge)) return NextResponse.json({error: "Too many requests"}, {status: 429});
   try {
     const body = await request.json();
     const { businessId, userId, prescanResults } = body;
@@ -70,14 +82,14 @@ export async function POST(request: Request) {
       const category = leak.category || "Revenue Leak";
       const layers = CATEGORY_TO_LAYERS[category] || ["omega"];
       const primaryLayer = layers[0];
-      const impactLow = leak.impactMonthly?.low || leak.impactMonthly?.likely || 0;
-      const impactHigh = leak.impactMonthly?.high || leak.impactMonthly?.likely || 0;
+      const impactLow = leak.impactMonthly?.low || leak.impactMonthly?.likely ?? 0;
+      const impactHigh = leak.impactMonthly?.high || leak.impactMonthly?.likely ?? 0;
 
       return {
         business_id: businessId,
         layer: primaryLayer,
         leak_name: leak.title || leak.description || "Unidentified leak",
-        severity: leak.severity || mapSeverity(leak.impactMonthly?.likely || 0),
+        severity: leak.severity || mapSeverity(leak.impactMonthly?.likely ?? 0),
         estimated_loss_low: impactLow * 12, // Annual
         estimated_loss_high: impactHigh * 12,
         status: "OPEN",
@@ -145,16 +157,16 @@ export async function POST(request: Request) {
     // ─── 3. Store bridge metadata ─────────────────────────────────────────────
     const bridgeSummary = {
       totalLeaksBridged: detectedLeaks.length,
-      confirmedBridged: confirmedLeaks?.length || 0,
-      probableBridged: probableLeaks?.length || 0,
-      possibleBridged: possibleLeaks?.length || 0,
+      confirmedBridged: confirmedLeaks?.length ?? 0,
+      probableBridged: probableLeaks?.length ?? 0,
+      possibleBridged: possibleLeaks?.length ?? 0,
       layersPopulated: Object.keys(layerStats).length,
       totalAnnualLossLow: detectedLeaks.reduce((s: number, l: any) => s + l.estimated_loss_low, 0),
       totalAnnualLossHigh: detectedLeaks.reduce((s: number, l: any) => s + l.estimated_loss_high, 0),
       layerBreakdown: Object.entries(layerStats).map(([layer, stats]) => ({
         layer,
         leaks: stats.count,
-        annualLossRange: `$${stats.lossLow.toLocaleString()} - $${stats.lossHigh.toLocaleString()}`,
+        annualLossRange: `$${(stats.lossLow ?? 0).toLocaleString()} - $${(stats.lossHigh ?? 0).toLocaleString()}`,
       })),
     };
 
@@ -205,7 +217,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       bridged: prescanLeaks.length > 0,
-      totalLeaks: leaks?.length || 0,
+      totalLeaks: leaks?.length ?? 0,
       prescanLeaks: prescanLeaks.length,
       layers: scores || [],
       leaks: leaks || [],

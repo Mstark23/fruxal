@@ -42,16 +42,16 @@ export async function generatePDFBuffer(data: any): Promise<Buffer> {
     // ═══ EXECUTIVE SUMMARY ═══
     let y = 110;
     const metrics = [
-      { label: "Total Revenue", value: fmtMoney(summary.totalRevenue || 0) },
-      { label: "Collected", value: fmtMoney(summary.totalCollected || 0) },
-      { label: "Collection Rate", value: `${summary.collectionRate || 0}%` },
-      { label: "Health Score", value: `${summary.healthScore || 0}/100` },
+      { label: "Total Revenue", value: fmtMoney(summary.totalRevenue ?? 0) },
+      { label: "Collected", value: fmtMoney(summary.totalCollected ?? 0) },
+      { label: "Collection Rate", value: `${summary.collectionRate ?? 0}%` },
+      { label: "Health Score", value: `${summary.healthScore ?? 0}/100` },
     ];
     const metrics2 = [
-      { label: "Open Leaks", value: `${summary.openLeaks || 0}` },
-      { label: "Leak Impact/yr", value: fmtMoney(summary.leakImpact || 0) },
-      { label: "Overdue Invoices", value: `${summary.overdueInvoices || 0}` },
-      { label: "Recovered", value: fmtMoney(summary.recoveredAmount || 0) },
+      { label: "Open Leaks", value: `${summary.openLeaks ?? 0}` },
+      { label: "Leak Impact/yr", value: fmtMoney(summary.leakImpact ?? 0) },
+      { label: "Overdue Invoices", value: `${summary.overdueInvoices ?? 0}` },
+      { label: "Recovered", value: fmtMoney(summary.recoveredAmount ?? 0) },
     ];
 
     // Draw metric boxes
@@ -75,7 +75,7 @@ export async function generatePDFBuffer(data: any): Promise<Buffer> {
     if (leaks.length > 0) {
       doc.fontSize(14).font("Helvetica-Bold").fillColor(NAVY).text("Revenue Leaks", 50, y);
       y += 20;
-      doc.fontSize(9).font("Helvetica").fillColor(GRAY).text(`${leaks.length} active leaks. Total impact: ${fmtMoney(leaks.reduce((s: number, l: any) => s + (l.annualImpact || 0), 0))}/yr`, 50, y);
+      doc.fontSize(9).font("Helvetica").fillColor(GRAY).text(`${leaks.length} active leaks. Total impact: ${fmtMoney(leaks.reduce((s: number, l: any) => s + (l.annualImpact ?? 0), 0))}/yr`, 50, y);
       y += 16;
 
       // Table header
@@ -96,7 +96,7 @@ export async function generatePDFBuffer(data: any): Promise<Buffer> {
         doc.text(String(l.clientName || "—").slice(0, 18), xPos + 3, y + 4, { width: 94 }); xPos += 100;
         doc.text(String(l.type || "—").replace(/_/g, " ").toLowerCase(), xPos + 3, y + 4, { width: 74 }); xPos += 80;
         doc.text(String(l.description || "—").slice(0, 40), xPos + 3, y + 4, { width: 164 }); xPos += 170;
-        doc.text(fmtMoney(l.annualImpact || 0), xPos + 3, y + 4, { width: 74 }); xPos += 80;
+        doc.text(fmtMoney(l.annualImpact ?? 0), xPos + 3, y + 4, { width: 74 }); xPos += 80;
         const pColor = (l.priority === "CRITICAL" || l.priority === "HIGH") ? RED : ORANGE;
         doc.fillColor(pColor).text(l.priority || "—", xPos + 3, y + 4, { width: 54 });
         y += 16;
@@ -153,7 +153,7 @@ export async function generatePDFBuffer(data: any): Promise<Buffer> {
         doc.fontSize(9).font("Helvetica-Bold").fillColor("black").text(`${i + 1}. ${prio} ${t.title}`, 50, y);
         y += 14;
         if (t.due_date) {
-          doc.fontSize(7).font("Helvetica").fillColor(GRAY).text(`Due: ${String(t.due_date).slice(0, 10)} | Impact: ${fmtMoney(t.impact_amount || 0)}`, 60, y);
+          doc.fontSize(7).font("Helvetica").fillColor(GRAY).text(`Due: ${String(t.due_date).slice(0, 10)} | Impact: ${fmtMoney(t.impact_amount ?? 0)}`, 60, y);
           y += 12;
         }
         y += 4;
@@ -184,12 +184,12 @@ export async function generatePDFBuffer(data: any): Promise<Buffer> {
         tx = 50;
         doc.fontSize(7).font("Helvetica").fillColor("black");
         doc.text(String(s.snapshot_date || "—").slice(0, 10), tx + 3, y + 4); tx += 75;
-        doc.text(fmtMoney(s.total_revenue || 0), tx + 3, y + 4); tx += 75;
-        doc.text(fmtMoney(s.total_collected || 0), tx + 3, y + 4); tx += 75;
-        doc.text(`${Number(s.collection_rate || 0).toFixed(1)}%`, tx + 3, y + 4); tx += 70;
-        doc.text(String(s.open_leak_count || 0), tx + 3, y + 4); tx += 50;
-        doc.fillColor(RED).text(fmtMoney(s.total_leak_impact || 0), tx + 3, y + 4); tx += 80;
-        doc.fillColor("black").text(String(s.overall_health || 0), tx + 3, y + 4);
+        doc.text(fmtMoney(s.total_revenue ?? 0), tx + 3, y + 4); tx += 75;
+        doc.text(fmtMoney(s.total_collected ?? 0), tx + 3, y + 4); tx += 75;
+        doc.text(`${Number(s.collection_rate ?? 0).toFixed(1)}%`, tx + 3, y + 4); tx += 70;
+        doc.text(String(s.open_leak_count ?? 0), tx + 3, y + 4); tx += 50;
+        doc.fillColor(RED).text(fmtMoney(s.total_leak_impact ?? 0), tx + 3, y + 4); tx += 80;
+        doc.fillColor("black").text(String(s.overall_health ?? 0), tx + 3, y + 4);
         y += 16;
       });
     }

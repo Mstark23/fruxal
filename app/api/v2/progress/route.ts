@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
 
     // Build progress data matching ProgressState interface in useCelebration hook
     const progressData = {
-      total_savings:          biz?.total_recovered     || 0,
-      leaks_fixed:            biz?.leaks_fixed         || 0,
+      total_savings:          biz?.total_recovered     ?? 0,
+      leaks_fixed:            biz?.leaks_fixed ?? 0,
       total_leaks:            0,
       obligations_completed:  0,
       overdue_count:          0,
@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
       programs_applied:       0,
       diagnostic_count:       0,
       streak: {
-        current:      biz?.streak_days || 0,
-        longest:      biz?.streak_days || 0,
+        current:      biz?.streak_days ?? 0,
+        longest:      biz?.streak_days ?? 0,
         today_active: biz?.last_active_date === new Date().toISOString().split("T")[0],
         week_map:     [false, false, false, false, false, false, false],
       },

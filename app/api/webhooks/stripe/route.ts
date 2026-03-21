@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Stripe from "stripe";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20" as any,
 });
@@ -42,7 +44,7 @@ async function syncBusinessTier(userId: string, plan: string, active: boolean) {
         .from("businesses")
         .update({ tier, updated_at: new Date().toISOString() })
         .eq("id", biz.id);
-      console.log(`[Webhook] businesses.tier → ${tier} for user ${userId}`);
+      process.env.NODE_ENV !== "production" && console.log(`[Webhook] businesses.tier → ${tier} for user ${userId}`);
     }
 
     // Also write to business_profiles for dashboard reads
@@ -77,7 +79,7 @@ export async function POST(req: NextRequest) {
         console.error("[Webhook] STRIPE_WEBHOOK_SECRET not set in production!");
         return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
       }
-      event = JSON.parse(body);
+      try { event = JSON.parse(body); } catch { return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 }); }
     }
 
     const metadata = (event.data?.object as any)?.metadata || {};
@@ -109,7 +111,7 @@ export async function POST(req: NextRequest) {
           // ── KEY FIX: sync businesses.tier ──
           await syncBusinessTier(userId, plan, true);
 
-          console.log(`✅ Payment: ${userId} → ${plan}`);
+          process.env.NODE_ENV !== "production" && console.log(`✅ Payment: ${userId} → ${plan}`);
           break;
         }
 
@@ -148,7 +150,7 @@ export async function POST(req: NextRequest) {
           // Downgrade tier on cancellation
           await syncBusinessTier(userId, plan, false);
 
-          console.log(`⚠️ Subscription cancelled: ${userId}`);
+          process.env.NODE_ENV !== "production" && console.log(`⚠️ Subscription cancelled: ${userId}`);
           break;
         }
 
@@ -157,7 +159,7 @@ export async function POST(req: NextRequest) {
             .from("user_progress")
             .update({ payment_status: "past_due" })
             .eq("userId", userId);
-          console.log(`❌ Payment failed: ${userId}`);
+          process.env.NODE_ENV !== "production" && console.log(`❌ Payment failed: ${userId}`);
           break;
         }
 

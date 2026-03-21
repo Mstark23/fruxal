@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     let data: any = null;
     const { data: byId } = await supabaseAdmin
       .from("prescan_results")
-      .select("*")
+      .select("id, user_id, prescan_run_id, analysis, input_snapshot, created_at")
       .eq("id", prescanRunId)
       .maybeSingle();
 
@@ -73,8 +73,8 @@ export async function GET(req: NextRequest) {
     const visible   = allLeaks.slice(0, VISIBLE);
     const hidden    = allLeaks.slice(VISIBLE);
     const hiddenCount = Math.max(0, (summary.total_leaks || allLeaks.length) - VISIBLE);
-    const hiddenValue = hidden.reduce((s: number, l: any) => s + (l.impact_min || 0), 0);
-    const leakMin   = summary.leak_range_min || allLeaks.reduce((s: number, l: any) => s + (l.impact_min || 0), 0);
+    const hiddenValue = hidden.reduce((s: number, l: any) => s + (l.impact_min ?? 0), 0);
+    const leakMin   = summary.leak_range_min || allLeaks.reduce((s: number, l: any) => s + (l.impact_min ?? 0), 0);
     const leakMax   = summary.leak_range_max || Math.round(leakMin * 1.3);
     const health    = summary.health_score || 50;
     const province  = snap.province || "CA";
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
             <span class="cat">${(leak.category || "").toUpperCase()}</span>
           </div>
           <div class="li">
-            <span class="lr">$${(leak.impact_min || 0).toLocaleString()} — $${(leak.impact_max || leak.impact_min || 0).toLocaleString()}</span>
+            <span class="lr">$${(leak.impact_min ?? 0).toLocaleString()} — $${(leak.impact_max || leak.impact_min ?? 0).toLocaleString()}</span>
             <span class="lp">${t("/yr", "/an")}</span>
           </div>
         </div>
@@ -199,7 +199,7 @@ export async function GET(req: NextRequest) {
       <div class="l">${t("Health Score", "Score de santé")}</div>
     </div>
     <div class="sc">
-      <div class="v" style="color:#DC2626">$${leakMin.toLocaleString()} — $${leakMax.toLocaleString()}</div>
+      <div class="v" style="color:#DC2626">$${(leakMin ?? 0).toLocaleString()} — $${(leakMax ?? 0).toLocaleString()}</div>
       <div class="l">${t("Est. Annual Leak", "Fuite annuelle estimée")}</div>
     </div>
     <div class="sc">
@@ -220,7 +220,7 @@ export async function GET(req: NextRequest) {
 
   <div class="gate">
     <div class="gate-badge">🔒 ${hiddenCount} ${t("MORE LEAKS HIDDEN", "FUITES SUPPLÉMENTAIRES MASQUÉES")}</div>
-    <h3>${t(`Unlock ${hiddenCount} more leaks worth $${hiddenValue.toLocaleString()}/yr`, `Débloquer ${hiddenCount} fuites supplémentaires valant $${hiddenValue.toLocaleString()}/an`)}</h3>
+    <h3>${t(`Unlock ${hiddenCount} more leaks worth $${(hiddenValue ?? 0).toLocaleString()}/yr`, `Débloquer ${hiddenCount} fuites supplémentaires valant $${(hiddenValue ?? 0).toLocaleString()}/an`)}</h3>
     <p>${t("Create a free account to see every leak, get your full action plan, and access government programs you qualify for.", "Créez un compte gratuit pour voir toutes les fuites, obtenir votre plan d'action complet et accéder aux programmes gouvernementaux.")}</p>
     <a href="${registerUrl}" class="cta-btn">
       ${t("Create Free Account & Unlock All →", "Créer un compte gratuit et tout débloquer →")}

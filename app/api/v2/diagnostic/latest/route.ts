@@ -17,12 +17,12 @@ function normalize(raw: any): any {
 
   // ── totals: support both flat and nested ──────────────────────────────────
   const totals = raw.totals || {
-    annual_leaks:            raw.total_annual_leaks            || 0,
-    potential_savings:       raw.total_potential_savings        || 0,
-    penalty_exposure:        raw.total_penalty_exposure         || 0,
-    programs_value:          raw.total_programs_value           || 0,
-    ebitda_impact:           raw.ebitda_impact                  || 0,
-    enterprise_value_impact: raw.enterprise_value_impact        || 0,
+    annual_leaks:            raw.total_annual_leaks            ?? 0,
+    potential_savings:       raw.total_potential_savings        ?? 0,
+    penalty_exposure:        raw.total_penalty_exposure         ?? 0,
+    programs_value:          raw.total_programs_value           ?? 0,
+    ebitda_impact:           raw.ebitda_impact ?? 0,
+    enterprise_value_impact: raw.enterprise_value_impact ?? 0,
   };
 
   // ── accountant_briefing: support string (old) and object (new) ───────────
@@ -65,8 +65,8 @@ function normalize(raw: any): any {
   const findings = (raw.findings || []).map((f: any) => {
     // Normalize dollar fields: AI uses annual_leak/potential_savings,
     // dashboard pages read impact_min/impact_max — bridge both
-    const leak    = f.annual_leak    || f.impact_max || f.impact_min || f.potential_savings || 0;
-    const savings = f.potential_savings || f.annual_leak || f.impact_max || 0;
+    const leak    = f.annual_leak    || f.impact_max || f.impact_min || f.potential_savings ?? 0;
+    const savings = f.potential_savings || f.annual_leak || f.impact_max ?? 0;
 
     // Add impact_min/impact_max so dashboard pages work regardless of AI field names
     const normalized: any = {
@@ -81,7 +81,7 @@ function normalize(raw: any): any {
     if (!f.calculation_shown && leak > 0) {
       normalized.calculation_shown = (savings > 0 && savings !== leak)
         ? "Est. $" + leak.toLocaleString() + "/yr leak -> $" + savings.toLocaleString() + " recoverable"
-        : "Est. $" + leak.toLocaleString() + "/yr annual impact";
+        : "Est. $" + (leak ?? 0).toLocaleString() + "/yr annual impact";
     }
 
     // Extract program_slugs from programs[] array if present

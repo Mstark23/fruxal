@@ -75,7 +75,7 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: "No valid action provided" }, { status: 400 });
     }
 
-    console.log(`[Admin:Users] ${auth.email} updated user ${id}: ${changes.join(", ")}`);
+    process.env.NODE_ENV !== "production" && console.log(`[Admin:Users] ${auth.email} updated user ${id}: ${changes.join(", ")}`);
 
     return NextResponse.json({ success: true, changes });
 

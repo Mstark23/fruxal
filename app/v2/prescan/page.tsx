@@ -99,6 +99,7 @@ const EMPLOYEE_RANGES = [
 export default function PrescanPage() {
   const router = useRouter();
   const { lang, setLang, t, isFR } = useLang();
+  const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState<Step>(0);
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<PrescanAnswers>({
@@ -140,7 +141,8 @@ export default function PrescanPage() {
   const submit = async () => {
     setSubmitting(true);
     try {
-      const res = await fetch("/api/v2/prescan/analyze", {
+      setIsLoading(true);
+    const res = await fetch("/api/v2/prescan/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(answers),
@@ -149,6 +151,7 @@ export default function PrescanPage() {
       if (json.success && json.resultId) {
         router.push(`/v2/prescan/results/${json.resultId}`);
       }
+    setIsLoading(false);
     } catch (err) {
       console.error(err);
       setSubmitting(false);
@@ -156,6 +159,8 @@ export default function PrescanPage() {
   };
 
   const progress = ((step + 1) / 6) * 100;
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
 
   return (
     <div className="min-h-screen bg-[#0a0e14] flex flex-col">

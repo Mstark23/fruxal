@@ -43,7 +43,7 @@ export function decryptToken(cipher: string): string {
 
 // ── Plaid API helper ─────────────────────────────────────────────────────────
 async function plaidPost(path: string, body: object): Promise<any> {
-  const res = await fetch(`${PLAID_BASE}${path}`, {
+  const res = await fetch(`${PLAID_BASE}${path}`, {.catch(() => { throw new Error("Network request failed"); });
     method:  "POST",
     headers: {
       "Content-Type": "application/json",
@@ -131,7 +131,7 @@ export async function syncPlaidFinancials(businessId: string): Promise<void> {
       ["checking", "savings", "depository"].includes(a.type?.toLowerCase() || a.subtype?.toLowerCase())
     );
 
-    totalBalance    = depAccounts.reduce((s: number, a: any) => s + (a.balances?.current || 0), 0);
+    totalBalance    = depAccounts.reduce((s: number, a: any) => s + (a.balances?.current ?? 0), 0);
     avgDailyBalance = totalBalance; // approximate — refined below with transaction history
   } catch (err: any) {
     console.error("[Plaid] Accounts fetch failed:", err.message);

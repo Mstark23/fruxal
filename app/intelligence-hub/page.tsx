@@ -135,7 +135,7 @@ function FixButton({ leak, businessId, userId }: { leak: Leak; businessId: strin
         setPartners(data.partners || []);
         setShow(true);
       }
-    } catch {}
+    } catch { /* non-fatal */ }
     setLoading(false);
   };
 
@@ -150,7 +150,7 @@ function FixButton({ leak, businessId, userId }: { leak: Leak; businessId: strin
         const data = await res.json();
         if (data.redirectUrl) window.open(data.redirectUrl, "_blank");
       }
-    } catch {}
+    } catch { /* non-fatal */ }
   };
 
   const status = (leak.status || "").toUpperCase();
@@ -171,7 +171,7 @@ function FixButton({ leak, businessId, userId }: { leak: Leak; businessId: strin
               className="w-full text-left px-3 py-2.5 rounded-lg bg-white hover:bg-blue-50 border border-gray-200 transition text-xs group">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-gray-800 group-hover:text-blue-700">{p.name}</span>
-                <span className="font-black" style={{ color: C.green }}>Save {fmt(p.estimatedSavingsDollars || 0)}/yr</span>
+                <span className="font-black" style={{ color: C.green }}>Save {fmt(p.estimatedSavingsDollars ?? 0)}/yr</span>
               </div>
               <div className="text-gray-500 mt-0.5">{p.description?.slice(0, 80)}</div>
               <div className="flex gap-2 mt-1">
@@ -322,12 +322,12 @@ export default function IntelligenceHub() {
             {/* ─── Stats Grid ───────────────────────────────────────────── */}
             <div className="grid grid-cols-6 gap-3 mt-5">
               {[
-                { label: "Total Leaking",      value: fmt(s?.totalLeaking || 0), sub: `${s?.openLeaks || 0} open`, color: C.red },
-                { label: "Total Saved",         value: fmt(s?.totalSaved || 0),   sub: `${s?.fixedLeaks || 0} fixed`, color: C.green },
-                { label: "Health Score",         value: `${s?.healthScore || 0}%`, sub: `${s?.categoriesHit || 0} categories`, color: (s?.healthScore || 0) >= 70 ? C.green : (s?.healthScore || 0) >= 40 ? C.orange : C.red },
-                { label: "Industry Detections",  value: String(s?.industryLeaks || 0),  sub: data?.business?.industry || "—", color: C.blue },
-                { label: "Intelligence Detections", value: String(s?.intelligenceLeaks || 0), sub: `${data?.layers.totalLayersRun || 0} layers ran`, color: C.purple },
-                { label: "Partner Matched",      value: `${s?.matchRate || 0}%`,  sub: `${s?.affiliateMatched || 0}/${s?.totalLeaks || 0} leaks`, color: C.green },
+                { label: "Total Leaking",      value: fmt(s?.totalLeaking ?? 0), sub: `${s?.openLeaks ?? 0} open`, color: C.red },
+                { label: "Total Saved",         value: fmt(s?.totalSaved ?? 0),   sub: `${s?.fixedLeaks ?? 0} fixed`, color: C.green },
+                { label: "Health Score",         value: `${s?.healthScore ?? 0}%`, sub: `${s?.categoriesHit ?? 0} categories`, color: (s?.healthScore ?? 0) >= 70 ? C.green : (s?.healthScore ?? 0) >= 40 ? C.orange : C.red },
+                { label: "Industry Detections",  value: String(s?.industryLeaks ?? 0),  sub: data?.business?.industry || "—", color: C.blue },
+                { label: "Intelligence Detections", value: String(s?.intelligenceLeaks ?? 0), sub: `${data?.layers.totalLayersRun ?? 0} layers ran`, color: C.purple },
+                { label: "Partner Matched",      value: `${s?.matchRate ?? 0}%`,  sub: `${s?.affiliateMatched ?? 0}/${s?.totalLeaks ?? 0} leaks`, color: C.green },
               ].map(stat => (
                 <div key={stat.label} className="bg-white rounded-xl p-3.5 border shadow-sm">
                   <div className="text-[10px] font-bold" style={{ color: C.dim }}>{stat.label}</div>
@@ -349,7 +349,7 @@ export default function IntelligenceHub() {
                 { key: "leaks",      label: `📋 All Leaks (${filtered.length})` },
                 { key: "layers",     label: "🧠 20 Layers" },
                 { key: "categories", label: `📊 ${categories.length} Categories` },
-                { key: "affiliates", label: `🤝 ${s?.totalPartners || 0} Partners` },
+                { key: "affiliates", label: `🤝 ${s?.totalPartners ?? 0} Partners` },
               ] as const).map(tab => (
                 <button key={tab.key} onClick={() => setView(tab.key)}
                   className={`px-4 py-1.5 rounded-md text-xs font-bold transition ${
@@ -487,7 +487,7 @@ export default function IntelligenceHub() {
                     <div className="text-xs text-gray-500 mt-0.5">Industry-specific leak detection · estimate + real data</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-black" style={{ color: C.blue }}>{s?.industryLeaks || 0}</div>
+                    <div className="text-2xl font-black" style={{ color: C.blue }}>{s?.industryLeaks ?? 0}</div>
                     <div className="text-[10px] text-gray-500">leaks detected</div>
                   </div>
                 </div>
@@ -604,11 +604,11 @@ export default function IntelligenceHub() {
               <div className="grid grid-cols-4 gap-3">
                 <div className="bg-white rounded-xl border shadow-sm p-4">
                   <div className="text-[10px] font-bold" style={{ color: C.dim }}>Total Clicks</div>
-                  <div className="text-2xl font-black mt-1" style={{ color: C.blue }}>{data?.affiliate.totalClicks || 0}</div>
+                  <div className="text-2xl font-black mt-1" style={{ color: C.blue }}>{data?.affiliate.totalClicks ?? 0}</div>
                 </div>
                 <div className="bg-white rounded-xl border shadow-sm p-4">
                   <div className="text-[10px] font-bold" style={{ color: C.dim }}>Conversions</div>
-                  <div className="text-2xl font-black mt-1" style={{ color: C.green }}>{data?.affiliate.totalConversions || 0}</div>
+                  <div className="text-2xl font-black mt-1" style={{ color: C.green }}>{data?.affiliate.totalConversions ?? 0}</div>
                 </div>
                 <div className="bg-white rounded-xl border shadow-sm p-4">
                   <div className="text-[10px] font-bold" style={{ color: C.dim }}>Conversion Rate</div>
@@ -616,7 +616,7 @@ export default function IntelligenceHub() {
                 </div>
                 <div className="bg-white rounded-xl border shadow-sm p-4">
                   <div className="text-[10px] font-bold" style={{ color: C.dim }}>Categories Covered</div>
-                  <div className="text-2xl font-black mt-1" style={{ color: C.purple }}>{data?.affiliate.coveredCategories || 0}/20</div>
+                  <div className="text-2xl font-black mt-1" style={{ color: C.purple }}>{data?.affiliate.coveredCategories ?? 0}/20</div>
                 </div>
               </div>
 

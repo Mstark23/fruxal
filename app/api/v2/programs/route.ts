@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
           .eq("user_id", userId)
           .single();
         if (profile?.province) province = profile.province;
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     // If no province from profile, check query params
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
           }));
           return NextResponse.json({ success: true, data: { programs: merged, total: merged.length } });
         }
-      } catch {}
+      } catch { /* non-fatal */ }
     }
 
     return NextResponse.json({

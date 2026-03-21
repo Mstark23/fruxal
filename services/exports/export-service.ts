@@ -63,9 +63,9 @@ export async function gatherReportData(businessId: string): Promise<ReportData> 
 
   const leakList = leaks || [];
   const openLeaks = leakList.filter(l => l.status === "detected" || l.status === "shown_free");
-  const totalImpact = openLeaks.reduce((s, l) => s + (l.estimated_annual_leak || l.annual_leak_amount || 0), 0);
+  const totalImpact = openLeaks.reduce((s, l) => s + (l.estimated_annual_leak || l.annual_leak_amount ?? 0), 0);
 
-  const annualRev = prescanRun?.annual_revenue || biz?.annual_revenue || 0;
+  const annualRev = prescanRun?.annual_revenue || biz?.annual_revenue ?? 0;
   const healthScore = prescanRun?.health_score || 50;
 
   return {
@@ -87,7 +87,7 @@ export async function gatherReportData(businessId: string): Promise<ReportData> 
       clientName: "",
       type: l.leak_type_code || l.leak_type || "",
       description: "",
-      annualImpact: l.estimated_annual_leak || l.annual_leak_amount || 0,
+      annualImpact: l.estimated_annual_leak || l.annual_leak_amount ?? 0,
       priority: l.severity_score >= 80 ? "CRITICAL" : l.severity_score >= 60 ? "HIGH" : l.severity_score >= 30 ? "MEDIUM" : "LOW",
       status: l.status || "detected",
       fix: "",

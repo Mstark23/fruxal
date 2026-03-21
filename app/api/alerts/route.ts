@@ -6,6 +6,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+const _ip_alertsRl = new Map<string, {c: number; r: number}>();
+function ip_alertsCheck(ip: string): boolean {
+  const now = Date.now();
+  const e = _ip_alertsRl.get(ip);
+  if (!e || e.r < now) { _ip_alertsRl.set(ip, {c: 1, r: now + 3600000}); return true; }
+  e.c++; return e.c <= 30;
+}
+
+
+
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 export async function GET(req: NextRequest) {
@@ -17,6 +27,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const _ip_ip_alerts = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!ip_alertsCheck(_ip_ip_alerts)) return NextResponse.json({error: "Too many requests"}, {status: 429});
   try {
     const { businessId, metric, operator, threshold, category, notifyEmail, notifyPush } = await req.json();
     if (!businessId || !metric || !operator || threshold === undefined) {

@@ -49,7 +49,7 @@ export default function PersonalPage() {
           <div>
             <div className="text-center mb-6">
               <div className="text-xs text-gray-400">You could save</div>
-              <div className="text-5xl font-black text-[#00c853]">${total.toLocaleString()}</div>
+              <div className="text-5xl font-black text-[#00c853]">${(total ?? 0).toLocaleString()}</div>
               <div className="text-sm text-gray-400">per year</div>
             </div>
 
@@ -71,7 +71,7 @@ export default function PersonalPage() {
             {/* Share card */}
             <div className="mt-6 bg-[#0d1117] rounded-2xl p-5 text-center text-white">
               <div className="text-sm text-gray-400">Share with friends</div>
-              <div className="text-2xl font-black text-[#00c853] my-2">I just found ${total.toLocaleString()}/yr I was wasting</div>
+              <div className="text-2xl font-black text-[#00c853] my-2">I just found ${(total ?? 0).toLocaleString()}/yr I was wasting</div>
               <button className="w-full bg-[#00c853] text-black font-bold py-3 rounded-xl mt-3 hover:bg-[#00e676] transition-all">
                 Share →
               </button>

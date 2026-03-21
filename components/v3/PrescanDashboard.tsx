@@ -149,7 +149,7 @@ export default function PrescanDashboard({
             {isEn ? 'Estimated money leaking per year' : 'Argent perdu estimé par année'}
           </div>
           <div className="text-3xl font-bold text-red-600">
-            ${leakLow.toLocaleString()} - ${leakHigh.toLocaleString()}
+            ${(Number(leakLow) || 0).toLocaleString()} - ${(Number(leakHigh) || 0).toLocaleString()}
           </div>
           <div className="mt-2 text-sm text-gray-600">
             {isEn ? 'Based on industry benchmarks' : 'Selon les normes de l\'industrie'}
@@ -217,7 +217,7 @@ export default function PrescanDashboard({
             
             return (
               <div key={leak.id || index} className="p-6 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-colors">
-                <div className="flex items-start justify-between mb-3">
+                <div key={index} className="flex items-start justify-between mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">
                     {info.title}
                   </h3>
@@ -231,12 +231,12 @@ export default function PrescanDashboard({
                 </p>
                 
                 {leak.estimated_annual_leak > 0 && (
-                  <div className="mb-4 p-3 bg-red-50 rounded-lg">
-                    <div className="text-sm text-gray-600">
+                  <div key={index} className="mb-4 p-3 bg-red-50 rounded-lg">
+                    <div key={index} className="text-sm text-gray-600">
                       {isEn ? 'Estimated annual leak' : 'Fuite annuelle estimée'}
                     </div>
-                    <div className="text-2xl font-bold text-red-600">
-                      ${leak.estimated_annual_leak.toLocaleString()}
+                    <div key={index} className="text-2xl font-bold text-red-600">
+                      ${(Number(leak.estimated_annual_leak) || 0).toLocaleString()}
                       <span className="text-sm text-gray-600 ml-1">
                         {isEn ? '/ year' : '/ an'}
                       </span>
@@ -244,8 +244,8 @@ export default function PrescanDashboard({
                   </div>
                 )}
                 
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <div className="text-sm font-medium text-blue-900 mb-1">
+                <div key={index} className="p-3 bg-blue-50 rounded-lg">
+                  <div key={index} className="text-sm font-medium text-blue-900 mb-1">
                     {isEn ? 'How to fix this:' : 'Comment régler ceci:'}
                   </div>
                   <p className="text-sm text-blue-800">
@@ -253,7 +253,7 @@ export default function PrescanDashboard({
                   </p>
                 </div>
                 
-                <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                <div key={index} className="mt-3 flex items-center gap-2 text-xs text-gray-500">
                   <span>
                     {isEn ? 'Confidence:' : 'Confiance:'} {leak.confidence_score}%
                   </span>

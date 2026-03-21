@@ -29,7 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 
     const result = diag.result || {};
-    const confirmedSavings = confirmedFindings.reduce((s: number, f: any) => s + (f.confirmed_amount || 0), 0);
+    const confirmedSavings = confirmedFindings.reduce((s: number, f: any) => s + (f.confirmed_amount ?? 0), 0);
     const feeOwed = engagement?.fee_percentage ? Math.round(confirmedSavings * (engagement.fee_percentage / 100)) : 0;
     const myCommission = feeOwed && rep?.commission_rate ? Math.round(feeOwed * (rep.commission_rate / 100)) : 0;
 
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           status:        diag.status,
           scores:        result.scores || {},
           totals:        result.totals || {},
-          findings:      (result.findings || []).sort((a: any, b: any) => (b.impact_max || 0) - (a.impact_max || 0)),
+          findings:      (result.findings || []).sort((a: any, b: any) => (b.impact_max ?? 0) - (a.impact_max ?? 0)),
           execSummary:   result.executive_summary || "",
           outreachEmail: result.outreach_email || null,
         },

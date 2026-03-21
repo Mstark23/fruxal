@@ -17,6 +17,7 @@ const INTEGRATIONS = [
 
 export default function IntegrationsPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [ctx, setCtx] = useState<any>(null);
   const [connected, setConnected] = useState<string[]>([]);
 
@@ -37,15 +38,19 @@ export default function IntegrationsPage() {
     if (integrationId === "csv") { router.push("/scan"); return; }
     if (integrationId === "zapier") { router.push("/settings"); return; }
     try {
-      const res = await fetch("/api/integrations/connect", {
+      setIsLoading(true);
+    const res = await fetch("/api/integrations/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessId: ctx.business.id, provider: integrationId }),
       });
       const data = await res.json();
       if (data.authUrl) window.location.href = data.authUrl;
+    setIsLoading(false);
     } catch (e) { alert("Connection failed"); }
   };
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">

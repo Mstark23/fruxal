@@ -147,7 +147,7 @@ export async function tier1_CodeDetection(businessId: string, industry: string):
     l.detectedAt < thirtyDaysAgo
   );
   if (staleLeaks.length > 0) {
-    const staleTotal = staleLeaks.reduce((s, l) => s + (l.annualImpact || 0), 0);
+    const staleTotal = staleLeaks.reduce((s, l) => s + (l.annualImpact ?? 0), 0);
     insights.push({
       id: `t1-stale-${businessId}-${Date.now()}`,
       businessId,
@@ -166,10 +166,10 @@ export async function tier1_CodeDetection(businessId: string, industry: string):
   // ─── RULE 3: Category Concentration Risk ────────────────────────────────
   // If >50% of leakage is in one category, that's a red flag
   const catTotals: Record<string, number> = {};
-  const totalLeak = leaks.reduce((s, l) => s + (l.annualImpact || 0), 0);
+  const totalLeak = leaks.reduce((s, l) => s + (l.annualImpact ?? 0), 0);
   leaks.forEach(l => {
     const cat = l.category || l.type || "other";
-    catTotals[cat] = (catTotals[cat] || 0) + (l.annualImpact || 0);
+    catTotals[cat] = (catTotals[cat] || 0) + (l.annualImpact ?? 0);
   });
   for (const [cat, amount] of Object.entries(catTotals)) {
     if (totalLeak > 0 && amount / totalLeak > 0.5) {
@@ -279,7 +279,7 @@ export async function tier2_WeeklyBatchAnalysis(): Promise<DiscoveredPattern[]> 
     .not("status", "eq", "DISMISSED");
 
   if (!allLeaks || allLeaks.length < 10) {
-    console.log("Tier 2: Not enough data yet (need 10+ leaks across businesses)");
+    process.env.NODE_ENV === "development" && console.log("Tier 2: Not enough data yet (need 10+ leaks across businesses)");
     return patterns;
   }
 
@@ -302,13 +302,13 @@ export async function tier2_WeeklyBatchAnalysis(): Promise<DiscoveredPattern[]> 
       const cat = l.category || l.type;
       if (!catBreakdown[cat]) catBreakdown[cat] = { count: 0, totalImpact: 0, avgImpact: 0 };
       catBreakdown[cat].count++;
-      catBreakdown[cat].totalImpact += l.annualImpact || 0;
+      catBreakdown[cat].totalImpact += l.annualImpact ?? 0;
     });
     Object.values(catBreakdown).forEach(c => c.avgImpact = Math.round(c.totalImpact / c.count));
 
     // Sample some leak details (not all, to control token usage)
     const sampleLeaks = leaks
-      .sort((a, b) => (b.annualImpact || 0) - (a.annualImpact || 0))
+      .sort((a, b) => (b.annualImpact ?? 0) - (a.annualImpact ?? 0))
       .slice(0, 20)
       .map(l => ({
         category: l.category || l.type,
@@ -381,7 +381,8 @@ Focus on:
 
       // Parse response
       const cleaned = text.replace(/```json\s*/g, "").replace(/```/g, "").trim();
-      const result = JSON.parse(cleaned);
+      let result: any = {};
+      try { result = JSON.parse(cleaned); } catch { result = {}; }
 
       // Store discovered patterns
       if (result.patterns) {
@@ -395,7 +396,7 @@ Focus on:
             detectionRule: JSON.stringify(p.detectionRule),
             confidence: p.confidence || 70,
             sampleSize: businessCount,
-            estimatedImpactAvg: p.estimatedImpactAvg || 0,
+            estimatedImpactAvg: p.estimatedImpactAvg ?? 0,
             discoveredAt: new Date().toISOString(),
             status: "new",
             metadata: { action: p.action, raw: p },
@@ -445,8 +446,8 @@ Focus on:
           industry,
           action: "weekly_batch",
           summary: result.industryInsight,
-          patternsFound: result.patterns?.length || 0,
-          benchmarksUpdated: result.benchmarkUpdates?.length || 0,
+          patternsFound: result.patterns?.length ?? 0,
+          benchmarksUpdated: result.benchmarkUpdates?.length ?? 0,
           businessesAnalyzed: businessCount,
           leaksAnalyzed: leaks.length,
           createdAt: new Date().toISOString(),
@@ -468,7 +469,7 @@ export async function absorbPattern(patternId: string): Promise<void> {
     .update({ status: "absorbed", absorbedAt: new Date().toISOString() })
     .eq("id", patternId);
 
-  console.log(`Pattern ${patternId} absorbed into Tier 1 — will run as free code on next scan.`);
+  process.env.NODE_ENV === "development" && console.log(`Pattern ${patternId} absorbed into Tier 1 — will run as free code on next scan.`);
 }
 
 // ─── Auto-validate patterns that meet confidence threshold ───────────────────
@@ -518,8 +519,8 @@ export async function tier3_DeepAnalysis(
   if (!business || !leaks) return [];
 
   const industry = business.industry?.toLowerCase() || "unknown";
-  const totalLeaking = leaks.filter(l => l.status !== "FIXED").reduce((s, l) => s + (l.annualImpact || 0), 0);
-  const totalFixed = leaks.filter(l => l.status === "FIXED").reduce((s, l) => s + (l.annualImpact || 0), 0);
+  const totalLeaking = leaks.filter(l => l.status !== "FIXED").reduce((s, l) => s + (l.annualImpact ?? 0), 0);
+  const totalFixed = leaks.filter(l => l.status === "FIXED").reduce((s, l) => s + (l.annualImpact ?? 0), 0);
 
   let prompt = "";
 
@@ -528,11 +529,11 @@ export async function tier3_DeepAnalysis(
       prompt = `You are an expert financial analyst for a ${industry} business called "${business.name}".
 
 CURRENT STATE:
-- Total annual leakage: $${totalLeaking.toLocaleString()}
-- Already recovered: $${totalFixed.toLocaleString()}
+- Total annual leakage: $${(totalLeaking ?? 0).toLocaleString()}
+- Already recovered: $${(totalFixed ?? 0).toLocaleString()}
 - Open leaks: ${leaks.filter(l => l.status !== "FIXED").length}
 - Fixed leaks: ${leaks.filter(l => l.status === "FIXED").length}
-- Scan history: ${snapshots?.length || 0} scans
+- Scan history: ${snapshots?.length ?? 0} scans
 
 OPEN LEAKS:
 ${leaks.filter(l => l.status !== "FIXED").map(l => `- ${l.title}: $${l.annualImpact}/yr (${l.category}) — You: ${l.yours}, Benchmark: ${l.benchmark}`).join("\n")}
@@ -636,7 +637,8 @@ Return JSON:
 
     const text = response.content.filter(b => b.type === "text").map(b => (b as any).text).join("");
     const cleaned = text.replace(/```json\s*/g, "").replace(/```/g, "").trim();
-    const result = JSON.parse(cleaned);
+    let result: any = { insights: [] };
+    try { result = JSON.parse(cleaned); } catch { result = { insights: [] }; }
 
     // Convert to insights
     const insights: IntelligenceInsight[] = (result.insights || []).map((i: any, idx: number) => ({
@@ -645,7 +647,7 @@ Return JSON:
       insightType: i.type,
       title: i.title,
       description: i.description,
-      impact: i.impact || 0,
+      impact: i.impact ?? 0,
       actionable: !!i.action,
       action: i.action || "",
       confidence: i.confidence || 75,

@@ -72,7 +72,7 @@ export default function SoloDashboard() {
 
   useEffect(() => {
     let redirected = false;
-    try { const s = sessionStorage.getItem("lg_prescan_lang"); if (s === "en" || s === "fr") setLang(s); else if (navigator.language?.startsWith("fr")) setLang("fr"); } catch {}
+    try { const s = sessionStorage.getItem("lg_prescan_lang"); if (s === "en" || s === "fr") setLang(s); else if (navigator.language?.startsWith("fr")) setLang("fr"); } catch { /* non-fatal */ }
 
     let prescanLoaded = false;
     try {
@@ -81,20 +81,20 @@ export default function SoloDashboard() {
         const p = JSON.parse(raw);
         if (p?.analysis?.leaks) {
           setScore(p.analysis.fhScore || 50);
-          setTotalLeak(p.analysis.totalLeak || 0);
+          setTotalLeak(p.analysis.totalLeak ?? 0);
           const CAT_MAP: Record<string, string> = { processing_rate_high: "Paiements", rent_or_chair_high: "Immobilier", tax_optimization_gap: "Fiscalite", payroll_ratio_high: "Personnel", insurance_overpayment: "Assurance", fuel_vehicle_high: "Transport", software_bloat: "Operations", banking_fees_high: "Bancaire", inventory_cogs_high: "Inventaire", marketing_waste: "Marketing", cash_shrinkage: "Comptabilite", utilities_overspend: "Utilitaires", revenue_underpricing: "Revenus", accounting_gap: "Comptabilite", tax_credit_missed: "Fiscalite", compliance_gap: "Conformite" };
           const sev = (s: any) => typeof s === "string" ? s : Number(s) >= 80 ? "critical" : Number(s) >= 60 ? "high" : Number(s) >= 30 ? "medium" : "low";
-          setLeaks(p.analysis.leaks.map((l: any) => ({ slug: l.type || l.slug || "unknown", title: l.title || "", title_fr: l.title_fr, severity: sev(l.severity), category: CAT_MAP[l.type] || l.category || "General", description: l.explanation || l.description || "", description_fr: l.explanation_fr, impact_min: l.amount || 0, impact_max: l.amount || 0, confidence: l.confidence || null, proof: l.proof, action: l.action, action_fr: l.action_fr, affiliates: l.affiliates || [] })));
+          setLeaks(p.analysis.leaks.map((l: any) => ({ slug: l.type || l.slug || "unknown", title: l.title || "", title_fr: l.title_fr, severity: sev(l.severity), category: CAT_MAP[l.type] || l.category || "General", description: l.explanation || l.description || "", description_fr: l.explanation_fr, impact_min: l.amount ?? 0, impact_max: l.amount ?? 0, confidence: l.confidence || null, proof: l.proof, action: l.action, action_fr: l.action_fr, affiliates: l.affiliates || [] })));
           prescanLoaded = true;
         }
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(typeof window !== "undefined" && window.location.search);
     const rid = params.get("prescanRunId");
     const v2Url = rid ? "/api/v2/dashboard?prescanRunId=" + rid : "/api/v2/dashboard";
 
-    const v2P = fetch(v2Url).then(r => r.json()).then(json => {
+    const v2P = fetch(v2Url).then(r => r.json()).catch(() => ({})).then(json => {
       if (!json.success || !json.data) return;
       const d = json.data;
       const detectedTier = (d.tier || "free").toLowerCase();
@@ -106,18 +106,18 @@ export default function SoloDashboard() {
       setTier(detectedTier);
       if (d.recommended_plan) setRecommendedPlan(d.recommended_plan);
       setProfile(d.profile || { province: "QC", industry: "Small Business", structure: "" });
-      setObligationsTotal(d.obligations?.total || 0);
-      setOverdue(d.obligations?.overdue || 0);
-      setPenaltyExposure(d.obligations?.penalty_exposure || 0);
+      setObligationsTotal(d.obligations?.total ?? 0);
+      setOverdue(d.obligations?.overdue ?? 0);
+      setPenaltyExposure(d.obligations?.penalty_exposure ?? 0);
       setDeadlines(d.obligations?.upcoming_deadlines || []);
-      setProgramsAvailable(d.programs?.available || 0);
-      setLeaksFixed(d.leaks?.fixed || 0);
-      setTotalSavings(d.leaks?.total_savings || 0);
+      setProgramsAvailable(d.programs?.available ?? 0);
+      setLeaksFixed(d.leaks?.fixed ?? 0);
+      setTotalSavings(d.leaks?.total_savings ?? 0);
       if (!prescanLoaded && d.leaks?.top_unfixed?.length > 0) {
         setScore(d.health_score || 50);
-        setTotalLeak(d.total_leak_estimate || 0);
+        setTotalLeak(d.total_leak_estimate ?? 0);
         const sev = (s: any) => { if (typeof s === "string" && ["critical","high","medium","low"].includes(s)) return s; const n = Number(s); return isNaN(n) ? "medium" : n >= 80 ? "critical" : n >= 60 ? "high" : n >= 30 ? "medium" : "low"; };
-        setLeaks(d.leaks.top_unfixed.map((l: any) => ({ slug: l.slug, title: l.title, title_fr: l.title_fr, severity: sev(l.severity), category: l.category || "General", description: l.description || "", description_fr: l.description_fr, impact_min: l.impact_min || 0, impact_max: l.impact_max || l.impact_min || 0, confidence: l.confidence, proof: l.proof, action: l.action, action_fr: l.action_fr, affiliates: l.affiliates || [] })));
+        setLeaks(d.leaks.top_unfixed.map((l: any) => ({ slug: l.slug, title: l.title, title_fr: l.title_fr, severity: sev(l.severity), category: l.category || "General", description: l.description || "", description_fr: l.description_fr, impact_min: l.impact_min ?? 0, impact_max: l.impact_max || l.impact_min ?? 0, confidence: l.confidence, proof: l.proof, action: l.action, action_fr: l.action_fr, affiliates: l.affiliates || [] })));
       }
     }).catch(() => {});
 
@@ -138,7 +138,7 @@ export default function SoloDashboard() {
         const r = json.data;
       const diagScore = r.scores?.overall ?? r.overall_score ?? 0;
       if (diagScore > 0) setScore(diagScore);
-      const diagLeak = r.total_annual_leaks || r.totals?.annual_leaks || 0;
+      const diagLeak = r.total_annual_leaks || r.totals?.annual_leaks ?? 0;
       if (diagLeak > 0) setTotalLeak(diagLeak);
       // Handle both {tonight_action:...} object and flat array format
       if (r.action_plan) {
@@ -153,12 +153,12 @@ export default function SoloDashboard() {
         r.findings.forEach((f: any) => { (f.program_slugs || []).forEach((s: string) => { if (!slugs.includes(s)) slugs.push(s); }); });
         if (slugs.length > 0) {
           fetch("/api/v2/affiliates?type=government&limit=50").then(res => res.json()).then(aff => {
-            const matched = (aff.affiliates || aff.data || []).filter((a: any) => slugs.includes(a.slug)).map((a: any) => ({ slug: a.slug, name: a.name, name_fr: a.name_fr, value: a.annual_value_max || a.annual_value_min || 0 }));
+            const matched = (aff.affiliates || aff.data || []).filter((a: any) => slugs.includes(a.slug)).map((a: any) => ({ slug: a.slug, name: a.name, name_fr: a.name_fr, value: a.annual_value_max || a.annual_value_min ?? 0 }));
             if (matched.length > 0) setDiagPrograms(matched);
           }).catch(() => {});
         }
         if (r.programs?.length > 0) {
-          const progs = r.programs.slice(0, 5).map((p: any) => ({ slug: p.slug, name: p.name, name_fr: p.name_fr, value: p.max_amount || 0 }));
+          const progs = r.programs.slice(0, 5).map((p: any) => ({ slug: p.slug, name: p.name, name_fr: p.name_fr, value: p.max_amount ?? 0 }));
           setDiagPrograms(prev => prev.length > 0 ? prev : progs);
         }
       }
@@ -167,7 +167,7 @@ export default function SoloDashboard() {
       if (json.actions) { setThisWeekActions(json.actions.this_week || []); setInProgressActions(json.actions.in_progress || []); setCompletedActions(json.actions.completed || []); }
     }).catch(() => {}) : Promise.resolve();
 
-      } catch {}
+      } catch { /* non-fatal */ }
     };
 
     const diagP = loadDiag();
@@ -184,7 +184,7 @@ export default function SoloDashboard() {
             clearInterval(analyzePoll!);
             setIsAnalyzing(false);
             await loadDiag();
-          } catch {}
+          } catch { /* non-fatal */ }
         }, 4000);
       }
     });
@@ -192,7 +192,7 @@ export default function SoloDashboard() {
     return () => { if (analyzePoll) clearInterval(analyzePoll); };
   }, [user?.id]);
 
-  const recovered = actionStats?.total_recovered || totalSavings || 0;
+  const recovered = actionStats?.total_recovered || totalSavings ?? 0;
   const recovPct = totalLeak > 0 ? Math.min(100, Math.round((recovered / totalLeak) * 100)) : 0;
   const streak = (progress as any)?.streak;
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon apres-midi") : t("Good evening", "Bonsoir"); })();
@@ -212,8 +212,8 @@ export default function SoloDashboard() {
         severity: f.severity, category: f.category,
         description: isFR ? (f.description_fr || f.description) : f.description,
         description_fr: f.description_fr,
-        impact_min: f.annual_leak || f.impact_min || 0,
-        impact_max: f.potential_savings || f.impact_max || f.annual_leak || 0,
+        impact_min: f.annual_leak || f.impact_min ?? 0,
+        impact_max: f.potential_savings || f.impact_max || f.annual_leak ?? 0,
         confidence: null,
         action: isFR ? (f.action_items_fr?.[0] || f.action_items?.[0]) : f.action_items?.[0],
         action_fr: f.action_items_fr?.[0],
@@ -354,7 +354,7 @@ export default function SoloDashboard() {
 
           <button onClick={() => isPaid ? router.push("/v2/leaks") : router.push(upgradeUrl)} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
-            <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${totalLeak.toLocaleString()}</div>
+            <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
             <div className="text-[10px] text-ink-faint mt-1.5">
               {isPaid ? displayLeaks.length : 1} {t("leaks detected", "fuites detectees")}
               {!isPaid && allLeaks.length > 1 && (
@@ -368,7 +368,7 @@ export default function SoloDashboard() {
             {isPaid ? (
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${recovered.toLocaleString()}</div>
+                  <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
                   <div className="text-[10px] text-ink-faint mt-1.5">{leaksFixed} {t("fixed", "corriges")}</div>
                 </div>
                 <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
@@ -405,7 +405,7 @@ export default function SoloDashboard() {
               <>
                 {displayLeaks.slice(0, 1).map((l, i) => (
                   <div key={i} className="px-4 py-3 border-b border-border-light" style={{ background: "rgba(179,64,64,0.015)" }}>
-                    <div className="flex items-start gap-3">
+                    <div key={i} className="flex items-start gap-3">
                       <div className="w-[7px] h-[7px] rounded-full shrink-0 mt-1.5" style={{ background: "#B34040" }} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -426,7 +426,7 @@ export default function SoloDashboard() {
                           </div>
                         )}
                       </div>
-                      <div className="text-right shrink-0">
+                      <div key={ai} className="text-right shrink-0">
                         <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max || l.impact_min).toLocaleString()}</div>
                         <div className="text-[7px] text-ink-faint">/{t("yr", "an")}</div>
                       </div>
@@ -436,7 +436,7 @@ export default function SoloDashboard() {
                 <div className="relative">
                   {displayLeaks.slice(1, 4).map((l, i) => (
                     <div key={i} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light" style={{ filter: "blur(5px)", userSelect: "none", pointerEvents: "none" }}>
-                      <div className="w-[7px] h-[7px] rounded-full shrink-0 bg-border" />
+                      <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0 bg-border" />
                       <div className="flex-1 min-w-0">
                         <div className="text-[12px] font-semibold text-ink truncate">{isFR ? (l.title_fr || l.title) : l.title}</div>
                         <div className="text-[9px] text-ink-faint">{l.category}</div>
@@ -460,7 +460,7 @@ export default function SoloDashboard() {
               <>
                 {displayLeaks.slice(0, 6).map((l, i) => (
                   <div key={i} onClick={() => router.push("/v2/leaks")} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 hover:bg-surface-hover transition-colors cursor-pointer group" style={{ background: l.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
-                    <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
+                    <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors">{isFR ? (l.title_fr || l.title) : l.title}</div>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -476,7 +476,7 @@ export default function SoloDashboard() {
                 ))}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
-                  <span className="font-serif text-[14px] font-bold text-negative">${totalLeak.toLocaleString()}/{t("yr", "an")}</span>
+                  <span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span>
                 </div>
               </>
             )}
@@ -497,7 +497,7 @@ export default function SoloDashboard() {
                   <ol className="space-y-2">
                     {(tonightAction.steps || []).map((step, i) => (
                       <li key={i} className="flex items-start gap-2.5 text-[11px] text-ink-secondary">
-                        <span className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{i + 1}</span>
+                        <span key={i} className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{i + 1}</span>
                         {step}
                       </li>
                     ))}
@@ -528,7 +528,7 @@ export default function SoloDashboard() {
                 <div className="px-4 py-6 text-center text-[11px] text-ink-muted">{t("Actions appear after your first diagnostic.", "Les actions apparaissent apres votre diagnostic.")}</div>
               ) : allActions.slice(0, 4).map((a, i) => (
                 <div key={a.id} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
-                  <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: "2px solid " + (a.status === "in_progress" ? "#C4841D" : "#E8E6E1") }}>
+                  <div key={i} className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: "2px solid " + (a.status === "in_progress" ? "#C4841D" : "#E8E6E1") }}>
                     {a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[9px] font-bold text-ink-faint">{i + 1}</span>}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -544,7 +544,7 @@ export default function SoloDashboard() {
               {completedActions.length > 0 && (
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] text-ink-muted">{completedActions.length} {t("completed", "terminees")}</span>
-                  <span className="text-[10px] font-bold text-positive">+${recovered.toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-positive">+${(recovered ?? 0).toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -630,9 +630,9 @@ export default function SoloDashboard() {
                 <div className="px-4 py-4 text-[11px] text-ink-faint text-center">{t("None upcoming", "Aucune echeance")}</div>
               ) : deadlines.slice(0, 4).map((dl, i) => (
                 <div key={i} onClick={() => router.push("/v2/obligations")} className="px-4 py-2.5 flex items-center justify-between border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer">
-                  <div className="flex-1 min-w-0 mr-2">
+                  <div key={i} className="flex-1 min-w-0 mr-2">
                     <div className="text-[11px] font-medium text-ink truncate">{dl.title}</div>
-                    {(dl.penalty_max || 0) > 0 && <div className="text-[8px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
+                    {(dl.penalty_max ?? 0) > 0 && <div className="text-[8px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
                   </div>
                   <div className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-md shrink-0" style={{ background: dl.days_until <= 3 ? "#B34040" : dl.days_until <= 7 ? "rgba(179,64,64,0.06)" : "#F0EFEB", color: dl.days_until <= 3 ? "white" : dl.days_until <= 7 ? "#B34040" : "#8E8C85" }}>{dl.days_until}{t("d", "j")}</div>
                 </div>
@@ -651,8 +651,8 @@ export default function SoloDashboard() {
                 <>
                   {diagPrograms.slice(0, 3).map((p, i) => (
                     <div key={i} className="px-4 py-2.5 border-b border-border-light last:border-0">
-                      <div className="text-[11px] font-semibold text-ink truncate">{isFR ? (p.name_fr || p.name) : p.name}</div>
-                      {p.value > 0 && <div className="text-[10px] text-positive font-semibold mt-0.5">{t("up to", "jusqu a")} ${p.value.toLocaleString()}</div>}
+                      <div key={i} className="text-[11px] font-semibold text-ink truncate">{isFR ? (p.name_fr || p.name) : p.name}</div>
+                      {p.value > 0 && <div className="text-[10px] text-positive font-semibold mt-0.5">{t("up to", "jusqu a")} ${(p.value ?? 0).toLocaleString()}</div>}
                     </div>
                   ))}
                   {diagPrograms.length > 3 && (
@@ -678,8 +678,8 @@ export default function SoloDashboard() {
                   <span className="text-[12px] font-bold text-ink tabular-nums">{recovPct}%</span>
                 </div>
                 <div className="flex justify-between text-[9px] text-ink-faint">
-                  <span>${recovered.toLocaleString()} {t("recovered", "recupere")}</span>
-                  <span>${totalLeak.toLocaleString()} total</span>
+                  <span>${(recovered ?? 0).toLocaleString()} {t("recovered", "recupere")}</span>
+                  <span>${(totalLeak ?? 0).toLocaleString()} total</span>
                 </div>
               </div>
             )}

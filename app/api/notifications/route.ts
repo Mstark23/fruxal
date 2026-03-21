@@ -5,6 +5,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateNotification, getNotifications, markRead } from "@/services/notifications/engine";
 import { createClient } from "@supabase/supabase-js";
 
+const _ip_notifRl = new Map<string, {c: number; r: number}>();
+function ip_notifCheck(ip: string): boolean {
+  const now = Date.now();
+  const e = _ip_notifRl.get(ip);
+  if (!e || e.r < now) { _ip_notifRl.set(ip, {c: 1, r: now + 3600000}); return true; }
+  e.c++; return e.c <= 30;
+}
+
+
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -19,6 +29,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const _ip_ip_notif = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!ip_notifCheck(_ip_ip_notif)) return NextResponse.json({error: "Too many requests"}, {status: 429});
   try {
     const { type, businessId, data } = await req.json();
     if (!type || !businessId) return NextResponse.json({ error: "type and businessId required" }, { status: 400 });

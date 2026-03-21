@@ -9,6 +9,8 @@ import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireAdmin(req);
   if (!auth.authorized) return auth.error!;
@@ -48,8 +50,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       ...c, companyName: engMap[c.engagement_id] || "Unknown",
     }));
 
-    const totalEarned = commissions.filter((c: any) => c.status === "paid").reduce((s: number, c: any) => s + (c.commission_amount || 0), 0);
-    const totalPending = commissions.filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + (c.commission_amount || 0), 0);
+    const totalEarned = commissions.filter((c: any) => c.status === "paid").reduce((s: number, c: any) => s + (c.commission_amount ?? 0), 0);
+    const totalPending = commissions.filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + (c.commission_amount ?? 0), 0);
 
     return NextResponse.json({
       success: true, rep, assignments: enrichedAssignments, commissions: enrichedCommissions,
@@ -77,7 +79,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const { diagnosticId, pipelineId, stageAtAssignment, notes } = body;
       if (!diagnosticId) return NextResponse.json({ success: false, error: "diagnosticId required" }, { status: 400 });
 
-      await supabaseAdmin.from("tier3_rep_assignments").insert({
+      // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
+    await supabaseAdmin.from("tier3_rep_assignments").insert({
         id: crypto.randomUUID(), rep_id: id,
         diagnostic_id: diagnosticId, pipeline_id: pipelineId || null,
         stage_at_assignment: stageAtAssignment || null, notes: notes || null,
@@ -91,11 +94,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       if (!engagementId) return NextResponse.json({ success: false, error: "engagementId required" }, { status: 400 });
 
       const rate = commissionRate || 20;
-      const commissionAmount = Math.round((feeCollected || 0) * (rate / 100));
+      const commissionAmount = Math.round((feeCollected ?? 0) * (rate / 100));
 
       await supabaseAdmin.from("tier3_rep_commissions").insert({
         id: crypto.randomUUID(), rep_id: id, engagement_id: engagementId,
-        confirmed_savings: confirmedSavings || 0, fee_collected: feeCollected || 0,
+        confirmed_savings: confirmedSavings ?? 0, fee_collected: feeCollected ?? 0,
         commission_amount: commissionAmount, commission_rate: rate,
         status: "pending", notes: notes || null,
       });

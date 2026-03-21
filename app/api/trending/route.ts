@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/client";
 import { captureSnapshot, getTrends, seedHistoricalSnapshots } from "@/services/trending/snapshot-engine";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 // GET: Get trend data
 export async function GET(req: NextRequest) {
   try {

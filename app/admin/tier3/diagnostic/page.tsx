@@ -13,6 +13,7 @@ export default function AdminDiagnosticPage() {
   const searchParams = useSearchParams();
   const pipelineId = searchParams.get("pipelineId") || "";
 
+  const [isLoading, setIsLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -57,7 +58,8 @@ export default function AdminDiagnosticPage() {
     setError("");
     setRunning(true);
     try {
-      const res = await fetch("/api/admin/tier3/diagnostic", {
+      setIsLoading(true);
+    const res = await fetch("/api/admin/tier3/diagnostic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -81,6 +83,7 @@ export default function AdminDiagnosticPage() {
       setResult(json.result);
       setDiagnosticId(json.id);
       setDone(true);
+    setIsLoading(false);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -88,7 +91,9 @@ export default function AdminDiagnosticPage() {
     }
   }, [companyName, industry, revenueBracket, province, employeeCount, pipelineId, vendorContracts, taxStructure, benefitsPlan, hasCFO, primaryBank, monthlySaas, claimedSRED, painPoint]);
 
-  if (running) return (
+  if (running) if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
+
+  return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
       <div className="text-center">
         <div className="w-8 h-8 border-2 border-[#E8E6E1] border-t-[#1B3A2D] rounded-full animate-spin mx-auto mb-4" />
@@ -107,9 +112,9 @@ export default function AdminDiagnosticPage() {
         <div className="mt-6 space-y-4">
           <div className="bg-white border border-[#EEECE8] rounded-xl p-6">
             <p className="font-serif text-3xl font-bold text-[#2D7A50]">
-              ${(result.summary?.totalEstimatedLow||0).toLocaleString()} – ${(result.summary?.totalEstimatedHigh||0).toLocaleString()}
+              ${(result.summary?.totalEstimatedLow ?? 0).toLocaleString()} – ${(result.summary?.totalEstimatedHigh ?? 0).toLocaleString()}
             </p>
-            <p className="text-xs text-[#8E8C85] mt-1">{result.topLeaks?.length||0} leaks · {result.summary?.highConfidenceCount||0} high confidence</p>
+            <p className="text-xs text-[#8E8C85] mt-1">{result.topLeaks?.length ?? 0} leaks · {result.summary?.highConfidenceCount ?? 0} high confidence</p>
             <div className="flex gap-3 mt-4">
               <button onClick={() => router.push(`/admin/tier3/${diagnosticId}`)} className="flex-1 py-2.5 bg-[#1B3A2D] text-white text-sm font-bold rounded-lg hover:bg-[#2A5A44] transition">
                 View Full Report →
@@ -128,7 +133,7 @@ export default function AdminDiagnosticPage() {
                   <p className="text-[10px] text-[#8E8C85]">{l.category?.replace(/_/g," ")} · {l.confidence}</p>
                 </div>
               </div>
-              <p className="font-serif text-sm font-bold text-[#1A1A18]">${(l.estimatedLow||0).toLocaleString()} – ${(l.estimatedHigh||0).toLocaleString()}</p>
+              <p className="font-serif text-sm font-bold text-[#1A1A18]">${(l.estimatedLow ?? 0).toLocaleString()} – ${(l.estimatedHigh ?? 0).toLocaleString()}</p>
             </div>
           ))}
         </div>

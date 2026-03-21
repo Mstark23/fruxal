@@ -23,7 +23,7 @@ export default function RecoveryPage() {
   if (loading) return <div className="min-h-screen bg-[#f7f8fa] flex items-center justify-center text-gray-400">Loading...</div>;
 
   const fixEvents = timeline.filter(e => e.type === "fix");
-  const maxRunning = Math.max(...fixEvents.map(e => e.runningTotal || 0), 1);
+  const maxRunning = Math.max(...fixEvents.map(e => e.runningTotal ?? 0), 1);
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
@@ -37,19 +37,19 @@ export default function RecoveryPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-2xl p-4 shadow-sm border text-center">
             <div className="text-xs text-gray-400">Total Found</div>
-            <div className="text-xl font-black text-[#ff3d57]">${(stats.totalFound || 0).toLocaleString()}</div>
+            <div className="text-xl font-black text-[#ff3d57]">${(stats.totalFound ?? 0).toLocaleString()}</div>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm border text-center">
             <div className="text-xs text-gray-400">Total Saved</div>
-            <div className="text-xl font-black text-[#00c853]">${(stats.totalSaved || 0).toLocaleString()}</div>
+            <div className="text-xl font-black text-[#00c853]">${(stats.totalSaved ?? 0).toLocaleString()}</div>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm border text-center">
             <div className="text-xs text-gray-400">Fix Rate</div>
-            <div className="text-xl font-black text-[#2979ff]">{stats.fixRate || 0}%</div>
+            <div className="text-xl font-black text-[#2979ff]">{stats.fixRate ?? 0}%</div>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm border text-center">
             <div className="text-xs text-gray-400">Days Active</div>
-            <div className="text-xl font-black text-[#7c4dff]">{stats.daysActive || 0}</div>
+            <div className="text-xl font-black text-[#7c4dff]">{stats.daysActive ?? 0}</div>
           </div>
         </div>
 
@@ -61,7 +61,7 @@ export default function RecoveryPage() {
               {fixEvents.reverse().map((e, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center justify-end">
                   <div className="w-full bg-[#00c853] rounded-t-md min-h-[4px]"
-                    style={{ height: Math.max(4, ((e.runningTotal || 0) / maxRunning) * 100) + "%" }} />
+                    style={{ height: Math.max(4, ((e.runningTotal ?? 0) / maxRunning) * 100) + "%" }} />
                   <div className="text-[9px] text-gray-400 mt-1 truncate w-full text-center">
                     {new Date(e.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </div>
@@ -70,7 +70,7 @@ export default function RecoveryPage() {
             </div>
             <div className="flex justify-between text-xs text-gray-400 mt-2">
               <span>$0</span>
-              <span>${maxRunning.toLocaleString()}/yr saved</span>
+              <span>${(maxRunning ?? 0).toLocaleString()}/yr saved</span>
             </div>
           </div>
         )}
@@ -103,7 +103,7 @@ export default function RecoveryPage() {
                           event.type === "fix" ? "text-[#00c853]" :
                           event.type === "scan" ? "text-[#2979ff]" : "text-[#ff3d57]"
                         }`}>
-                          {event.type === "fix" ? "+" : ""}${(event.amount || 0).toLocaleString()}/yr
+                          {event.type === "fix" ? "+" : ""}${(event.amount ?? 0).toLocaleString()}/yr
                         </div>
                       </div>
                       <div className="text-xs text-gray-400 mt-0.5">{event.detail}</div>

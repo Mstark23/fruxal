@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     }
     function text(t: string, x: number, yy: number, s: number, f = font, c = dark) {
       const safe = stripAccents(t);
-      try { page.drawText(safe, { x, y: yy, size: s, font: f, color: c }); } catch(e) {}
+      try { page.drawText(safe, { x, y: yy, size: s, font: f, color: c }); } catch(e) { /* non-fatal */ }
     }
 
     // Header
@@ -82,8 +82,8 @@ export async function GET(req: NextRequest) {
     const bw = (CW - 30) / 4, bh = 55;
     const stats = [
       { n: `${leaks.length}`, l: "Fuites trouvees", c: red },
-      { n: `$${potentialLoss.toLocaleString()}`, l: "Perte potentielle/an", c: red },
-      { n: `$${savedAmount.toLocaleString()}`, l: "Deja economise", c: green },
+      { n: `$${(potentialLoss ?? 0).toLocaleString()}`, l: "Perte potentielle/an", c: red },
+      { n: `$${(savedAmount ?? 0).toLocaleString()}`, l: "Deja economise", c: green },
       { n: `${score}`, l: "Score de sante", c: teal },
     ];
     for (let i = 0; i < 4; i++) {
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
       const tt = leak.title.length > 50 ? leak.title.substring(0, 50) + "..." : leak.title;
       text(tt, M + 15 + svW + 15, y - 15, 10, fontBold, isFix ? gray : dark);
 
-      const it = `$${(leak.impact_max || 0).toLocaleString()}/an`;
+      const it = `$${(leak.impact_max ?? 0).toLocaleString()}/an`;
       const iw = fontBold.widthOfTextAtSize(it, 11);
       text(it, M + CW - 10 - iw, y - 15, 11, fontBold, isFix ? gray : red);
 
@@ -137,7 +137,7 @@ export async function GET(req: NextRequest) {
         text(dt, M + 10, y - 35, 8, font, gray);
       }
 
-      const rt = `Impact estime: $${(leak.impact_min || 0).toLocaleString()} - $${(leak.impact_max || 0).toLocaleString()}/an`;
+      const rt = `Impact estime: $${(leak.impact_min ?? 0).toLocaleString()} - $${(leak.impact_max ?? 0).toLocaleString()}/an`;
       text(rt, M + 10, y - (leak.description ? 52 : 35), 7, font, gray);
 
       y -= ch + 6;

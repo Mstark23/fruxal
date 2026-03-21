@@ -63,7 +63,7 @@ export default function Tier3DashboardPage() {
     : diagnostics.filter((d) => d.status === filter);
 
   // Stats
-  const totalPipeline = diagnostics.reduce((sum, d) => sum + (d.summary?.totalEstimatedHigh || 0), 0);
+  const totalPipeline = diagnostics.reduce((sum, d) => sum + (d.summary?.totalEstimatedHigh ?? 0), 0);
   const signedCount = diagnostics.filter((d) => d.status === "signed").length;
   const sentCount = diagnostics.filter((d) => d.status === "sent").length;
 

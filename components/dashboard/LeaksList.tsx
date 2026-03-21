@@ -32,7 +32,7 @@ export function LeaksList({ leaks, max = 4, isFR }: Props) {
             <p className="text-xs text-ink-muted truncate">{l.shortText}</p>
           </div>
           <div className="text-right pl-4 shrink-0">
-            <span className="font-serif text-[16px] text-negative font-semibold">${l.annualAmount.toLocaleString()}</span>
+            <span className="font-serif text-[16px] text-negative font-semibold">${(Number(l.annualAmount) || 0).toLocaleString()}</span>
             <span className="text-[10px] text-ink-faint ml-0.5">{isFR ? "/an" : "/yr"}</span>
           </div>
         </div>

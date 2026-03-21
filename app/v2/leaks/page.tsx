@@ -62,8 +62,8 @@ export default function LeaksPage() {
           if (json.meta) {
             setIsPaid(json.meta.isPaid);
             setGated(json.meta.gated);
-            setLockedCount(json.meta.lockedCount || 0);
-            setLockedValue(json.meta.lockedValue || 0);
+            setLockedCount(json.meta.lockedCount ?? 0);
+            setLockedValue(json.meta.lockedValue ?? 0);
           }
         }
       } catch (err) { console.error(err); }
@@ -77,7 +77,7 @@ export default function LeaksPage() {
     const res = await fetch(`/api/v2/leaks/${slug}/action`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, savings: leak?.impact_min || 0 }),
+      body: JSON.stringify({ action, savings: leak?.impact_min ?? 0 }),
     });
     const json = await res.json();
 
@@ -138,11 +138,11 @@ export default function LeaksPage() {
         {/* Savings summary */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-brand-soft border border-brand/10 rounded-xl px-3 py-2.5 text-center">
-            <p className="text-brand text-lg font-black">${totalSavings.toLocaleString()}</p>
+            <p className="text-brand text-lg font-black">${(totalSavings ?? 0).toLocaleString()}</p>
             <p className="text-brand/20 text-[8px] uppercase tracking-wider">Saved / Year</p>
           </div>
           <div className="bg-red-500/[0.03] border border-negative/10 rounded-xl px-3 py-2.5 text-center">
-            <p className="text-negative/60 text-lg font-black">${potentialSavings.toLocaleString()}</p>
+            <p className="text-negative/60 text-lg font-black">${(potentialSavings ?? 0).toLocaleString()}</p>
             <p className="text-negative/20 text-[8px] uppercase tracking-wider">Still Leaking</p>
           </div>
         </div>
@@ -187,18 +187,18 @@ export default function LeaksPage() {
                   {/* Main row */}
                   <button onClick={() => setExpanded(isExpanded ? null : leak.slug)}
                     className="w-full text-left px-4 py-3 flex items-start gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-1">
+                    <div key={i} className="flex-1 min-w-0">
+                      <div key={i} className="flex items-center gap-1.5 mb-1">
                         <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase ${sc.bg} ${sc.text}`}>{leak.severity}</span>
                         <span className="text-ink-faint text-[8px]">{sol.icon} {sol.label}</span>
                       </div>
                       <p className={`text-xs font-medium ${isFixed ? "text-ink-faint line-through" : "text-ink-muted"}`}>{leak.title}</p>
                     </div>
-                    <div className="text-right">
+                    <div key={i} className="text-right">
                       {isFixed ? (
-                        <p className="text-brand/40 text-xs font-bold">+${leak.savings_amount.toLocaleString()}<span className="text-[9px]">/yr</span></p>
+                        <p className="text-brand/40 text-xs font-bold">+${(leak.savings_amount ?? 0).toLocaleString()}<span className="text-[9px]">/yr</span></p>
                       ) : (
-                        <p className="text-negative/50 text-xs font-bold">${leak.impact_max.toLocaleString()}<span className="text-[9px]">/yr</span></p>
+                        <p className="text-negative/50 text-xs font-bold">${(leak.impact_max ?? 0).toLocaleString()}<span className="text-[9px]">/yr</span></p>
                       )}
                       <span className="text-ink-faint text-[8px]">{isExpanded ? "▲" : "▼"}</span>
                     </div>
@@ -206,22 +206,22 @@ export default function LeaksPage() {
 
                   {/* Expanded details */}
                   {isExpanded && (
-                    <div className="px-4 pb-3 border-t border-white/[0.03] pt-3" style={{ animation: "fadeUp 0.2s ease-out" }}>
+                    <div key={i} className="px-4 pb-3 border-t border-white/[0.03] pt-3" style={{ animation: "fadeUp 0.2s ease-out" }}>
                       {leak.description && (
                         <p className="text-ink-faint text-[11px] mb-3">{leak.description}</p>
                       )}
 
-                      <div className="flex items-center gap-2 mb-3">
+                      <div key={i} className="flex items-center gap-2 mb-3">
                         <span className="text-ink-faint text-[9px]">Impact range:</span>
                         <span className="text-negative/40 text-[10px] font-bold">
-                          ${leak.impact_min.toLocaleString()} — ${leak.impact_max.toLocaleString()}/yr
+                          ${(leak.impact_min ?? 0).toLocaleString()} — ${(leak.impact_max ?? 0).toLocaleString()}/yr
                         </span>
                       </div>
 
                       {leak.solution_steps && leak.solution_steps.length > 0 && (
-                        <div className="mb-3">
+                        <div key={i} className="mb-3">
                           <p className="text-ink-faint text-[9px] font-bold uppercase tracking-wider mb-1.5">How to Fix</p>
-                          <div className="space-y-1">
+                          <div key={i} className="space-y-1">
                             {leak.solution_steps.map((step: string, si: number) => (
                               <div key={si} className="flex gap-2">
                                 <span className="text-brand/30 text-[9px] font-bold mt-0.5">{si + 1}.</span>
@@ -234,7 +234,7 @@ export default function LeaksPage() {
 
                       {/* Actions */}
                       {!isFixed && leak.status !== "dismissed" && (
-                        <div className="flex gap-2">
+                        <div key={i} className="flex gap-2">
                           <button onClick={() => handleAction(leak.slug, "fix")}
                             className="flex-1 py-2 rounded-lg bg-brand-soft text-brand/60 text-[10px] font-bold hover:bg-brand-soft transition-colors">
                             ✓ I Fixed This
@@ -252,8 +252,8 @@ export default function LeaksPage() {
                         </div>
                       )}
                       {isFixed && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-brand/30 text-[10px]">✓ Fixed · Saving ${leak.savings_amount.toLocaleString()}/yr</span>
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="text-brand/30 text-[10px]">✓ Fixed · Saving ${(leak.savings_amount ?? 0).toLocaleString()}/yr</span>
                           <button onClick={() => handleAction(leak.slug, "reset")}
                             className="text-ink-faint text-[9px] hover:text-ink-faint transition-colors">Undo</button>
                         </div>
@@ -274,10 +274,10 @@ export default function LeaksPage() {
             {[...Array(Math.min(lockedCount, 2))].map((_, i) => (
               <div key={i} className="px-4 py-3 border-b border-border-light select-none"
                 style={{ filter: "blur(4px)", opacity: 0.3, background: "white" }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-3 bg-gray-200 rounded" />
-                  <div className="flex-1 h-3 bg-gray-200 rounded" />
-                  <div className="w-16 h-3 bg-gray-200 rounded" />
+                <div key={i} className="flex items-center gap-3">
+                  <div key={i} className="w-12 h-3 bg-gray-200 rounded" />
+                  <div key={i} className="flex-1 h-3 bg-gray-200 rounded" />
+                  <div key={i} className="w-16 h-3 bg-gray-200 rounded" />
                 </div>
               </div>
             ))}
@@ -293,7 +293,7 @@ export default function LeaksPage() {
               </p>
               {lockedValue > 0 && (
                 <p className="text-[11px] mb-4" style={{ color: "rgba(255,255,255,0.65)" }}>
-                  Additional <span className="font-bold text-white">${lockedValue.toLocaleString()}</span> in recoverable savings
+                  Additional <span className="font-bold text-white">${(lockedValue ?? 0).toLocaleString()}</span> in recoverable savings
                 </p>
               )}
               <a href="/v2/checkout?plan=business"

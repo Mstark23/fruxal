@@ -9,6 +9,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { createClient } from "@supabase/supabase-js";
+
+export const maxDuration = 30; // Vercel function timeout (seconds)
 // generateActionsFromPrescan migrated — stub until lib/ai action-plan is wired
 async function generateActionsFromPrescan(userId: string, scanId: string, data: any): Promise<any[]> { return []; }
 
@@ -48,25 +50,25 @@ export async function GET(req: NextRequest) {
     this_quarter: allActions.filter(a => a.status === "pending" && a.priority === "this_quarter"),
     in_progress: allActions.filter(a => a.status === "in_progress"),
     completed: allActions.filter(a => a.status === "completed").sort(
-      (a, b) => new Date(b.completed_at || 0).getTime() - new Date(a.completed_at || 0).getTime()
+      (a, b) => new Date(b.completed_at ?? 0).getTime() - new Date(a.completed_at ?? 0).getTime()
     ),
     skipped: allActions.filter(a => a.status === "skipped" || a.status === "dismissed"),
   };
 
   // Calculate stats
   const stats = {
-    total_leak: progress?.total_leak_found || 0,
-    total_recovered: progress?.total_recovered || 0,
-    total_verified: progress?.total_verified_leak || 0,
+    total_leak: progress?.total_leak_found ?? 0,
+    total_recovered: progress?.total_recovered ?? 0,
+    total_verified: progress?.total_verified_leak ?? 0,
     actions_total: allActions.filter(a => a.status !== "dismissed").length,
     actions_completed: grouped.completed.length,
     actions_in_progress: grouped.in_progress.length,
     actions_remaining: grouped.this_week.length + grouped.this_month.length + grouped.this_quarter.length,
     quickbooks_connected: progress?.quickbooks_connected || false,
     bank_connected: progress?.bank_connected || false,
-    contracts_uploaded: progress?.contracts_uploaded || 0,
+    contracts_uploaded: progress?.contracts_uploaded ?? 0,
     last_scan: progress?.last_prescan_date || null,
-    scan_count: progress?.scan_count || 0,
+    scan_count: progress?.scan_count ?? 0,
   };
 
   return NextResponse.json({ actions: grouped, stats });
@@ -118,7 +120,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       scanId: saved?.id,
-      actionsGenerated: prescanData.confirmedLeaks?.length || 0,
+      actionsGenerated: prescanData.confirmedLeaks?.length ?? 0,
     });
 
   } catch (error: any) {
@@ -165,7 +167,7 @@ export async function PATCH(req: NextRequest) {
 
     const completed = (allActions || []).filter(a => a.status === "completed");
     const totalRecovered = completed.reduce(
-      (s, a) => s + (a.actual_savings || a.estimated_value || 0), 0
+      (s, a) => s + (a.actual_savings || a.estimated_value ?? 0), 0
     );
 
     await supabase.from("user_progress").upsert({

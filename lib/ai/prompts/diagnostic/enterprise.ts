@@ -78,11 +78,11 @@ export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; us
 
   const systemPrompt = `${FRUXAL_VOICE}
 
-You are analyzing ${bizName}, a ${industry} in ${province} generating $${annualRevenue.toLocaleString()} revenue.
+You are analyzing ${bizName}, a ${industry} in ${province} generating $${(annualRevenue ?? 0).toLocaleString()} revenue.
 This is a CCPC-level diagnostic. Your mandate: find every dollar of tax leakage, structural inefficiency,
-and compliance risk — and calculate the enterprise value effect at ${evMultiple} (current EV range: $${evLow.toLocaleString()}–$${evHigh.toLocaleString()}).
+and compliance risk — and calculate the enterprise value effect at ${evMultiple} (current EV range: $${(evLow ?? 0).toLocaleString()}–$${(evHigh ?? 0).toLocaleString()}).
 
-EBITDA: ~$${estimatedEBITDA.toLocaleString()} (${ebitdaSource}) | Gross margin: ${grossMarginPct}%
+EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}) | Gross margin: ${grossMarginPct}%
 Employees: ${employees}${ownerSalary > 0 ? ` | Owner salary: $${ownerSalary.toLocaleString()}` : ""}
 
 ${taxCtx}
@@ -152,8 +152,8 @@ you can calculate a real dollar impact from this business's actual numbers.
    → Timing: freeze NOW on $${evLow.toLocaleString()} EV vs after growth to $${Math.round(evLow * 1.5).toLocaleString()} = $${Math.round((evLow * 1.5 - evLow) * 0.2676 * 0.5353).toLocaleString()} incremental tax on the growth.
 
 10. COMPLIANCE & AUDIT RISK
-    Obligations: ${obligationsCount} tracked | Overdue: ${overdue} | Penalty exposure: $${penaltyExposure.toLocaleString()}
-    → At $${annualRevenue.toLocaleString()} revenue, what is the CRA audit probability for this industry?
+    Obligations: ${obligationsCount} tracked | Overdue: ${overdue} | Penalty exposure: $${(penaltyExposure ?? 0).toLocaleString()}
+    → At $${(annualRevenue ?? 0).toLocaleString()} revenue, what is the CRA audit probability for this industry?
     → Director liability: overdue source deductions expose directors personally.
     → Key person risk: if owner is incapacitated, what happens to the business and estate?
 
@@ -174,7 +174,7 @@ ${buildQualityBar("enterprise")}
 ${buildSolutionMatrix("enterprise", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
 STRUCTURAL RULES:
-1. Calculate every dollar from ACTUAL revenue $${annualRevenue.toLocaleString()} (${revenueSource}) and EBITDA $${estimatedEBITDA.toLocaleString()} (${ebitdaSource}).
+1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}) and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}).
 2. Every finding MUST include ebitda_improvement AND enterprise_value_improvement. Assume ${evMultiple}. Show the math in calculation_shown.
 3. Minimum 8, maximum 12 findings. No finding under $5,000 annual impact.
 4. second_order_effects is a PLAIN STRING — NOT an array. Describe the cascading effect (e.g. fixing salary mix → RDTOH timing → CDA → estate freeze all interact).
@@ -198,10 +198,10 @@ BUSINESS PROFILE
 - Province:         ${province}
 - Structure:        ${structure}
 - Fiscal Year End:  Month ${profile.fiscal_year_end_month || 12}
-- Annual Revenue:   $${annualRevenue.toLocaleString()} (${revenueSource})
+- Annual Revenue:   $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource})
 - Employees:        ${employees}
 - Gross Margin:     ${grossMarginPct}%
-- Est. EBITDA:      $${estimatedEBITDA.toLocaleString()} (${ebitdaSource})
+- Est. EBITDA:      $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource})
 ${estimatedPayroll > 0 ? `- Est. Payroll:     $${estimatedPayroll.toLocaleString()}` : ""}
 
 OWNER FINANCIALS
@@ -221,7 +221,7 @@ CORPORATE TAX FLAGS
 COMPLIANCE
 - Obligations tracked:   ${obligationsCount}
 - Overdue:               ${overdue}
-- Penalty exposure:      $${penaltyExposure.toLocaleString()}
+- Penalty exposure:      $${(penaltyExposure ?? 0).toLocaleString()}
 
 BUSINESS FLAGS
 - Has Payroll:       ${profile.has_payroll          ? "YES" : "NO"}

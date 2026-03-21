@@ -33,7 +33,7 @@ export async function GET(
     // Increment view count (for analytics)
     await supabaseAdmin
       .from("prescan_results")
-      .update({ view_count: (data.view_count || 0) + 1, last_viewed_at: new Date().toISOString() })
+      .update({ view_count: (data.view_count ?? 0) + 1, last_viewed_at: new Date().toISOString() })
       .eq("id", id);
 
     return NextResponse.json({
@@ -41,7 +41,7 @@ export async function GET(
       data: {
         id: data.id,
         input_snapshot: data.input_snapshot,
-        health_score: data.summary?.health_score || 0,
+        health_score: data.summary?.health_score ?? 0,
         summary: data.summary,
         teaser_leaks: data.teaser_leaks,
         hidden_leak_count: data.hidden_leak_count,

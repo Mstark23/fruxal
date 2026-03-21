@@ -12,6 +12,7 @@ interface SearchResult { symbol: string; name: string; exchange: string; currenc
 
 export default function PublicCompanyDiagnosticPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState<SearchResult | null>(null);
@@ -28,10 +29,12 @@ export default function PublicCompanyDiagnosticPage() {
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await fetch(`/api/v2/diagnostic/public-company/search?q=${encodeURIComponent(query)}`);
+        setIsLoading(true);
+    const res = await fetch(`/api/v2/diagnostic/public-company/search?q=${encodeURIComponent(query)}`);
         const json = await res.json();
         setResults(json.results || []);
-      } catch { setResults([]); }
+      setIsLoading(false);
+    } catch { setResults([]); }
       finally { setSearching(false); }
     }, 350);
   }, [query, selected]);
@@ -54,6 +57,8 @@ export default function PublicCompanyDiagnosticPage() {
       setRunning(false);
     }
   }
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
 
   return (
     <div className="min-h-screen bg-[#0a0e14] flex flex-col items-center justify-center px-4 py-16">

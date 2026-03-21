@@ -10,9 +10,9 @@ import { AdminNav } from "@/components/admin/AdminNav";
 function fmt(n: number): string {
   if (n >= 1_000_000) return "$" + (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return "$" + Math.round(n / 1_000) + "K";
-  return "$" + n.toLocaleString();
+  return "$" + (n ?? 0).toLocaleString();
 }
-function fmtRaw(n: number): string { return "$" + n.toLocaleString(); }
+function fmtRaw(n: number): string { return "$" + (n ?? 0).toLocaleString(); }
 
 interface Rep {
   id: string; name: string; email: string; phone: string | null;
@@ -52,7 +52,7 @@ export default function RepsPage() {
       const res = await fetch("/api/admin/tier3/reps");
       const json = await res.json();
       if (json.success) { setReps(json.reps || []); setStats(json.stats || null); }
-    } catch {}
+    } catch { /* non-fatal */ }
     setLoading(false);
   }, []);
 
@@ -71,7 +71,7 @@ export default function RepsPage() {
         setShowModal(false); setNewName(""); setNewEmail(""); setNewPhone(""); setNewProv(""); setNewRate(20);
         fetchData();
       }
-    } catch {}
+    } catch { /* non-fatal */ }
     setCreating(false);
   };
 
@@ -82,7 +82,7 @@ export default function RepsPage() {
       const res = await fetch(`/api/admin/tier3/reps/${repId}`);
       const json = await res.json();
       if (json.success) setSelectedRep(json);
-    } catch {}
+    } catch { /* non-fatal */ }
     setLoadingDetail(false);
   };
 

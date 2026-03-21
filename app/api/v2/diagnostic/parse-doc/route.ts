@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import Anthropic from "@anthropic-ai/sdk";
 
+export const maxDuration = 60; // Vercel function timeout (seconds)
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 const DOC_PROMPTS: Record<string, string> = {

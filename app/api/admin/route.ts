@@ -28,8 +28,8 @@ export async function GET(req: NextRequest) {
     const allLeaks = leaks || [];
     const openLeaks = allLeaks.filter(l => l.status !== "FIXED" && l.status !== "fixed");
     const fixedLeaks = allLeaks.filter(l => l.status === "FIXED" || l.status === "fixed");
-    const totalLeaking = openLeaks.reduce((s, l) => s + (l.annualImpact || 0), 0);
-    const totalSaved = fixedLeaks.reduce((s, l) => s + (l.annualImpact || 0), 0);
+    const totalLeaking = openLeaks.reduce((s, l) => s + (l.annualImpact ?? 0), 0);
+    const totalSaved = fixedLeaks.reduce((s, l) => s + (l.annualImpact ?? 0), 0);
 
     const allBiz = businesses || [];
     const freeBiz = allBiz.filter(b => !b.plan || b.plan === "free").length;
@@ -47,8 +47,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       overview: {
-        totalUsers: userCount || 0,
-        totalBusinesses: bizCount || 0,
+        totalUsers: userCount ?? 0,
+        totalBusinesses: bizCount ?? 0,
         totalLeaks: allLeaks.length,
         openLeaks: openLeaks.length,
         fixedLeaks: fixedLeaks.length,

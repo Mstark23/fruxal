@@ -142,14 +142,14 @@ export async function POST(request: NextRequest) {
     if (shouldRunAnalysis) {
       // ═══ VALIDATION GATE ═══
       // Check data quality before running the engine
-      console.log('🔍 Analysis requested — validating data first...');
-      console.log('📋 Tags collected:', JSON.stringify(tags, null, 2));
+      process.env.NODE_ENV !== "production" && console.log('🔍 Analysis requested — validating data first...');
+      process.env.NODE_ENV !== "production" && console.log('📋 Tags collected:', JSON.stringify(tags, null, 2));
       
       const validation = validatePrescanData(tags);
       
       if (!validation.valid) {
         // Data issues found — ask user to correct
-        console.log('⚠️ Validation failed:', validation.issues.map(i => `${i.severity}: ${i.field}`).join(', '));
+        process.env.NODE_ENV !== "production" && console.log('⚠️ Validation failed:', validation.issues.map(i => `${i.severity}: ${i.field}`).join(', '));
         
         const followUpPrompt = buildValidationFollowUp(validation.issues, lang || 'en');
         
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
       // ═══ SUSPICIOUS DATA — log but don't block ═══
       const suspicious = validation.issues.filter(i => i.severity === 'suspicious');
       if (suspicious.length > 0 && validation.valid) {
-        console.log('⚡ Suspicious data (non-blocking):', suspicious.map(i => `${i.field}: ${i.message_en}`).join('; '));
+        process.env.NODE_ENV !== "production" && console.log('⚡ Suspicious data (non-blocking):', suspicious.map(i => `${i.field}: ${i.message_en}`).join('; '));
       }
     }
     
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
     
     if (shouldRunAnalysis) {
       try {
-        console.log('✅ Validation passed! Running prescan engine...');
+        process.env.NODE_ENV !== "production" && console.log('✅ Validation passed! Running prescan engine...');
         
         // Detect logged-in user (optional — prescan works without auth)
         let realUserId: string | null = null;
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
           const session = await getServerSession(authOptions);
           if (session?.user) {
             realUserId = (session.user as any).id || null;
-            console.log('🔑 Logged-in user detected:', realUserId);
+            process.env.NODE_ENV !== "production" && console.log('🔑 Logged-in user detected:', realUserId);
           }
         } catch { /* Auth check is optional — don't block prescan */ }
         
@@ -241,10 +241,10 @@ export async function POST(request: NextRequest) {
           tags
         );
         
-        console.log('✅ Prescan engine completed!');
-        console.log('📈 FH Score:', result.fhScore);
-        console.log('💰 Total Leak:', result.leaks.reduce((sum, l) => sum + l.estimated_annual_leak, 0));
-        console.log('🔍 Leaks found:', result.leaks.length);
+        process.env.NODE_ENV !== "production" && console.log('✅ Prescan engine completed!');
+        process.env.NODE_ENV !== "production" && console.log('📈 FH Score:', result.fhScore);
+        process.env.NODE_ENV !== "production" && console.log('💰 Total Leak:', result.leaks.reduce((sum, l) => sum + l.estimated_annual_leak, 0));
+        process.env.NODE_ENV !== "production" && console.log('🔍 Leaks found:', result.leaks.length);
         
         prescanRunId = result.prescanRunId;
         tier = result.tier;
@@ -380,12 +380,12 @@ export async function POST(request: NextRequest) {
                 teaser_programs: [],
                 hidden_program_count: 0,
               });
-              console.log('✅ prescan_results saved on retry');
+              process.env.NODE_ENV !== "production" && console.log('✅ prescan_results saved on retry');
             } catch (retryErr: any) {
               console.error('❌ prescan_results retry also failed:', retryErr.message);
             }
           } else {
-            console.log('✅ prescan_results saved');
+            process.env.NODE_ENV !== "production" && console.log('✅ prescan_results saved');
           }
         } catch (saveErr: any) {
           console.warn('⚠️ prescan_results save (non-blocking):', saveErr.message);

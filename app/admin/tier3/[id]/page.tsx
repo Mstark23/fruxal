@@ -23,6 +23,7 @@ export default function AdminTier3DetailPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
+  const [error, setError] = useState<string | null>(null);
   const [data, setData]     = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,11 +36,15 @@ export default function AdminTier3DetailPage() {
   }, [id]);
 
   if (loading) return (
+    <>
+    {error && <div className="text-red-400 p-4">{error}</div>}
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
       <div className="w-6 h-6 border-2 border-[#EEECE8] border-t-[#1B3A2D] rounded-full animate-spin" />
     </div>
   );
   if (!data) return (
+    <>
+    {error && <div className="text-red-400 p-4">{error}</div>}
     <div className="min-h-screen bg-[#FAFAF8] px-6 py-8 max-w-7xl mx-auto">
       <AdminNav />
       <p className="text-sm text-[#8E8C85]">Entry not found.</p>
@@ -51,6 +56,8 @@ export default function AdminTier3DetailPage() {
   const topLeaks = result.topLeaks || [];
 
   return (
+    <>
+    {error && <div className="text-red-400 p-4">{error}</div>}
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <button onClick={() => router.back()}
@@ -163,5 +170,6 @@ export default function AdminTier3DetailPage() {
         </div>
       </div>
     </div>
+  </>
   );
 }

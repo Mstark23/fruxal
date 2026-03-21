@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate agreement PDF
-    console.log(`[Tier3:Agreement] Generating for "${diagnostic.company_name}" — ${scopeCategories.length} categories, ${fee}% fee`);
+    process.env.NODE_ENV !== "production" && console.log(`[Tier3:Agreement] Generating for "${diagnostic.company_name}" — ${scopeCategories.length} categories, ${fee}% fee`);
 
     const pdfBuffer = await generateContingencyAgreement({
       diagnosticId: diagnostic.id,
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       generatedAt: new Date().toISOString(),
     });
 
-    console.log(`[Tier3:Agreement] Generated ${(pdfBuffer.length / 1024).toFixed(1)}KB PDF`);
+    process.env.NODE_ENV !== "production" && console.log(`[Tier3:Agreement] Generated ${(pdfBuffer.length / 1024).toFixed(1)}KB PDF`);
 
     // Save agreement record
     const agreementId = crypto.randomUUID();

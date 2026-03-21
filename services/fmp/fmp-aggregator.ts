@@ -31,7 +31,7 @@ async function fmpFetch(endpoint: string): Promise<any> {
   if (!FMP_KEY) throw new Error("FMP_API_KEY not configured");
   const sep = endpoint.includes("?") ? "&" : "?";
   const url = `${FMP_BASE}${endpoint}${sep}apikey=${FMP_KEY}`;
-  const res = await fetch(url, { next: { revalidate: 3600 } } as RequestInit);
+  const res = await fetch(url, { next: { revalidate: 3600 } } as RequestInit).catch(() => { throw new Error("Network request failed"); });
   if (!res.ok) throw new Error(`FMP ${endpoint}: ${res.status}`);
   return res.json();
 }
@@ -83,18 +83,18 @@ export async function aggregateFMPData(symbol: string): Promise<FMPCompanyData> 
   const cf = cashflowArr?.[0]  || {};
   const r  = ratiosArr?.[0]    || {};
 
-  const revenue          = i0.revenue           || 0;
-  const grossProfit      = i0.grossProfit        || 0;
-  const ebitda           = i0.ebitda             || 0;
-  const netIncome        = i0.netIncome          || 0;
-  const incomeTax        = i0.incomeTaxExpense    || 0;
-  const operatingIncome  = i0.operatingIncome     || 0;
-  const totalEquity      = b0.totalStockholdersEquity || b0.totalEquity || 0;
-  const currentAssets    = b0.totalCurrentAssets  || 0;
-  const currentLiabilities = b0.totalCurrentLiabilities || 0;
-  const totalDebt        = b0.totalDebt           || 0;
-  const cash             = b0.cashAndCashEquivalents || 0;
-  const totalAssets      = b0.totalAssets         || 0;
+  const revenue          = i0.revenue ?? 0;
+  const grossProfit      = i0.grossProfit ?? 0;
+  const ebitda           = i0.ebitda ?? 0;
+  const netIncome        = i0.netIncome ?? 0;
+  const incomeTax        = i0.incomeTaxExpense ?? 0;
+  const operatingIncome  = i0.operatingIncome ?? 0;
+  const totalEquity      = b0.totalStockholdersEquity || b0.totalEquity ?? 0;
+  const currentAssets    = b0.totalCurrentAssets ?? 0;
+  const currentLiabilities = b0.totalCurrentLiabilities ?? 0;
+  const totalDebt        = b0.totalDebt ?? 0;
+  const cash             = b0.cashAndCashEquivalents ?? 0;
+  const totalAssets      = b0.totalAssets ?? 0;
   const prevAssets       = b1.totalAssets         || totalAssets;
   const province         = inferProvince(p.address || "", p.city || "");
 
@@ -109,56 +109,56 @@ export async function aggregateFMPData(symbol: string): Promise<FMPCompanyData> 
     description: (p.description || "").substring(0, 500),
     website:  p.website || "",
     ceo:      p.ceo     || "Unknown",
-    employees: p.fullTimeEmployees || 0,
+    employees: p.fullTimeEmployees ?? 0,
     ipoDate:  p.ipoDate || "",
 
     revenue,
     revenueGrowthYoY: i1.revenue
       ? Number((((revenue - i1.revenue) / i1.revenue) * 100).toFixed(1))
       : null,
-    costOfRevenue:      i0.costOfRevenue     || 0,
+    costOfRevenue:      i0.costOfRevenue ?? 0,
     grossProfit,
     grossMarginPct:     revenue ? Number(((grossProfit    / revenue) * 100).toFixed(1)) : 0,
-    operatingExpenses:  i0.operatingExpenses || 0,
+    operatingExpenses:  i0.operatingExpenses ?? 0,
     operatingIncome,
     operatingMarginPct: revenue ? Number(((operatingIncome / revenue) * 100).toFixed(1)) : 0,
     ebitda,
     ebitdaMarginPct:    revenue ? Number(((ebitda          / revenue) * 100).toFixed(1)) : 0,
     netIncome,
     netMarginPct:       revenue ? Number(((netIncome        / revenue) * 100).toFixed(1)) : 0,
-    eps: i0.eps || 0,
+    eps: i0.eps ?? 0,
     incomeTaxExpense: incomeTax,
     effectiveTaxRatePct: (netIncome + incomeTax) > 0
       ? Number(((incomeTax / (netIncome + incomeTax)) * 100).toFixed(1))
       : 0,
-    interestExpense:         Math.abs(i0.interestExpense || 0),
-    depreciationAmortization: cf.depreciationAndAmortization || 0,
-    rd_expense: i0.researchAndDevelopmentExpenses || 0,
+    interestExpense:         Math.abs(i0.interestExpense ?? 0),
+    depreciationAmortization: cf.depreciationAndAmortization ?? 0,
+    rd_expense: i0.researchAndDevelopmentExpenses ?? 0,
 
     totalAssets,
-    totalLiabilities: b0.totalLiabilities || 0,
+    totalLiabilities: b0.totalLiabilities ?? 0,
     totalEquity,
     cashAndEquivalents: cash,
     totalDebt,
     netDebt:      totalDebt - cash,
     currentRatio: currentLiabilities ? Number((currentAssets / currentLiabilities).toFixed(2)) : null,
     debtToEquity: totalEquity         ? Number((totalDebt / totalEquity).toFixed(2))            : null,
-    accountsReceivable: b0.netReceivables || 0,
-    inventory:          b0.inventory      || 0,
+    accountsReceivable: b0.netReceivables ?? 0,
+    inventory:          b0.inventory ?? 0,
     workingCapital:     currentAssets - currentLiabilities,
 
-    operatingCashFlow: cf.operatingCashFlow  || 0,
-    capex:             Math.abs(cf.capitalExpenditure || 0),
-    freeCashFlow:      cf.freeCashFlow       || 0,
+    operatingCashFlow: cf.operatingCashFlow ?? 0,
+    capex:             Math.abs(cf.capitalExpenditure ?? 0),
+    freeCashFlow:      cf.freeCashFlow ?? 0,
     dividendsPaid:     Math.abs(cf.dividendsPaid || 0),
 
     history: [i0, i1, i2].filter((x) => x.date).map((x) => ({
       year:            x.date?.substring(0, 4) || "",
-      revenue:         x.revenue               || 0,
+      revenue:         x.revenue ?? 0,
       grossMarginPct:  x.revenue ? Number(((x.grossProfit / x.revenue) * 100).toFixed(1)) : 0,
       ebitdaMarginPct: x.revenue ? Number(((x.ebitda      / x.revenue) * 100).toFixed(1)) : 0,
       netMarginPct:    x.revenue ? Number(((x.netIncome   / x.revenue) * 100).toFixed(1)) : 0,
-      netIncome:       x.netIncome || 0,
+      netIncome:       x.netIncome ?? 0,
     })),
 
     peRatio:  r.priceEarningsRatio || null,
@@ -167,7 +167,7 @@ export async function aggregateFMPData(symbol: string): Promise<FMPCompanyData> 
     roa:  r.returnOnAssets            ? Number((r.returnOnAssets            * 100).toFixed(1)) : null,
     roic: r.returnOnCapitalEmployed   ? Number((r.returnOnCapitalEmployed   * 100).toFixed(1)) : null,
 
-    payrollEstimate:   estimatePayroll(p.fullTimeEmployees || 0, p.industry || "", revenue),
+    payrollEstimate:   estimatePayroll(p.fullTimeEmployees ?? 0, p.industry || "", revenue),
     reportingCurrency: i0.reportedCurrency || "CAD",
     latestFiscalYear:  i0.date?.substring(0, 4) || "",
   };

@@ -6,6 +6,8 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { analyzeContract, compareContractToBilling } from "@/services/ai-engine";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -142,7 +144,7 @@ export async function POST(request: NextRequest) {
           data: { status: "ERROR" },
         });
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

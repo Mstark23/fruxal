@@ -60,7 +60,7 @@ export default function ToolsPage() {
 
   const changeRegion = async (code: string) => {
     setChangingRegion(true);
-    try { await fetch("/api/tools", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ region: code }) }); } catch {}
+    try { await fetch("/api/tools", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ region: code }) }); } catch { /* non-fatal */ }
     fetchTools(code);
     setChangingRegion(false);
   };

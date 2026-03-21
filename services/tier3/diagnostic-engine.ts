@@ -226,12 +226,12 @@ function scoreConfidence(
 
   // SAAS category
   if (cat === "saas_technology") {
-    const monthlySpend = ca.monthlySaasSpend || 0;
+    const monthlySpend = ca.monthlySaasSpend ?? 0;
     if (id === "SAAS-001" && monthlySpend > 5000) {
-      return { confidence: "HIGH", reason: `Monthly SaaS spend of $${monthlySpend.toLocaleString()} significantly exceeds benchmarks — unused licenses very likely` };
+      return { confidence: "HIGH", reason: `Monthly SaaS spend of $${(monthlySpend ?? 0).toLocaleString()} significantly exceeds benchmarks — unused licenses very likely` };
     }
     if (id === "SAAS-001" && monthlySpend > 2000) {
-      return { confidence: "MEDIUM", reason: `Monthly SaaS spend of $${monthlySpend.toLocaleString()} suggests license optimization opportunity` };
+      return { confidence: "MEDIUM", reason: `Monthly SaaS spend of $${(monthlySpend ?? 0).toLocaleString()} suggests license optimization opportunity` };
     }
     if (id === "SAAS-005" && painPointMentions(ca.biggestPainPoint, "manual", "data entry", "spreadsheet", "excel", "inefficient", "process")) {
       return { confidence: "HIGH", reason: "CFO pain point directly describes manual processes ripe for automation" };
@@ -358,7 +358,12 @@ export function runDiagnostic(input: DiagnosticInput): DiagnosticResult {
   // 1. Load leak database
   const dbPath = path.join(process.cwd(), "src", "data", "tier3-leaks.json");
   const raw = fs.readFileSync(dbPath, "utf-8");
-  const db: LeakDB = JSON.parse(raw);
+  let db: LeakDB;
+  try {
+    db = JSON.parse(raw);
+  } catch (e: any) {
+    throw new Error(`Failed to parse tier3 leak database: ${e.message}`);
+  }
 
   const normalizedIndustry = normalizeIndustry(input.industry);
 

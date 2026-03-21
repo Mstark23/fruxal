@@ -45,7 +45,7 @@ export default function BenchmarksPage() {
             <div className="text-sm font-bold mb-4">Your Position</div>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-3xl font-black" style={{ color: (health.overall || 0) >= 70 ? "#00c853" : (health.overall || 0) >= 40 ? "#ffab40" : "#ff3d57" }}>{health.overall || 0}</div>
+                <div className="text-3xl font-black" style={{ color: (health.overall ?? 0) >= 70 ? "#00c853" : (health.overall ?? 0) >= 40 ? "#ffab40" : "#ff3d57" }}>{health.overall ?? 0}</div>
                 <div className="text-xs text-gray-400 mt-1">Your Health Score</div>
               </div>
               <div>
@@ -53,7 +53,7 @@ export default function BenchmarksPage() {
                 <div className="text-xs text-gray-400 mt-1">Industry Average</div>
               </div>
               <div>
-                <div className="text-3xl font-black text-[#2979ff]">Top {Math.max(5, 100 - (health.overall || 0))}%</div>
+                <div className="text-3xl font-black text-[#2979ff]">Top {Math.max(5, 100 - (health.overall ?? 0))}%</div>
                 <div className="text-xs text-gray-400 mt-1">Your Percentile</div>
               </div>
             </div>
@@ -77,8 +77,8 @@ export default function BenchmarksPage() {
                       </div>
                     </div>
                     <div className="relative h-4 rounded-full bg-gray-100 overflow-hidden">
-                      <div className={"absolute h-4 rounded-full " + isGood ? "bg-green-400" : "bg-red-400"} style={{ width: Math.min(100, (c.yourValue || 0)) + "%" }} />
-                      <div className="absolute h-6 w-0.5 bg-gray-800 -top-1" style={{ left: Math.min(100, (c.industryAverage || 0)) + "%" }} title="Industry average">
+                      <div className={"absolute h-4 rounded-full " + isGood ? "bg-green-400" : "bg-red-400"} style={{ width: Math.min(100, (c.yourValue ?? 0)) + "%" }} />
+                      <div className="absolute h-6 w-0.5 bg-gray-800 -top-1" style={{ left: Math.min(100, (c.industryAverage ?? 0)) + "%" }} title="Industry average">
                         <div className="absolute -top-4 -left-6 text-[9px] text-gray-500 whitespace-nowrap">avg</div>
                       </div>
                     </div>

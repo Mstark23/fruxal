@@ -25,6 +25,25 @@ export const maxDuration = 120;
 // Per-user rate limiter for diagnostic runs
 const _diagRl = new Map<string, { c: number; r: number }>();
 
+function diagRateCheck(userId: string): boolean {
+  const now = Date.now();
+  const window = 10 * 60 * 1000; // 10 minutes
+  const max = 3; // max 3 diagnostic runs per 10 min per user
+  const entry = _diagRl.get(userId);
+  if (!entry || entry.r < now) {
+    _diagRl.set(userId, { c: 1, r: now + window });
+    return true;
+  }
+  entry.c++;
+  return entry.c <= max;
+}
+
+// Cleanup stale entries every 15 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of _diagRl) { if (v.r < now) _diagRl.delete(k); }
+}, 900_000);
+
 export async function POST(req: NextRequest) {
   const start = Date.now();
 
@@ -39,6 +58,14 @@ export async function POST(req: NextRequest) {
     const { businessId } = body;
     const language: string = body.language || "en";
     const userId = ((token as any)?.id || token?.sub) as string;
+
+    // Rate limit: max 3 diagnostic runs per 10 min per user
+    if (!diagRateCheck(userId)) {
+      return NextResponse.json(
+        { success: false, error: "Too many diagnostic requests. Please wait a few minutes." },
+        { status: 429 }
+      );
+    }
 
     if (!businessId) {
       return NextResponse.json({ success: false, error: "businessId required" }, { status: 400 });
@@ -88,7 +115,7 @@ export async function POST(req: NextRequest) {
     const tier     = resolveTier(profile, business);
     const isFr     = language === "fr";
     const province = profile.province || "ON";
-    const employees = profile.employee_count || 0;
+    const employees = profile.employee_count ?? 0;
 
     // ── 2. Derived financials ─────────────────────────────────────────────
     // Revenue: QB actuals > intake exact > Stripe ARR > Plaid annualised > onboarding estimate
@@ -156,22 +183,22 @@ export async function POST(req: NextRequest) {
       annualRevenue,    revenueSource,
       grossMarginPct,   estimatedEBITDA,  ebitdaSource,
       estimatedPayroll, estimatedTaxDrag,
-      ownerSalary:    profile.owner_salary          || 0,
-      exactNetIncome: profile.net_income_last_year  || 0,
+      ownerSalary:    profile.owner_salary ?? 0,
+      exactNetIncome: profile.net_income_last_year ?? 0,
       exitHorizon:    profile.exit_horizon          || "unknown",
       lcgeEligible:   profile.lcge_eligible         ?? false,
       passiveOver50k: profile.passive_income_over_50k ?? false,
       hasHoldco:      profile.has_holdco            ?? false,
-      rdtohBalance:   profile.rdtoh_balance         || 0,
+      rdtohBalance:   profile.rdtoh_balance ?? 0,
       hasCDA:         profile.has_cda_balance       ?? false,
-      sredLastYear:   profile.sred_claimed_last_year || 0,
+      sredLastYear:   profile.sred_claimed_last_year ?? 0,
       // QB/Plaid/Stripe signals — enriches diagnostic accuracy
-      qbArOverdue:    profile.qb_ar_overdue_30 || 0,
-      qbBankBalance:  profile.qb_bank_balance || profile.plaid_bank_balance_total || 0,
+      qbArOverdue:    profile.qb_ar_overdue_30 ?? 0,
+      qbBankBalance:  profile.qb_bank_balance || profile.plaid_bank_balance_total ?? 0,
       qbTopExpenses:  profile.qb_top_expense_cats || [],
       plaidRecurring: profile.plaid_recurring_expenses || [],
-      stripeChurnRate:  profile.stripe_churn_rate_pct || 0,
-      stripeRefundRate: profile.stripe_refund_rate_pct || 0,
+      stripeChurnRate:  profile.stripe_churn_rate_pct ?? 0,
+      stripeRefundRate: profile.stripe_refund_rate_pct ?? 0,
       dataSource:     revenueSource,
       // Parsed document data from intake uploads — feed directly to Claude as authoritative
       docData: {
@@ -194,11 +221,11 @@ export async function POST(req: NextRequest) {
     if (tier === "enterprise") {
       // Format DB context lists for the enterprise prompt
       const leakList = ctx.leakDetectors.slice(0, 60).map((l: any) =>
-        `- ${l.leak_type_code || l.slug}: ${l.title || l.description} (impact: $${(l.annual_impact_min || 0).toLocaleString()}–$${(l.annual_impact_max || 0).toLocaleString()})`
+        `- ${l.leak_type_code || l.slug}: ${l.title || l.description} (impact: $${(l.annual_impact_min ?? 0).toLocaleString()}–$${(l.annual_impact_max ?? 0).toLocaleString()})`
       ).join("\n");
 
       const programList = ctx.programs.slice(0, 20).map((p: any) =>
-        `- [${p.slug}] ${isFr ? (p.name_fr || p.name) : p.name}: ${isFr ? (p.description_fr || p.description) : p.description} (up to $${(p.annual_value_max || 0).toLocaleString()})`
+        `- [${p.slug}] ${isFr ? (p.name_fr || p.name) : p.name}: ${isFr ? (p.description_fr || p.description) : p.description} (up to $${(p.annual_value_max ?? 0).toLocaleString()})`
       ).join("\n");
 
       const benchmarkList = ctx.benchmarks.slice(0, 10).map((b: any) =>
@@ -266,8 +293,8 @@ export async function POST(req: NextRequest) {
         estimatedEBITDA,
         ebitdaSource,
         grossMarginPct,
-        ownerSalary:    profile.owner_salary          || 0,
-        exactNetIncome: profile.net_income_last_year  || 0,
+        ownerSalary:    profile.owner_salary ?? 0,
+        exactNetIncome: profile.net_income_last_year ?? 0,
         estimatedTaxDrag: promptInputs.estimatedTaxDrag,
         taxCtx,
         leakList,
@@ -280,9 +307,9 @@ export async function POST(req: NextRequest) {
         hasHoldco:      profile.has_holdco            ?? false,
         passiveOver50k: profile.passive_income_over_50k ?? false,
         lcgeEligible:   profile.lcge_eligible         ?? false,
-        rdtohBalance:   profile.rdtoh_balance         || 0,
+        rdtohBalance:   profile.rdtoh_balance ?? 0,
         hasCDA:         profile.has_cda_balance       ?? false,
-        sredLastYear:   profile.sred_claimed_last_year || 0,
+        sredLastYear:   profile.sred_claimed_last_year ?? 0,
         docData: promptInputs.docData ?? { t2: null, financials: null, gst: null, t4: null, bank: null },
       };
 
@@ -349,7 +376,7 @@ export async function POST(req: NextRequest) {
       // If Claude added text before/after the JSON, extract the {...} block
       const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
       if (jsonMatch) jsonStr = jsonMatch[0];
-      aiResult = JSON.parse(jsonStr);
+      try { aiResult = JSON.parse(jsonStr); } catch { throw new Error('AI returned invalid JSON — not parseable'); }
 
       // Schema validation: if Claude returned empty or schema-invalid output, retry once
       if (!aiResult?.scores || !Array.isArray(aiResult?.findings) || aiResult.findings.length === 0) {
@@ -383,21 +410,21 @@ export async function POST(req: NextRequest) {
       .update({
         status:               "completed",
         result_json:          aiResult,
-        overall_score:        scores.overall        || 0,
-        compliance_score:     scores.compliance     || 0,
-        efficiency_score:     scores.efficiency     || 0,
-        optimization_score:   scores.optimization   || 0,
-        growth_score:         scores.growth         || 0,
-        bankability_score:    scores.bankability    || 0,
-        exit_readiness_score: scores.exit_readiness || 0,
-        findings_count:       aiResult?.findings?.length || 0,
+        overall_score:        scores.overall ?? 0,
+        compliance_score:     scores.compliance ?? 0,
+        efficiency_score:     scores.efficiency ?? 0,
+        optimization_score:   scores.optimization ?? 0,
+        growth_score:         scores.growth ?? 0,
+        bankability_score:    scores.bankability ?? 0,
+        exit_readiness_score: scores.exit_readiness ?? 0,
+        findings_count:       aiResult?.findings?.length ?? 0,
         critical_findings:    (aiResult?.findings || []).filter((f: any) => f.severity === "critical").length,
-        total_potential_savings: totals.potential_savings      || aiResult?.total_potential_savings      || 0,
-        total_annual_leaks:      totals.annual_leaks           || aiResult?.total_annual_leaks           || 0,
-        total_penalty_exposure:  totals.penalty_exposure       || aiResult?.total_penalty_exposure       || 0,
-        total_programs_value:    totals.programs_value         || aiResult?.total_programs_value         || 0,
-        ebitda_impact:           totals.ebitda_impact          || aiResult?.ebitda_impact                || 0,
-        enterprise_value_impact: totals.enterprise_value_impact|| aiResult?.enterprise_value_impact      || 0,
+        total_potential_savings: totals.potential_savings      || aiResult?.total_potential_savings      ?? 0,
+        total_annual_leaks:      totals.annual_leaks           || aiResult?.total_annual_leaks           ?? 0,
+        total_penalty_exposure:  totals.penalty_exposure       || aiResult?.total_penalty_exposure       ?? 0,
+        total_programs_value:    totals.programs_value         || aiResult?.total_programs_value         ?? 0,
+        ebitda_impact:           totals.ebitda_impact          || aiResult?.ebitda_impact ?? 0,
+        enterprise_value_impact: totals.enterprise_value_impact|| aiResult?.enterprise_value_impact ?? 0,
         model_used:           "claude-sonnet-4-6",
         completed_at:         new Date().toISOString(),
         updated_at:           new Date().toISOString(),
@@ -411,13 +438,14 @@ export async function POST(req: NextRequest) {
         leak_name:             f.title,
         category:              f.category,
         severity:              f.severity,
-        annual_leak:           f.annual_leak        || 0,
-        potential_savings:     f.potential_savings  || 0,
+        annual_leak:           f.annual_leak ?? 0,
+        potential_savings:     f.potential_savings ?? 0,
         status:                "detected",
         diagnostic_report_id:  reportId,
         created_at:            new Date().toISOString(),
       }));
-      try { await supabaseAdmin.from("detected_leaks").insert(leakRows); } catch {}
+      try { // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
+    await supabaseAdmin.from("detected_leaks").insert(leakRows); } catch { /* non-fatal */ }
     }
 
     // ── 9. Auto-create tier3_pipeline entry (enterprise) ─────────────────
@@ -480,13 +508,13 @@ export async function POST(req: NextRequest) {
       reportId,
       duration_ms:             Date.now() - start,
       tier,
-      findings_count:          aiResult?.findings?.length || 0,
+      findings_count:          aiResult?.findings?.length ?? 0,
       critical_findings:       (aiResult?.findings || []).filter((f: any) => f.severity === "critical").length,
-      total_potential_savings: aiResult?.total_potential_savings || 0,
-      total_annual_leaks:      aiResult?.total_annual_leaks      || 0,
-      ebitda_impact:           aiResult?.ebitda_impact           || 0,
-      enterprise_value_impact: aiResult?.enterprise_value_impact || 0,
-      overall_score:           scores.overall || 0,
+      total_potential_savings: aiResult?.total_potential_savings ?? 0,
+      total_annual_leaks:      aiResult?.total_annual_leaks      ?? 0,
+      ebitda_impact:           aiResult?.ebitda_impact ?? 0,
+      enterprise_value_impact: aiResult?.enterprise_value_impact ?? 0,
+      overall_score:           scores.overall ?? 0,
     });
 
   } catch (err: any) {

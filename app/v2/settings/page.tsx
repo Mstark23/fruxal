@@ -240,7 +240,7 @@ export default function SettingsPage() {
     try {
       const res = await fetch("/api/v2/billing/portal", { method: "POST" });
       const json = await res.json();
-      if (json.url) window.location.href = json.url;
+      if (json.url && typeof window !== "undefined") window.location.href = json.url;
     } catch (err: any) {
       setError(err.message);
     }
@@ -562,12 +562,12 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs text-ink-muted">{isFr ? "Diagnostics IA" : "AI Diagnostics"}</span>
                       <span className="text-xs text-ink-secondary font-semibold">
-                        {billing?.diagnostics_used || 0} / {billing?.diagnostics_limit === -1 ? "∞" : (billing?.diagnostics_limit || 0)}
+                        {billing?.diagnostics_used ?? 0} / {billing?.diagnostics_limit === -1 ? "∞" : (billing?.diagnostics_limit ?? 0)}
                       </span>
                     </div>
                     <div className="h-1.5 bg-bg-section rounded-full overflow-hidden">
                       <div className="h-full bg-brand rounded-full transition-all"
-                        style={{ width: billing?.diagnostics_limit === -1 ? "5%" : Math.min(100, ((billing?.diagnostics_used || 0) / (billing?.diagnostics_limit || 1)) * 100) + "%" }} />
+                        style={{ width: billing?.diagnostics_limit === -1 ? "5%" : Math.min(100, ((billing?.diagnostics_used ?? 0) / (billing?.diagnostics_limit || 1)) * 100) + "%" }} />
                     </div>
                   </div>
 

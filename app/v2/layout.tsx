@@ -50,7 +50,7 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
       const t = localStorage.getItem("fruxal_tier");
       setIsEnterprise(t === "enterprise");
       setIsBusiness(t === "business");
-    } catch {}
+    } catch { /* non-fatal */ }
   }, []);
 
   useEffect(() => {
@@ -59,18 +59,18 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
     if (onEnterprisePath) {
       setIsEnterprise(true);
       setIsBusiness(false);
-      try { localStorage.setItem("fruxal_tier", "enterprise"); } catch {}
+      try { localStorage.setItem("fruxal_tier", "enterprise"); } catch { /* non-fatal */ }
     } else if (onBusinessPath) {
       setIsBusiness(true);
       setIsEnterprise(false);
-      try { localStorage.setItem("fruxal_tier", "business"); } catch {}
+      try { localStorage.setItem("fruxal_tier", "business"); } catch { /* non-fatal */ }
     } else {
       try {
         const stored = localStorage.getItem("fruxal_tier");
         if (stored === "enterprise") { setIsEnterprise(true); setIsBusiness(false); }
         else if (stored === "business") { setIsBusiness(true); setIsEnterprise(false); }
         else { setIsEnterprise(false); setIsBusiness(false); }
-      } catch {}
+      } catch { /* non-fatal */ }
     }
   }, [pathname]);
 

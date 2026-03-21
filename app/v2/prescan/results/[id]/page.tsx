@@ -104,11 +104,16 @@ export default function PrescanResultsPage() {
         if (json.success) {
           setResult(json.data);
           // Staggered reveal for drama
-          setTimeout(() => setRevealPhase(1), 300);   // Score ring
-          setTimeout(() => setRevealPhase(2), 1200);   // Findings
-          setTimeout(() => setRevealPhase(3), 2400);   // Obligations
-          setTimeout(() => setRevealPhase(4), 3200);   // Programs
-          setTimeout(() => setRevealPhase(5), 4000);   // CTA
+          const _to = setTimeout(() => setRevealPhase(1), 300);   // Score ring
+          return () => clearTimeout(_to);
+          const _to = setTimeout(() => setRevealPhase(2), 1200);   // Findings
+          return () => clearTimeout(_to);
+          const _to = setTimeout(() => setRevealPhase(3), 2400);   // Obligations
+          return () => clearTimeout(_to);
+          const _to = setTimeout(() => setRevealPhase(4), 3200);   // Programs
+          return () => clearTimeout(_to);
+          const _to = setTimeout(() => setRevealPhase(5), 4000);   // CTA
+          return () => clearTimeout(_to);
         }
       } catch (err) {
         console.error(err);
@@ -178,7 +183,7 @@ export default function PrescanResultsPage() {
           <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-5 text-center mb-6">
             <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1">Estimated Annual Leak</p>
             <p className="text-3xl font-black text-red-400">
-              ${s.leak_range_min.toLocaleString()} — ${s.leak_range_max.toLocaleString()}
+              ${(s.leak_range_min ?? 0).toLocaleString()} — ${(s.leak_range_max ?? 0).toLocaleString()}
             </p>
             <p className="text-white/15 text-[10px] mt-1">per year in potential savings, missed credits & penalty exposure</p>
           </div>
@@ -234,7 +239,7 @@ export default function PrescanResultsPage() {
                       <h3 className="text-white/60 text-sm font-semibold mb-1">{isFR && leak.title_fr ? leak.title_fr : leak.title}</h3>
                       <div className="flex items-center justify-between">
                         <span className="text-red-400/70 text-xs font-bold">
-                          ${leak.impact_min.toLocaleString()} — ${leak.impact_max.toLocaleString()}/yr
+                          ${(leak.impact_min ?? 0).toLocaleString()} — ${(leak.impact_max ?? 0).toLocaleString()}/yr
                         </span>
                         <span className="text-white/10 text-[9px]">
                           {leak.solution_type === "free_fix" ? t("🆓 Free fix", "🆓 Gratuit") :
@@ -269,7 +274,7 @@ export default function PrescanResultsPage() {
                     {/* CTA overlay */}
                     <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 text-center">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-[10px] font-bold text-red-400 mb-2">
-                        🔒 {totalHidden} more leaks — ${hiddenValue.toLocaleString()}/yr hidden
+                        🔒 {totalHidden} more leaks — ${(hiddenValue ?? 0).toLocaleString()}/yr hidden
                       </div>
                       <p className="text-white/25 text-[10px] mb-3">
                         Create a free account to unlock all findings, action plan & full PDF report
@@ -299,7 +304,7 @@ export default function PrescanResultsPage() {
               {/* Penalty exposure */}
               <div className="text-center mb-4">
                 <p className="text-white/15 text-[9px] uppercase tracking-wider">Total Penalty Exposure</p>
-                <p className="text-2xl font-black text-amber-400">${s.total_penalty_exposure.toLocaleString()}</p>
+                <p className="text-2xl font-black text-amber-400">${(s.total_penalty_exposure ?? 0).toLocaleString()}</p>
               </div>
 
               {/* Risk breakdown */}

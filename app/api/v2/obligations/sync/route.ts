@@ -43,14 +43,14 @@ export async function POST(req: NextRequest) {
       if (!rpcErr) {
         return NextResponse.json({ success: true, data: rpcResult, method: "rpc" });
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // ── Fallback: match obligation_rules to profile, upsert user_obligations ─
     const province  = profile.province || "QC";
     const industry  = profile.industry_slug || profile.industry || "generic_small_business";
     const structure = profile.business_structure || null;
     const employees = profile.employee_count || 1;
-    const revenue   = profile.annual_revenue || 0;
+    const revenue   = profile.annual_revenue ?? 0;
 
     // Fetch matching obligation rules
     let query = supabaseAdmin

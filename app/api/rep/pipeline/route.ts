@@ -35,7 +35,7 @@ export async function GET() {
         province:       diag.province,
         pipeline:       pm[a.diagnostic_id] || null,
         engagement:     em[a.diagnostic_id] || null,
-        annualLeak:     result.totals?.annual_leaks || 0,
+        annualLeak:     result.totals?.annual_leaks ?? 0,
         findingsCount:  (result.findings || []).length,
       };
     });

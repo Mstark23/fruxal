@@ -39,7 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const findings = findingsRes.data || [];
     if (findings.length === 0) return NextResponse.json({ error: "No confirmed findings to invoice" }, { status: 400 });
 
-    const totalSavings = findings.reduce((s: number, f: any) => s + (f.confirmed_amount || 0), 0);
+    const totalSavings = findings.reduce((s: number, f: any) => s + (f.confirmed_amount ?? 0), 0);
     const feeAmount = totalSavings * (eng.fee_percentage / 100);
     const invoiceNum = `FRX-INV-${new Date().getFullYear()}-${id.slice(0, 6).toUpperCase()}`;
     const dateStr = new Date().toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" });
@@ -100,7 +100,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         doc.text(String(i + 1), M + 8, y + 5, { width: 20 });
         doc.text(f.leak_name || "—", M + 30, y + 5, { width: 200 });
         doc.text(CAT_LABELS[f.category] || f.category, M + 240, y + 5, { width: 100 });
-        doc.text(`${$int(f.estimated_low || 0)} – ${$int(f.estimated_high || 0)}`, M + 340, y + 5, { width: 80 });
+        doc.text(`${$int(f.estimated_low ?? 0)} – ${$int(f.estimated_high ?? 0)}`, M + 340, y + 5, { width: 80 });
         doc.font("Helvetica-Bold").text($int(f.confirmed_amount), M + 430, y + 5, { width: 80, align: "right" });
         y += 20;
       });

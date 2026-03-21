@@ -93,7 +93,7 @@ export default function ConnectionsPage() {
       .then(d => {
         setTransactions(d.transactions || []);
         setTxSummary(d.summary || null);
-        setTxTotal(d.pagination?.total || 0);
+        setTxTotal(d.pagination?.total ?? 0);
       })
       .catch(() => {});
   }, [businessId, txPage, showUncategorized, uploadResult]);
@@ -264,7 +264,7 @@ export default function ConnectionsPage() {
                 {txSummary && (
                   <p className="text-xs text-ink-muted mt-0.5">
                     {txSummary.total_transactions} total · {txSummary.categorization_pct}% categorized ·
-                    Income ${txSummary.total_income.toLocaleString()} · Expenses ${txSummary.total_expenses.toLocaleString()}
+                    Income ${(txSummary.total_income ?? 0).toLocaleString()} · Expenses ${(txSummary.total_expenses ?? 0).toLocaleString()}
                   </p>
                 )}
               </div>
@@ -272,7 +272,7 @@ export default function ConnectionsPage() {
                 onClick={() => { setShowUncategorized(!showUncategorized); setTxPage(1); }}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-xs border transition ${showUncategorized ? "bg-brand text-white border-brand" : "bg-bg text-ink-muted border-border"}`}
               >
-                {showUncategorized ? "Show all" : `Needs review (${txSummary?.uncategorized || 0})`}
+                {showUncategorized ? "Show all" : `Needs review (${txSummary?.uncategorized ?? 0})`}
               </button>
             </div>
             <div className="px-6 py-5">

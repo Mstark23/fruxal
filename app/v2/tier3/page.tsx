@@ -72,7 +72,7 @@ export default function Tier3ClientDashboard() {
       const s = sessionStorage.getItem("lg_prescan_lang");
       if (s === "en" || s === "fr") setLang(s as "en"|"fr");
       else if (navigator.language?.startsWith("fr")) setLang("fr");
-    } catch {}
+    } catch { /* non-fatal */ }
     loadData();
   }, [user?.id]);
 
@@ -86,7 +86,7 @@ export default function Tier3ClientDashboard() {
         setDiagnostic(json.diagnostic || null);
         setEngagement(json.engagement || null);
       }
-    } catch {}
+    } catch { /* non-fatal */ }
     finally {
       setLoading(false);
       requestAnimationFrame(() => setMounted(true));
@@ -224,7 +224,7 @@ export default function Tier3ClientDashboard() {
               },
               {
                 label: t("Confirmed Savings","Économies confirmées"),
-                val: `$${engagement.confirmedSavings.toLocaleString()}`,
+                val: `$${(engagement.confirmedSavings ?? 0).toLocaleString()}`,
                 sub: `${recoveryPct}% ${t("of estimate","de l'estimation")}`, color:"#2D7A50"
               },
               {
@@ -234,7 +234,7 @@ export default function Tier3ClientDashboard() {
               },
               {
                 label: t("Fee Owed","Honoraires"),
-                val: `$${engagement.feeOwed.toLocaleString()}`,
+                val: `$${(engagement.feeOwed ?? 0).toLocaleString()}`,
                 sub: `${engagement.feePercentage}% ${t("of confirmed","des confirmées")}`, color: engagement.invoice.status==="paid"?"#2D7A50":"#C4841D"
               },
             ].map(k => (
@@ -272,13 +272,13 @@ export default function Tier3ClientDashboard() {
                     <p style={{fontSize:12,fontWeight:600,color:"#1A1A18"}}>{lk.title||t("Finding","Résultat")} {i+1}</p>
                     <p style={{fontSize:10,color:"#8E8C85"}}>{lk.category||""}</p>
                   </div>
-                  {lk.amount && <p style={{fontSize:13,fontWeight:700,color:"#B34040"}}>${lk.amount.toLocaleString()}</p>}
+                  {lk.amount && <p style={{fontSize:13,fontWeight:700,color:"#B34040"}}>${(lk.amount ?? 0).toLocaleString()}</p>}
                 </div>
               ))}
               {!diagnostic?.leaks?.length && (
                 <p style={{fontSize:12,color:"#B5B3AD",padding:"16px 18px",textAlign:"center"}}>{t("Diagnostic in progress","Diagnostic en cours")}</p>
               )}
-              {(diagnostic?.leaks?.length||0) > 5 && (
+              {(diagnostic?.leaks?.length ?? 0) > 5 && (
                 <div style={{padding:"10px 18px",background:"#FAFAF8"}}>
                   <button onClick={() => setTab("findings")} style={{fontSize:11,fontWeight:600,color:"#1B3A2D",background:"none",border:"none",cursor:"pointer"}}>
                     {t(`View all ${diagnostic?.leaks?.length} findings →`,`Voir les ${diagnostic?.leaks?.length} résultats →`)}
@@ -299,8 +299,8 @@ export default function Tier3ClientDashboard() {
                   <span style={{fontSize:13,fontWeight:700,color:"#2D7A50",width:36,textAlign:"right"}}>{recoveryPct}%</span>
                 </div>
                 <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#B5B3AD"}}>
-                  <span>${(engagement?.confirmedSavings||0).toLocaleString()} {t("confirmed","confirmées")}</span>
-                  <span>${(engagement?.estimatedHigh||0).toLocaleString()} {t("potential","potentiel")}</span>
+                  <span>${(engagement?.confirmedSavings ?? 0).toLocaleString()} {t("confirmed","confirmées")}</span>
+                  <span>${(engagement?.estimatedHigh ?? 0).toLocaleString()} {t("potential","potentiel")}</span>
                 </div>
               </div>
 
@@ -309,7 +309,7 @@ export default function Tier3ClientDashboard() {
                 <div style={{padding:"14px 18px",borderBottom:"1px solid #EEECE8",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <p style={{fontSize:11,fontWeight:700,color:"#B5B3AD",textTransform:"uppercase",letterSpacing:"0.08em"}}>{t("Confirmed Recoveries","Récupérations confirmées")}</p>
                   <span style={{fontSize:10,fontWeight:700,color:"#2D7A50",background:"rgba(45,122,80,0.08)",padding:"2px 8px",borderRadius:100}}>
-                    ${(engagement?.confirmedSavings||0).toLocaleString()}
+                    ${(engagement?.confirmedSavings ?? 0).toLocaleString()}
                   </span>
                 </div>
                 {(engagement?.findings||[]).slice(0,4).map((f,i) => (
@@ -318,7 +318,7 @@ export default function Tier3ClientDashboard() {
                       <p style={{fontSize:12,fontWeight:600,color:"#1A1A18",marginBottom:2}}>{f.description}</p>
                       <p style={{fontSize:10,color:"#8E8C85"}}>{CAT_LABELS[f.category]?.[isFR?"fr":"en"]||f.category} · {new Date(f.confirmedAt).toLocaleDateString(isFR?"fr-CA":"en-CA")}</p>
                     </div>
-                    <p style={{fontSize:14,fontWeight:700,color:"#2D7A50",flexShrink:0}}>${f.confirmedAmount.toLocaleString()}</p>
+                    <p style={{fontSize:14,fontWeight:700,color:"#2D7A50",flexShrink:0}}>${(f.confirmedAmount ?? 0).toLocaleString()}</p>
                   </div>
                 ))}
                 {!engagement?.findings?.length && (
@@ -384,7 +384,7 @@ export default function Tier3ClientDashboard() {
                 </div>
                 {lk.amount && (
                   <div style={{textAlign:"right",flexShrink:0}}>
-                    <p style={{fontSize:16,fontWeight:700,color:"#B34040"}}>${lk.amount.toLocaleString()}</p>
+                    <p style={{fontSize:16,fontWeight:700,color:"#B34040"}}>${(lk.amount ?? 0).toLocaleString()}</p>
                     <p style={{fontSize:10,color:"#B5B3AD"}}>{t("estimated","estimé")}</p>
                   </div>
                 )}
@@ -403,7 +403,7 @@ export default function Tier3ClientDashboard() {
               <div>
                 <p style={{fontSize:14,fontWeight:700,color:"#1A1A18"}}>{t("Document Checklist","Liste de documents")}</p>
                 <p style={{fontSize:12,color:"#8E8C85",marginTop:2}}>
-                  {engagement?.documents.received||0}/{engagement?.documents.total||0} {t("submitted","soumis")}
+                  {engagement?.documents.received ?? 0}/{engagement?.documents.total ?? 0} {t("submitted","soumis")}
                 </p>
               </div>
               <div style={{textAlign:"right"}}>
@@ -476,7 +476,7 @@ export default function Tier3ClientDashboard() {
                 <div style={{marginBottom:20}}>
                   <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid #F5F4F1"}}>
                     <p style={{fontSize:12,color:"#56554F"}}>{t("Confirmed savings recovered","Économies confirmées récupérées")}</p>
-                    <p style={{fontSize:12,fontWeight:600,color:"#1A1A18"}}>${(engagement?.invoice.confirmedSavings||0).toLocaleString()}</p>
+                    <p style={{fontSize:12,fontWeight:600,color:"#1A1A18"}}>${(engagement?.invoice.confirmedSavings ?? 0).toLocaleString()}</p>
                   </div>
                   <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid #F5F4F1"}}>
                     <p style={{fontSize:12,color:"#56554F"}}>{t("Performance fee rate","Taux d'honoraires")}</p>
@@ -484,7 +484,7 @@ export default function Tier3ClientDashboard() {
                   </div>
                   <div style={{display:"flex",justifyContent:"space-between",padding:"14px 0",background:"#FAFAF8",borderRadius:8,marginTop:8,paddingLeft:12,paddingRight:12}}>
                     <p style={{fontSize:14,fontWeight:700,color:"#1A1A18"}}>{t("Total fee owed","Total des honoraires")}</p>
-                    <p style={{fontSize:20,fontWeight:800,color:"#1A1A18",fontFamily:"Georgia,serif"}}>${(engagement?.invoice.feeOwed||0).toLocaleString()}</p>
+                    <p style={{fontSize:20,fontWeight:800,color:"#1A1A18",fontFamily:"Georgia,serif"}}>${(engagement?.invoice.feeOwed ?? 0).toLocaleString()}</p>
                   </div>
                 </div>
 

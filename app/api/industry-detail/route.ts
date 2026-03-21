@@ -33,9 +33,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       patterns: patterns || [],
       stats: {
-        patterns: patterns?.length || 0,
+        patterns: patterns?.length ?? 0,
         categories: cats.length,
-        questions: questionCount || 0,
+        questions: questionCount ?? 0,
       },
     });
   } catch (error: any) {

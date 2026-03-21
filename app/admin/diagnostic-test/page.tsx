@@ -25,6 +25,7 @@ const CAT_COLORS: Record<string,string> = {
 
 export default function DiagnosticTestPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
@@ -51,7 +52,8 @@ export default function DiagnosticTestPage() {
     setRunning(true);
     setResult(null);
     try {
-      const res = await fetch("/api/admin/diagnostic-test", {
+      setIsLoading(true);
+    const res = await fetch("/api/admin/diagnostic-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -67,6 +69,7 @@ export default function DiagnosticTestPage() {
       if (!json.success) throw new Error(json.error || "Test failed");
       setResult(json.report);
       setActiveTab("findings");
+    setIsLoading(false);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -76,6 +79,8 @@ export default function DiagnosticTestPage() {
 
   const fmt = (n: number) => n >= 1000 ? "$" + Math.round(n / 1000) + "K" : "$" + n;
   const sevColor = (s: string) => s === "critical" ? "#B34040" : s === "high" ? "#C4841D" : s === "medium" ? "#2563EB" : "#6B7280";
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -213,9 +218,9 @@ export default function DiagnosticTestPage() {
                 {/* Totals */}
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    ["Total Leaks", fmt(result.total_annual_leaks || 0)],
-                    ["Potential Savings", fmt(result.total_potential_savings || 0)],
-                    ["Penalty Exposure", fmt(result.total_penalty_exposure || 0)],
+                    ["Total Leaks", fmt(result.total_annual_leaks ?? 0)],
+                    ["Potential Savings", fmt(result.total_potential_savings ?? 0)],
+                    ["Penalty Exposure", fmt(result.total_penalty_exposure ?? 0)],
                   ].map(([l, v]: any) => (
                     <div key={l} className="bg-white border border-[#EEECE8] rounded-xl p-4">
                       <p className="text-[9px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-1">{l}</p>
@@ -238,7 +243,7 @@ export default function DiagnosticTestPage() {
                     {(["findings","plan","risk","benchmarks"] as const).map(tab => (
                       <button key={tab} onClick={() => setActiveTab(tab)}
                         className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition ${activeTab === tab ? "bg-[#F0EFEB] text-[#1B3A2D] border-b-2 border-[#1B3A2D]" : "text-[#8E8C85] hover:bg-[#FAFAF8]"}`}>
-                        {tab === "findings" ? `Findings (${result.findings?.length||0})` : tab === "plan" ? "Action Plan" : tab === "risk" ? "Risk Matrix" : "Benchmarks"}
+                        {tab === "findings" ? `Findings (${result.findings?.length ?? 0})` : tab === "plan" ? "Action Plan" : tab === "risk" ? "Risk Matrix" : "Benchmarks"}
                       </button>
                     ))}
                   </div>

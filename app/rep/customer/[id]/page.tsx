@@ -9,7 +9,7 @@ import { useRouter, useParams } from "next/navigation";
 const fmtM = (n: number) =>
   n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M`
   : n >= 1_000   ? `$${Math.round(n / 1_000)}K`
-  : `$${n.toLocaleString()}`;
+  : `$${(n ?? 0).toLocaleString()}`;
 
 const SEV: Record<string, { dot: string; text: string; bg: string }> = {
   critical: { dot:"#B34040", text:"#B34040", bg:"rgba(179,64,64,0.07)"  },
@@ -143,8 +143,8 @@ export default function RepCustomerPage() {
   const TABS: { key: Tab; label: string }[] = [
     { key:"overview",  label:"Overview"  },
     { key:"findings",  label:`Findings (${(client.diagnostic?.findings||[]).length})` },
-    { key:"documents", label:`Documents (${client.documents?.length||0})`   },
-    { key:"savings",   label:`Savings (${client.confirmedFindings?.length||0})` },
+    { key:"documents", label:`Documents (${client.documents?.length ?? 0})`   },
+    { key:"savings",   label:`Savings (${client.confirmedFindings?.length ?? 0})` },
     { key:"outreach",  label:"Outreach"  },
   ];
 
@@ -215,9 +215,9 @@ export default function RepCustomerPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label:"Health Score",      val:scores.overall ? `${scores.overall}/100` : "—" },
-                { label:"Annual Leak",       val:fmtM(totals.annual_leaks||0)                    },
-                { label:"Potential Savings", val:fmtM(totals.potential_savings||0)               },
-                { label:"My Commission",     val:fmtM(client.savings?.myCommission||0)           },
+                { label:"Annual Leak",       val:fmtM(totals.annual_leaks ?? 0)                    },
+                { label:"Potential Savings", val:fmtM(totals.potential_savings ?? 0)               },
+                { label:"My Commission",     val:fmtM(client.savings?.myCommission ?? 0)           },
               ].map(k => (
                 <div key={k.label} className="bg-white border border-[#E5E3DD] rounded-xl px-4 py-3" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
                   <p className="text-[9px] font-bold text-[#8E8C85] uppercase tracking-wider">{k.label}</p>
@@ -241,9 +241,9 @@ export default function RepCustomerPage() {
                     <span className="text-[10px] text-[#56554F] w-28 shrink-0">{label}</span>
                     <div className="flex-1 h-[5px] bg-[#F0EFEB] rounded-full">
                       <div className="h-full rounded-full transition-all duration-700"
-                        style={{ width:val||0 + "%", background:(val||0)>=70?"#2D7A50":(val||0)>=50?"#C4841D":"#B34040" }} />
+                        style={{ width:val ?? 0 + "%", background:(val ?? 0)>=70?"#2D7A50":(val ?? 0)>=50?"#C4841D":"#B34040" }} />
                     </div>
-                    <span className="text-[10px] font-semibold text-[#1A1A18] w-8 text-right">{val||0}</span>
+                    <span className="text-[10px] font-semibold text-[#1A1A18] w-8 text-right">{val ?? 0}</span>
                   </div>
                 ))}
               </div>
@@ -304,7 +304,7 @@ export default function RepCustomerPage() {
                       {f.description && <p className="text-[11px] text-[#56554F] mt-1.5 leading-relaxed">{f.description}</p>}
                       <div className="flex items-center gap-4 mt-2">
                         <span className="text-[11px] font-semibold text-[#B34040]">
-                          {fmtM(f.impact_min||0)} – {fmtM(f.impact_max||0)}/yr
+                          {fmtM(f.impact_min??0)} – {fmtM(f.impact_max??0)}/yr
                         </span>
                         {f.timeline && <span className="text-[9px] text-[#8E8C85]">Timeline: {f.timeline}</span>}
                       </div>
@@ -363,9 +363,9 @@ export default function RepCustomerPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label:"Confirmed Savings",  val:fmtM(client.savings?.confirmed||0)   },
-                { label:`Fee (${client.savings?.feePercentage||12}%)`, val:fmtM(client.savings?.feeOwed||0) },
-                { label:"My Commission",      val:fmtM(client.savings?.myCommission||0) },
+                { label:"Confirmed Savings",  val:fmtM(client.savings?.confirmed ?? 0)   },
+                { label:`Fee (${client.savings?.feePercentage||12}%)`, val:fmtM(client.savings?.feeOwed ?? 0) },
+                { label:"My Commission",      val:fmtM(client.savings?.myCommission ?? 0) },
               ].map(k => (
                 <div key={k.label} className="bg-white border border-[#E5E3DD] rounded-xl px-4 py-3" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
                   <p className="text-[9px] font-bold text-[#8E8C85] uppercase tracking-wider">{k.label}</p>

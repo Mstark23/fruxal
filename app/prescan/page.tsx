@@ -51,10 +51,10 @@ function HealthRing({ score }: { score: number }) {
 function Snapshot({ analysis, prescanRunId }: { analysis: any; prescanRunId: string | null }) {
   const leaks = (analysis.leaks || []).map((l: any, i: number) => {
     const meta = LEAK_META[l.type] || { icon: "💧", title: l.type, desc: "" };
-    return { ...meta, id: i, amount: l.amount || 0, severity: l.severity || 0, confidence: l.confidence || 0 };
+    return { ...meta, id: i, amount: l.amount ?? 0, severity: l.severity ?? 0, confidence: l.confidence ?? 0 };
   });
   const totalLeak = leaks.reduce((s: number, l: any) => s + l.amount, 0);
-  const fhScore = analysis.fhScore || 0;
+  const fhScore = analysis.fhScore ?? 0;
 
   return (
     <div className="min-h-screen bg-[#020617] text-white">
@@ -180,7 +180,7 @@ export default function PrescanChatPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading]     = useState(false);
   const [result, setResult]       = useState<{ analysis: any; prescanRunId: string | null } | null>(null);
-  const [lang, setLang]           = useState<"en" | "fr">("en");
+  const [lang, setLang]           = useState<"en" | "fr">(detectLang);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // Detect page language from <html lang=""> or browser locale

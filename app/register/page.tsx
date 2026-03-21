@@ -84,22 +84,22 @@ function RegisterForm() {
           if (raw) {
             const p = JSON.parse(raw);
             const tier = p.tier || "";
-            const emp = Number(p.inputs?.employeeCount || 0);
-            const rev = Number(p.inputs?.annualRevenue || 0);
+            const emp = Number(p.inputs?.employeeCount ?? 0);
+            const rev = Number(p.inputs?.annualRevenue ?? 0);
             if (rev >= 1_000_000 || tier === "enterprise") {
               dashBase = "/v2/dashboard/enterprise";
             } else if (tier === "growth" || emp >= 6 || rev >= 500_000) {
               dashBase = "/v2/dashboard/business";
             }
           }
-        } catch {}
+        } catch { /* non-fatal */ }
       }
 
       // Write fruxal_tier so tier router never re-routes on first load
       try {
         if (dashBase.includes("enterprise")) localStorage.setItem("fruxal_tier", "enterprise");
         else if (dashBase.includes("business")) localStorage.setItem("fruxal_tier", "business");
-      } catch {}
+      } catch { /* non-fatal */ }
 
       const dest = prescanRunId
         ? dashBase + "?prescanRunId=" + prescanRunId + (intent === "download" ? "&autoDownload=1" : "")

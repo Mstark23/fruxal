@@ -30,7 +30,7 @@ const fade = (delay = 0) => ({
 const fmtM = (n: number) =>
   n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M`
   : n >= 1_000   ? `$${Math.round(n / 1_000)}K`
-  : `$${n.toLocaleString()}`;
+  : `$${(n ?? 0).toLocaleString()}`;
 
 export default function EnterpriseDashboard() {
   const router = useRouter();
@@ -104,7 +104,7 @@ export default function EnterpriseDashboard() {
   useEffect(() => {
     if (authLoading || fetchedRef.current) return;
     fetchedRef.current = true;
-    try { if (typeof window !== "undefined") { const s = sessionStorage.getItem("lg_prescan_lang") || localStorage.getItem("fruxal_lang"); if (s === "fr" || s === "en") setLang(s as "en"|"fr"); } } catch {}
+    try { if (typeof window !== "undefined") { const s = sessionStorage.getItem("lg_prescan_lang") || localStorage.getItem("fruxal_lang"); if (s === "fr" || s === "en") setLang(s as "en"|"fr"); } } catch { /* non-fatal */ }
     const isPreview = new URLSearchParams(window.location.search).get("preview") === "1";
 
     async function load() {
@@ -112,12 +112,12 @@ export default function EnterpriseDashboard() {
       try {
         const [dashRes, reportRes] = await Promise.all([
           fetch("/api/v2/dashboard").then(r => r.ok ? r.json() : null),
-          fetch("/api/v2/diagnostic/latest").then(r => r.ok ? r.json() : null).then(d => {
+          fetch("/api/v2/diagnostic/latest").then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
  // If analyzing use React state so banner is reactive (no page reload)
             if (d?.status === "analyzing") {
               setIsAnalyzing(true);
               // Persist reportId so we can deep-link even after tab close
-              try { if (d.report_id) localStorage.setItem("fruxal_analyzing_report", d.report_id); } catch {}
+              try { if (d.report_id) localStorage.setItem("fruxal_analyzing_report", d.report_id); } catch { /* non-fatal */ }
               let pollCount = 0;
               const poll = setInterval(async () => {
                 pollCount++;
@@ -127,14 +127,14 @@ export default function EnterpriseDashboard() {
                   const pd = await pr.json();
                   if (pd?.status === "completed") {
                     clearInterval(poll);
-                    try { localStorage.removeItem("fruxal_analyzing_report"); } catch {}
+                    try { localStorage.removeItem("fruxal_analyzing_report"); } catch { /* non-fatal */ }
                     setIsAnalyzing(false);
                     load();
                     return;
                   }
                   if (pd?.status === "failed" || pollCount >= 45) {
                     clearInterval(poll);
-                    try { localStorage.removeItem("fruxal_analyzing_report"); } catch {}
+                    try { localStorage.removeItem("fruxal_analyzing_report"); } catch { /* non-fatal */ }
                     setIsAnalyzing(false);
                     setAnalysisFailed(true);
                   }
@@ -152,13 +152,13 @@ export default function EnterpriseDashboard() {
           setProfile(d.profile || {});
           if (d.businessId || d.business_id) setBusinessId(d.businessId || d.business_id);
           setDeadlines(d.obligations?.upcoming_deadlines || []);
-          setOverdue(d.obligations?.overdue || 0);
-          setPenaltyExposure(d.obligations?.penalty_exposure || 0);
+          setOverdue(d.obligations?.overdue ?? 0);
+          setPenaltyExposure(d.obligations?.penalty_exposure ?? 0);
 
  // Persist tier so layout sidebar stays enterprise-aware on all pages
           const bt = (d.tier || "free").toLowerCase();
           const recPlan = (d.recommended_plan || "").toLowerCase();
-          try { localStorage.setItem("fruxal_tier", bt === "enterprise" || bt === "corp" ? "enterprise" : bt); } catch {}
+          try { localStorage.setItem("fruxal_tier", bt === "enterprise" || bt === "corp" ? "enterprise" : bt); } catch { /* non-fatal */ }
 
           if (!isPreview) {
             // Only redirect DOWN if the user has an active paid subscription at a lower tier
@@ -179,7 +179,7 @@ export default function EnterpriseDashboard() {
 
  // Fetch enterprise engagement status (non-blocking)
         if (redirected) return;
-        fetch("/api/v2/enterprise/status").then(r => r.ok ? r.json() : null).then(d => {
+        fetch("/api/v2/enterprise/status").then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
           if (d?.success) setEntStatus(d.data);
           setEntStatusLoaded(true);
         }).catch(() => { setEntStatusLoaded(true); });
@@ -279,8 +279,8 @@ export default function EnterpriseDashboard() {
               why_first:                   s.why_first        || s.description           || s.why || "",
               why_first_fr:                s.why_first_fr     || s.description_fr        || "",
               expected_result:             s.expected_result  || (s.deadline ? `Target: ${s.deadline}` : ""),
-              ebitda_improvement:          s.ebitda_improvement          || 0,
-              enterprise_value_improvement:s.enterprise_value_improvement || 0,
+              ebitda_improvement:          s.ebitda_improvement ?? 0,
+              enterprise_value_improvement:s.enterprise_value_improvement ?? 0,
             })));
           } else if (Array.isArray(r.action_plan) && r.action_plan.length) {
  // action_plan is a flat array, map to priority_sequence shape
@@ -291,7 +291,7 @@ export default function EnterpriseDashboard() {
               why_first: a.description,
               why_first_fr: a.description_fr,
               expected_result: `${a.estimated_savings ? `$${a.estimated_savings.toLocaleString()} savings` : ""} · ${a.timeline || ""}`.trim(),
-              ebitda_improvement: a.ebitda_improvement || 0,
+              ebitda_improvement: a.ebitda_improvement ?? 0,
             })));
           }
         }
@@ -321,7 +321,7 @@ export default function EnterpriseDashboard() {
           setIsAnalyzing(true);
           setAnalysisFailed(false);
           // Persist reportId so the "View progress" button works even if user switches tabs
-          try { if (data.reportId) localStorage.setItem("fruxal_analyzing_report", data.reportId); } catch {}
+          try { if (data.reportId) localStorage.setItem("fruxal_analyzing_report", data.reportId); } catch { /* non-fatal */ }
           // Start polling every 4s — mirrors the load() poll but scoped to rerun
           let pollCount = 0;
           const poll = setInterval(async () => {
@@ -332,7 +332,7 @@ export default function EnterpriseDashboard() {
               const pd  = await pr.json();
               if (pd?.status === "completed") {
                 clearInterval(poll);
-                try { localStorage.removeItem("fruxal_analyzing_report"); } catch {}
+                try { localStorage.removeItem("fruxal_analyzing_report"); } catch { /* non-fatal */ }
                 setIsAnalyzing(false);
                 // Reset fetchedRef so load() will re-run on next effect trigger
                 fetchedRef.current = false;
@@ -340,7 +340,7 @@ export default function EnterpriseDashboard() {
                 window.location.reload();
               } else if (pd?.status === "failed" || pollCount >= 45) {
                 clearInterval(poll);
-                try { localStorage.removeItem("fruxal_analyzing_report"); } catch {}
+                try { localStorage.removeItem("fruxal_analyzing_report"); } catch { /* non-fatal */ }
                 setIsAnalyzing(false);
                 setAnalysisFailed(true);
               }
@@ -380,7 +380,7 @@ export default function EnterpriseDashboard() {
     low:      { bg: "rgba(142,140,133,0.07)", text: "#8E8C85" },
   };
 
-  const intakeQuality = profile.intake_quality_score || 0;
+  const intakeQuality = profile.intake_quality_score ?? 0;
   const hasIntake     = intakeQuality >= 40;
   const hasEV         = totals.enterprise_value_impact > 0;
   const hasEBITDA     = totals.ebitda_impact > 0;
@@ -444,7 +444,7 @@ export default function EnterpriseDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => { const nl = lang === "fr" ? "en" : "fr"; setLang(nl); try { localStorage.setItem("fruxal_lang", nl); sessionStorage.setItem("lg_prescan_lang", nl); } catch {} }}
+            <button onClick={() => { const nl = lang === "fr" ? "en" : "fr"; setLang(nl); try { localStorage.setItem("fruxal_lang", nl); sessionStorage.setItem("lg_prescan_lang", nl); } catch { /* non-fatal */ } }}
               className="h-6 px-2.5 text-[9px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">
               {isFr ? "EN" : "FR"}
             </button>
@@ -475,7 +475,7 @@ export default function EnterpriseDashboard() {
             style={{ background: "rgba(179,64,64,0.03)", border: "1px solid rgba(179,64,64,0.10)" }}>
             <div className="w-[6px] h-[6px] rounded-full bg-negative animate-pulse" />
             <span className="text-[11px] font-semibold text-negative flex-1">
-              {overdue} {t("obligation(s) overdue", "obligation(s) en retard")} · ${penaltyExposure.toLocaleString()} {t("at risk", "à risque")}
+              {overdue} {t("obligation(s) overdue", "obligation(s) en retard")} · ${(penaltyExposure ?? 0).toLocaleString()} {t("at risk", "à risque")}
             </span>
             <span className="text-[10px] font-semibold text-negative">{t("Resolve →", "Résoudre →")}</span>
           </button>
@@ -594,7 +594,7 @@ export default function EnterpriseDashboard() {
                       style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)" }}>
                       {t("View progress →", "Voir →")}
                     </button>
-                  ); } catch {} return null; })()}
+                  ); } catch { /* non-fatal */ } return null; })()}
                 </>
               )}
             </div>
@@ -1064,7 +1064,7 @@ export default function EnterpriseDashboard() {
                   {med>0&&<span className="text-[9px] px-1.5 py-0.5 rounded" style={{background:"rgba(142,140,133,0.07)",color:"#8E8C85"}}>{med} {t("Med","Moy.")}</span>}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {reportId&&<button onClick={()=>window.open(`/api/v2/diagnostic/${reportId}/pdf?language=${lang}`,"_blank")} className="text-[9px] font-medium text-ink-faint hover:text-brand border border-border-light rounded px-2 py-0.5">↓ PDF</button>}
+                  {reportId&&<button onClick={()=>typeof window !== "undefined" && window.open(`/api/v2/diagnostic/${reportId}/pdf?language=${lang}`,"_blank")} className="text-[9px] font-medium text-ink-faint hover:text-brand border border-border-light rounded px-2 py-0.5">↓ PDF</button>}
                   {reportId&&<button onClick={()=>router.push(`/v2/diagnostic/${reportId}`)} className="text-[9px] font-semibold text-brand hover:underline">{t("Full report →","Rapport complet →")}</button>}
                 </div>
               </div>
@@ -1107,7 +1107,7 @@ export default function EnterpriseDashboard() {
                   const FREE_COUNT = 3;
                   const freeFindings   = visibleFindings.slice(0, FREE_COUNT);
                   const lockedFindings = visibleFindings.slice(FREE_COUNT);
-                  const lockedValue    = lockedFindings.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
+                  const lockedValue    = lockedFindings.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min ?? 0), 0);
                   const callHref       = callHref;
                   return (<>
                     {freeFindings.map((f: any, i: number) => {
@@ -1123,7 +1123,7 @@ export default function EnterpriseDashboard() {
                                   {isFr ? (f.title_fr || f.title) : f.title}
                                 </span>
                                 <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">
-                                  {fmtM(f.impact_max || f.impact_min || 0)}
+                                  {fmtM(f.impact_max || f.impact_min ?? 0)}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
@@ -1165,7 +1165,7 @@ export default function EnterpriseDashboard() {
                               style={{ borderLeft: `3px solid ${sev.dot}`, filter: "blur(4px)", opacity: 0.4 }}>
                               <div className="flex items-center gap-2">
                                 <span className="text-[12px] font-semibold text-ink flex-1">{isFr ? (f.title_fr || f.title) : f.title}</span>
-                                <span className="font-serif text-[13px] font-bold text-negative">{fmtM(f.impact_max || f.impact_min || 0)}</span>
+                                <span className="font-serif text-[13px] font-bold text-negative">{fmtM(f.impact_max || f.impact_min ?? 0)}</span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-[9px] text-ink-faint">{f.category}</span>
@@ -1253,7 +1253,7 @@ export default function EnterpriseDashboard() {
                   <div key={i} className="flex items-center gap-2 rounded-lg px-3 py-2 mb-1.5"
                     style={{ background: "rgba(179,64,64,0.04)", border: "1px solid rgba(179,64,64,0.10)" }}>
                     <span className="text-[10px] text-ink-muted flex-1">{vk.issue}</span>
-                    <span className="text-[10px] text-negative font-bold shrink-0">-{fmtM(vk.valuation_discount || 0)}</span>
+                    <span className="text-[10px] text-negative font-bold shrink-0">-{fmtM(vk.valuation_discount ?? 0)}</span>
                   </div>
                 ))}
                 {exitReadiness.value_builders?.map((vb: any, i: number) => (
@@ -1291,7 +1291,7 @@ export default function EnterpriseDashboard() {
                       </span>
                       <span className="text-[11px] text-ink-muted flex-1 truncate">{d.title}</span>
                       {d.penalty_max > 0 && (
-                        <span className="text-[10px] text-negative shrink-0">${d.penalty_max.toLocaleString()}</span>
+                        <span className="text-[10px] text-negative shrink-0">${(d.penalty_max ?? 0).toLocaleString()}</span>
                       )}
                     </div>
                   ))}
@@ -1351,7 +1351,7 @@ export default function EnterpriseDashboard() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-[9px] text-ink-faint">L{r.likelihood} × I{r.impact}</div>
-                        <div className="text-[10px] font-bold" style={{ color: rc.text }}>{(r.likelihood || 0) * (r.impact || 0)}</div>
+                        <div className="text-[10px] font-bold" style={{ color: rc.text }}>{(r.likelihood ?? 0) * (r.impact ?? 0)}</div>
                       </div>
                     </div>
                     {r.recommendation && (
@@ -1366,7 +1366,7 @@ export default function EnterpriseDashboard() {
 
         {/* ── Locked sections: CPA Briefing + Priority Sequence + Benchmarks ── */}
         {(briefing || planSequence.length > 0 || benchmarks.length > 0) && (() => {
-          const lockedValue = findings.slice(3).reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
+          const lockedValue = findings.slice(3).reduce((s: number, f: any) => s + (f.impact_max || f.impact_min ?? 0), 0);
           const callHref = callHref;
           return (
             <div className="bg-white rounded-xl border overflow-hidden mb-3"
@@ -1404,7 +1404,7 @@ export default function EnterpriseDashboard() {
                   { icon: "📊", label: t("Peer Benchmark Comparisons", "Comparaisons aux pairs sectoriels"), sub: t("How your margins, payroll ratio, and EBITDA compare to top quartile", "Comment vos marges, masse salariale et BAIIA se comparent aux meilleurs") },
                 ].map((item, i) => (
                   <div key={i} className="px-5 py-3 flex items-center gap-4" style={{ filter: "blur(0.5px)", opacity: 0.55 }}>
-                    <span className="text-lg shrink-0">{item.icon}</span>
+                    <span key={i} className="text-lg shrink-0">{item.icon}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] font-semibold text-ink">{item.label}</p>
                       <p className="text-[10px] text-ink-faint truncate">{item.sub}</p>
@@ -1502,7 +1502,7 @@ export default function EnterpriseDashboard() {
               <div className="flex items-center gap-1 mb-2">
                 {STAGES.map((s, i) => (
                   <div key={s.key} className="flex-1 flex flex-col items-center gap-1">
-                    <div className="w-full h-[3px] rounded-full" style={{ background: i <= currentIdx ? "#1B3A2D" : "#E5E3DD" }} />
+                    <div key={i} className="w-full h-[3px] rounded-full" style={{ background: i <= currentIdx ? "#1B3A2D" : "#E5E3DD" }} />
                     {i === currentIdx && (
                       <div className="text-[8px] text-center font-semibold text-ink leading-tight hidden sm:block" style={{ color:"#1B3A2D" }}>
                         {isFr ? s.labelFr : s.label}
@@ -1592,13 +1592,13 @@ export default function EnterpriseDashboard() {
                   <p className="text-[13px] font-semibold text-ink">
                   {entStatus?.documents?.received ?? 0} / {entStatus?.documents?.total ?? 0} {t("received","reçus")}
                 </p>
-                  {(entStatus.documents?.total || 0) > 0 && (
+                  {(entStatus.documents?.total ?? 0) > 0 && (
                     <div className="flex-1 max-w-[120px] h-[4px] bg-bg-section rounded-full">
                       <div className="h-full rounded-full transition-all duration-500"
-                        style={{ width:Math.round(((entStatus.documents?.received||0)/(entStatus.documents?.total||1))*100) + "%", background:"#3D7A5E" }} />
+                        style={{ width:Math.round(((entStatus.documents?.received ?? 0)/(entStatus.documents?.total||1))*100) + "%", background:"#3D7A5E" }} />
                     </div>
                   )}
-                  {(entStatus.documents?.pending || 0) > 0 && (
+                  {(entStatus.documents?.pending ?? 0) > 0 && (
                     <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background:"rgba(196,132,29,0.08)", color:"#C4841D" }}>
                       {entStatus.documents.pending} {t("pending","en attente")}
                     </span>
@@ -1609,7 +1609,7 @@ export default function EnterpriseDashboard() {
             </button>
             {docExpanded && (
               <div className="px-5 pb-5 border-t border-border-light">
-                {(entStatus.documents?.total || 0) === 0 ? (
+                {(entStatus.documents?.total ?? 0) === 0 ? (
                   <div className="py-6 text-center">
                     <p className="text-[12px] text-ink-faint">{t("No documents requested yet. Your advisor will populate this list once the engagement begins.","Aucun document demandé pour l'instant. Votre conseiller remplira cette liste au démarrage de l'engagement.")}</p>
                   </div>
@@ -1667,7 +1667,7 @@ export default function EnterpriseDashboard() {
                 <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Savings Tracker","Suivi des économies")}</p>
                 <div className="flex items-end gap-6 mt-1.5">
                   <div>
-                    <p className="text-[22px] font-bold text-ink leading-none">{fmtM(entStatus.savings?.confirmed || 0)}</p>
+                    <p className="text-[22px] font-bold text-ink leading-none">{fmtM(entStatus.savings?.confirmed ?? 0)}</p>
                     <p className="text-[9px] text-ink-faint mt-0.5">{t("Confirmed savings","Économies confirmées")}</p>
                   </div>
                   {totals.savings > 0 && (
@@ -1676,7 +1676,7 @@ export default function EnterpriseDashboard() {
                       <p className="text-[9px] text-ink-faint mt-0.5">{t("Projected","Projeté")}</p>
                     </div>
                   )}
-                  {(entStatus.savings?.confirmed || 0) > 0 && totals.savings > 0 && (
+                  {(entStatus.savings?.confirmed ?? 0) > 0 && totals.savings > 0 && (
                     <div className="flex-1 max-w-[100px]">
                       <div className="h-[4px] bg-bg-section rounded-full">
                         <div className="h-full rounded-full transition-all duration-700"
@@ -1688,7 +1688,7 @@ export default function EnterpriseDashboard() {
                     </div>
                   )}
                 </div>
-                {(entStatus.savings?.feeOwed || 0) > 0 && (
+                {(entStatus.savings?.feeOwed ?? 0) > 0 && (
                   <p className="text-[10px] text-ink-faint mt-1.5">
                     {t("Contingency fee accrued","Honoraires à la performance accumulés")}:
                     <span className="font-semibold text-ink ml-1">{fmtM(entStatus.savings.feeOwed)}</span>
@@ -1700,7 +1700,7 @@ export default function EnterpriseDashboard() {
             </button>
             {savingsExpanded && (
               <div className="px-5 pb-5 border-t border-border-light">
-                {(entStatus.savings?.findings?.length || 0) === 0 ? (
+                {(entStatus.savings?.findings?.length ?? 0) === 0 ? (
                   <div className="py-6 text-center">
                     <p className="text-[12px] text-ink-faint">{t("No savings confirmed yet. Your advisor will record findings as they are verified through your financial documents.","Aucune économie confirmée pour l'instant. Votre conseiller enregistrera les résultats au fur et à mesure de leur vérification.")}</p>
                   </div>

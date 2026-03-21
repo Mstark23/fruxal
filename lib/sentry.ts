@@ -29,7 +29,7 @@ export async function initSentry() {
     sentryInitialized = true;
   } catch (e) {
     // Sentry not installed — that's fine
-    console.log("Sentry not available (install @sentry/nextjs to enable)");
+    process.env.NODE_ENV !== "production" && console.log("Sentry not available (install @sentry/nextjs to enable)");
   }
 }
 
@@ -48,9 +48,9 @@ export function captureError(error: Error, context?: Record<string, any>) {
 }
 
 export function captureMessage(message: string, level: "info" | "warning" | "error" = "info") {
-  if (!SENTRY_DSN) { console.log(`[${level}]`, message); return; }
+  if (!SENTRY_DSN) { process.env.NODE_ENV !== "production" && console.log(`[${level}]`, message); return; }
   try {
     const Sentry = require("@sentry/nextjs");
     Sentry.captureMessage(message, level);
-  } catch (e) { console.log(`[${level}]`, message); }
+  } catch (e) { process.env.NODE_ENV !== "production" && console.log(`[${level}]`, message); }
 }

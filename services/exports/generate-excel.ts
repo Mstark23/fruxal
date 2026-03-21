@@ -54,16 +54,16 @@ export async function generateExcelBuffer(data: any): Promise<Buffer> {
 
   const summary = data.summary || {};
   const metrics = [
-    ["Total Revenue", summary.totalRevenue || 0, "$#,##0"],
-    ["Total Collected", summary.totalCollected || 0, "$#,##0"],
-    ["Collection Rate", (summary.collectionRate || 0) / 100, "0.0%"],
-    ["Health Score", summary.healthScore || 0, "0"],
-    ["Open Leaks", summary.openLeaks || 0, "0"],
-    ["Leak Impact/yr", summary.leakImpact || 0, "$#,##0"],
-    ["Overdue Invoices", summary.overdueInvoices || 0, "0"],
-    ["Overdue Amount", summary.overdueAmount || 0, "$#,##0"],
-    ["Recovered", summary.recoveredAmount || 0, "$#,##0"],
-    ["Active Clients", summary.activeClients || 0, "0"],
+    ["Total Revenue", summary.totalRevenue ?? 0, "$#,##0"],
+    ["Total Collected", summary.totalCollected ?? 0, "$#,##0"],
+    ["Collection Rate", (summary.collectionRate ?? 0) / 100, "0.0%"],
+    ["Health Score", summary.healthScore ?? 0, "0"],
+    ["Open Leaks", summary.openLeaks ?? 0, "0"],
+    ["Leak Impact/yr", summary.leakImpact ?? 0, "$#,##0"],
+    ["Overdue Invoices", summary.overdueInvoices ?? 0, "0"],
+    ["Overdue Amount", summary.overdueAmount ?? 0, "$#,##0"],
+    ["Recovered", summary.recoveredAmount ?? 0, "$#,##0"],
+    ["Active Clients", summary.activeClients ?? 0, "0"],
   ];
 
   ws.getCell("A4").value = "Metric";
@@ -95,7 +95,7 @@ export async function generateExcelBuffer(data: any): Promise<Buffer> {
       ws2.getCell(r, 2).value = (l.type || "—").replace(/_/g, " ");
       ws2.getCell(r, 3).value = l.description || "—";
       const impactCell = ws2.getCell(r, 4);
-      impactCell.value = l.annualImpact || 0;
+      impactCell.value = l.annualImpact ?? 0;
       impactCell.numFmt = "$#,##0";
       const prioCell = ws2.getCell(r, 5);
       prioCell.value = l.priority || "—";
@@ -133,7 +133,7 @@ export async function generateExcelBuffer(data: any): Promise<Buffer> {
       else if (rate < 0.9) rateCell.font = { name: "Arial", size: 10, color: { argb: `FF${ORANGE}` } };
       else rateCell.font = { name: "Arial", size: 10, color: { argb: `FF${GREEN}` } };
 
-      ws3.getCell(r, 5).value = c.invoiceCount || 0;
+      ws3.getCell(r, 5).value = c.invoiceCount ?? 0;
       ws3.getCell(r, 6).value = c.status || "—";
       for (let col = 1; col <= headers.length; col++) bodyStyle(ws3.getCell(r, col), i % 2 === 1);
     });
@@ -155,7 +155,7 @@ export async function generateExcelBuffer(data: any): Promise<Buffer> {
       ws4.getCell(r, 3).value = t.priority || "—";
       ws4.getCell(r, 4).value = t.category || "—";
       ws4.getCell(r, 5).value = t.due_date ? String(t.due_date).slice(0, 10) : "—";
-      ws4.getCell(r, 6).value = t.impact_amount || 0; ws4.getCell(r, 6).numFmt = "$#,##0";
+      ws4.getCell(r, 6).value = t.impact_amount ?? 0; ws4.getCell(r, 6).numFmt = "$#,##0";
       ws4.getCell(r, 7).value = t.status || "—";
       for (let c = 1; c <= headers.length; c++) bodyStyle(ws4.getCell(r, c), i % 2 === 1);
     });
@@ -173,14 +173,14 @@ export async function generateExcelBuffer(data: any): Promise<Buffer> {
     snapshots.forEach((s: any, i: number) => {
       const r = i + 2;
       ws5.getCell(r, 1).value = String(s.snapshot_date || "—").slice(0, 10);
-      ws5.getCell(r, 2).value = s.total_revenue || 0; ws5.getCell(r, 2).numFmt = "$#,##0";
-      ws5.getCell(r, 3).value = s.total_collected || 0; ws5.getCell(r, 3).numFmt = "$#,##0";
-      ws5.getCell(r, 4).value = (s.collection_rate || 0) / 100; ws5.getCell(r, 4).numFmt = "0.0%";
-      ws5.getCell(r, 5).value = s.open_leak_count || 0;
-      ws5.getCell(r, 6).value = s.total_leak_impact || 0; ws5.getCell(r, 6).numFmt = "$#,##0";
-      ws5.getCell(r, 7).value = s.overall_health || 0;
-      ws5.getCell(r, 8).value = s.active_clients || 0;
-      ws5.getCell(r, 9).value = s.overdue_invoices || 0;
+      ws5.getCell(r, 2).value = s.total_revenue ?? 0; ws5.getCell(r, 2).numFmt = "$#,##0";
+      ws5.getCell(r, 3).value = s.total_collected ?? 0; ws5.getCell(r, 3).numFmt = "$#,##0";
+      ws5.getCell(r, 4).value = (s.collection_rate ?? 0) / 100; ws5.getCell(r, 4).numFmt = "0.0%";
+      ws5.getCell(r, 5).value = s.open_leak_count ?? 0;
+      ws5.getCell(r, 6).value = s.total_leak_impact ?? 0; ws5.getCell(r, 6).numFmt = "$#,##0";
+      ws5.getCell(r, 7).value = s.overall_health ?? 0;
+      ws5.getCell(r, 8).value = s.active_clients ?? 0;
+      ws5.getCell(r, 9).value = s.overdue_invoices ?? 0;
       for (let c = 1; c <= headers.length; c++) bodyStyle(ws5.getCell(r, c), i % 2 === 1);
     });
     autoWidth(ws5);

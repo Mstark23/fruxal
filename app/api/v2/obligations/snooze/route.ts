@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
           data: { snoozed_until: snoozeDate, days: snoozeDays },
         });
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Fallback: direct update on user_obligations
     const { error } = await supabaseAdmin

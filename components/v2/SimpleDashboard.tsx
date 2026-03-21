@@ -92,7 +92,8 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
     if (scanResult && !deepScanning) {
       setShowScanBanner(true);
       fetchData();
-      setTimeout(() => setShowScanBanner(false), 8000);
+      const _to = setTimeout(() => setShowScanBanner(false), 8000);
+      return () => clearTimeout(_to);
     }
   }, [scanResult, deepScanning, fetchData]);
 
@@ -207,7 +208,7 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
                   Deep scan complete — {scanResult.newActions} verified leaks found
                 </div>
                 <div className="text-xs text-gray-400 mt-0.5">
-                  ${scanResult.totalVerifiedLeak?.toLocaleString()}/year in verified savings from {scanResult.dataAnalyzed?.invoices || 0} invoices + {scanResult.dataAnalyzed?.transactions || 0} transactions
+                  ${scanResult.totalVerifiedLeak?.toLocaleString()}/year in verified savings from {scanResult.dataAnalyzed?.invoices ?? 0} invoices + {scanResult.dataAnalyzed?.transactions ?? 0} transactions
                 </div>
               </div>
             </div>
@@ -254,7 +255,7 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
               <span className="text-sm">📗</span>
               <span className="text-xs text-emerald-300/80">QuickBooks connected</span>
               {stats.total_verified > 0 && (
-                <span className="text-xs text-gray-500">· ${stats.total_verified.toLocaleString()} verified</span>
+                <span className="text-xs text-gray-500">· ${(Number(stats.total_verified) || 0).toLocaleString()} verified</span>
               )}
             </div>
             <button

@@ -7,6 +7,8 @@ import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const DOC_MAP: Record<string, Array<{ type: string; label: string }>> = {
   tax_structure:        [{ type: "t2_returns", label: "T2 Corporate Returns (3 years)" }, { type: "shareholder_reg", label: "Shareholder Register" }, { type: "owner_comp", label: "Owner Compensation Breakdown" }],
   vendor_procurement:   [{ type: "vendor_contracts", label: "Top 20 Vendor Contracts" }, { type: "vendor_invoices", label: "Most Recent Invoices Per Vendor" }],
@@ -53,7 +55,7 @@ export async function GET(req: NextRequest) {
     // Build finding totals per engagement
     const findingTotals: Record<string, number> = {};
     for (const f of findings) {
-      findingTotals[f.engagement_id] = (findingTotals[f.engagement_id] || 0) + (f.confirmed_amount || 0);
+      findingTotals[f.engagement_id] = (findingTotals[f.engagement_id] || 0) + (f.confirmed_amount ?? 0);
     }
 
     let activeCount = 0, totalConfirmedSavings = 0, totalFeesOwed = 0, docProgressSum = 0, docProgressCount = 0;
@@ -75,7 +77,7 @@ export async function GET(req: NextRequest) {
         feePercentage: e.fee_percentage,
         documentsTotal: ds.total, documentsReceived: ds.received,
         confirmedSavings: confirmed, feeOwed: fee,
-        estimatedLow: summary.totalEstimatedLow || 0, estimatedHigh: summary.totalEstimatedHigh || 0,
+        estimatedLow: summary.totalEstimatedLow ?? 0, estimatedHigh: summary.totalEstimatedHigh ?? 0,
         diagnosticId: e.diagnostic_id,
       };
     });
@@ -117,7 +119,8 @@ export async function POST(req: NextRequest) {
 
     // Create engagement
     const engId = crypto.randomUUID();
-    const { error: engErr } = await supabaseAdmin.from("tier3_engagements").insert({
+    const { error: engErr } = // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
+    await supabaseAdmin.from("tier3_engagements").insert({
       id: engId, diagnostic_id: diagnosticId,
       agreement_id: agreementId || null, pipeline_id: pipelineId || null,
       user_id: auth.userId || diag.user_id, company_name: diag.company_name,
@@ -144,7 +147,7 @@ export async function POST(req: NextRequest) {
       await supabaseAdmin.from("tier3_pipeline").update({ stage: "in_engagement", updated_at: new Date().toISOString() }).eq("id", pipelineId);
     }
 
-    console.log(`[Engagements] Created for "${diag.company_name}" — ${docRows.length} documents seeded from ${scopeCategories.length} categories`);
+    process.env.NODE_ENV !== "production" && console.log(`[Engagements] Created for "${diag.company_name}" — ${docRows.length} documents seeded from ${scopeCategories.length} categories`);
 
     return NextResponse.json({ success: true, id: engId, documentsSeeded: docRows.length });
   } catch (err: any) {

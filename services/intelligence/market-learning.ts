@@ -34,7 +34,7 @@ export async function recalculateBenchmarks(): Promise<{ updated: number; indust
     .not("yours", "eq", "");
 
   if (!leaks || leaks.length < 10) {
-    console.log("Market Learning: Not enough data yet (need 10+ leaks with values)");
+    process.env.NODE_ENV === "development" && console.log("Market Learning: Not enough data yet (need 10+ leaks with values)");
     return { updated: 0, industries: [] };
   }
 
@@ -118,7 +118,7 @@ export async function recalculateBenchmarks(): Promise<{ updated: number; indust
     }
   }
 
-  console.log(`Market Learning: Updated ${updated} benchmarks across ${industries.size} industries`);
+  process.env.NODE_ENV === "development" && console.log(`Market Learning: Updated ${updated} benchmarks across ${industries.size} industries`);
   return { updated, industries: [...industries] };
 }
 
@@ -162,7 +162,7 @@ export async function getBestBenchmark(
       median: stat.median,
       p75: stat.p75,
       source: "static",
-      sampleSize: stat.sampleSize || 0,
+      sampleSize: stat.sampleSize ?? 0,
     };
   }
 
@@ -205,7 +205,7 @@ export async function getIndustryComparison(
   const bizTotals: Record<string, number> = {};
   allLeaks?.forEach(l => {
     if (l.status !== "FIXED") {
-      bizTotals[l.businessId] = (bizTotals[l.businessId] || 0) + (l.annualImpact || 0);
+      bizTotals[l.businessId] = (bizTotals[l.businessId] || 0) + (l.annualImpact ?? 0);
     }
   });
 

@@ -7,6 +7,8 @@ import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const STAGES = ["lead","contacted","called","diagnostic_sent","agreement_out","signed","in_engagement","fee_collected","lost"];
 
 async function safe<T>(fn: () => Promise<T>, fb: T): Promise<T> {
@@ -48,9 +50,9 @@ export async function GET(req: NextRequest) {
       const pipe = pipeMap[d.id];
       const ag = agMap[d.id];
       const summary = d.result?.summary || {};
-      const estLow = summary.totalEstimatedLow || 0;
-      const estHigh = summary.totalEstimatedHigh || 0;
-      const highConf = summary.highConfidenceCount || 0;
+      const estLow = summary.totalEstimatedLow ?? 0;
+      const estHigh = summary.totalEstimatedHigh ?? 0;
+      const highConf = summary.highConfidenceCount ?? 0;
 
       let derivedStage = "contacted";
       if (d.status === "sent") derivedStage = "diagnostic_sent";
@@ -131,7 +133,7 @@ export async function GET(req: NextRequest) {
     const allEntries = diagnostics.map((d: any) => {
       const pipe = pipeMap[d.id]; const ag = agMap[d.id]; const summary = d.result?.summary || {};
       let ds = "contacted"; if (d.status === "sent") ds = "diagnostic_sent"; if (ag?.status === "pending") ds = "agreement_out"; if (ag?.status === "signed" || d.status === "signed") ds = "signed";
-      return { stage: pipe?.stage || ds, estHigh: summary.totalEstimatedHigh || 0, updatedAt: pipe?.updated_at || d.created_at };
+      return { stage: pipe?.stage || ds, estHigh: summary.totalEstimatedHigh ?? 0, updatedAt: pipe?.updated_at || d.created_at };
     });
 
     for (const e of allEntries) {
@@ -183,7 +185,8 @@ export async function POST(req: NextRequest) {
         if (stage) update.stage = stage;
         if (notes !== undefined) update.notes = notes;
         if (followUpDate !== undefined) update.follow_up_date = followUpDate || null;
-        await supabaseAdmin.from("tier3_pipeline").update(update).eq("id", existing.id);
+        // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
+    await supabaseAdmin.from("tier3_pipeline").update(update).eq("id", existing.id);
         return NextResponse.json({ success: true, id: existing.id, action: "updated" });
       }
 

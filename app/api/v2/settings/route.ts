@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 60; // Vercel function timeout (seconds)
+
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -30,7 +32,7 @@ export async function GET(req: NextRequest) {
       province: bp.province || "",
       city: bp.city || "",
       monthly_revenue: String(bp.monthly_revenue || ""),
-      employee_count: String(bp.employee_count || 0),
+      employee_count: String(bp.employee_count ?? 0),
       fiscal_year_end_month: String(bp.fiscal_year_end_month || 12),
       has_payroll: bp.has_payroll || false,
       handles_data: bp.handles_data || false,
@@ -68,7 +70,7 @@ export async function GET(req: NextRequest) {
         .eq("user_id", token.sub)
         .single();
       np = npData;
-    } catch {}
+    } catch { /* non-fatal */ }
 
     const notifications = {
       email_enabled: np?.email_enabled ?? true,
@@ -102,7 +104,7 @@ export async function GET(req: NextRequest) {
           plan: sub.plan || "free",
           status: sub.status || "active",
           current_period_end: sub.current_period_end || "",
-          diagnostics_used: sub.diagnostics_used || 0,
+          diagnostics_used: sub.diagnostics_used ?? 0,
           diagnostics_limit: sub.plan === "growth" ? -1 : sub.plan === "pro" ? 999 : 1,
           stripe_customer_id: sub.stripe_customer_id || null,
         };
@@ -114,9 +116,9 @@ export async function GET(req: NextRequest) {
         .select("id", { count: "exact", head: true })
         .eq("user_id", token.sub)
         .eq("status", "complete");
-      billing.diagnostics_used = count || 0;
+      billing.diagnostics_used = count ?? 0;
 
-    } catch {}
+    } catch { /* non-fatal */ }
 
     return NextResponse.json({
       success: true,

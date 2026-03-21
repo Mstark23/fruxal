@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       if (!error) {
         return NextResponse.json({ success: true, data });
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Fallback: direct update on user_obligations
     const { error } = await supabaseAdmin

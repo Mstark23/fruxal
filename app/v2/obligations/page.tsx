@@ -54,7 +54,7 @@ export default function ObligationsPage() {
       if (stored === "en" || stored === "fr") setLang(stored);
       else if (navigator.language?.startsWith("fr")) setLang("fr");
       setIsEnt(localStorage.getItem("fruxal_tier") === "enterprise");
-    } catch {}
+    } catch { /* non-fatal */ }
     fetch("/api/me").then(r => r.json()).then(d => { if (d.business?.id) setBizId(d.business.id); }).catch(() => {});
   }, []);
 
@@ -65,7 +65,7 @@ export default function ObligationsPage() {
       const r = await fetch(`/api/v2/obligations/calendar?businessId=${businessId}&language=${lang}`);
       const j = await r.json();
       if (j.success) setCalendar(j.data);
-    } catch {} finally { setLoading(false); }
+    } catch { /* non-fatal */ } finally { setLoading(false); }
   }, [businessId, lang]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -80,7 +80,7 @@ export default function ObligationsPage() {
           actualCost: cost ? parseFloat(cost) : null, notes: notes || null }),
       });
       setModal(null); setCost(""); setNotes(""); fetchData();
-    } catch {} finally { setSaving(false); }
+    } catch { /* non-fatal */ } finally { setSaving(false); }
   };
 
   const snooze = async (slug: string, days: number) => {
@@ -111,7 +111,7 @@ export default function ObligationsPage() {
   ].filter(filterOb) : [];
 
   const sum = calendar?.summary;
-  const penExposure = sum?.total_penalty_exposure || 0;
+  const penExposure = sum?.total_penalty_exposure ?? 0;
 
   const RISK_COLOR: Record<string, {dot:string; bg:string; text:string}> = {
     critical: { dot:"#B34040", bg:"rgba(179,64,64,0.07)", text:"#B34040" },
@@ -129,7 +129,7 @@ export default function ObligationsPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h1 className="text-[15px] font-semibold text-ink">{t("Obligations", "Obligations")}</h1>
-              {(sum?.overdue || 0) > 0 && (
+              {(sum?.overdue ?? 0) > 0 && (
                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse"
                   style={{ background:"rgba(179,64,64,0.08)", color:"#B34040", border:"1px solid rgba(179,64,64,0.15)" }}>
                   {sum!.overdue} {t("overdue","en retard")}
@@ -149,7 +149,7 @@ export default function ObligationsPage() {
             )}
             <div className="flex bg-bg-section border border-border-light rounded-[7px] p-[3px] gap-[2px]">
               {(["en","fr"] as const).map(l => (
-                <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang",l); } catch {} }}
+                <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang",l); } catch { /* non-fatal */ } }}
                   className={`px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wide rounded-[5px] transition-all ${
                     lang===l ? "bg-white text-ink shadow-sm" : "text-ink-muted"}`}>{l.toUpperCase()}</button>
               ))}
@@ -166,9 +166,9 @@ export default function ObligationsPage() {
         {/* ── KPI strip ─────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
           {[
-            { val: sum?.total_tracked||0,   label:t("Total Tracked","Total suivies"),   color:"#1A1A18" },
-            { val: sum?.overdue||0,          label:t("Overdue","En retard"),              color:"#B34040", pulse:!!(sum?.overdue) },
-            { val: (sum?.due_this_week||0)+(sum?.due_this_month||0), label:t("Due This Month","Ce mois-ci"), color:"#C4841D" },
+            { val: sum?.total_tracked??0,   label:t("Total Tracked","Total suivies"),   color:"#1A1A18" },
+            { val: sum?.overdue ?? 0,          label:t("Overdue","En retard"),              color:"#B34040", pulse:!!(sum?.overdue) },
+            { val: (sum?.due_this_week ?? 0)+(sum?.due_this_month ?? 0), label:t("Due This Month","Ce mois-ci"), color:"#C4841D" },
             { val: penExposure, label:t("Penalty Exposure","Exposition pénalités"), color:"#B34040", money:true },
           ].map((k,i) => (
             <div key={i} className={`bg-white rounded-xl px-4 py-3.5 border border-border-light ${k.pulse?"animate-pulse":""}`}
@@ -191,12 +191,12 @@ export default function ObligationsPage() {
                   {t("Penalty exposure — overdue obligations","Exposition aux pénalités — obligations en retard")}
                 </span>
                 <span className="font-serif text-[18px] font-bold" style={{ color:"#B34040" }}>
-                  ${penExposure.toLocaleString()}
+                  ${(penExposure ?? 0).toLocaleString()}
                 </span>
               </div>
               <div className="h-1 bg-bg-section rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-1000"
-                  style={{ width:Math.min(100,((sum?.overdue||0)/Math.max(sum?.total_tracked||1,1))*100) + "%",
+                  style={{ width:Math.min(100,((sum?.overdue ?? 0)/Math.max(sum?.total_tracked||1,1))*100) + "%",
                            background:"linear-gradient(90deg,#B34040,#C4841D)" }} />
               </div>
             </div>
@@ -310,8 +310,8 @@ export default function ObligationsPage() {
                     ) : <span className="text-[10px] text-ink-faint">—</span>}
                   </div>
                   <div className="col-span-2 flex items-center">
-                    {(ob.penalty_max||0)>0
-                      ? <span className="text-[11px] font-semibold" style={{ color:"#B34040" }}>${(ob.penalty_max||0).toLocaleString()}</span>
+                    {(ob.penalty_max??0)>0
+                      ? <span className="text-[11px] font-semibold" style={{ color:"#B34040" }}>${(ob.penalty_max??0).toLocaleString()}</span>
                       : <span className="text-[10px] text-ink-faint">—</span>}
                   </div>
                   <div className="col-span-2 flex items-center justify-end gap-1.5">
@@ -443,9 +443,9 @@ function TimelineSection({ title, items, accentColor, lang, onComplete, onSnooze
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    {(ob.penalty_max||0)>0 && (
+                    {(ob.penalty_max??0)>0 && (
                       <div className="text-right">
-                        <div className="text-[11px] font-bold" style={{ color:"#B34040" }}>${(ob.penalty_max||0).toLocaleString()}</div>
+                        <div className="text-[11px] font-bold" style={{ color:"#B34040" }}>${(ob.penalty_max??0).toLocaleString()}</div>
                         <div className="text-[8px] text-ink-faint">{t("max penalty","pénalité max")}</div>
                       </div>
                     )}

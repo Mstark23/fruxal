@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
         type: "scan",
         date: s.scannedAt,
         title: "Scan completed",
-        detail: `Found $${(s.totalAmount || 0).toLocaleString()} leaking · Health: ${s.healthScore}/100`,
+        detail: `Found $${(s.totalAmount ?? 0).toLocaleString()} leaking · Health: ${s.healthScore}/100`,
         amount: s.totalAmount,
         icon: "🔍",
       });
@@ -32,12 +32,12 @@ export async function GET(req: NextRequest) {
 
     // Add fix events
     leaks.filter(l => l.status === "FIXED" || l.status === "fixed").forEach(l => {
-      runningSaved += l.annualImpact || 0;
+      runningSaved += l.annualImpact ?? 0;
       events.push({
         type: "fix",
         date: l.updatedAt || l.createdAt,
         title: `Fixed: ${l.title}`,
-        detail: `Saving $${(l.annualImpact || 0).toLocaleString()}/yr · Running total: $${runningSaved.toLocaleString()}/yr`,
+        detail: `Saving $${(l.annualImpact ?? 0).toLocaleString()}/yr · Running total: $${runningSaved.toLocaleString()}/yr`,
         amount: l.annualImpact,
         runningTotal: runningSaved,
         icon: "✅",
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
         type: "found",
         date: l.createdAt,
         title: `Detected: ${l.title}`,
-        detail: `$${(l.annualImpact || 0).toLocaleString()}/yr · ${l.severity}`,
+        detail: `$${(l.annualImpact ?? 0).toLocaleString()}/yr · ${l.severity}`,
         amount: l.annualImpact,
         icon: "💧",
       });
@@ -58,8 +58,8 @@ export async function GET(req: NextRequest) {
 
     events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    const totalFound = leaks.reduce((s, l) => s + (l.annualImpact || 0), 0);
-    const totalSaved = leaks.filter(l => l.status === "FIXED" || l.status === "fixed").reduce((s, l) => s + (l.annualImpact || 0), 0);
+    const totalFound = leaks.reduce((s, l) => s + (l.annualImpact ?? 0), 0);
+    const totalSaved = leaks.filter(l => l.status === "FIXED" || l.status === "fixed").reduce((s, l) => s + (l.annualImpact ?? 0), 0);
 
     return NextResponse.json({
       timeline: events,

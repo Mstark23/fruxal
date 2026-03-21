@@ -7,6 +7,8 @@ import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Anthropic from "@anthropic-ai/sdk";
 
+export const maxDuration = 60; // Vercel function timeout (seconds)
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 const PROVINCE_TAX_CONTEXT: Record<string, string> = {
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
       doesConstruction, doesRD, handlesFood, sellsAlcohol, language,
     } = body;
 
-    const annualRevenue = (monthlyRevenue || 0) * 12;
+    const annualRevenue = (monthlyRevenue ?? 0) * 12;
     const estimatedPayroll = employees > 0 ? Math.round(annualRevenue * 0.35) : 0;
     const lang = language || "en";
     const taxCtx = PROVINCE_TAX_CONTEXT[province] || province;
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
         .order("annual_impact_max", { ascending: false })
         .limit(25);
       leakDetectors = data || [];
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Fetch real government programs
     let programs: any[] = [];
@@ -62,7 +64,7 @@ export async function POST(req: NextRequest) {
         .order("priority_score", { ascending: false })
         .limit(15);
       programs = data || [];
-    } catch {}
+    } catch { /* non-fatal */ }
 
     const systemPrompt = `You are the Fruxal AI Diagnostic Engine — Canada's most precise financial leak detection system. You produce forensic-grade diagnostics that read like they were written by a $500/hr Canadian CPA and CFO consultant.
 
@@ -146,9 +148,9 @@ PROFILE:
 - Industry: ${industry}
 - Province: ${province} — ${taxCtx}
 - Structure: ${structure}
-- Annual Revenue: $${annualRevenue.toLocaleString()} ($${monthlyRevenue.toLocaleString()}/mo)
+- Annual Revenue: $${(annualRevenue ?? 0).toLocaleString()} ($${(monthlyRevenue ?? 0).toLocaleString()}/mo)
 - Employees: ${employees}
-- Estimated payroll: ~$${estimatedPayroll.toLocaleString()}
+- Estimated payroll: ~$${(estimatedPayroll ?? 0).toLocaleString()}
 
 FLAGS:
 - Has accountant: ${hasAccountant ? "YES" : "NO — no professional financial oversight"}
@@ -166,7 +168,7 @@ ${leakDetectors.map(l => `- [${l.severity?.toUpperCase()}] ${l.title} | $${l.ann
 GOVERNMENT PROGRAMS AVAILABLE (${province}):
 ${programs.map(p => `- ${p.name} [${p.government_level}] | ${p.sub_category} | ${p.description?.substring(0, 100)}`).join("\n")}
 
-Generate 8-12 high-quality findings specific to ${businessName}. Calculate all dollar impacts from their $${annualRevenue.toLocaleString()} annual revenue. Reference the leak detectors and programs above directly. Include partner_slugs and program_slugs where applicable.
+Generate 8-12 high-quality findings specific to ${businessName}. Calculate all dollar impacts from their $${(annualRevenue ?? 0).toLocaleString()} annual revenue. Reference the leak detectors and programs above directly. Include partner_slugs and program_slugs where applicable.
 
 RESPOND WITH ONLY VALID JSON.`;
 
@@ -183,7 +185,7 @@ RESPOND WITH ONLY VALID JSON.`;
     // If JSON is truncated, try to close it
     let report: any;
     try {
-      report = JSON.parse(clean);
+      try { report = JSON.parse(clean); } catch { report = null; }
     } catch {
       // Attempt to salvage truncated JSON by closing open structures
       const lastBrace = clean.lastIndexOf('}');
@@ -195,7 +197,7 @@ RESPOND WITH ONLY VALID JSON.`;
         let opens = 0;
         for (const ch of clean) { if (ch === '{' || ch === '[') opens++; else if (ch === '}' || ch === ']') opens--; }
         while (opens > 0) { clean += '}'; opens--; }
-        report = JSON.parse(clean);
+        try { report = JSON.parse(clean); } catch { report = null; }
       } else {
         throw new Error("AI response was truncated — try again");
       }

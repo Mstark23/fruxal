@@ -20,7 +20,7 @@ export default function DiagnosticLauncherPage() {
       const stored = localStorage.getItem("fruxal_lang") as Lang | null;
       if (stored === "en" || stored === "fr") return stored;
       if (navigator.language?.toLowerCase().startsWith("fr")) return "fr";
-    } catch {}
+    } catch { /* non-fatal */ }
     return "en";
   });
   const [running, setRunning] = useState(false);
@@ -33,7 +33,7 @@ export default function DiagnosticLauncherPage() {
   const toggleLang = () => {
     const next: Lang = lang === "fr" ? "en" : "fr";
     setLang(next);
-    try { localStorage.setItem("fruxal_lang", next); } catch {}
+    try { localStorage.setItem("fruxal_lang", next); } catch { /* non-fatal */ }
   };
 
   const PROGRESS_STEPS = isFr
@@ -64,7 +64,7 @@ export default function DiagnosticLauncherPage() {
           const dashRes = await fetch("/api/v2/dashboard");
           const dashJson = await dashRes.json();
           businessId = dashJson?.data?.business_id || dashJson?.data?.businessId;
-        } catch {}
+        } catch { /* non-fatal */ }
       }
 
       if (!businessId) {
@@ -77,7 +77,7 @@ export default function DiagnosticLauncherPage() {
             router.push("/v2/diagnostic/intake");
             return;
           }
-        } catch {}
+        } catch { /* non-fatal */ }
         router.push("/v2/onboarding");
         return;
       }

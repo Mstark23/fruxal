@@ -26,10 +26,10 @@ export async function GET(req: Request) {
 
         let position = "unknown";
         if (benchmark && exp.monthlyCost) {
-          if (exp.monthlyCost <= (benchmark.top10Value || 0)) position = "excellent";
-          else if (exp.monthlyCost <= (benchmark.lowValue || 0)) position = "good";
-          else if (exp.monthlyCost <= (benchmark.medianValue || 0)) position = "average";
-          else if (exp.monthlyCost <= (benchmark.highValue || 0)) position = "high";
+          if (exp.monthlyCost <= (benchmark.top10Value ?? 0)) position = "excellent";
+          else if (exp.monthlyCost <= (benchmark.lowValue ?? 0)) position = "good";
+          else if (exp.monthlyCost <= (benchmark.medianValue ?? 0)) position = "average";
+          else if (exp.monthlyCost <= (benchmark.highValue ?? 0)) position = "high";
           else position = "very_high";
         }
 
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
           position,
           verdict: position === "excellent" ? "Top 10%" : position === "good" ? "Below median" :
             position === "average" ? "Around median" : position === "high" ? "Above median" : "Well above average",
-          potentialSavings: exp.potentialSavingsMonthly || 0,
+          potentialSavings: exp.potentialSavingsMonthly ?? 0,
           bestPartnerName: exp.bestPartnerId ? null : null, // Will be populated when partners are linked
         };
       })
@@ -61,8 +61,8 @@ export async function GET(req: Request) {
       comparisons,
       summary: {
         totalExpenses: comparisons.length,
-        totalMonthlyCost: comparisons.reduce((s, c) => s + (c.currentValue || 0), 0),
-        totalPotentialSavings: comparisons.reduce((s, c) => s + (c.potentialSavings || 0), 0),
+        totalMonthlyCost: comparisons.reduce((s, c) => s + (c.currentValue ?? 0), 0),
+        totalPotentialSavings: comparisons.reduce((s, c) => s + (c.potentialSavings ?? 0), 0),
         overpayingCount: comparisons.filter((c) => c.position === "high" || c.position === "very_high").length,
       },
     });

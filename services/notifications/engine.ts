@@ -66,15 +66,15 @@ export function generateNotification(
     case "first_scan":
       return {
         ...base, type, priority: "critical", channel: "both",
-        title: `We found $${(data.totalLeaking || 0).toLocaleString()} leaking from your business`,
+        title: `We found $${(data.totalLeaking ?? 0).toLocaleString()} leaking from your business`,
         body: `${data.urgentCount} urgent leaks need attention. Open your dashboard to see exactly where the money is going.`,
         cta: "See Your Leaks", ctaUrl: "/dashboard",
       };
     case "nudge":
-      const daily = Math.round((data.totalLeaking || 0) / 365);
+      const daily = Math.round((data.totalLeaking ?? 0) / 365);
       return {
         ...base, type, priority: "nudge", channel: "email",
-        title: `Your $${(data.totalLeaking || 0).toLocaleString()} is still leaking`,
+        title: `Your $${(data.totalLeaking ?? 0).toLocaleString()} is still leaking`,
         body: `Every day you wait costs $${daily}. The average user fixes their first leak in 48 hours.`,
         cta: "Fix Your First Leak", ctaUrl: "/dashboard?tab=fixlist",
       };
@@ -82,21 +82,21 @@ export function generateNotification(
       return {
         ...base, type, priority: "nudge", channel: "email",
         title: `${data.leakCount ? data.leakCount - 3 : 11} more leaks you have not seen yet`,
-        body: `$99/mo to save $${(data.totalLeaking || 0).toLocaleString()}/yr. That math speaks for itself.`,
+        body: `$99/mo to save $${(data.totalLeaking ?? 0).toLocaleString()}/yr. That math speaks for itself.`,
         cta: "Unlock Everything", ctaUrl: "/dashboard?upgrade=true",
       };
     case "weekly":
       return {
         ...base, type, priority: "routine", channel: "push",
-        title: `Weekly check-in: ${data.fixListCount || 0} items on your fix list`,
+        title: `Weekly check-in: ${data.fixListCount ?? 0} items on your fix list`,
         body: `Your biggest open leak is worth addressing this week.`,
         cta: "Open Fix List", ctaUrl: "/dashboard?tab=fixlist",
       };
     case "monthly_scan":
       return {
         ...base, type, priority: "routine", channel: "both",
-        title: `Monthly scan complete: ${data.newLeaks || 0} new, ${data.improvedLeaks || 0} improved`,
-        body: `Health score: ${data.healthScore || 0}. Total saved: $${(data.totalSaved || 0).toLocaleString()}.`,
+        title: `Monthly scan complete: ${data.newLeaks ?? 0} new, ${data.improvedLeaks ?? 0} improved`,
+        body: `Health score: ${data.healthScore ?? 0}. Total saved: $${(data.totalSaved ?? 0).toLocaleString()}.`,
         cta: "See Full Report", ctaUrl: "/dashboard?tab=trends",
       };
     case "leak_worsened":
@@ -110,28 +110,28 @@ export function generateNotification(
       return {
         ...base, type, priority: "celebration", channel: "push",
         title: `${data.fixedMetric || "A leak"} just hit your target!`,
-        body: `That fix saved $${(data.fixedSavings || 0).toLocaleString()}/yr.`,
+        body: `That fix saved $${(data.fixedSavings ?? 0).toLocaleString()}/yr.`,
         cta: "See Your Progress", ctaUrl: "/dashboard?tab=trends",
       };
     case "team_fix":
       return {
         ...base, type, priority: "celebration", channel: "push",
         title: `${data.teamMember || "A team member"} fixed a leak`,
-        body: `Estimated savings: $${(data.fixedSavings || 0).toLocaleString()}/yr.`,
+        body: `Estimated savings: $${(data.fixedSavings ?? 0).toLocaleString()}/yr.`,
         cta: "View Team Progress", ctaUrl: "/dashboard?tab=team",
       };
     case "quarterly":
       return {
         ...base, type, priority: "report", channel: "email",
-        title: `Quarterly report: $${(data.totalSaved || 0).toLocaleString()} recovered`,
-        body: `${data.roi || 0}x your subscription cost.`,
+        title: `Quarterly report: $${(data.totalSaved ?? 0).toLocaleString()} recovered`,
+        body: `${data.roi ?? 0}x your subscription cost.`,
         cta: "Download Full Report", ctaUrl: "/dashboard?tab=reports",
       };
     case "annual":
       return {
         ...base, type, priority: "report", channel: "email",
-        title: `Your Year in Review: $${(data.totalSaved || 0).toLocaleString()} recovered`,
-        body: `${data.roi || 0}x ROI. From leaking to leading.`,
+        title: `Your Year in Review: $${(data.totalSaved ?? 0).toLocaleString()} recovered`,
+        body: `${data.roi ?? 0}x ROI. From leaking to leading.`,
         cta: "See Your Year", ctaUrl: "/dashboard?tab=reports",
       };
   }

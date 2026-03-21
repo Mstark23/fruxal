@@ -44,9 +44,9 @@ export function buildCompetitorUser(ctx: CompetitorContext): string {
   return `Analyze the competitive position of this business based on their financial leak profile.
 
 BUSINESS: ${businessName} (${industry}, ${province})
-ANNUAL REVENUE: $${annualRevenue.toLocaleString()}
+ANNUAL REVENUE: $${(Number(annualRevenue) || 0).toLocaleString()}
 HEALTH SCORE: ${healthScore}/100
-TOTAL LEAKING: $${totalLeaking.toLocaleString()}/yr
+TOTAL LEAKING: $${(Number(totalLeaking) || 0).toLocaleString()}/yr
 ${competitors ? `COMPETITORS MENTIONED: ${competitors}` : ""}
 
 TOP LEAKS (competitive disadvantages):

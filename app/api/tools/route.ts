@@ -11,6 +11,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 // ─── Leak Category → Solution Category Mapping ───────────────────────────────
 const LEAK_TO_SOLUTION: Record<string, string[]> = {
   // Scan orchestrator categories

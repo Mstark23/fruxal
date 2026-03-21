@@ -79,9 +79,9 @@ export async function analyzeAdvancedTracking(businessId: string) {
     mkt.forEach(m => {
       const ch = m.channel;
       const curr = byChannel.get(ch) || { spend: 0, revenue: 0, customers: 0 };
-      curr.spend += Number(m.spend || 0);
-      curr.revenue += Number(m.revenue_attributed || 0);
-      curr.customers += Number(m.customers_acquired || 0);
+      curr.spend += Number(m.spend ?? 0);
+      curr.revenue += Number(m.revenue_attributed ?? 0);
+      curr.customers += Number(m.customers_acquired ?? 0);
       byChannel.set(ch, curr);
     });
 
@@ -108,8 +108,8 @@ export async function analyzeAdvancedTracking(businessId: string) {
       const firstHalf = mkt.filter(m => periods.indexOf(m.period_start) < periods.length / 2);
       const secondHalf = mkt.filter(m => periods.indexOf(m.period_start) >= periods.length / 2);
 
-      const earlyCAC = firstHalf.reduce((s, m) => s + Number(m.spend || 0), 0) / Math.max(1, firstHalf.reduce((s, m) => s + Number(m.customers_acquired || 0), 0));
-      const recentCAC = secondHalf.reduce((s, m) => s + Number(m.spend || 0), 0) / Math.max(1, secondHalf.reduce((s, m) => s + Number(m.customers_acquired || 0), 0));
+      const earlyCAC = firstHalf.reduce((s, m) => s + Number(m.spend ?? 0), 0) / Math.max(1, firstHalf.reduce((s, m) => s + Number(m.customers_acquired ?? 0), 0));
+      const recentCAC = secondHalf.reduce((s, m) => s + Number(m.spend ?? 0), 0) / Math.max(1, secondHalf.reduce((s, m) => s + Number(m.customers_acquired ?? 0), 0));
       const cacIncrease = earlyCAC > 0 ? ((recentCAC - earlyCAC) / earlyCAC) * 100 : 0;
 
       if (cacIncrease > 20 && recentCAC > 50) {
@@ -119,7 +119,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
           severity: cacIncrease > 50 ? "critical" : "high",
           currentValue: `CAC rose from $${earlyCAC.toFixed(0)} to $${recentCAC.toFixed(0)} (+${cacIncrease.toFixed(0)}%)`,
           benchmark: "CAC should be stable or decreasing over time",
-          annualImpact: Math.round((recentCAC - earlyCAC) * secondHalf.reduce((s, m) => s + Number(m.customers_acquired || 0), 0) * 2),
+          annualImpact: Math.round((recentCAC - earlyCAC) * secondHalf.reduce((s, m) => s + Number(m.customers_acquired ?? 0), 0) * 2),
           description: `It's getting ${cacIncrease.toFixed(0)}% more expensive to acquire each customer. Early periods averaged $${earlyCAC.toFixed(0)}/customer, recent periods $${recentCAC.toFixed(0)}.`,
           recommendation: `Audit channel performance individually. Double down on lowest-CAC channels. Improve conversion rates on landing pages. Consider referral programs.`,
           confidence: 0.70,
@@ -128,11 +128,11 @@ export async function analyzeAdvancedTracking(businessId: string) {
     }
 
     // ─── 3. UNTRACKED MARKETING SPEND ───
-    const totalMktSpend = mkt.reduce((s, m) => s + Number(m.spend || 0), 0);
-    const totalAttributed = mkt.reduce((s, m) => s + Number(m.revenue_attributed || 0), 0);
-    const noAttribution = mkt.filter(m => Number(m.revenue_attributed || 0) === 0 && Number(m.spend || 0) > 0);
+    const totalMktSpend = mkt.reduce((s, m) => s + Number(m.spend ?? 0), 0);
+    const totalAttributed = mkt.reduce((s, m) => s + Number(m.revenue_attributed ?? 0), 0);
+    const noAttribution = mkt.filter(m => Number(m.revenue_attributed ?? 0) === 0 && Number(m.spend ?? 0) > 0);
     if (noAttribution.length > 0) {
-      const untrackedSpend = noAttribution.reduce((s, m) => s + Number(m.spend || 0), 0);
+      const untrackedSpend = noAttribution.reduce((s, m) => s + Number(m.spend ?? 0), 0);
       leaks.push({
         id: "mkt-untracked", layer: "Marketing", category: "Visibility",
         title: "Marketing Spend Without Attribution",
@@ -154,8 +154,8 @@ export async function analyzeAdvancedTracking(businessId: string) {
   if (inv.length > 0) {
     // ─── 4. SHRINKAGE / THEFT GAP ───
     inv.forEach(item => {
-      const shrinkPct = Number(item.shrinkage_pct || 0);
-      const unaccounted = Number(item.unaccounted_loss || 0);
+      const shrinkPct = Number(item.shrinkage_pct ?? 0);
+      const unaccounted = Number(item.unaccounted_loss ?? 0);
       if (shrinkPct > 3 && unaccounted > 500) {
         leaks.push({
           id: `inv-shrinkage-${item.category}-${item.period_start}`, layer: "Inventory", category: "Shrinkage",
@@ -164,7 +164,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
           currentValue: `${shrinkPct.toFixed(1)}% shrinkage — $${unaccounted.toFixed(0)} unaccounted`,
           benchmark: "Target: <2% shrinkage, Industry avg: 1.4-3%",
           annualImpact: Math.round(unaccounted * (12 / Math.max(1, inv.filter(i => i.category === item.category).length))),
-          description: `$${Number(item.shrinkage || 0).toFixed(0)} gap between theoretical and actual COGS for ${item.category}. Known waste accounts for $${Number(item.waste_logged || 0).toFixed(0)}, leaving $${unaccounted.toFixed(0)} unexplained (possible theft, spoilage, or data errors).`,
+          description: `$${Number(item.shrinkage ?? 0).toFixed(0)} gap between theoretical and actual COGS for ${item.category}. Known waste accounts for $${Number(item.waste_logged ?? 0).toFixed(0)}, leaving $${unaccounted.toFixed(0)} unexplained (possible theft, spoilage, or data errors).`,
           recommendation: `Implement inventory counts (weekly for high-value items). Install cameras in storage areas. Review receiving procedures. Cross-reference purchase orders with deliveries.`,
           confidence: 0.65,
         });
@@ -172,7 +172,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
     });
 
     // ─── 5. DEAD STOCK ───
-    const totalDeadStock = inv.reduce((s, i) => s + Number(i.dead_stock_value || 0), 0);
+    const totalDeadStock = inv.reduce((s, i) => s + Number(i.dead_stock_value ?? 0), 0);
     if (totalDeadStock > 1000) {
       leaks.push({
         id: "inv-dead-stock", layer: "Inventory", category: "Waste",
@@ -188,7 +188,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
     }
 
     // ─── 6. OVERSTOCK ───
-    const totalOverstock = inv.reduce((s, i) => s + Number(i.overstock_value || 0), 0);
+    const totalOverstock = inv.reduce((s, i) => s + Number(i.overstock_value ?? 0), 0);
     if (totalOverstock > 3000) {
       leaks.push({
         id: "inv-overstock", layer: "Inventory", category: "Cash Flow",
@@ -210,8 +210,8 @@ export async function analyzeAdvancedTracking(businessId: string) {
 
   if (lab.length > 0) {
     // ─── 7. OVERTIME BLEED ───
-    const avgOT = lab.reduce((s, l) => s + Number(l.overtime_pct || 0), 0) / lab.length;
-    const totalOTCost = lab.reduce((s, l) => s + Number(l.overtime_cost || 0), 0);
+    const avgOT = lab.reduce((s, l) => s + Number(l.overtime_pct ?? 0), 0) / lab.length;
+    const totalOTCost = lab.reduce((s, l) => s + Number(l.overtime_cost ?? 0), 0);
     if (avgOT > 10) {
       leaks.push({
         id: "labor-overtime", layer: "Labor", category: "Overtime",
@@ -228,7 +228,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
 
     // ─── 8. REVENUE PER EMPLOYEE ───
     const latestLabor = lab.sort((a, b) => b.period_start.localeCompare(a.period_start))[0];
-    const revPerEmp = Number(latestLabor?.revenue_per_employee || 0);
+    const revPerEmp = Number(latestLabor?.revenue_per_employee ?? 0);
     if (revPerEmp > 0 && revPerEmp < 15000) {
       leaks.push({
         id: "labor-rev-per-emp", layer: "Labor", category: "Productivity",
@@ -244,8 +244,8 @@ export async function analyzeAdvancedTracking(businessId: string) {
     }
 
     // ─── 9. TURNOVER COST ───
-    const totalTurnoverCost = lab.reduce((s, l) => s + Number(l.turnover_cost_est || 0), 0);
-    const totalTurnover = lab.reduce((s, l) => s + Number(l.turnover_count || 0), 0);
+    const totalTurnoverCost = lab.reduce((s, l) => s + Number(l.turnover_cost_est ?? 0), 0);
+    const totalTurnover = lab.reduce((s, l) => s + Number(l.turnover_count ?? 0), 0);
     if (totalTurnoverCost > 5000) {
       leaks.push({
         id: "labor-turnover", layer: "Labor", category: "Retention",
@@ -267,9 +267,9 @@ export async function analyzeAdvancedTracking(businessId: string) {
 
   if (txData.length > 0) {
     // ─── 10. MISSED DEDUCTIONS ───
-    const potentialDeductions = txData.filter(t => t.status === "potential" && Number(t.gap || 0) > 0);
+    const potentialDeductions = txData.filter(t => t.status === "potential" && Number(t.gap ?? 0) > 0);
     if (potentialDeductions.length > 0) {
-      const totalGap = potentialDeductions.reduce((s, t) => s + Number(t.estimated_savings || 0), 0);
+      const totalGap = potentialDeductions.reduce((s, t) => s + Number(t.estimated_savings ?? 0), 0);
       leaks.push({
         id: "tax-missed-deductions", layer: "Tax", category: "Deductions",
         title: `${potentialDeductions.length} Potential Missed Tax Deductions`,
@@ -303,7 +303,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
     // ─── 12. 1099 GAPS ───
     const missed1099 = txData.filter(t => t.category === "missed_1099");
     if (missed1099.length > 0) {
-      const total1099Gap = missed1099.reduce((s, t) => s + Number(t.estimated_deduction || 0), 0);
+      const total1099Gap = missed1099.reduce((s, t) => s + Number(t.estimated_deduction ?? 0), 0);
       leaks.push({
         id: "tax-1099", layer: "Tax", category: "Compliance",
         title: "Missing 1099 Filings — Penalty Risk",
@@ -326,8 +326,8 @@ export async function analyzeAdvancedTracking(businessId: string) {
     // ─── 13. UNDERPRICED SERVICES ───
     prc.forEach(item => {
       const position = Number(item.percentile_position || 50);
-      const marketMedian = Number(item.market_median || 0);
-      const currentPrice = Number(item.current_price || 0);
+      const marketMedian = Number(item.market_median ?? 0);
+      const currentPrice = Number(item.current_price ?? 0);
 
       if (position < 25 && marketMedian > 0 && currentPrice < marketMedian * 0.85) {
         const volumeOrOne = Number(item.volume_last_12mo || 1);
@@ -348,9 +348,9 @@ export async function analyzeAdvancedTracking(businessId: string) {
 
     // ─── 14. STALE PRICING ───
     prc.forEach(item => {
-      const monthsSince = Number(item.months_since_change || 0);
+      const monthsSince = Number(item.months_since_change ?? 0);
       if (monthsSince > 18) {
-        const inflationLoss = Number(item.revenue_last_12mo || 0) * 0.04 * (monthsSince / 12);
+        const inflationLoss = Number(item.revenue_last_12mo ?? 0) * 0.04 * (monthsSince / 12);
         leaks.push({
           id: `price-stale-${item.service_or_product}`, layer: "Pricing", category: "Stale",
           title: `Price Unchanged ${monthsSince} Months: ${item.service_or_product}`,
@@ -367,7 +367,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
 
     // ─── 15. MARGIN COMPRESSION ───
     prc.forEach(item => {
-      const margin = Number(item.current_margin_pct || 0);
+      const margin = Number(item.current_margin_pct ?? 0);
       if (margin > 0 && margin < 30) {
         leaks.push({
           id: `price-margin-${item.service_or_product}`, layer: "Pricing", category: "Margin",
@@ -375,7 +375,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
           severity: margin < 15 ? "critical" : margin < 20 ? "high" : "medium",
           currentValue: `${margin.toFixed(1)}% margin ($${Number(item.current_price).toFixed(2)} price, $${Number(item.cost_to_deliver).toFixed(2)} cost)`,
           benchmark: "Target: 40-60%+ margin depending on industry",
-          annualImpact: Math.round(Number(item.revenue_last_12mo || 0) * ((40 - margin) / 100)),
+          annualImpact: Math.round(Number(item.revenue_last_12mo ?? 0) * ((40 - margin) / 100)),
           description: `"${item.service_or_product}" has only ${margin.toFixed(1)}% margin. After overhead allocation, this may be a money loser.`,
           recommendation: `Reduce delivery costs, increase price, or consider discontinuing. Analyze whether this product/service drives other profitable sales.`,
           confidence: 0.70,
@@ -392,7 +392,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
     // ─── 16. UNPROFITABLE CLIENTS ───
     const unprofitable = cp.filter(c => !c.is_profitable || Number(c.gross_margin_pct || 100) < 10);
     if (unprofitable.length > 0) {
-      const totalLoss = unprofitable.reduce((s, c) => s + Math.max(0, Number(c.direct_costs || 0) - Number(c.gross_revenue || 0)), 0);
+      const totalLoss = unprofitable.reduce((s, c) => s + Math.max(0, Number(c.direct_costs ?? 0) - Number(c.gross_revenue ?? 0)), 0);
       leaks.push({
         id: "client-unprofitable", layer: "Clients", category: "Profitability",
         title: `${unprofitable.length} Unprofitable Client(s)`,
@@ -407,10 +407,10 @@ export async function analyzeAdvancedTracking(businessId: string) {
     }
 
     // ─── 17. SLOW-PAYING CLIENTS ───
-    const slowPayers = cp.filter(c => Number(c.avg_days_to_pay || 0) > 45);
+    const slowPayers = cp.filter(c => Number(c.avg_days_to_pay ?? 0) > 45);
     if (slowPayers.length > 0) {
-      const avgDays = slowPayers.reduce((s, c) => s + Number(c.avg_days_to_pay || 0), 0) / slowPayers.length;
-      const totalSlowRevenue = slowPayers.reduce((s, c) => s + Number(c.gross_revenue || 0), 0);
+      const avgDays = slowPayers.reduce((s, c) => s + Number(c.avg_days_to_pay ?? 0), 0) / slowPayers.length;
+      const totalSlowRevenue = slowPayers.reduce((s, c) => s + Number(c.gross_revenue ?? 0), 0);
       leaks.push({
         id: "client-slow-pay", layer: "Clients", category: "Cash Flow",
         title: `${slowPayers.length} Slow-Paying Clients`,
@@ -427,7 +427,7 @@ export async function analyzeAdvancedTracking(businessId: string) {
     // ─── 18. CLIENT CONCENTRATION RISK ───
     const clientRevenue = new Map<string, number>();
     cp.forEach(c => {
-      clientRevenue.set(c.client_name, (clientRevenue.get(c.client_name) || 0) + Number(c.gross_revenue || 0));
+      clientRevenue.set(c.client_name, (clientRevenue.get(c.client_name) || 0) + Number(c.gross_revenue ?? 0));
     });
     const totalClientRev = Array.from(clientRevenue.values()).reduce((s, v) => s + v, 0);
 

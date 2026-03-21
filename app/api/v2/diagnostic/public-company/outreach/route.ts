@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     // ── Extract findings + financials ────────────────────────────────────────
     const findings: any[] = result.findings || [];
     const topFindings = [...findings]
-      .sort((a, b) => (b.impact_max || b.ebitda_improvement || 0) - (a.impact_max || a.ebitda_improvement || 0))
+      .sort((a, b) => (b.impact_max || b.ebitda_improvement ?? 0) - (a.impact_max || a.ebitda_improvement ?? 0))
       .slice(0, 5);
 
     // ── Source financials — works for both public (fmp_snapshot) and private ─────
@@ -64,22 +64,22 @@ export async function POST(req: NextRequest) {
 
     const companyName  = result.company_name || fmp.name    || profile.business_name || snapshot?.company_name || "the company";
     const ticker       = result.ticker       || fmp.symbol  || snapshot?.ticker       || "";
-    const revenue      = fmp.revenue         || profile.annual_revenue                || 0;
-    const ebitda       = fmp.ebitda          || profile.ebitda_estimate               || 0;
+    const revenue      = fmp.revenue         || profile.annual_revenue                ?? 0;
+    const ebitda       = fmp.ebitda          || profile.ebitda_estimate ?? 0;
     const ebitdaMargin = fmp.ebitdaMarginPct || (revenue > 0 && ebitda > 0 ? (ebitda / revenue) * 100 : 0);
-    const grossMargin  = fmp.grossMarginPct  || profile.gross_margin_pct              || 0;
-    const netMargin    = fmp.netMarginPct    || 0;
-    const employees    = fmp.employees       || profile.employee_count                || 0;
+    const grossMargin  = fmp.grossMarginPct  || profile.gross_margin_pct ?? 0;
+    const netMargin    = fmp.netMarginPct ?? 0;
+    const employees    = fmp.employees       || profile.employee_count                ?? 0;
     const industry     = fmp.industry        || profile.industry                      || result.industry || "";
     const sector       = fmp.sector          || "";
     const province     = fmp.province        || profile.province                      || "";
     const ceo          = fmp.ceo             || (isPrivate ? "Owner/Operator" : "");
     const fiscalYear   = result.fiscal_year  || fmp.latestFiscalYear                 || new Date().getFullYear().toString();
-    const ownerSalary  = profile.owner_salary || 0;
+    const ownerSalary  = profile.owner_salary ?? 0;
 
-    const totalLeaks    = result.totals?.annual_leaks    || result.total_annual_leaks    || 0;
-    const totalEBITDA   = result.totals?.ebitda_impact   || result.ebitda_impact         || 0;
-    const totalEV       = result.totals?.enterprise_value_impact || result.enterprise_value_impact || 0;
+    const totalLeaks    = result.totals?.annual_leaks    || result.total_annual_leaks    ?? 0;
+    const totalEBITDA   = result.totals?.ebitda_impact   || result.ebitda_impact ?? 0;
+    const totalEV       = result.totals?.enterprise_value_impact || result.enterprise_value_impact ?? 0;
     const execSummary   = result.executive_summary || "";
 
     const fmt  = (n: number) => `$${n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + "M" : n >= 1_000 ? (n / 1_000).toFixed(0) + "K" : n.toString()}`;
@@ -89,9 +89,9 @@ export async function POST(req: NextRequest) {
     const findingContext = topFindings.map((f, i) =>
       `FINDING ${i + 1}: ${f.title}
   Category: ${f.category} | Severity: ${f.severity}
-  Annual Impact: ${fmt(f.impact_min || 0)}–${fmt(f.impact_max || 0)}
-  EBITDA Improvement: ${fmt(f.ebitda_improvement || 0)}
-  EV Uplift: ${fmt(f.enterprise_value_improvement || 0)}
+  Annual Impact: ${fmt(f.impact_min ?? 0)}–${fmt(f.impact_max ?? 0)}
+  EBITDA Improvement: ${fmt(f.ebitda_improvement ?? 0)}
+  EV Uplift: ${fmt(f.enterprise_value_improvement ?? 0)}
   Calculation: ${f.calculation_shown || "N/A"}
   Recommendation: ${f.recommendation || "N/A"}`
     ).join("\n\n");
@@ -151,7 +151,7 @@ Revenue:       ${fmt(revenue)}
 EBITDA:        ${fmt(ebitda)}  (${pct(ebitdaMargin)} margin)
 Gross Margin:  ${pct(grossMargin)}
 Net Margin:    ${pct(netMargin)}
-Employees:     ${employees.toLocaleString()}
+Employees:     ${(employees ?? 0).toLocaleString()}
 
 DIAGNOSTIC RESULTS:
 Total Annual Leaks:        ${fmt(totalLeaks)}
@@ -182,7 +182,7 @@ Write the full outreach sequence now. Remember: sentence 1 = ${fmt(biggestDollar
     const textBlock = response.content.find((b: any) => b.type === "text");
     const rawText   = (textBlock as any)?.text || "";
     const jsonStr   = rawText.replace(/```json\n?|```\n?/g, "").trim();
-    const emailResult = JSON.parse(jsonStr);
+    let emailResult: any = null; try { emailResult = JSON.parse(jsonStr); } catch { /* non-fatal */ }
 
     // ── Save ─────────────────────────────────────────────────────────────────
     await supabaseAdmin.from("diagnostic_outreach_emails").insert({
@@ -207,7 +207,7 @@ Write the full outreach sequence now. Remember: sentence 1 = ${fmt(biggestDollar
         total_leaks:         totalLeaks,
         total_ev:            totalEV,
         top_finding:         biggestFinding?.title || "",
-        top_finding_impact:  biggestFinding?.impact_max || 0,
+        top_finding_impact:  biggestFinding?.impact_max ?? 0,
         findings_used:       topFindings.length,
       },
     });

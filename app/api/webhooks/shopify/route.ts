@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 // =============================================================================
 // SHOPIFY WEBHOOK
 // =============================================================================
@@ -20,7 +22,8 @@ export async function POST(req: NextRequest) {
     // In production, verify HMAC signature
     // const hmac = req.headers.get("x-shopify-hmac-sha256");
 
-    const data = JSON.parse(body);
+    let data: any;
+  try { data = JSON.parse(body); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
     // Find business by shop domain
     const integrations = await prisma.$queryRawUnsafe(
@@ -123,7 +126,7 @@ export async function POST(req: NextRequest) {
                 businessId,
                 clientId: invoice.clientId,
                 type: "COLLECTION_FAILURE",
-                description: `Shopify refund: $${refundAmount.toLocaleString()} on Order #${orderId}. Reason: ${refund.note || "not specified"}`,
+                description: `Shopify refund: $${(refundAmount ?? 0).toLocaleString()} on Order #${orderId}. Reason: ${refund.note || "not specified"}`,
                 annualImpact: refundAmount,
                 // @ts-ignore
                 confidence: 100,

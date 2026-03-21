@@ -9,6 +9,8 @@ import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const CAT_LABELS: Record<string, string> = {
   tax_structure: "Tax Structure", vendor_procurement: "Vendor & Procurement",
   payroll_hr: "Payroll & HR", banking_treasury: "Banking & Treasury",
@@ -29,7 +31,7 @@ const DOC_CAT: Record<string, string> = {
 
 async function getTotals(engId: string) {
   const { data: findings } = await supabaseAdmin.from("tier3_confirmed_findings").select("confirmed_amount").eq("engagement_id", engId);
-  const confirmed = (findings || []).reduce((s: number, f: any) => s + (f.confirmed_amount || 0), 0);
+  const confirmed = (findings || []).reduce((s: number, f: any) => s + (f.confirmed_amount ?? 0), 0);
   const { data: eng } = await supabaseAdmin.from("tier3_engagements").select("fee_percentage").eq("id", engId).single();
   const fee = Math.round(confirmed * ((eng?.fee_percentage || 12) / 100));
   return { confirmedSavings: confirmed, feeOwed: fee };
@@ -68,7 +70,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const totalDocs = docs.length;
     const receivedDocs = docs.filter((d: any) => d.status === "received" || d.status === "reviewed").length;
-    const confirmedSavings = findings.reduce((s: number, f: any) => s + (f.confirmed_amount || 0), 0);
+    const confirmedSavings = findings.reduce((s: number, f: any) => s + (f.confirmed_amount ?? 0), 0);
     const feeOwed = Math.round(confirmedSavings * ((eng.fee_percentage || 12) / 100));
 
     return NextResponse.json({
@@ -110,7 +112,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       if (status === "received") update.received_at = new Date().toISOString();
       if (notes !== undefined) update.notes = notes;
 
-      await supabaseAdmin.from("tier3_engagement_documents").update(update).eq("id", documentId);
+      // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
+    await supabaseAdmin.from("tier3_engagement_documents").update(update).eq("id", documentId);
       const totals = await getTotals(id);
       return NextResponse.json({ success: true, ...totals });
     }
@@ -125,7 +128,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       await supabaseAdmin.from("tier3_confirmed_findings").insert({
         id: crypto.randomUUID(), engagement_id: id,
         leak_id: leakId, leak_name: leakName, category: category || "unknown",
-        estimated_low: estimatedLow || 0, estimated_high: estimatedHigh || 0,
+        estimated_low: estimatedLow ?? 0, estimated_high: estimatedHigh ?? 0,
         confirmed_amount: Number(confirmedAmount),
         confidence_note: confidenceNote || null,
       });

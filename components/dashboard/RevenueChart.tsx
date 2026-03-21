@@ -9,7 +9,7 @@ export function RevenueChart({ data, labels }: Props) {
           <div
             className="w-full bg-brand/12 hover:bg-brand/20 rounded-t-xs transition-colors min-h-[2px]"
             style={{ height: (v / max) * 100 + "%" }}
-            title={`${labels[i]}: $${v.toLocaleString()}`}
+            title={`${labels[i]}: $${(Number(v) || 0).toLocaleString()}`}
           />
           <span className="text-[9px] text-ink-faint mt-1.5 font-medium">{labels[i]}</span>
         </div>

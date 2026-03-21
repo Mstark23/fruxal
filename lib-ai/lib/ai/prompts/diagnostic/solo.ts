@@ -27,7 +27,7 @@ export function buildSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userProm
   const systemPrompt = `${FRUXAL_VOICE}
 
 You are analyzing ${bizName}, a ${industry} operating in ${province} as a ${structure}.
-Annual revenue: $${annualRevenue.toLocaleString()} (${revenueSource}).
+Annual revenue: $${(Number(annualRevenue) || 0).toLocaleString()} (${revenueSource}).
 Employees: ${employees}.
 
 ${taxCtx}
@@ -36,7 +36,7 @@ ${taxCtx}
 Before producing any JSON, reason through these questions in order:
 
 1. HST/GST THRESHOLD
-   Revenue is $${annualRevenue.toLocaleString()}. The mandatory registration threshold is $30,000.
+   Revenue is $${(Number(annualRevenue) || 0).toLocaleString()}. The mandatory registration threshold is $30,000.
    ${annualRevenue < 30_000
      ? "They are BELOW the threshold. Should they register voluntarily for ITC recovery? Calculate the net benefit."
      : annualRevenue < 50_000
@@ -47,7 +47,7 @@ Before producing any JSON, reason through these questions in order:
    Currently a ${structure}.
    At what revenue point does incorporation save more than it costs (~$3K setup + $2K/yr compliance)?
    ${annualRevenue >= 80_000
-     ? `At $${annualRevenue.toLocaleString()}, incorporation is likely worth analyzing. Model the T4 vs dividend split.`
+     ? `At $${(Number(annualRevenue) || 0).toLocaleString()}, incorporation is likely worth analyzing. Model the T4 vs dividend split.`
      : "Below the typical incorporation breakeven. Sole prop deductions (home office, vehicle, equipment) may be the bigger lever."}
 
 3. DEDUCTIONS LIKELY BEING MISSED
@@ -83,7 +83,7 @@ ${buildQualityBar("solo")}
 ${buildSolutionMatrix("solo", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
 STRUCTURAL RULES:
-1. Calculate every dollar from ACTUAL revenue $${annualRevenue.toLocaleString()} (${revenueSource}).
+1. Calculate every dollar from ACTUAL revenue $${(Number(annualRevenue) || 0).toLocaleString()} (${revenueSource}).
 2. Keep language plain. This owner has no CFO, no accountant on retainer. No jargon.
 3. Maximum 5 findings. No finding under $500 annual impact.
 4. second_order_effects is a PLAIN STRING — NOT an array. One sentence on the cascade.
@@ -104,14 +104,14 @@ PROFILE:
 - Industry:          ${industry}
 - Province:          ${province}
 - Structure:         ${structure}
-- Annual revenue:    $${annualRevenue.toLocaleString()} (${revenueSource})
+- Annual revenue:    $${(Number(annualRevenue) || 0).toLocaleString()} (${revenueSource})
 - Employees:         ${employees}
 - Has accountant:    ${profile.has_accountant  ? "YES" : "NO"}
 - Has bookkeeper:    ${profile.has_bookkeeper  ? "YES" : "NO"}
 - Does R&D:          ${profile.does_rd         ? "YES" : "NO"}
 - Physical location: ${profile.has_physical_location ? "YES" : "NO"}
 - E-commerce:        ${profile.has_ecommerce   ? "YES" : "NO"}
-${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — estimated penalty $${penaltyExposure.toLocaleString()}` : ""}
+${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — estimated penalty $${(Number(penaltyExposure) || 0).toLocaleString()}` : ""}
 
 Return ONLY this JSON (no markdown fences):
 ${buildDiagnosticSchema("solo", 5)}`;

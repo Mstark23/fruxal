@@ -40,7 +40,7 @@ export function buildActionPlanUser(ctx: ActionPlanContext): string {
   return `Generate a 30/60/90 day action plan for this business.
 
 BUSINESS: ${businessName} (${industry}, ${province})
-TOTAL LEAKING: $${totalLeaking.toLocaleString()}/yr
+TOTAL LEAKING: $${(Number(totalLeaking) || 0).toLocaleString()}/yr
 
 FINDINGS (sorted by impact):
 ${sorted.slice(0, 15).map((f, i) =>

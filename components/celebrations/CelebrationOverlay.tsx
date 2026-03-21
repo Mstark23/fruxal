@@ -53,7 +53,7 @@ export default function CelebrationOverlay({ type, data, onDone }: CelebrationPr
   const animFrameRef = useRef<number>(0);
   const [phase, setPhase] = useState(0); // 0=particles, 1=content, 2=fadeout
   const [animatedSavings, setAnimatedSavings] = useState(0);
-  const [animatedScore, setAnimatedScore] = useState(data.oldScore || 0);
+  const [animatedScore, setAnimatedScore] = useState(data.oldScore ?? 0);
 
   // ─── Particle colors by type ───────────────────────────────────
   const colors = type === "leak_fixed"
@@ -70,7 +70,7 @@ export default function CelebrationOverlay({ type, data, onDone }: CelebrationPr
     const particles: Particle[] = [];
 
     for (let i = 0; i < count; i++) {
-      const centerX = window.innerWidth / 2;
+      const centerX = typeof window !== 'undefined' ? window.innerWidth / 2 : 400;
       const centerY = window.innerHeight * 0.35;
       const angle = (Math.random() * Math.PI * 2);
       const speed = 2 + Math.random() * 6;
@@ -183,7 +183,7 @@ export default function CelebrationOverlay({ type, data, onDone }: CelebrationPr
   // ─── Animated score ────────────────────────────────────────────
   useEffect(() => {
     if (phase < 1 || !data.newScore) return;
-    const start = data.oldScore || 0;
+    const start = data.oldScore ?? 0;
     const target = data.newScore;
     const duration = 1200;
     const steps = 30;
@@ -242,7 +242,7 @@ export default function CelebrationOverlay({ type, data, onDone }: CelebrationPr
                 <div className="inline-block bg-emerald-500/10 border border-emerald-500/15 rounded-xl px-5 py-3">
                   <p className="text-emerald-400/40 text-[9px] uppercase tracking-wider">You're Saving</p>
                   <p className="text-emerald-400 text-2xl font-black">
-                    +${animatedSavings.toLocaleString()}<span className="text-sm font-normal text-emerald-400/50">/yr</span>
+                    +${(Number(animatedSavings) || 0).toLocaleString()}<span className="text-sm font-normal text-emerald-400/50">/yr</span>
                   </p>
                 </div>
               )}

@@ -37,7 +37,7 @@ export function MonitoringSection({ fhChange, changePeriod, dataHealth, transact
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-ink-secondary">{t("Transactions", "Transactions")}</span>
-            <span className="text-ink font-medium">{transactionCount > 0 ? transactionCount.toLocaleString() : "—"}</span>
+            <span className="text-ink font-medium">{transactionCount > 0 ? (Number(transactionCount) || 0).toLocaleString() : "—"}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-ink-secondary">{t("Categorized", "Catégorisées")}</span>

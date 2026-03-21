@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       if (!error) {
         return NextResponse.json({ success: true });
       }
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Fallback: direct update
     await supabase

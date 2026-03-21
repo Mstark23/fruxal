@@ -43,7 +43,7 @@ export default function LandingPage() {
     try {
       const stored = localStorage.getItem("fruxal_lang");
       if (stored === "fr" || stored === "en") { setLang(stored); return; }
-    } catch {}
+    } catch { /* non-fatal */ }
     if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("fr")) setLang("fr");
   }, []);
 
@@ -58,11 +58,11 @@ export default function LandingPage() {
         setChatStarted(true);
       }
       const savedMsgs = sessionStorage.getItem("lg_prescan_messages");
-      if (savedMsgs) setMessages(JSON.parse(savedMsgs));
+      try { if (savedMsgs) setMessages(JSON.parse(savedMsgs)); } catch { /* non-fatal */ }
       const savedSid = sessionStorage.getItem("lg_prescan_sessionId");
       if (savedSid) setSessionId(savedSid);
       const savedHist = sessionStorage.getItem("lg_prescan_rawHistory");
-      if (savedHist) setRawHistory(JSON.parse(savedHist));
+      try { if (savedHist) setRawHistory(JSON.parse(savedHist)); } catch { /* non-fatal */ }
       const savedLang = sessionStorage.getItem("lg_prescan_lang");
       if (savedLang === "fr" || savedLang === "en") setLang(savedLang);
     } catch { /* sessionStorage read failed — start fresh */ }
@@ -78,7 +78,7 @@ export default function LandingPage() {
         sessionStorage.setItem("lg_prescan_messages", JSON.stringify(messages));
         if (sessionId) sessionStorage.setItem("lg_prescan_sessionId", sessionId);
         if (rawHistory.length > 0) sessionStorage.setItem("lg_prescan_rawHistory", JSON.stringify(rawHistory));
-      } catch {}
+      } catch { /* non-fatal */ }
     }
   }, [messages, chatLoading, sessionId, rawHistory]);
 
@@ -149,7 +149,7 @@ export default function LandingPage() {
           try {
             sessionStorage.setItem("lg_prescan_result", JSON.stringify(prescanResult));
             sessionStorage.setItem("lg_prescan_lang", lang);
-          } catch {}
+          } catch { /* non-fatal */ }
         }, 1500);
       } else {
         setMessages(prev => [...prev, { id: `a-${Date.now()}`, role: "assistant", content: data.message }]);
@@ -182,7 +182,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-border-light rounded-[7px] p-[3px] gap-[2px]">
             {(["en", "fr"] as const).map(l => (
-              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch {} }}
+              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch { /* non-fatal */ } }}
                 className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wide rounded-[5px] transition-all ${lang === l ? "bg-white text-ink shadow-sm" : "text-ink-muted hover:text-ink bg-transparent"}`}>
                 {l}
               </button>
@@ -249,7 +249,7 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center bg-white/10 rounded-[7px] p-[3px] gap-[2px]">
               {(["en", "fr"] as const).map(l => (
-                <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch {} }}
+                <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch { /* non-fatal */ } }}
                   className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wide rounded-[5px] transition-all ${lang === l ? "bg-white text-brand shadow-sm" : "text-white/60 hover:text-white bg-transparent"}`}>
                   {l}
                 </button>
@@ -358,7 +358,7 @@ export default function LandingPage() {
               </div>
               <div className="bg-white p-6">
                 <div className="text-xs text-ink-muted uppercase tracking-wider font-semibold mb-2">{t("Estimated Annual Leak", "Fuite annuelle estimée")}</div>
-                <div className="font-serif text-[40px] text-negative tracking-tight">${(result.analysis.totalLeak || 0).toLocaleString()}</div>
+                <div className="font-serif text-[40px] text-negative tracking-tight">${(result.analysis.totalLeak ?? 0).toLocaleString()}</div>
               </div>
               <div className="bg-white p-6">
                 <div className="text-xs text-ink-muted uppercase tracking-wider font-semibold mb-2">{t("Leaks Found", "Fuites trouvées")}</div>
@@ -385,7 +385,7 @@ export default function LandingPage() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-serif text-xl text-negative font-semibold">${(leak.amount || 0).toLocaleString()}<span className="text-xs text-ink-muted font-sans">{t("/yr", "/an")}</span></div>
+                            <div className="font-serif text-xl text-negative font-semibold">${(leak.amount ?? 0).toLocaleString()}<span className="text-xs text-ink-muted font-sans">{t("/yr", "/an")}</span></div>
                           </div>
                         </div>
                         <div className="px-5 pb-3">
@@ -443,8 +443,8 @@ export default function LandingPage() {
                           </div>
                           <p className="text-sm text-ink-secondary mb-4">
                             {t(
-                              `${hiddenCount} additional leaks worth $${result.analysis.leaks.slice(VISIBLE).reduce((s: number, l: any) => s + (l.amount || 0), 0).toLocaleString()}/yr are waiting. Create a free account to unlock them.`,
-                              `${hiddenCount} fuites supplémentaires valant $${result.analysis.leaks.slice(VISIBLE).reduce((s: number, l: any) => s + (l.amount || 0), 0).toLocaleString()}/an vous attendent. Créez un compte gratuit pour les débloquer.`
+                              `${hiddenCount} additional leaks worth $${result.analysis.leaks.slice(VISIBLE).reduce((s: number, l: any) => s + (l.amount ?? 0), 0).toLocaleString()}/yr are waiting. Create a free account to unlock them.`,
+                              `${hiddenCount} fuites supplémentaires valant $${result.analysis.leaks.slice(VISIBLE).reduce((s: number, l: any) => s + (l.amount ?? 0), 0).toLocaleString()}/an vous attendent. Créez un compte gratuit pour les débloquer.`
                             )}
                           </p>
                           <button

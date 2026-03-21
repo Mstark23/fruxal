@@ -26,6 +26,7 @@ const STATUS_STYLE: Record<string,{bg:string;color:string}> = {
 
 export default function EngagementsPage() {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
   const [engagements, setEngagements] = useState<Engagement[]>([]);
   const [stats, setStats]             = useState<Stats|null>(null);
   const [loading, setLoading]         = useState(true);
@@ -57,6 +58,8 @@ export default function EngagementsPage() {
   };
 
   return (
+    <>
+    {error && <div className="text-red-400 p-4">{error}</div>}
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-7xl mx-auto px-6 py-8">
 
@@ -198,5 +201,6 @@ export default function EngagementsPage() {
         </div>
       )}
     </div>
+  </>
   );
 }

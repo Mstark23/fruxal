@@ -5,6 +5,7 @@ import { ALL_INDUSTRIES, POPULAR_INDUSTRIES, getDisplayName } from "@/lib/indust
 
 export default function DemoPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [industry, setIndustry] = useState("");
   const [scanning, setScanning] = useState(false);
   const [results, setResults] = useState<any>(null);
@@ -28,7 +29,8 @@ export default function DemoPage() {
     await new Promise(r => setTimeout(r, 2500));
 
     try {
-      const res = await fetch("/api/demo/scan", {
+      setIsLoading(true);
+    const res = await fetch("/api/demo/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ industry: ind }),
@@ -37,6 +39,7 @@ export default function DemoPage() {
       setResults(data);
       // Store for use after signup
       sessionStorage.setItem("demoResults", JSON.stringify({ ...data, industry: ind }));
+    setIsLoading(false);
     } catch {
       setResults({ leaks: [], totalAmount: 0, healthScore: 50, leakCount: 0, urgentCount: 0, lockedCount: 0, isDemo: true });
     }
@@ -45,6 +48,8 @@ export default function DemoPage() {
   };
 
   const sevColor = (s: string) => s === "CRITICAL" || s === "urgent" ? "#ff3d57" : s === "HIGH" || s === "important" ? "#ff8f00" : "#2979ff";
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
 
   return (
     <div className="min-h-screen bg-[#0a0e17] text-white" style={{ fontFamily: "system-ui, sans-serif" }}>
@@ -115,7 +120,7 @@ export default function DemoPage() {
             <div className="text-center mb-8">
               <div className="text-5xl mb-4">💸</div>
               <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Your {getDisplayName(industry)} is leaking</div>
-              <div className="text-5xl sm:text-6xl font-black text-[#ff3d57]">${(results.totalAmount || 0).toLocaleString()}<span className="text-lg text-gray-400">/yr</span></div>
+              <div className="text-5xl sm:text-6xl font-black text-[#ff3d57]">${(results.totalAmount ?? 0).toLocaleString()}<span className="text-lg text-gray-400">/yr</span></div>
               <div className="flex items-center justify-center gap-4 mt-4">
                 <div className="text-center">
                   <div className="text-2xl font-black">{results.leakCount}</div>
@@ -140,7 +145,7 @@ export default function DemoPage() {
                 <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-1">
                     <div className="text-sm font-bold pr-2">{leak.title}</div>
-                    <div className="text-sm font-black whitespace-nowrap" style={{ color: sevColor(leak.severity) }}>${(leak.annualImpact || 0).toLocaleString()}/yr</div>
+                    <div className="text-sm font-black whitespace-nowrap" style={{ color: sevColor(leak.severity) }}>${(leak.annualImpact ?? 0).toLocaleString()}/yr</div>
                   </div>
                   <div className="text-xs text-gray-500 mb-2">You: {leak.yours} → Benchmark: {leak.benchmark}</div>
                   <div className="text-xs text-[#00c853] bg-[#00c853]/10 rounded-lg p-2">{leak.fixAction}</div>

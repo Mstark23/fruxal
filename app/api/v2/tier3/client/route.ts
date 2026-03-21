@@ -10,6 +10,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -116,10 +118,10 @@ async function buildResponseFromReport(report: any, userId: string) {
 
   // Build a leaks summary compatible with the old format
   const summary = {
-    totalEstimatedLow:   report.total_annual_leaks      || 0,
-    totalEstimatedHigh:  report.total_potential_savings || 0,
-    feeRangeLow:         Math.round((report.total_annual_leaks      || 0) * 0.10),
-    feeRangeHigh:        Math.round((report.total_potential_savings || 0) * 0.15),
+    totalEstimatedLow:   report.total_annual_leaks      ?? 0,
+    totalEstimatedHigh:  report.total_potential_savings ?? 0,
+    feeRangeLow:         Math.round((report.total_annual_leaks      ?? 0) * 0.10),
+    feeRangeHigh:        Math.round((report.total_potential_savings ?? 0) * 0.15),
     highConfidenceCount: findings.filter((f: any) => f.severity === "critical" || f.severity === "high").length,
   };
 
@@ -127,7 +129,7 @@ async function buildResponseFromReport(report: any, userId: string) {
     // Normalize to the shape the /v2/tier3 page expects:
     //   amount     — single dollar figure (use max for display)
     //   confidence — number 0-100 (page renders as a progress bar)
-    const impactMin = f.impact_min || f.annual_leak || 0;
+    const impactMin = f.impact_min || f.annual_leak ?? 0;
     const impactMax = f.impact_max || f.potential_savings || impactMin;
     const confidenceMap: Record<string, number> = { critical: 95, high: 80, medium: 55, low: 30 };
     return {
@@ -186,7 +188,7 @@ async function buildEngagementResponse(eng: any, diagData: any, source: string) 
       .catch(() => null),
   ]);
 
-  const confirmedSavings = findings.reduce((s: number, f: any) => s + (f.confirmed_amount || 0), 0);
+  const confirmedSavings = findings.reduce((s: number, f: any) => s + (f.confirmed_amount ?? 0), 0);
   const feeOwed          = Math.round(confirmedSavings * ((eng.fee_percentage || 12) / 100));
   const totalDocs        = docs.length;
   const receivedDocs     = docs.filter((d: any) => ["received", "reviewed"].includes(d.status)).length;
@@ -208,8 +210,8 @@ async function buildEngagementResponse(eng: any, diagData: any, source: string) 
       feePercentage:   eng.fee_percentage || 12,
       stageIndex:      currentStageIdx,
       stages:          STAGES,
-      estimatedLow:    diagData.summary?.totalEstimatedLow  || 0,
-      estimatedHigh:   diagData.summary?.totalEstimatedHigh || 0,
+      estimatedLow:    diagData.summary?.totalEstimatedLow ?? 0,
+      estimatedHigh:   diagData.summary?.totalEstimatedHigh ?? 0,
       confirmedSavings,
       feeOwed,
       documents: {

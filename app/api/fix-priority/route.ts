@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       .filter(l => (l.status || "OPEN").toUpperCase() !== "FIXED")
       .map(leak => {
         const fix = classifyFix(leak.title || "", leak.category || "");
-        const impact = leak.annualImpact || 0;
+        const impact = leak.annualImpact ?? 0;
         const priority_score = impact / Math.max(1, fix.days * fix.effort);
         const tier = getTier(fix.days);
         const monthlyImpact = Math.round(impact / 12);
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
           monthlyImpact,
           status: leak.status,
           source: leak.dataSource || leak.source || "scan",
-          confidence: leak.confidence || 0.7,
+          confidence: leak.confidence ?? 0.7,
           fix: {
             action: fix.action,
             days: fix.days,

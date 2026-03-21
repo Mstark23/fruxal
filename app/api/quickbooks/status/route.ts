@@ -32,11 +32,11 @@ export async function GET(req: NextRequest) {
       last_sync_at: conn?.last_sync_at || profile.qb_last_sync_at,
       last_error:   conn?.last_error   || null,
       summary: {
-        revenue_ttm:      profile.qb_revenue_ttm      || 0,
-        gross_profit_ttm: profile.qb_gross_profit_ttm || 0,
-        net_income_ttm:   profile.qb_net_income_ttm   || 0,
-        payroll_ttm:      profile.qb_payroll_ttm      || 0,
-        bank_balance:     profile.qb_bank_balance     || 0,
+        revenue_ttm:      profile.qb_revenue_ttm ?? 0,
+        gross_profit_ttm: profile.qb_gross_profit_ttm ?? 0,
+        net_income_ttm:   profile.qb_net_income_ttm ?? 0,
+        payroll_ttm:      profile.qb_payroll_ttm ?? 0,
+        bank_balance:     profile.qb_bank_balance ?? 0,
       },
     });
   } catch {

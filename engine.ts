@@ -122,8 +122,8 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 1. UTILIZATION RATE ─────────────────────────────────
   if (billing?.length) {
-    const totalAvailable = billing.reduce((s, b) => s + Number(b.available_hours || 0), 0);
-    const totalBillable = billing.reduce((s, b) => s + Number(b.billable_hours || 0), 0);
+    const totalAvailable = billing.reduce((s, b) => s + Number(b.available_hours ?? 0), 0);
+    const totalBillable = billing.reduce((s, b) => s + Number(b.billable_hours ?? 0), 0);
     if (totalAvailable > 0) {
       const utilRate = totalBillable / totalAvailable;
       const gap = BENCHMARKS.utilizationTarget - utilRate;
@@ -150,8 +150,8 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 2. REALIZATION RATE ─────────────────────────────────
   if (billing?.length) {
-    const totalBillableValue = billing.reduce((s, b) => s + Number(b.billable_hours || 0) * Number(b.standard_rate || 0), 0);
-    const totalBilled = billing.reduce((s, b) => s + Number(b.total_billed || 0), 0);
+    const totalBillableValue = billing.reduce((s, b) => s + Number(b.billable_hours ?? 0) * Number(b.standard_rate ?? 0), 0);
+    const totalBilled = billing.reduce((s, b) => s + Number(b.total_billed ?? 0), 0);
     if (totalBillableValue > 0) {
       const realRate = totalBilled / totalBillableValue;
       const leakage = totalBillableValue - totalBilled;
@@ -174,8 +174,8 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 3. COLLECTION RATE ──────────────────────────────────
   if (billing?.length) {
-    const totalBilled = billing.reduce((s, b) => s + Number(b.total_billed || 0), 0);
-    const totalCollected = billing.reduce((s, b) => s + Number(b.total_collected || 0), 0);
+    const totalBilled = billing.reduce((s, b) => s + Number(b.total_billed ?? 0), 0);
+    const totalCollected = billing.reduce((s, b) => s + Number(b.total_collected ?? 0), 0);
     if (totalBilled > 0) {
       const collRate = totalCollected / totalBilled;
       const uncollected = totalBilled - totalCollected;
@@ -198,11 +198,11 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 4. EFFECTIVE BILLING RATE (Compound Leak) ───────────
   if (billing?.length) {
-    const totalAvailable = billing.reduce((s, b) => s + Number(b.available_hours || 0), 0);
-    const totalBillable = billing.reduce((s, b) => s + Number(b.billable_hours || 0), 0);
-    const totalBillableValue = billing.reduce((s, b) => s + Number(b.billable_hours || 0) * Number(b.standard_rate || 0), 0);
-    const totalBilled = billing.reduce((s, b) => s + Number(b.total_billed || 0), 0);
-    const totalCollected = billing.reduce((s, b) => s + Number(b.total_collected || 0), 0);
+    const totalAvailable = billing.reduce((s, b) => s + Number(b.available_hours ?? 0), 0);
+    const totalBillable = billing.reduce((s, b) => s + Number(b.billable_hours ?? 0), 0);
+    const totalBillableValue = billing.reduce((s, b) => s + Number(b.billable_hours ?? 0) * Number(b.standard_rate ?? 0), 0);
+    const totalBilled = billing.reduce((s, b) => s + Number(b.total_billed ?? 0), 0);
+    const totalCollected = billing.reduce((s, b) => s + Number(b.total_collected ?? 0), 0);
     if (totalAvailable > 0 && totalBillable > 0 && totalBilled > 0) {
       const utilRate = totalBillable / totalAvailable;
       const realRate = totalBilled / totalBillableValue;
@@ -228,8 +228,8 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 5. WRITE-OFFS ──────────────────────────────────────
   if (billing?.length) {
-    const totalBilled = billing.reduce((s, b) => s + Number(b.total_billed || 0), 0);
-    const totalWriteOffs = billing.reduce((s, b) => s + Number(b.write_offs || 0), 0);
+    const totalBilled = billing.reduce((s, b) => s + Number(b.total_billed ?? 0), 0);
+    const totalWriteOffs = billing.reduce((s, b) => s + Number(b.write_offs ?? 0), 0);
     if (totalBilled > 0) {
       const woRate = totalWriteOffs / (totalBilled + totalWriteOffs);
       const annualized = (totalWriteOffs / billing.length) * 12;
@@ -252,9 +252,9 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
   // ─── 6. LOCKUP (Cash Flow Pipeline) ─────────────────────
   if (arAging?.length) {
     const latest = arAging[0];
-    const totalLockup = Number(latest.total_lockup_days || 0);
-    const realLockup = Number(latest.realization_lockup_days || 0);
-    const collLockup = Number(latest.collection_lockup_days || 0);
+    const totalLockup = Number(latest.total_lockup_days ?? 0);
+    const realLockup = Number(latest.realization_lockup_days ?? 0);
+    const collLockup = Number(latest.collection_lockup_days ?? 0);
     const monthlyRevenue = overhead?.[0]?.total_revenue ? Number(overhead[0].total_revenue) : 0;
     const cashTrapped = monthlyRevenue > 0 ? (totalLockup / 30) * monthlyRevenue : 0;
 
@@ -275,9 +275,9 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
   // ─── 7. ACCOUNTS RECEIVABLE AGING ───────────────────────
   if (arAging?.length) {
     const latest = arAging[0];
-    const totalAR = Number(latest.total_ar || 0);
-    const over90 = Number(latest.ar_91_120 || 0) + Number(latest.ar_over_120 || 0);
-    const over120 = Number(latest.ar_over_120 || 0);
+    const totalAR = Number(latest.total_ar ?? 0);
+    const over90 = Number(latest.ar_91_120 ?? 0) + Number(latest.ar_over_120 ?? 0);
+    const over120 = Number(latest.ar_over_120 ?? 0);
     if (totalAR > 0) {
       const over90Pct = over90 / totalAR;
       const over120Pct = over120 / totalAR;
@@ -300,8 +300,8 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
   // ─── 8. UNBILLED WORK-IN-PROGRESS ──────────────────────
   if (arAging?.length) {
     const latest = arAging[0];
-    const totalWIP = Number(latest.total_wip || 0);
-    const wipOver60 = Number(latest.wip_over_60_days || 0);
+    const totalWIP = Number(latest.total_wip ?? 0);
+    const wipOver60 = Number(latest.wip_over_60_days ?? 0);
     if (totalWIP > 0) {
       leaks.push({
         id: "lf-wip",
@@ -320,8 +320,8 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 9. OVERHEAD RATIO ─────────────────────────────────
   if (overhead?.length) {
-    const avgOverheadRatio = overhead.reduce((s, o) => s + Number(o.overhead_ratio || 0), 0) / overhead.length / 100;
-    const avgRevenue = overhead.reduce((s, o) => s + Number(o.total_revenue || 0), 0) / overhead.length;
+    const avgOverheadRatio = overhead.reduce((s, o) => s + Number(o.overhead_ratio ?? 0), 0) / overhead.length / 100;
+    const avgRevenue = overhead.reduce((s, o) => s + Number(o.total_revenue ?? 0), 0) / overhead.length;
     const excessOverhead = Math.max(0, avgOverheadRatio - BENCHMARKS.overheadRatioTarget) * avgRevenue * 12;
 
     leaks.push({
@@ -340,8 +340,8 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 10. PROFIT MARGIN ─────────────────────────────────
   if (overhead?.length) {
-    const avgMargin = overhead.reduce((s, o) => s + Number(o.profit_margin || 0), 0) / overhead.length / 100;
-    const avgRevenue = overhead.reduce((s, o) => s + Number(o.total_revenue || 0), 0) / overhead.length;
+    const avgMargin = overhead.reduce((s, o) => s + Number(o.profit_margin ?? 0), 0) / overhead.length / 100;
+    const avgRevenue = overhead.reduce((s, o) => s + Number(o.total_revenue ?? 0), 0) / overhead.length;
     const marginGap = Math.max(0, BENCHMARKS.profitMarginTarget - avgMargin);
     const annualImpact = marginGap * avgRevenue * 12;
 
@@ -361,13 +361,13 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 11. MISSED CALLS / INTAKE RESPONSIVENESS ──────────
   if (intake?.length) {
-    const avgMissed = intake.reduce((s, i) => s + Number(i.calls_missed || 0), 0) / intake.length;
-    const avgTotal = intake.reduce((s, i) => s + Number(i.calls_received || 0), 0) / intake.length;
-    const avgResponseTime = intake.reduce((s, i) => s + Number(i.avg_response_time_minutes || 0), 0) / intake.length;
+    const avgMissed = intake.reduce((s, i) => s + Number(i.calls_missed ?? 0), 0) / intake.length;
+    const avgTotal = intake.reduce((s, i) => s + Number(i.calls_received ?? 0), 0) / intake.length;
+    const avgResponseTime = intake.reduce((s, i) => s + Number(i.avg_response_time_minutes ?? 0), 0) / intake.length;
     if (avgTotal > 0) {
       const missRate = avgMissed / avgTotal;
       // Conservative: missed call × avg case value × conversion rate
-      const avgCaseValue = clients?.length ? (clients.reduce((s, c) => s + Number(c.lifetime_value || 0), 0) / clients.length) : 5000;
+      const avgCaseValue = clients?.length ? (clients.reduce((s, c) => s + Number(c.lifetime_value ?? 0), 0) / clients.length) : 5000;
       const missedRevenue = avgMissed * 12 * avgCaseValue * 0.10; // 10% would have converted
 
       leaks.push({
@@ -387,10 +387,10 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 12. INTAKE CONVERSION RATE ────────────────────────
   if (intake?.length) {
-    const avgConversion = intake.reduce((s, i) => s + Number(i.overall_conversion_rate || 0), 0) / intake.length / 100;
-    const avgInquiries = intake.reduce((s, i) => s + Number(i.total_inquiries || 0), 0) / intake.length;
+    const avgConversion = intake.reduce((s, i) => s + Number(i.overall_conversion_rate ?? 0), 0) / intake.length / 100;
+    const avgInquiries = intake.reduce((s, i) => s + Number(i.total_inquiries ?? 0), 0) / intake.length;
     if (avgConversion > 0 && avgInquiries > 0) {
-      const avgCaseValue = clients?.length ? (clients.reduce((s, c) => s + Number(c.lifetime_value || 0), 0) / clients.length) : 5000;
+      const avgCaseValue = clients?.length ? (clients.reduce((s, c) => s + Number(c.lifetime_value ?? 0), 0) / clients.length) : 5000;
       const additionalClients = avgInquiries * 12 * (BENCHMARKS.intakeConversionTarget - avgConversion);
       const revenue = Math.max(0, additionalClients * avgCaseValue);
 
@@ -411,11 +411,11 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 13. MARKETING SPEND & ROI ─────────────────────────
   if (overhead?.length) {
-    const avgRevenue = overhead.reduce((s, o) => s + Number(o.total_revenue || 0), 0) / overhead.length;
-    const avgMarketing = overhead.reduce((s, o) => s + Number(o.marketing_spend || 0), 0) / overhead.length;
+    const avgRevenue = overhead.reduce((s, o) => s + Number(o.total_revenue ?? 0), 0) / overhead.length;
+    const avgMarketing = overhead.reduce((s, o) => s + Number(o.marketing_spend ?? 0), 0) / overhead.length;
     if (avgRevenue > 0) {
       const marketPct = avgMarketing / avgRevenue;
-      const signedClients = intake?.length ? intake.reduce((s, i) => s + Number(i.clients_signed || 0), 0) / intake.length : 0;
+      const signedClients = intake?.length ? intake.reduce((s, i) => s + Number(i.clients_signed ?? 0), 0) / intake.length : 0;
       const cac = signedClients > 0 ? avgMarketing / signedClients : 0;
 
       leaks.push({
@@ -436,7 +436,7 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
   // ─── 14. ATTORNEY TURNOVER ─────────────────────────────
   if (staffing?.length) {
     const latest = staffing[0];
-    const turnoverRate = Number(latest.annualized_turnover_rate || 0) / 100;
+    const turnoverRate = Number(latest.annualized_turnover_rate ?? 0) / 100;
     const totalAttorneys = Number(latest.total_attorneys || 1);
     const departures = turnoverRate * totalAttorneys;
     const turnoverCost = departures * BENCHMARKS.turnoverCostPerAttorney;
@@ -457,7 +457,7 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 15. REVENUE PER LAWYER ────────────────────────────
   if (staffing?.length && overhead?.length) {
-    const rpl = Number(staffing[0].revenue_per_lawyer || 0);
+    const rpl = Number(staffing[0].revenue_per_lawyer ?? 0);
     if (rpl > 0) {
       const gap = Math.max(0, BENCHMARKS.revenuePerLawyerMin - rpl);
       const attorneys = Number(staffing[0].total_attorneys || 1);
@@ -482,9 +482,9 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
     const closedMatters = matters.filter((m: any) => m.status === "closed" && m.profit_margin != null);
     if (closedMatters.length > 0) {
       const unprofitable = closedMatters.filter((m: any) => Number(m.profit_margin) < 20);
-      const avgMargin = closedMatters.reduce((s: number, m: any) => s + Number(m.profit_margin || 0), 0) / closedMatters.length;
+      const avgMargin = closedMatters.reduce((s: number, m: any) => s + Number(m.profit_margin ?? 0), 0) / closedMatters.length;
       const lossMatters = closedMatters.filter((m: any) => Number(m.profit_margin) < 0);
-      const totalLoss = lossMatters.reduce((s: number, m: any) => s + Math.abs(Number(m.total_collected || 0) - Number(m.total_costs || 0)), 0);
+      const totalLoss = lossMatters.reduce((s: number, m: any) => s + Math.abs(Number(m.total_collected ?? 0) - Number(m.total_costs ?? 0)), 0);
 
       leaks.push({
         id: "lf-matter-profit",
@@ -504,11 +504,11 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
   // ─── 17. TRUST ACCOUNT COMPLIANCE ──────────────────────
   if (trust?.length) {
     const latest = trust[0];
-    const negBalances = Number(latest.negative_balance_incidents || 0);
-    const commingling = Number(latest.commingling_flags || 0);
+    const negBalances = Number(latest.negative_balance_incidents ?? 0);
+    const commingling = Number(latest.commingling_flags ?? 0);
     const notReconciled = !latest.three_way_reconciled;
-    const stale = Number(latest.stale_balances_over_90_days || 0);
-    const earnedNotTransferred = Number(latest.earned_fees_not_transferred || 0);
+    const stale = Number(latest.stale_balances_over_90_days ?? 0);
+    const earnedNotTransferred = Number(latest.earned_fees_not_transferred ?? 0);
     const issues = negBalances + commingling + (notReconciled ? 1 : 0);
 
     leaks.push({
@@ -527,7 +527,7 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
 
   // ─── 18. EARNED FEES LEFT IN TRUST ─────────────────────
   if (trust?.length) {
-    const totalEarned = trust.reduce((s, t) => s + Number(t.earned_fees_not_transferred || 0), 0) / trust.length;
+    const totalEarned = trust.reduce((s, t) => s + Number(t.earned_fees_not_transferred ?? 0), 0) / trust.length;
     if (totalEarned > 0) {
       leaks.push({
         id: "lf-earned-in-trust",
@@ -547,10 +547,10 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
   // ─── 19. LEVERAGE RATIO ────────────────────────────────
   if (staffing?.length) {
     const latest = staffing[0];
-    const partners = Number(latest.partners || 0);
-    const associates = Number(latest.associates || 0);
+    const partners = Number(latest.partners ?? 0);
+    const associates = Number(latest.associates ?? 0);
     const leverage = partners > 0 ? associates / partners : 0;
-    const staffRatio = Number(latest.staff_to_attorney_ratio || 0);
+    const staffRatio = Number(latest.staff_to_attorney_ratio ?? 0);
     const totalAttorneys = Number(latest.total_attorneys || 1);
 
     if (partners > 0) {
@@ -572,13 +572,13 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
   // ─── 20. CLIENT CONCENTRATION RISK ─────────────────────
   if (clients?.length) {
     const activeClients = clients.filter((c: any) => c.is_active);
-    const totalRevenue = activeClients.reduce((s: number, c: any) => s + Number(c.total_revenue || 0), 0);
+    const totalRevenue = activeClients.reduce((s: number, c: any) => s + Number(c.total_revenue ?? 0), 0);
     if (totalRevenue > 0 && activeClients.length > 0) {
-      const sorted = [...activeClients].sort((a: any, b: any) => Number(b.total_revenue || 0) - Number(a.total_revenue || 0));
+      const sorted = [...activeClients].sort((a: any, b: any) => Number(b.total_revenue ?? 0) - Number(a.total_revenue ?? 0));
       const topClient = sorted[0];
-      const topClientPct = Number(topClient.total_revenue || 0) / totalRevenue;
+      const topClientPct = Number(topClient.total_revenue ?? 0) / totalRevenue;
       const top3 = sorted.slice(0, 3);
-      const top3Pct = top3.reduce((s: number, c: any) => s + Number(c.total_revenue || 0), 0) / totalRevenue;
+      const top3Pct = top3.reduce((s: number, c: any) => s + Number(c.total_revenue ?? 0), 0) / totalRevenue;
 
       leaks.push({
         id: "lf-concentration",
@@ -587,7 +587,7 @@ export async function analyzeLawFirmLeaks(businessId: string): Promise<LeakResul
         severity: topClientPct > 0.30 ? "critical" : topClientPct > 0.20 ? "warning" : top3Pct > 0.50 ? "info" : "ok",
         currentValue: `Top client: ${(topClientPct * 100).toFixed(0)}% of revenue | Top 3: ${(top3Pct * 100).toFixed(0)}%`,
         benchmark: "No single client >15% | Top 3 <40%",
-        annualImpact: topClientPct > 0.20 ? Math.round(Number(topClient.total_revenue || 0) * 0.5) : 0,
+        annualImpact: topClientPct > 0.20 ? Math.round(Number(topClient.total_revenue ?? 0) * 0.5) : 0,
         description: `If your largest client leaves, ${(topClientPct * 100).toFixed(0)}% of revenue disappears. Client concentration above 20% creates dangerous dependency. Diversification is key to resilience.`,
         recommendation: "Actively develop new client channels. Strengthen relationships with mid-tier clients. Track client acquisition diversification. Set ceiling alerts at 15% per client.",
         source: "Thomson Reuters / CARET Legal",

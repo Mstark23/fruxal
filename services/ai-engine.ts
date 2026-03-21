@@ -121,7 +121,8 @@ If you cannot determine a value, use null. For pricing, extract every line item 
     jsonText = jsonText.replace(/```json?\n?/g, "").replace(/```$/g, "").trim();
   }
 
-  const extractedData = JSON.parse(jsonText);
+  let extractedData: any = {};
+  try { extractedData = JSON.parse(jsonText); } catch { extractedData = {}; }
   return extractedData;
 }
 

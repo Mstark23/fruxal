@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 import { generatePDFReport, generateExcelExport, gatherReportData } from "@/services/exports/export-service";
 
+export const maxDuration = 30; // Vercel function timeout (seconds)
+
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!

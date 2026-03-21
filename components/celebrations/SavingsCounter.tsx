@@ -20,7 +20,7 @@ interface SavingsCounterProps {
 }
 
 export default function SavingsCounter({ total, recent, leaksFixed, totalLeaks }: SavingsCounterProps) {
-  const [displayTotal, setDisplayTotal] = useState(total - (recent || 0));
+  const [displayTotal, setDisplayTotal] = useState(total - (recent ?? 0));
   const [showRecent, setShowRecent] = useState(false);
   const pct = totalLeaks > 0 ? Math.round((leaksFixed / totalLeaks) * 100) : 0;
 
@@ -59,7 +59,7 @@ export default function SavingsCounter({ total, recent, leaksFixed, totalLeaks }
       {showRecent && recent && recent > 0 && (
         <div className="absolute top-3 right-3" style={{ animation: "floatUp 2s ease-out forwards" }}>
           <span className="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg">
-            +${recent.toLocaleString()}/yr
+            +${(Number(recent) || 0).toLocaleString()}/yr
           </span>
         </div>
       )}
@@ -71,7 +71,7 @@ export default function SavingsCounter({ total, recent, leaksFixed, totalLeaks }
 
       {/* Big number */}
       <p className="text-emerald-400 text-3xl font-black mb-1">
-        ${displayTotal.toLocaleString()}
+        ${(Number(displayTotal) || 0).toLocaleString()}
         <span className="text-sm font-normal text-emerald-400/30">/yr</span>
       </p>
 

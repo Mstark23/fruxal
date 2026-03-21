@@ -28,8 +28,8 @@ export function buildBusinessPrompts(ctx: DiagCtx): { systemPrompt: string; user
   const systemPrompt = `${FRUXAL_VOICE}
 
 You are analyzing ${bizName}, a ${industry} operating in ${province}.
-Revenue: $${annualRevenue.toLocaleString()} (${revenueSource}) | EBITDA: ~$${estimatedEBITDA.toLocaleString()} (${ebitdaSource})
-Employees: ${employees} | Gross margin: ${grossMarginPct}%${ownerSalary > 0 ? ` | Owner salary: $${ownerSalary.toLocaleString()}` : ""}
+Revenue: $${(Number(annualRevenue) || 0).toLocaleString()} (${revenueSource}) | EBITDA: ~$${(Number(estimatedEBITDA) || 0).toLocaleString()} (${ebitdaSource})
+Employees: ${employees} | Gross margin: ${grossMarginPct}%${ownerSalary > 0 ? ` | Owner salary: $${(Number(ownerSalary) || 0).toLocaleString()}` : ""}
 
 ${taxCtx}
 
@@ -38,21 +38,21 @@ Reason through every check below before producing any output. State a finding on
 have calculated a real dollar impact from this business's actual numbers.
 
 1. T4 SALARY vs DIVIDENDS
-   Owner salary: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "not provided"}
-   Revenue: $${annualRevenue.toLocaleString()} | EBITDA: ~$${estimatedEBITDA.toLocaleString()}
+   Owner salary: $${ownerSalary > 0 ? (Number(ownerSalary) || 0).toLocaleString() : "not provided"}
+   Revenue: $${(Number(annualRevenue) || 0).toLocaleString()} | EBITDA: ~$${(Number(estimatedEBITDA) || 0).toLocaleString()}
    → What is the after-tax optimal T4 vs eligible dividend split?
    → CPP: T4 salary above $68,500 triggers 11.9% combined (employer + employee). Over-contributing?
    → At what salary level does additional T4 become net-negative vs dividends?
    → Model the dollar saving between current mix and optimal.
 
 2. PAYROLL COMPLIANCE
-   ${employees} employees${estimatedPayroll > 0 ? `, ~$${estimatedPayroll.toLocaleString()} estimated payroll` : ""}.
+   ${employees} employees${estimatedPayroll > 0 ? `, ~$${(Number(estimatedPayroll) || 0).toLocaleString()} estimated payroll` : ""}.
    → Are ROEs current? EHT/WSIB thresholds reached?
    → Payroll software: ${profile.has_payroll ? "has payroll" : "NO payroll system flagged"}.
    ${profile.has_payroll ? "→ Is the current payroll tool Canadian? Handling ROEs, T4s, direct deposit correctly?" : "→ Manual payroll = compliance risk. What is the penalty exposure?"}
 
 3. HST / GST
-   → Quick Method election: at $${annualRevenue.toLocaleString()} revenue, is it applicable?
+   → Quick Method election: at $${(Number(annualRevenue) || 0).toLocaleString()} revenue, is it applicable?
    Quick Method rates: service ~8.8% (ON), retail ~4.4%. Compare to actual remittance.
    → Input tax credits: are all eligible business expenses claiming full ITCs?
    → Any exempt supplies being incorrectly taxed or vice versa?
@@ -60,7 +60,7 @@ have calculated a real dollar impact from this business's actual numbers.
 4. ACCOUNTS RECEIVABLE
    Typical DSO for ${industry}: 30–45 days.
    → What is the working capital cost of slow collections?
-   → At $${annualRevenue.toLocaleString()} revenue, every 10 extra days DSO = ~$${Math.round(annualRevenue / 365 * 10).toLocaleString()} tied up.
+   → At $${(Number(annualRevenue) || 0).toLocaleString()} revenue, every 10 extra days DSO = ~$${Math.round(annualRevenue / 365 * 10).toLocaleString()} tied up.
 
 5. INSURANCE GAPS
    → GL, professional liability, cyber, key person — what is likely missing for a ${employees}-person ${industry}?
@@ -91,7 +91,7 @@ ${buildQualityBar("business")}
 ${buildSolutionMatrix("business", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
 STRUCTURAL RULES:
-1. Calculate every dollar from ACTUAL revenue $${annualRevenue.toLocaleString()} and EBITDA $${estimatedEBITDA.toLocaleString()}.
+1. Calculate every dollar from ACTUAL revenue $${(Number(annualRevenue) || 0).toLocaleString()} and EBITDA $${(Number(estimatedEBITDA) || 0).toLocaleString()}.
 2. Maximum 7 findings. No finding under $2,000 annual impact.
 3. Every finding MUST include ebitda_improvement AND enterprise_value_improvement. Assume 3–5× EBITDA multiple. Show the math.
 4. second_order_effects is a PLAIN STRING — NOT an array.
@@ -113,19 +113,19 @@ PROFILE:
 - Industry:          ${industry}
 - Province:          ${province}
 - Structure:         ${structure}
-- Annual revenue:    $${annualRevenue.toLocaleString()} (${revenueSource})
+- Annual revenue:    $${(Number(annualRevenue) || 0).toLocaleString()} (${revenueSource})
 - Gross margin:      ${grossMarginPct}%
-- Est. EBITDA:       $${estimatedEBITDA.toLocaleString()} (${ebitdaSource})
+- Est. EBITDA:       $${(Number(estimatedEBITDA) || 0).toLocaleString()} (${ebitdaSource})
 - Employees:         ${employees}
-${estimatedPayroll > 0 ? `- Est. payroll:      $${estimatedPayroll.toLocaleString()}` : ""}
-${ownerSalary > 0      ? `- Owner salary:      $${ownerSalary.toLocaleString()}` : ""}
+${estimatedPayroll > 0 ? `- Est. payroll:      $${(Number(estimatedPayroll) || 0).toLocaleString()}` : ""}
+${ownerSalary > 0      ? `- Owner salary:      $${(Number(ownerSalary) || 0).toLocaleString()}` : ""}
 - Has payroll:       ${profile.has_payroll  ? "YES" : "NO"}
 - Does R&D:          ${profile.does_rd      ? "YES" : "NO"}
 - Has accountant:    ${profile.has_accountant  ? "YES" : "NO"}
 - Has bookkeeper:    ${profile.has_bookkeeper  ? "YES" : "NO"}
 - Physical location: ${profile.has_physical_location ? "YES" : "NO"}
 - Handles data:      ${profile.handles_data ? "YES" : "NO"}
-${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — penalty exposure: $${penaltyExposure.toLocaleString()}` : ""}
+${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — penalty exposure: $${(Number(penaltyExposure) || 0).toLocaleString()}` : ""}
 
 Return ONLY this JSON (no markdown fences):
 ${buildDiagnosticSchema("business", 7)}`;

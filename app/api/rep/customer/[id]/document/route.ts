@@ -23,7 +23,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const body = await req.json();
   const { error } = await supabaseAdmin
     .from("tier3_engagement_documents")
-    .upsert({ engagement_id: params.id, ...body, updated_at: new Date().toISOString() });
+    .upsert({ engagement_id: params.id, ...body, updated_at: new Date().toISOString() }, { onConflict: "engagement_id,document_type" });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });

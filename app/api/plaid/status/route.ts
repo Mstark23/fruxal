@@ -32,11 +32,11 @@ export async function GET(req: NextRequest) {
     last_sync_at:     conn?.last_sync_at  || profile.plaid_last_sync_at,
     last_error:       conn?.last_error    || null,
     summary: {
-      bank_balance:   profile.plaid_bank_balance_total || 0,
-      revenue_90d:    profile.plaid_revenue_90d        || 0,
-      expenses_90d:   profile.plaid_expenses_90d       || 0,
-      lowest_bal_30d: profile.plaid_lowest_balance_30d || 0,
-      loan_payments:  profile.plaid_loan_payments      || 0,
+      bank_balance:   profile.plaid_bank_balance_total ?? 0,
+      revenue_90d:    profile.plaid_revenue_90d ?? 0,
+      expenses_90d:   profile.plaid_expenses_90d ?? 0,
+      lowest_bal_30d: profile.plaid_lowest_balance_30d ?? 0,
+      loan_payments:  profile.plaid_loan_payments ?? 0,
     },
   });
 }

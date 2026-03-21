@@ -99,8 +99,8 @@ export function validatePrescanData(tags: Record<string, any>): ValidationResult
       issues.push({
         field: 'revenue',
         severity: 'suspicious',
-        message_en: `You mentioned $${numRevenue.toLocaleString()} — is that per year or per month?`,
-        message_fr: `Vous avez mentionné ${numRevenue.toLocaleString()} $ — c'est par année ou par mois ?`,
+        message_en: `You mentioned $${(numRevenue ?? 0).toLocaleString()} — is that per year or per month?`,
+        message_fr: `Vous avez mentionné ${(numRevenue ?? 0).toLocaleString()} $ — c'est par année ou par mois ?`,
       });
     }
 
@@ -109,8 +109,8 @@ export function validatePrescanData(tags: Record<string, any>): ValidationResult
       issues.push({
         field: 'revenue',
         severity: 'suspicious',
-        message_en: `$${numRevenue.toLocaleString()} per year — just confirming, that's the right number?`,
-        message_fr: `${numRevenue.toLocaleString()} $ par année — je veux juste confirmer que c'est le bon chiffre ?`,
+        message_en: `$${(numRevenue ?? 0).toLocaleString()} per year — just confirming, that's the right number?`,
+        message_fr: `${(numRevenue ?? 0).toLocaleString()} $ par année — je veux juste confirmer que c'est le bon chiffre ?`,
       });
     }
 

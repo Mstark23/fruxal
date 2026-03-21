@@ -12,7 +12,7 @@ export default function ClientsPage() {
   const [inviting, setInviting] = useState(false);
 
   useEffect(() => {
-    fetch("/api/me").then(r => r.json()).then(async d => {
+    fetch("/api/me").then(r => r.json()).catch(() => ({})).then(async d => {
       setCtx(d);
       const allBiz = d.businesses || [];
       // Fetch dashboard data for each business
@@ -29,14 +29,14 @@ export default function ClientsPage() {
   }, [router]);
 
   const sorted = [...businesses].sort((a, b) => {
-    if (sortBy === "leaking") return (b.totalLeaking || 0) - (a.totalLeaking || 0);
-    if (sortBy === "health") return (a.healthScore || 0) - (b.healthScore || 0);
+    if (sortBy === "leaking") return (b.totalLeaking ?? 0) - (a.totalLeaking ?? 0);
+    if (sortBy === "health") return (a.healthScore ?? 0) - (b.healthScore ?? 0);
     return (a.name || "").localeCompare(b.name || "");
   });
 
-  const totalLeaking = businesses.reduce((s, b) => s + (b.totalLeaking || 0), 0);
-  const totalSaved = businesses.reduce((s, b) => s + (b.totalSaved || 0), 0);
-  const avgHealth = businesses.length > 0 ? Math.round(businesses.reduce((s, b) => s + (b.healthScore || 0), 0) / businesses.length) : 0;
+  const totalLeaking = businesses.reduce((s, b) => s + (b.totalLeaking ?? 0), 0);
+  const totalSaved = businesses.reduce((s, b) => s + (b.totalSaved ?? 0), 0);
+  const avgHealth = businesses.length > 0 ? Math.round(businesses.reduce((s, b) => s + (b.healthScore ?? 0), 0) / businesses.length) : 0;
 
   if (loading) return <div className="min-h-screen bg-[#f7f8fa] flex items-center justify-center text-gray-400">Loading clients...</div>;
 
@@ -59,11 +59,11 @@ export default function ClientsPage() {
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm border text-center">
             <div className="text-xs text-gray-400">Total Leaking</div>
-            <div className="text-2xl font-black text-[#ff3d57]">${totalLeaking.toLocaleString()}</div>
+            <div className="text-2xl font-black text-[#ff3d57]">${(totalLeaking ?? 0).toLocaleString()}</div>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm border text-center">
             <div className="text-xs text-gray-400">Total Saved</div>
-            <div className="text-2xl font-black text-[#00c853]">${totalSaved.toLocaleString()}</div>
+            <div className="text-2xl font-black text-[#00c853]">${(totalSaved ?? 0).toLocaleString()}</div>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm border text-center">
             <div className="text-xs text-gray-400">Avg Health</div>
@@ -81,7 +81,7 @@ export default function ClientsPage() {
               await fetch("/api/business", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ name: inviteEmail.split("@")[0] + "'s Business", industry: "consulting", inviteEmail }) });
               alert("Client invited!");
               setInviteEmail("");
-            } catch {}
+            } catch { /* non-fatal */ }
             setInviting(false);
           }} disabled={inviting} className="px-4 py-2 bg-[#1a1a2e] text-white font-bold rounded-xl text-sm">{inviting ? "..." : "+ Add Client"}</button>
         </div>
@@ -102,11 +102,11 @@ export default function ClientsPage() {
         {/* Client list */}
         <div className="space-y-2">
           {sorted.map(biz => {
-            const health = biz.healthScore || 0;
-            const leaking = biz.totalLeaking || 0;
-            const saved = biz.totalSaved || 0;
-            const openLeaks = biz.openLeaks || 0;
-            const urgentLeaks = biz.urgentLeaks || 0;
+            const health = biz.healthScore ?? 0;
+            const leaking = biz.totalLeaking ?? 0;
+            const saved = biz.totalSaved ?? 0;
+            const openLeaks = biz.openLeaks ?? 0;
+            const urgentLeaks = biz.urgentLeaks ?? 0;
             return (
               <div key={biz.id} className="bg-white rounded-2xl p-4 shadow-sm border hover:shadow-md transition-all cursor-pointer" onClick={() => {
                 // Switch to this business context
@@ -127,11 +127,11 @@ export default function ClientsPage() {
                   </div>
                   <div className="flex items-center gap-4 text-right">
                     <div>
-                      <div className="text-sm font-black text-[#ff3d57]">${leaking.toLocaleString()}</div>
+                      <div className="text-sm font-black text-[#ff3d57]">${(leaking ?? 0).toLocaleString()}</div>
                       <div className="text-xs text-gray-400">leaking</div>
                     </div>
                     <div>
-                      <div className="text-sm font-black text-[#00c853]">${saved.toLocaleString()}</div>
+                      <div className="text-sm font-black text-[#00c853]">${(saved ?? 0).toLocaleString()}</div>
                       <div className="text-xs text-gray-400">saved</div>
                     </div>
                     <div>

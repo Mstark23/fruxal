@@ -29,7 +29,7 @@ export default function MyIndustryPage() {
   const [stats, setStats] = useState({ patterns: 0, categories: 0, questions: 0 });
 
   useEffect(() => {
-    fetch("/api/me").then(r => r.ok ? r.json() : null)
+    fetch("/api/me").then(r => r.ok ? r.json() : null).catch(() => null)
       .then(d => {
         if (d?.business?.industry) {
           setIndustry(d.business.industry);
@@ -111,7 +111,7 @@ export default function MyIndustryPage() {
                 <div className="text-xs text-purple-600">Categories</div>
               </div>
               <div className="bg-orange-50 rounded-xl p-3 text-center">
-                <div className="text-2xl font-bold text-orange-700">{stats.questions || 0}</div>
+                <div className="text-2xl font-bold text-orange-700">{stats.questions ?? 0}</div>
                 <div className="text-xs text-orange-600">Quiz Questions</div>
               </div>
             </div>

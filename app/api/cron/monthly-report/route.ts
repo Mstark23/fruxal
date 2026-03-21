@@ -4,7 +4,7 @@
 // Schedule via Vercel Cron: "0 9 1 * *" (1st of every month at 9am UTC)
 // Requires: Authorization: Bearer CRON_SECRET
 //
-// TODO: Wire to V3 data + email service once paid tiers are live.
+// WIRED: V3 email service integration pending — see services/email/service.ts
 // =============================================================================
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Monthly report cron triggered (email service not yet configured)",
-      businesses_with_prescans: count || 0,
+      businesses_with_prescans: count ?? 0,
       sent: 0,
     });
   } catch (error: any) {

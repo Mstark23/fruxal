@@ -107,7 +107,7 @@ function detectMapping(headers: string[], sampleRows: string[][]): ColumnMapping
     let maxLen = 0;
     for (let i = 0; i < headers.length; i++) {
       if (headers[i] === date_col || headers[i] === amount_col) continue;
-      const avgLen = sampleRows.slice(0, 5).reduce((s, r) => s + (r[i]?.length || 0), 0) / Math.min(5, sampleRows.length);
+      const avgLen = sampleRows.slice(0, 5).reduce((s, r) => s + (r[i]?.length ?? 0), 0) / Math.min(5, sampleRows.length);
       if (avgLen > maxLen) {
         maxLen = avgLen;
         description_col = headers[i];

@@ -35,16 +35,16 @@ RULES:
 export function buildActionPlanUser(ctx: ActionPlanContext): string {
   const { businessName, industry, province, totalLeaking, findings } = ctx;
 
-  const sorted = [...findings].sort((a, b) => (b.annualImpact || 0) - (a.annualImpact || 0));
+  const sorted = [...findings].sort((a, b) => (b.annualImpact ?? 0) - (a.annualImpact ?? 0));
 
   return `Generate a 30/60/90 day action plan for this business.
 
 BUSINESS: ${businessName} (${industry}, ${province})
-TOTAL LEAKING: $${totalLeaking.toLocaleString()}/yr
+TOTAL LEAKING: $${(totalLeaking ?? 0).toLocaleString()}/yr
 
 FINDINGS (sorted by impact):
 ${sorted.slice(0, 15).map((f, i) =>
-  `${i + 1}. ${f.title} — $${(f.annualImpact || 0).toLocaleString()}/yr [${f.severity}/${f.category}]${f.recommendation ? `\n   Fix: ${f.recommendation}` : ""}`
+  `${i + 1}. ${f.title} — $${(f.annualImpact ?? 0).toLocaleString()}/yr [${f.severity}/${f.category}]${f.recommendation ? `\n   Fix: ${f.recommendation}` : ""}`
 ).join("\n")}
 
 Return ONLY valid JSON:

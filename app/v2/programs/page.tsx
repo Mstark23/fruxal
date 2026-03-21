@@ -43,7 +43,7 @@ export default function ProgramsPage() {
       else if (navigator.language?.startsWith("fr")) setLang("fr");
       setIsEnt(localStorage.getItem("fruxal_tier") === "enterprise");
       setIsBusiness(localStorage.getItem("fruxal_tier") === "business");
-    } catch {}
+    } catch { /* non-fatal */ }
 
     // Load programs from API (returns hardcoded Canadian programs + AI diagnostic results)
     // and commercial affiliates in parallel
@@ -53,7 +53,7 @@ export default function ProgramsPage() {
     ]).then(([progJson, affJson]: any) => {
       const progs = progJson?.data?.programs || [];
       setPrograms(progs);
-      setTotalValue(progs.reduce((s: number, p: Program) => s + (p.max_amount || 0), 0));
+      setTotalValue(progs.reduce((s: number, p: Program) => s + (p.max_amount ?? 0), 0));
       setAffiliates(affJson?.data || affJson?.affiliates || []);
     }).finally(() => setLoading(false));
   }, []);
@@ -78,7 +78,7 @@ export default function ProgramsPage() {
             </h1>
             <p className="text-[10px] text-ink-faint">
               {programs.length} {t("government programs matched","programmes gouvernementaux correspondants")}
-              {totalValue > 0 && ` · $${totalValue.toLocaleString()} ${t("total potential value","valeur potentielle totale")}`}
+              {totalValue > 0 && ` · $${(totalValue ?? 0).toLocaleString()} ${t("total potential value","valeur potentielle totale")}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export default function ProgramsPage() {
             )}
             <div className="flex bg-bg-section border border-border-light rounded-[7px] p-[3px] gap-[2px]">
               {(["en","fr"] as const).map(l => (
-                <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch {} }}
+                <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch { /* non-fatal */ } }}
                   className={`px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wide rounded-[5px] transition-all ${
                     lang === l ? "bg-white text-ink shadow-sm" : "text-ink-muted"}`}>
                   {l.toUpperCase()}
@@ -182,7 +182,7 @@ export default function ProgramsPage() {
               <div className="space-y-2">
                 {filtered.map((prog) => {
                   const isOpen = expanded === prog.slug;
-                  const isHighMatch = (prog.match_score || 0) > 80;
+                  const isHighMatch = (prog.match_score ?? 0) > 80;
                   return (
                     <div key={prog.slug} className="bg-white border border-border-light rounded-xl overflow-hidden"
                       style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -220,7 +220,7 @@ export default function ProgramsPage() {
                         <div className="text-right shrink-0">
                           {prog.max_amount ? (
                             <div className="font-serif text-[16px] font-bold" style={{ color:"#2D7A50" }}>
-                              ${prog.max_amount.toLocaleString()}
+                              ${(prog.max_amount ?? 0).toLocaleString()}
                             </div>
                           ) : (
                             <span className="text-[10px] text-ink-faint">{t("Varies","Variable")}</span>

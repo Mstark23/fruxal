@@ -171,7 +171,7 @@ export async function updateTask(taskId: string, updates: Partial<Task>): Promis
     if (task[0]?.leak_id) {
       await prisma.$executeRawUnsafe(
         `UPDATE leaks SET status = 'FIXED', "recoveredAmount" = $1, "updatedAt" = NOW() WHERE id = $2`,
-        updates.recovered_amount || 0, task[0].leak_id
+        updates.recovered_amount ?? 0, task[0].leak_id
       );
     }
   }
@@ -181,7 +181,7 @@ export async function createManualTask(businessId: string, data: { title: string
   const result = await prisma.$queryRawUnsafe(`
     INSERT INTO tasks (business_id, client_id, title, description, status, priority, category, due_date, impact_amount, auto_generated)
     VALUES ($1, $2, $3, $4, 'TODO', $5, $6, $7, $8, false) RETURNING id
-  `, businessId, data.client_id || null, data.title, data.description || null, data.priority, data.category, data.due_date ? new Date(data.due_date) : null, data.impact_amount || 0) as any[];
+  `, businessId, data.client_id || null, data.title, data.description || null, data.priority, data.category, data.due_date ? new Date(data.due_date) : null, data.impact_amount ?? 0) as any[];
 
   return result[0].id;
 }

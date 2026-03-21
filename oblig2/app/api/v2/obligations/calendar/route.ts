@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
         risk_level:         rule.risk_level || "medium",
         frequency:          rule.frequency  || null,
         agency:             rule.agency     || null,
-        penalty_max:        rule.penalty_max || 0,
+        penalty_max:        rule.penalty_max ?? 0,
         deadline,
         days_until:         daysUntil,
         days_overdue:       daysUntil !== null && daysUntil < 0 ? Math.abs(daysUntil) : 0,
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
 
     const totalPenalty = obs
       .filter(o => o.status !== "completed")
-      .reduce((s, o) => s + (o.penalty_max || 0), 0);
+      .reduce((s, o) => s + (o.penalty_max ?? 0), 0);
 
     return NextResponse.json({
       success: true,

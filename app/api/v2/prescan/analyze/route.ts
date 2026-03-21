@@ -20,9 +20,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Anthropic from "@anthropic-ai/sdk";
 
+// Rate limit: 10 prescan analyses per IP per hour
+const _pscRl = new Map<string, {c: number; r: number}>();
+function pscRateCheck(ip: string): boolean {
+  const now = Date.now();
+  const e = _pscRl.get(ip);
+  if (!e || e.r < now) { _pscRl.set(ip, {c: 1, r: now + 3_600_000}); return true; }
+  e.c++; return e.c <= 10;
+}
+
+
+
+export const maxDuration = 60; // Vercel function timeout (seconds)
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 export async function POST(req: NextRequest) {
+  const _pIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!pscRateCheck(_pIp)) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   try {
     const body = await req.json();
     const {
@@ -39,8 +54,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
-    const annual_revenue = (monthly_revenue || 0) * 12;
-    const employees = employee_count || 0;
+    const annual_revenue = (monthly_revenue ?? 0) * 12;
+    const employees = employee_count ?? 0;
 
     // Build flags array for matching
     const flags: string[] = [];
@@ -67,7 +82,7 @@ export async function POST(req: NextRequest) {
     // Count by risk level
     const criticalObligations = matchedObligations.filter(o => o.risk_level === "critical").length;
     const highObligations = matchedObligations.filter(o => o.risk_level === "high").length;
-    const totalPenaltyExposure = matchedObligations.reduce((sum, o) => sum + (o.penalty_max || 0), 0);
+    const totalPenaltyExposure = matchedObligations.reduce((sum, o) => sum + (o.penalty_max ?? 0), 0);
 
     // ─── 2. Match leak detectors ─────────────────────────────────────
 
@@ -90,8 +105,8 @@ export async function POST(req: NextRequest) {
       return true;
     }).slice(0, 20);
 
-    const totalLeakMin = matchedLeaks.reduce((sum, l) => sum + (l.annual_impact_min || 0), 0);
-    const totalLeakMax = matchedLeaks.reduce((sum, l) => sum + (l.annual_impact_max || 0), 0);
+    const totalLeakMin = matchedLeaks.reduce((sum, l) => sum + (l.annual_impact_min ?? 0), 0);
+    const totalLeakMax = matchedLeaks.reduce((sum, l) => sum + (l.annual_impact_max ?? 0), 0);
     const criticalLeaks = matchedLeaks.filter(l => l.severity === "critical").length;
     const highLeaks = matchedLeaks.filter(l => l.severity === "high").length;
 
@@ -125,7 +140,7 @@ export async function POST(req: NextRequest) {
         type: "structure",
         title: `You may be overpaying taxes as a sole proprietor`,
         title_fr: `Vous pourriez payer trop d'impôt comme travailleur autonome`,
-        impact: `$${savings.toLocaleString()}/yr potential savings (${corpRate} corporate vs ${personalRate} personal top rate)`,
+        impact: `$${(savings ?? 0).toLocaleString()}/yr potential savings (${corpRate} corporate vs ${personalRate} personal top rate)`,
         severity: "critical",
       });
     }
