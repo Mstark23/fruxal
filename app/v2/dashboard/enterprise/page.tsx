@@ -44,7 +44,8 @@ export default function EnterpriseDashboard() {
   const [mounted,    setMounted]    = useState(false);
 
  // Diagnostic report data
-  const [savingsAnchor, setSavingsAnchor] = useState("");
+  const [savingsAnchor,     setSavingsAnchor]     = useState("");
+  const [savingsAnchorFr,   setSavingsAnchorFr]   = useState("");
   const [savingsAnchorConf, setSavingsAnchorConf] = useState<"exact"|"estimated">("estimated");
   const [execSummary, setExecSummary] = useState("");
   const [execSummaryFr, setExecSummaryFr] = useState("");
@@ -194,9 +195,11 @@ export default function EnterpriseDashboard() {
           setReportId(reportRes.report_id);
           const _sa = r.savings_anchor;
           if (_sa && typeof _sa === "object") {
-            setSavingsAnchor(isFr ? (_sa.description_fr || _sa.description || _sa.headline || "") : (_sa.headline || _sa.description || ""));
+            setSavingsAnchor(_sa.headline || _sa.description || "");
+            setSavingsAnchorFr(_sa.description_fr || _sa.description || _sa.headline || "");
           } else {
-            setSavingsAnchor(isFr ? (r.savings_anchor_fr || r.savings_anchor || "") : (r.savings_anchor || ""));
+            setSavingsAnchor(r.savings_anchor || "");
+            setSavingsAnchorFr(r.savings_anchor_fr || r.savings_anchor || "");
           }
           setSavingsAnchorConf((r.savings_anchor_confidence === "exact" ? "exact" : "estimated") as "exact"|"estimated");
           setExecSummary(r.executive_summary || "");
@@ -1006,10 +1009,10 @@ export default function EnterpriseDashboard() {
         )}
 
         {/* ── Savings anchor ──────────────────────────────────────────────── */}
-        {savingsAnchor && (
+        {(savingsAnchor || savingsAnchorFr) && (
           <div className="bg-white rounded-xl border border-border-light px-5 py-4 mb-5 text-center"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <p className="text-[15px] font-bold text-ink">{savingsAnchor}</p>
+            <p className="text-[15px] font-bold text-ink">{isFr ? (savingsAnchorFr || savingsAnchor) : (savingsAnchor || savingsAnchorFr)}</p>
             <div className="flex items-center justify-center gap-3 mt-1.5">
               {savingsAnchorConf === "exact" ? (
                 <span className="text-[9px] font-medium border rounded-full px-2 py-0.5" style={{ color: "#2D7A50", borderColor: "rgba(45,122,80,0.25)", background: "rgba(45,122,80,0.04)" }}>
