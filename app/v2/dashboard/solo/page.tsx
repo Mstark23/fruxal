@@ -176,9 +176,10 @@ export default function SoloDashboard() {
   }
 
   const allActions = [...inProgressActions, ...thisWeekActions];
-  const displayLeaks = diagFindings.length > 0
-    ? diagFindings.slice(0, 6).map((f: any) => ({ slug: f.id || f.slug || "f", title: f.title, title_fr: f.title_fr, severity: f.severity, category: f.category, description: isFR ? (f.description_fr || f.description) : f.description, description_fr: f.description_fr, impact_min: f.annual_leak || f.impact_min || 0, impact_max: f.potential_savings || f.impact_max || f.annual_leak || 0, confidence: null, action: isFR ? (f.action_items_fr?.[0] || f.action_items?.[0]) : f.action_items?.[0], action_fr: f.action_items_fr?.[0], affiliates: [] }))
+  const allLeaks = diagFindings.length > 0
+    ? diagFindings.map((f: any) => ({ slug: f.id || f.slug || "f", title: f.title, title_fr: f.title_fr, severity: f.severity, category: f.category, description: isFR ? (f.description_fr || f.description) : f.description, description_fr: f.description_fr, impact_min: f.annual_leak || f.impact_min || 0, impact_max: f.potential_savings || f.impact_max || f.annual_leak || 0, confidence: null, action: isFR ? (f.action_items_fr?.[0] || f.action_items?.[0]) : f.action_items?.[0], action_fr: f.action_items_fr?.[0], affiliates: [] }))
     : leaks;
+  const displayLeaks = allLeaks.slice(0, isPaid ? 6 : 4); // free: 1 visible + 3 blurred; paid: all 6
 
   if (loading || authLoading) return (
     <div className="min-h-screen bg-bg flex items-center justify-center"><div className="w-6 h-6 border-2 border-border border-t-brand rounded-full animate-spin" /></div>
@@ -270,7 +271,12 @@ export default function SoloDashboard() {
           <button onClick={() => isPaid ? router.push("/v2/leaks") : router.push(upgradeUrl)} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${totalLeak.toLocaleString()}</div>
-            <div className="text-[10px] text-ink-faint mt-1.5">{displayLeaks.length} {t("leaks detected", "fuites detectees")}</div>
+            <div className="text-[10px] text-ink-faint mt-1.5">
+              {isPaid ? displayLeaks.length : 1} {t("leaks detected", "fuites detectees")}
+              {!isPaid && allLeaks.length > 1 && (
+                <span className="ml-1 text-negative font-semibold">+{allLeaks.length - 1} {t("locked", "verrouillés")}</span>
+              )}
+            </div>
           </button>
 
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -355,10 +361,10 @@ export default function SoloDashboard() {
                     </div>
                   ))}
                 </div>
-                {displayLeaks.length > 1 && (
+                {allLeaks.length > 1 && (
                   <div className="px-4 py-4 text-center border-t border-border-light">
                     <p className="text-[11px] font-semibold text-ink-muted mb-2.5">
-                      {displayLeaks.length - 1} {t("more leaks hidden", "fuites supplementaires cachees")}
+                      {allLeaks.length - 1} {t("more leaks hidden", "fuites supplementaires cachees")}
                     </p>
                     <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-white bg-brand px-4 py-2 rounded-lg hover:opacity-90 transition">
                       {t("Unlock " + upgradeName + " " + upgradePrice + "/mo", "Debloquer " + upgradeName + " " + upgradePrice + "/mois")}
