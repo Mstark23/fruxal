@@ -217,7 +217,7 @@ export default function SoloDashboard() {
               {streak && streak.current > 0 && (
                 <div className="flex items-center gap-1">
                   <div className="flex gap-[2px]">{streak.week_map?.map((a: boolean, i: number) => <div key={i} className={"w-[4px] h-[4px] rounded-[1px] " + (a ? "bg-positive" : "bg-border")} />)}</div>
-                  <span className="text-[9px] text-ink-faint">{streak.current}j</span>
+                  <span className="text-[9px] text-ink-faint">{streak.current}{t("d", "j")}</span>
                 </div>
               )}
             </div>
