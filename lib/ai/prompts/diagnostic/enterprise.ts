@@ -27,9 +27,54 @@ export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; us
   const industry    = profile.industry_label || profile.industry || "business";
   const bizName     = profile.business_name  || "this corporation";
   const structure   = profile.structure || profile.business_structure || "corporation";
-  const evMultiple  = "4–6× EBITDA";
-  const evLow       = Math.round(estimatedEBITDA * 4);
-  const evHigh      = Math.round(estimatedEBITDA * 6);
+  // Industry-aware EV multiples based on Canadian M&A data
+  // Source: BDC, Deloitte Canada M&A Trends, BizBuySell Canada comps
+  const industrySlug = (profile.industry_slug || profile.industry || "").toLowerCase();
+  function resolveEVMultiple(slug: string): { low: number; high: number; label: string } {
+    // Professional services (accounting, legal, consulting, engineering)
+    if (/account|cpa|tax|audit|legal|law|consult|engineer|architect|it.service|tech.service|staffing|recruit/.test(slug))
+      return { low: 5, high: 9,  label: "5–9× EBITDA" };
+    // SaaS / software / tech product
+    if (/saas|software|app|platform|tech|digital|cloud|ai|data/.test(slug))
+      return { low: 6, high: 12, label: "6–12× EBITDA" };
+    // Healthcare / medical / dental / pharmacy
+    if (/health|medical|dental|clinic|pharmacy|optom|physio|chiro|veterinar/.test(slug))
+      return { low: 5, high: 8,  label: "5–8× EBITDA" };
+    // Construction / trades / contracting
+    if (/construct|contrac|trade|plumb|electric|hvac|roofing|landscap|excavat/.test(slug))
+      return { low: 3, high: 5,  label: "3–5× EBITDA" };
+    // Manufacturing / industrial
+    if (/manufactur|industrial|fabricat|machin|assembly|processing|packaging/.test(slug))
+      return { low: 3, high: 6,  label: "3–6× EBITDA" };
+    // Food & beverage / hospitality / restaurant
+    if (/food|beverage|restaurant|hospitality|catering|bakery|bar|cafe/.test(slug))
+      return { low: 2, high: 4,  label: "2–4× EBITDA" };
+    // Retail / e-commerce
+    if (/retail|ecommerce|e-commerce|store|shop|boutique|wholesale|distrib/.test(slug))
+      return { low: 2, high: 4,  label: "2–4× EBITDA" };
+    // Real estate / property management
+    if (/real.estate|property|realty|rental|landlord|brokerage/.test(slug))
+      return { low: 4, high: 7,  label: "4–7× EBITDA" };
+    // Transportation / logistics / trucking
+    if (/transport|logistics|trucking|freight|courier|fleet|shipping/.test(slug))
+      return { low: 3, high: 5,  label: "3–5× EBITDA" };
+    // Financial services / insurance
+    if (/financ|insurance|invest|wealth|mortgage|lending|broker/.test(slug))
+      return { low: 5, high: 8,  label: "5–8× EBITDA" };
+    // Media / marketing / agency / creative
+    if (/market|advertis|media|agency|creative|design|print|pr\b|public.relat/.test(slug))
+      return { low: 4, high: 7,  label: "4–7× EBITDA" };
+    // Auto / dealership / repair
+    if (/auto|car|dealer|vehicle|repair|mechanic|collision/.test(slug))
+      return { low: 3, high: 5,  label: "3–5× EBITDA" };
+    // Default — general Canadian SMB
+    return { low: 4, high: 6, label: "4–6× EBITDA" };
+  }
+
+  const evRange    = resolveEVMultiple(industrySlug);
+  const evMultiple = evRange.label;
+  const evLow      = Math.round(estimatedEBITDA * evRange.low);
+  const evHigh     = Math.round(estimatedEBITDA * evRange.high);
 
   const systemPrompt = `${FRUXAL_VOICE}
 

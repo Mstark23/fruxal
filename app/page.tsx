@@ -602,11 +602,11 @@ export default function LandingPage() {
             </div>
             <div className="text-[13px] font-bold uppercase tracking-widest text-ink-muted mb-2">Business</div>
             <div className="font-serif text-[42px] text-ink tracking-tight font-normal leading-none mb-1">
-              $150<span className="font-sans text-[15px] text-ink-muted font-normal ml-1">{t("/ month", "/ mois")}</span>
+              $149<span className="font-sans text-[15px] text-ink-muted font-normal ml-1">{t("/ month", "/ mois")}</span>
             </div>
             <p className="text-[12px] text-positive font-semibold mb-5 mt-1">{t("✶ Try free for 7 days", "✶ Essai gratuit 7 jours")}</p>
             <p className="text-sm text-ink-secondary mb-6 leading-relaxed">
-              {t("For businesses with employees doing $500K–$5M.", "Pour entreprises avec employés entre 500 K$ et 5 M$.")}
+              {t("For businesses with employees doing $150K–$1M.", "Pour entreprises avec employés entre 500 K$ et 5 M$.")}
             </p>
             <ul className="mb-8 flex-1">
               {[
@@ -648,7 +648,7 @@ export default function LandingPage() {
             </p>
             <p className="text-sm text-ink-secondary mb-6 leading-relaxed">
               {t(
-                "For Canadian businesses doing $5M+. A dedicated Fruxal analyst runs a full forensic audit across every financial leak category — and gets paid only when we recover money.",
+                "For Canadian businesses doing $1M+. A dedicated Fruxal analyst runs a full forensic audit across every financial leak category — and gets paid only when we recover money.",
                 "Pour les entreprises canadiennes à 5 M$+. Un analyste Fruxal dédié effectue un audit forensique complet — rémunéré uniquement sur les économies récupérées."
               )}
             </p>
@@ -677,7 +677,7 @@ export default function LandingPage() {
               {t("Learn more & apply →", "En savoir plus et postuler →")}
             </a>
             <p className="text-[10px] text-ink-faint text-center mt-2">
-              {t("Qualification call · $5M+ revenue · No upfront cost", "Appel de qualification · 5 M$+ de revenus · Aucun frais initial")}
+              {t("Qualification call · $1M+ revenue · No upfront cost", "Appel de qualification · 5 M$+ de revenus · Aucun frais initial")}
             </p>
           </div>
 
