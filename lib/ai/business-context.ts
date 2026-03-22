@@ -32,6 +32,17 @@ export interface CompletedTask {
   completed_at: string;
 }
 
+export interface ActiveGoalContext {
+  title:           string | null;
+  type:            string | null;
+  target:          number | null;
+  current:         number | null;
+  progressPct:     number | null;
+  daysRemaining:   number | null;
+  onPace:          boolean | null;
+  targetDate:      string | null;
+}
+
 export interface LiveScoreContext {
   current:             number | null;
   delta:               number | null;
@@ -106,6 +117,7 @@ export interface BusinessContext {
   ratios: RatiosContext | null;
   prescan: PrescanSummary | null;
   liveScore: LiveScoreContext | null;
+  activeGoal: ActiveGoalContext | null;
 }
 
 // Minimal context for when DB queries fail
@@ -122,6 +134,7 @@ function emptyContext(businessId: string): BusinessContext {
     ratios: null,
     prescan: null,
     liveScore: null,
+    activeGoal: null,
   };
 }
 
@@ -133,7 +146,7 @@ export async function buildBusinessContext(
 
   try {
     // All queries in parallel — 3-second timeout on the whole bundle
-    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes, ratioRes, prescanCtxRes, liveScoreRes] = await Promise.all([
+    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes, ratioRes, prescanCtxRes, liveScoreRes, goalRes] = await Promise.all([
       // 1. Business profile
       supabaseAdmin
         .from("business_profiles")
@@ -222,6 +235,17 @@ export async function buildBusinessContext(
         .select("score, score_delta, calculated_at")
         .eq("business_id", businessId)
         .order("calculated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(r => r.data),
+
+      // 11. Active goal (Build 14)
+      supabaseAdmin
+        .from("business_goals")
+        .select("goal_type, goal_title, target_amount, target_score, target_count, target_date, progress_pct, current_amount, current_score, current_count, status, created_at")
+        .eq("business_id", businessId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle()
         .then(r => r.data),
@@ -321,6 +345,23 @@ export async function buildBusinessContext(
       recovery,
       upcoming_deadlines: deadlines.slice(0, 5),
       tier,
+      activeGoal: goalRes ? (() => {
+        const g = goalRes;
+        const target = g.target_amount ?? g.target_score ?? g.target_count ?? 1;
+        const current = g.current_amount ?? g.current_score ?? g.current_count ?? 0;
+        const daysRemaining = Math.max(0, Math.ceil((new Date(g.target_date).getTime() - Date.now()) / 86400000));
+        const totalDays = Math.max(1, Math.ceil((new Date(g.target_date).getTime() - new Date(g.created_at).getTime()) / 86400000));
+        const daysElapsed = totalDays - daysRemaining;
+        const pacePct = Math.min(100, (daysElapsed / totalDays) * 100);
+        const progressPct = Math.min(100, Math.round((current / target) * 100));
+        return {
+          title: g.goal_title, type: g.goal_type,
+          target, current, progressPct,
+          daysRemaining,
+          onPace: progressPct >= pacePct,
+          targetDate: g.target_date,
+        };
+      })() : null,
       liveScore: liveScoreRes ? {
         current:             liveScoreRes.score ?? null,
         delta:               liveScoreRes.score_delta ?? null,

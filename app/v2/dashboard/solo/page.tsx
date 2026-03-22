@@ -13,6 +13,8 @@ import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
 import { RatioWidget } from "@/components/v2/RatioWidget";
 import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
 import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
+import { GoalProgressCard } from "@/components/v2/GoalProgressCard";
+import { RescanWidget, RescanNudge } from "@/components/v2/RescanWidget";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, circ = 2 * Math.PI * r;
@@ -733,6 +735,22 @@ export default function SoloDashboard() {
           </div>
         )}
 
+        {/* ── RESCAN NUDGE ─────────────────────────────────────────────── */}
+        {dashboardBusinessId && (
+          <RescanNudge businessId={dashboardBusinessId} tier="solo" lang={lang} />
+        )}
+        {/* ── SINCE LAST SCAN ──────────────────────────────────────────── */}
+        {dashboardBusinessId && (
+          <div className="mb-3">
+            <RescanWidget businessId={dashboardBusinessId} tier="solo" lang={lang} />
+          </div>
+        )}
+        {/* ── GOAL PROGRESS ────────────────────────────────────────────── */}
+        {dashboardBusinessId && (
+          <div className="mb-3">
+            <GoalProgressCard businessId={dashboardBusinessId} tier="solo" lang={lang} />
+          </div>
+        )}
         {/* ── BREAK-EVEN WIDGET ───────────────────────────────────────── */}
         {dashboardBusinessId && (
           <div className="mb-3">

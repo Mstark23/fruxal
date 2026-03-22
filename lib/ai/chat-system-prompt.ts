@@ -25,6 +25,12 @@ function daysUntil(iso: string): number {
 
 // ── TIER 1 — Solo ─────────────────────────────────────────────────────────────
 function buildSoloPrompt(ctx: BusinessContext): string {
+  const goalBlock = ctx.activeGoal?.title
+    ? `CURRENT GOAL:\n'${ctx.activeGoal.title}' — ${ctx.activeGoal.progressPct ?? 0}% complete, ${ctx.activeGoal.daysRemaining ?? "?"} days left\n` +
+      (ctx.activeGoal.onPace
+        ? "Status: On pace ✅"
+        : `Status: Behind pace — needs more progress per week ⚠️`)
+    : "";
   const liveScoreBlock = ctx.liveScore?.current
     ? `Health score: ${ctx.liveScore.current}/100` +
       (ctx.liveScore.delta !== null && ctx.liveScore.delta !== 0
@@ -96,7 +102,7 @@ ${tasksBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 
-${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}
+${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}${goalBlock ? goalBlock + '\n\n' : ''}
 YOUR ROLE AND RULES:
 - Respond in plain English — zero financial jargon
 - Keep responses to 3-5 sentences unless detail is requested
@@ -109,6 +115,12 @@ ${topTask ? `- Their top priority task right now is: "${topTask.title}" (${fmt(t
 
 // ── TIER 2 — Business ─────────────────────────────────────────────────────────
 function buildBusinessPrompt(ctx: BusinessContext): string {
+  const goalBlock = ctx.activeGoal?.title
+    ? `CURRENT GOAL:\n'${ctx.activeGoal.title}' — ${ctx.activeGoal.progressPct ?? 0}% complete, ${ctx.activeGoal.daysRemaining ?? "?"} days left\n` +
+      (ctx.activeGoal.onPace
+        ? "Status: On pace ✅"
+        : `Status: Behind pace — needs more progress per week ⚠️`)
+    : "";
   const liveScoreBlock = ctx.liveScore?.current
     ? `Health score: ${ctx.liveScore.current}/100` +
       (ctx.liveScore.delta !== null && ctx.liveScore.delta !== 0
@@ -194,7 +206,7 @@ ${completedBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - Data-driven responses with dollar amounts on everything
 - Reference their specific numbers — never generic advice
@@ -206,6 +218,12 @@ YOUR ROLE AND RULES:
 
 // ── TIER 3 — Enterprise ───────────────────────────────────────────────────────
 function buildEnterprisePrompt(ctx: BusinessContext): string {
+  const goalBlock = ctx.activeGoal?.title
+    ? `CURRENT GOAL:\n'${ctx.activeGoal.title}' — ${ctx.activeGoal.progressPct ?? 0}% complete, ${ctx.activeGoal.daysRemaining ?? "?"} days left\n` +
+      (ctx.activeGoal.onPace
+        ? "Status: On pace ✅"
+        : `Status: Behind pace — needs more progress per week ⚠️`)
+    : "";
   const liveScoreBlock = ctx.liveScore?.current
     ? `Health score: ${ctx.liveScore.current}/100` +
       (ctx.liveScore.delta !== null && ctx.liveScore.delta !== 0
@@ -285,7 +303,7 @@ ${tasksBlock}
 OBLIGATIONS IN NEXT 60 DAYS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - CFO-level depth and precision in every response
 - Structure longer responses: Situation → Options → Recommendation

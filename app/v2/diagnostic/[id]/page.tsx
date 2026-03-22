@@ -28,6 +28,7 @@ interface Report {
   totals: { annual_leaks: number; potential_savings: number; penalty_exposure: number; programs_value: number; findings_count: number; critical_findings: number };
   prescan_context_used?: boolean;
   prescan_run_id?: string;
+  goal_suggestion?: any;
   meta: { model: string; duration_ms: number; created_at: string; completed_at: string };
 }
 
@@ -82,9 +83,50 @@ export default function DiagnosticReportPage() {
   const [tab, setTab] = useState<Tab>("findings");
   const [filterSeverity, setFilterSeverity] = useState<string | null>(null);
   const [prescanLink, setPrescanLink] = useState<any>(null);
+  const [activeGoal, setActiveGoal] = useState<any>(null);
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [goalSaved, setGoalSaved] = useState(false);
+  const [goalFormType, setGoalFormType] = useState<"accept"|"adjust"|"own"|null>(null);
+  const [comparison, setComparison] = useState<any>(null);
+  const [compStatus, setCompStatus] = useState<"loading"|"generating"|"ready"|"first_scan"|"hidden">("loading");
+  const [compExpanded, setCompExpanded] = useState(false);
   const [lang, setLang] = useState<"en" | "fr">("en");
   const isFr = lang === "fr";
   const t = (en: string, fr: string) => isFr ? fr : en;
+
+  // Poll for comparison banner (max 15 polls × 2s = 30s)
+  useEffect(() => {
+    if (!report?.id) return;
+    let polls = 0;
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/v2/comparisons/${report.id}`);
+        if (!res.ok) { setCompStatus("hidden"); return; }
+        const d = await res.json();
+        if (d.status === "first_scan") { setCompStatus("first_scan"); return; }
+        if (d.status === "ready") { setComparison(d.comparison); setCompStatus("ready"); return; }
+        if (d.status === "generating" && polls < 15) {
+          polls++;
+          setTimeout(poll, 2000);
+        } else {
+          setCompStatus("hidden");
+        }
+      } catch { setCompStatus("hidden"); }
+    };
+    poll();
+  }, [report?.id]);
+
+  // Fetch active goal to decide whether to show suggestion
+  useEffect(() => {
+    if (!report?.id) return;
+    const bid = (report as any).businessId ?? "";
+    if (!bid) return;
+    fetch(`/api/v2/goals?businessId=${bid}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.activeGoal) setActiveGoal(d.activeGoal); })
+      .catch(() => {});
+  }, [report?.id]);
+
   // Fetch prescan continuity data when report loads with prescan context
   useEffect(() => {
     if (!report?.prescan_context_used || !report?.id) return;
@@ -302,6 +344,145 @@ export default function DiagnosticReportPage() {
               )}
             </div>
 
+
+
+
+            {/* Comparison banner — animates in after page load */}
+            {compStatus === "ready" && comparison && (
+              <div className="mb-4 rounded-xl border overflow-hidden"
+                style={{ borderColor: "rgba(27,58,45,0.2)", background: "rgba(27,58,45,0.03)", animation: "fadeUp 0.4s ease-out both" }}>
+                <div className="px-4 py-3 border-b flex items-center justify-between"
+                  style={{ borderColor: "rgba(27,58,45,0.12)", background: "rgba(27,58,45,0.06)" }}>
+                  <div className="flex items-center gap-2">
+                    <span>📊</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#1B3A2D" }}>
+                      {isFr ? `DEPUIS VOTRE DERNIER SCAN (${comparison.days_between_scans} jours)` : `SINCE YOUR LAST SCAN (${comparison.days_between_scans} days ago)`}
+                    </span>
+                  </div>
+                </div>
+                <div className="px-4 py-3">
+                  {comparison.comparison_headline && (
+                    <p className="text-[13px] font-bold text-ink mb-2">&ldquo;{comparison.comparison_headline}&rdquo;</p>
+                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
+                    <div>
+                      <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">Score</p>
+                      <p className="text-[12px] font-bold" style={{ color: (comparison.score_delta ?? 0) > 0 ? "#2D7A50" : (comparison.score_delta ?? 0) < 0 ? "#C4841D" : "#8E8C85" }}>
+                        {comparison.previous_score} → {comparison.new_score}
+                        {(comparison.score_delta ?? 0) !== 0 && ` (${comparison.score_delta > 0 ? "+" : ""}${comparison.score_delta})`}
+                        {(comparison.score_delta ?? 0) > 0 ? " ↑" : (comparison.score_delta ?? 0) < 0 ? " ↓" : ""}
+                      </p>
+                    </div>
+                    {comparison.savings_recovered_monthly > 0 && (
+                      <div>
+                        <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">{isFr ? "Récupéré" : "Fixed"}</p>
+                        <p className="text-[12px] font-bold text-positive">+${(comparison.savings_recovered_monthly ?? 0).toLocaleString()}/mo</p>
+                      </div>
+                    )}
+                    {comparison.findings_new_count > 0 && (
+                      <div>
+                        <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">{isFr ? "Nouveaux" : "New"}</p>
+                        <p className="text-[12px] font-bold" style={{ color: "#C4841D" }}>{comparison.findings_new_count} ⚠️</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">Net</p>
+                      <p className="text-[12px] font-bold" style={{ color: (comparison.net_monthly_improvement ?? 0) >= 0 ? "#2D7A50" : "#C4841D" }}>
+                        {(comparison.net_monthly_improvement ?? 0) >= 0 ? "+" : ""}${(comparison.net_monthly_improvement ?? 0).toLocaleString()}/mo
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={() => setCompExpanded(!compExpanded)}
+                    className="text-[10px] font-semibold text-brand hover:underline">
+                    {compExpanded ? (isFr ? "Masquer ▲" : "Hide ▲") : (isFr ? "Voir le détail ▾" : "See detailed comparison ▾")}
+                  </button>
+                  {compExpanded && comparison.comparison_narrative && (
+                    <p className="mt-2 text-[12px] text-ink leading-relaxed">{comparison.comparison_narrative}</p>
+                  )}
+                </div>
+              </div>
+            )}
+            {compStatus === "generating" && (
+              <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-xl border border-border-light">
+                <div className="w-4 h-4 border-2 border-brand/30 border-t-brand rounded-full animate-spin shrink-0" />
+                <p className="text-[11px] text-ink-faint">{isFr ? "Comparaison avec votre dernier scan…" : "Comparing with your previous scan…"}</p>
+              </div>
+            )}
+
+            {/* Goal suggestion card — shown when no active goal and report has a suggestion */}
+            {report?.goal_suggestion && !activeGoal && !goalSaved && (
+              <div className="mb-4 rounded-xl border overflow-hidden"
+                style={{ borderColor: "rgba(27,58,45,0.2)", background: "rgba(27,58,45,0.03)" }}>
+                <div className="px-4 py-3 border-b" style={{ borderColor: "rgba(27,58,45,0.12)", background: "rgba(27,58,45,0.06)" }}>
+                  <div className="flex items-center gap-2">
+                    <span>🎯</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#1B3A2D" }}>
+                      {isFr ? "OBJECTIF SUGGÉRÉ SUR 90 JOURS" : "SUGGESTED 90-DAY GOAL"}
+                    </span>
+                  </div>
+                </div>
+                <div className="px-4 py-3">
+                  {!showGoalForm ? (
+                    <>
+                      <p className="text-[14px] font-black text-ink mb-1">
+                        &ldquo;{report.goal_suggestion.goal_title}&rdquo;
+                      </p>
+                      {report.goal_suggestion.goal_description && (
+                        <p className="text-[11px] text-ink/60 mb-2 leading-relaxed">
+                          {report.goal_suggestion.goal_description}
+                        </p>
+                      )}
+                      {report.goal_suggestion.suggestion_rationale && (
+                        <p className="text-[10px] text-ink/40 italic mb-3">
+                          {report.goal_suggestion.suggestion_rationale}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={async () => {
+                            const bid = (report as any).businessId ?? "";
+                            if (!bid) return;
+                            const res = await fetch("/api/v2/goals", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                businessId: bid,
+                                goal: { ...report.goal_suggestion, source_report_id: report.id },
+                              }),
+                            });
+                            if (res.ok) setGoalSaved(true);
+                          }}
+                          className="px-3 py-1.5 text-[11px] font-bold text-white rounded-lg hover:opacity-90 transition"
+                          style={{ background: "#1B3A2D" }}>
+                          {isFr ? "Accepter cet objectif ✓" : "Accept this goal ✓"}
+                        </button>
+                        <button onClick={() => setShowGoalForm(true)}
+                          className="px-3 py-1.5 text-[11px] font-semibold text-ink-muted border border-border-light rounded-lg hover:bg-bg-section transition">
+                          {isFr ? "Ajuster" : "Adjust"}
+                        </button>
+                        <button onClick={() => setGoalSaved(true)}
+                          className="px-3 py-1.5 text-[9px] text-ink-faint hover:text-ink transition">
+                          {isFr ? "Ignorer" : "Dismiss"}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-[11px] text-ink-faint">
+                      {isFr ? "Rendez-vous sur votre tableau de bord pour définir un objectif personnalisé." :
+                       "Head to your dashboard to set a custom goal."}
+                      <a href="/v2/dashboard" className="ml-1 text-brand font-semibold hover:underline">
+                        {isFr ? "Tableau de bord →" : "Dashboard →"}
+                      </a>
+                    </p>
+                  )}
+                  {goalSaved && (
+                    <p className="text-[11px] font-semibold text-positive">
+                      ✅ {isFr ? "Objectif enregistré — visible sur votre tableau de bord." : "Goal saved — visible on your dashboard."}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Prescan continuity banner */}
             {report?.prescan_context_used && (

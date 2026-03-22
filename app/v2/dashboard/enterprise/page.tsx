@@ -28,6 +28,8 @@ import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
 import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { RescanWidget, RescanNudge } from "@/components/v2/RescanWidget";
+import { GoalProgressCard } from "@/components/v2/GoalProgressCard";
 import { TaskList, Task } from "@/components/v2/TaskCard";
 
 const fade = (delay = 0) => ({

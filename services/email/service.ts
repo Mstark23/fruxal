@@ -238,3 +238,101 @@ export function renderMonthlyBrief({
 
   return { html, text: fullText };
 }
+
+// =============================================================================
+// GOAL COMPLETED EMAIL — Sent when progress_pct reaches 100%
+// =============================================================================
+
+interface GoalCompletedEmailArgs {
+  to:            string;
+  goalTitle:     string;
+  recoveredMo:   number;
+  daysAhead:     number;   // how many days before deadline
+}
+
+export async function sendGoalCompletedEmail({
+  to, goalTitle, recoveredMo, daysAhead,
+}: GoalCompletedEmailArgs): Promise<boolean> {
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.com";
+  const html = emailTemplate(
+    `🏆 Goal achieved: ${goalTitle}`,
+    `You hit your goal${daysAhead > 0 ? ` <strong>${daysAhead} days early</strong>` : ""}! You recovered <strong>$${(recoveredMo ?? 0).toLocaleString()}/month</strong> — that's <strong>$${((recoveredMo ?? 0) * 12).toLocaleString()}/year</strong> staying in your business.<br><br>Set your next 90-day goal and keep the momentum going.`,
+    "Set your next goal →",
+    `${appUrl}/v2/dashboard`
+  );
+  return sendEmail({ to, subject: `🏆 Goal achieved — ${goalTitle}`, html });
+}
+
+// =============================================================================
+// RESCAN COMPLETE EMAIL — Sent immediately after comparison is generated
+// Deduplication enforced via monthly_briefs table (one per report_id)
+// =============================================================================
+
+interface RescanEmailArgs {
+  to:               string;
+  headline:         string;
+  narrative:        string;
+  scoreDelta:       number;
+  prevScore:        number;
+  newScore:         number;
+  savingsRecovered: number;
+  newIssuesCount:   number;
+  netMonthly:       number;
+  daysBetween:      number;
+  newReportId:      string;
+}
+
+export async function sendRescanEmail({
+  to, headline, narrative, scoreDelta, prevScore, newScore,
+  savingsRecovered, newIssuesCount, netMonthly, daysBetween, newReportId,
+}: RescanEmailArgs): Promise<boolean> {
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.com";
+  const reportUrl = `${appUrl}/v2/diagnostic/${newReportId}`;
+  const tasksUrl  = `${appUrl}/v2/tasks`;
+
+  const scoreLine = scoreDelta > 0
+    ? `<span style="color:#2D7A50;font-weight:700">↑ ${prevScore} → ${newScore} (+${scoreDelta})</span>`
+    : scoreDelta < 0
+    ? `<span style="color:#C4841D;font-weight:700">↓ ${prevScore} → ${newScore} (${scoreDelta})</span>`
+    : `<span style="color:#8E8C85;font-weight:700">${newScore}/100 — unchanged</span>`;
+
+  const netLine = netMonthly > 0
+    ? `<strong style="color:#2D7A50">Net: +$${netMonthly.toLocaleString()}/month better overall</strong>`
+    : netMonthly < 0
+    ? `<strong style="color:#C4841D">Net: -$${Math.abs(netMonthly).toLocaleString()}/month (new issues found)</strong>`
+    : `<strong>Net: Even — recoveries match new findings</strong>`;
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<div style="max-width:560px;margin:0 auto;padding:32px 16px">
+  <div style="background:#1B3A2D;border-radius:16px 16px 0 0;padding:24px 32px">
+    <div style="font-size:18px;font-weight:900;color:white;margin-bottom:2px">💧 Fruxal</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.1em">Rescan complete — ${daysBetween} days since last scan</div>
+  </div>
+  <div style="background:white;padding:28px 32px">
+    <div style="font-size:18px;font-weight:900;color:#1a1a2e;margin-bottom:12px">${headline}</div>
+    <div style="background:#f7f8fa;border-radius:10px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Score</div>${scoreLine}</div>
+        ${savingsRecovered > 0 ? `<div><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Recovered</div><span style="color:#2D7A50;font-weight:700">+$${savingsRecovered.toLocaleString()}/month</span></div>` : ""}
+        ${newIssuesCount > 0 ? `<div><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">New issues</div><span style="color:#C4841D;font-weight:700">${newIssuesCount} found</span></div>` : ""}
+        <div><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Net</div>${netLine}</div>
+      </div>
+    </div>
+    ${narrative ? `<div style="font-size:14px;color:#555;line-height:1.6;margin-bottom:24px">${narrative}</div>` : ""}
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <a href="${reportUrl}" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:13px;padding:10px 20px;border-radius:10px;text-decoration:none">View full diagnostic →</a>
+      <a href="${tasksUrl}" style="display:inline-block;background:#f0f0f0;color:#1B3A2D;font-weight:700;font-size:13px;padding:10px 20px;border-radius:10px;text-decoration:none">See what to fix next →</a>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">Fruxal Business Intelligence · fruxal.com</div>
+</div>
+</body></html>`;
+
+  const scoreSymbol = scoreDelta > 0 ? `+${scoreDelta}` : String(scoreDelta);
+  const subject = `Your scan is in — score ${scoreSymbol}, net ${netMonthly >= 0 ? "+" : ""}$${Math.abs(netMonthly).toLocaleString()}/month`;
+
+  return sendEmail({ to, subject, html,
+    text: `${headline}\n\nScore: ${prevScore} → ${newScore} (${scoreSymbol})\nRecovered: $${(savingsRecovered ?? 0).toLocaleString()}/month\nNew issues: ${newIssuesCount}\n\n${narrative}\n\nView your diagnostic: ${reportUrl}`,
+  });
+}

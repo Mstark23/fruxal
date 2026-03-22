@@ -20,6 +20,8 @@ import { buildSystemPrompt, buildUserPrompt, buildTaxContext, PromptInputs } fro
 import { buildEnterprisePrompts } from "@/lib/ai/prompts/diagnostic/enterprise";
 import { generateTasksFromFindings } from "@/lib/ai/task-generator";
 import { getPrescanContext, type PrescanContext } from "@/lib/ai/prescan-context";
+import { suggestGoal } from "@/lib/ai/goal-suggester";
+import { generateComparison } from "@/lib/ai/comparison-generator";
 import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -536,6 +538,45 @@ export async function POST(req: NextRequest) {
         console.warn("[Diagnostic] Prescan link failed (non-blocking):", e?.message)
       );
     }
+
+    // ── 9f. Generate comparison if previous report exists (non-blocking) ────────
+Promise.resolve(supabaseAdmin
+      .from("diagnostic_reports")
+      .select("id, overall_score, created_at")
+      .eq("business_id", businessId)
+      .eq("status", "completed")
+      .neq("id", reportId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle())
+      .then(async ({ data: prevReport }: any) => {
+        if (!prevReport) return; // first scan — no comparison
+        await supabaseAdmin
+          .from("diagnostic_reports")
+          .update({ is_rescan: true } as any)
+          .eq("id", reportId);
+        generateComparison(businessId, userId, reportId, prevReport.id)
+          .catch((e: any) => console.warn("[Diagnostic] Comparison generation failed:", e?.message));
+      })
+      .catch(() => { /* non-fatal */ });
+
+    // ── 9e. Generate goal suggestion (non-blocking) ──────────────────────────
+    // Only suggest if user has no active goal AND store in diagnostic_reports.goal_suggestion
+Promise.resolve(supabaseAdmin
+      .from("business_goals")
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", businessId)
+      .eq("status", "active"))
+      .then(async ({ count }: any) => {
+        if ((count ?? 0) > 0) return;
+        const suggestion = await suggestGoal(businessId, userId, tier);
+        if (!suggestion) return;
+        await supabaseAdmin
+          .from("diagnostic_reports")
+          .update({ goal_suggestion: suggestion } as any)
+          .eq("id", reportId);
+      })
+      .catch(() => { /* non-fatal */ });
 
     // ── 9c. Auto-extract financial ratios from diagnostic (non-blocking) ──────
     fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v2/ratios/extract`, {

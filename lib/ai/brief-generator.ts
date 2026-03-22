@@ -31,7 +31,7 @@ function daysUntil(iso: string): number {
 
 // ── Context assembly ──────────────────────────────────────────────────────────
 async function assembleContext(businessId: string, userId: string) {
-  const [bizRow, reportsRow, completedTasksRow, openTasksRow, snapshotsRow, obligationsRow, ratiosRow, prescanCtx] =
+  const [bizRow, reportsRow, completedTasksRow, openTasksRow, snapshotsRow, obligationsRow, ratiosRow, prescanCtx, activeGoal, latestComparison] =
     await Promise.all([
       // 1. Business + owner info
       supabaseAdmin
@@ -102,6 +102,27 @@ async function assembleContext(businessId: string, userId: string) {
         .then(r => r.data),
       // 8. Prescan context (for first-diagnostic continuity messaging)
       getPrescanContext(businessId, userId).catch(() => null),
+
+      // 9. Active goal
+      supabaseAdmin
+        .from("business_goals")
+        .select("goal_title, goal_type, progress_pct, target_date, target_amount, status, created_at")
+        .eq("business_id", businessId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then((r: any) => r.data),
+
+      // 10. Most recent comparison (from rescan)
+      supabaseAdmin
+        .from("diagnostic_comparisons")
+        .select("comparison_headline, score_delta, savings_recovered_monthly, findings_new_count, net_monthly_improvement, days_between_scans, generated_at")
+        .eq("business_id", businessId)
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then((r: any) => r.data),
     ]);
 
   const currentReport = (reportsRow as any[])[0] ?? null;
@@ -145,12 +166,14 @@ async function assembleContext(businessId: string, userId: string) {
     })).filter(o => o.due_date),
     ratios: ratiosRow,
     prescanCtx: prescanCtx ?? null,
+    activeGoal:        activeGoal ?? null,
+    latestComparison:  latestComparison ?? null,
   };
 }
 
 // ── Tier-specific user prompts ────────────────────────────────────────────────
 function buildUserPrompt(ctx: Awaited<ReturnType<typeof assembleContext>>, tier: string): string {
-  const { biz, currentScore, prevScore, completedTasks, openTasks, recovery, obligations, ratios, prescanCtx } = ctx;
+  const { biz, currentScore, prevScore, completedTasks, openTasks, recovery, obligations, ratios, prescanCtx, activeGoal, latestComparison } = ctx;
   const topTask = openTasks[0];
   const topDeadline = obligations[0];
   const langNote = biz.isQC ? " (If relevant, use Quebec tax terms: TPS/TVQ instead of HST/GST.)" : "";
@@ -186,6 +209,33 @@ Their situation this month:
 Keep it simple and direct. Maximum 3 short paragraphs. They are a solo operator with limited time. One action only. Make it feel achievable.`;
   }
 
+
+
+  // Goal progress note for brief
+  const goalNote = (activeGoal as any)?.goal_title
+    ? (() => {
+        const g = activeGoal as any;
+        const pct = g.progress_pct ?? 0;
+        const daysLeft = Math.max(0, Math.ceil((new Date(g.target_date).getTime() - Date.now()) / 86400000));
+        const totalDays = 90;
+        const daysElapsed = totalDays - daysLeft;
+        const pacePct = Math.min(100, (daysElapsed / totalDays) * 100);
+        const onPace = pct >= pacePct;
+        if (onPace) return `\nGOAL PROGRESS: On track for goal '${g.goal_title}' — ${Math.round(pct)}% complete with ${daysLeft} days left.`;
+        return `\nGOAL PROGRESS: Behind pace on goal '${g.goal_title}' — ${Math.round(pct)}% complete, ${daysLeft} days left.`;
+      })()
+    : "";
+
+
+  // Rescan comparison note for brief
+  const compNote = (latestComparison as any)?.comparison_headline
+    ? (() => {
+        const lc = latestComparison as any;
+        const isRecent = lc.generated_at && (Date.now() - new Date(lc.generated_at).getTime()) < 35 * 86400000;
+        if (!isRecent) return "";
+        return `\nRECENT RESCAN (${lc.days_between_scans} days between scans): Score ${lc.score_delta >= 0 ? "+" : ""}${lc.score_delta} | Savings recovered: $${Math.round(lc.savings_recovered_monthly ?? 0).toLocaleString()}/month | New issues: ${lc.findings_new_count} | Net improvement: ${lc.net_monthly_improvement >= 0 ? "+" : ""}$${Math.round(Math.abs(lc.net_monthly_improvement ?? 0)).toLocaleString()}/month`;
+      })()
+    : "";
 
   // Prescan continuity note for brief
   const prescanNote = prescanCtx
@@ -235,7 +285,7 @@ ${completedLines}
 - Top open tasks:
 ${openLines}
 - Upcoming deadlines:
-${obligationLines}${ratioNote}${prescanNote}
+${obligationLines}${ratioNote}${prescanNote}${goalNote}${compNote}
 
 Write 3-4 substantive paragraphs. Include dollar amounts everywhere. The subject line should reference a specific number from their situation. CTA should link to their top priority task.`;
 }
