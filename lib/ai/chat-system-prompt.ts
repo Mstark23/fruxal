@@ -39,6 +39,9 @@ function buildSoloPrompt(ctx: BusinessContext): string {
         : ctx.liveScore.daysSinceDiagnostic !== null ? ` (${ctx.liveScore.daysSinceDiagnostic} days since diagnostic)` : "") +
       (ctx.liveScore.needsRescan ? "\nNote: Score is stale — recommend a rescan for accurate results." : "")
     : "";
+  const journeyBlock = ctx.journey?.daysOnPlatform
+    ? `Platform history: ${ctx.journey.daysOnPlatform} days on Fruxal | ${ctx.journey.scansCompleted ?? 0} scan${(ctx.journey.scansCompleted ?? 0) !== 1 ? "s" : ""} | ${ctx.journey.tasksCompleted ?? 0} task${(ctx.journey.tasksCompleted ?? 0) !== 1 ? "s" : ""} completed | Total confirmed savings: $${(ctx.journey.totalRecovered ?? 0).toLocaleString()}/month`
+    : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0
       ? `PRESCAN HISTORY (initial scan ${ctx.prescan.daysSincePrescan} days ago):\n` +
@@ -102,7 +105,7 @@ ${tasksBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 
-${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}${goalBlock ? goalBlock + '\n\n' : ''}
+${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}${goalBlock ? goalBlock + '\n\n' : ''}${journeyBlock ? journeyBlock + '\n\n' : ''}
 YOUR ROLE AND RULES:
 - Respond in plain English — zero financial jargon
 - Keep responses to 3-5 sentences unless detail is requested
@@ -128,6 +131,9 @@ function buildBusinessPrompt(ctx: BusinessContext): string {
           (ctx.liveScore.daysSinceDiagnostic !== null ? `, ${ctx.liveScore.daysSinceDiagnostic} days ago)` : ")")
         : ctx.liveScore.daysSinceDiagnostic !== null ? ` (${ctx.liveScore.daysSinceDiagnostic} days since diagnostic)` : "") +
       (ctx.liveScore.needsRescan ? "\nNote: Score is stale — recommend a rescan for accurate results." : "")
+    : "";
+  const journeyBlock = ctx.journey?.daysOnPlatform
+    ? `Platform history: ${ctx.journey.daysOnPlatform} days on Fruxal | ${ctx.journey.scansCompleted ?? 0} scan${(ctx.journey.scansCompleted ?? 0) !== 1 ? "s" : ""} | ${ctx.journey.tasksCompleted ?? 0} task${(ctx.journey.tasksCompleted ?? 0) !== 1 ? "s" : ""} completed | Total confirmed savings: $${(ctx.journey.totalRecovered ?? 0).toLocaleString()}/month`
     : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0
@@ -206,7 +212,7 @@ ${completedBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}${journeyBlock ? "\n" + journeyBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - Data-driven responses with dollar amounts on everything
 - Reference their specific numbers — never generic advice
@@ -231,6 +237,9 @@ function buildEnterprisePrompt(ctx: BusinessContext): string {
           (ctx.liveScore.daysSinceDiagnostic !== null ? `, ${ctx.liveScore.daysSinceDiagnostic} days ago)` : ")")
         : ctx.liveScore.daysSinceDiagnostic !== null ? ` (${ctx.liveScore.daysSinceDiagnostic} days since diagnostic)` : "") +
       (ctx.liveScore.needsRescan ? "\nNote: Score is stale — recommend a rescan for accurate results." : "")
+    : "";
+  const journeyBlock = ctx.journey?.daysOnPlatform
+    ? `Platform history: ${ctx.journey.daysOnPlatform} days on Fruxal | ${ctx.journey.scansCompleted ?? 0} scan${(ctx.journey.scansCompleted ?? 0) !== 1 ? "s" : ""} | ${ctx.journey.tasksCompleted ?? 0} task${(ctx.journey.tasksCompleted ?? 0) !== 1 ? "s" : ""} completed | Total confirmed savings: $${(ctx.journey.totalRecovered ?? 0).toLocaleString()}/month`
     : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0
@@ -303,7 +312,7 @@ ${tasksBlock}
 OBLIGATIONS IN NEXT 60 DAYS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}${journeyBlock ? "\n" + journeyBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - CFO-level depth and precision in every response
 - Structure longer responses: Situation → Options → Recommendation

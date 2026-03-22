@@ -22,6 +22,7 @@ import { generateTasksFromFindings } from "@/lib/ai/task-generator";
 import { getPrescanContext, type PrescanContext } from "@/lib/ai/prescan-context";
 import { suggestGoal } from "@/lib/ai/goal-suggester";
 import { generateComparison } from "@/lib/ai/comparison-generator";
+import { buildTimeline } from "@/lib/ai/timeline-builder";
 import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -538,6 +539,9 @@ export async function POST(req: NextRequest) {
         console.warn("[Diagnostic] Prescan link failed (non-blocking):", e?.message)
       );
     }
+
+    // ── 9g. Rebuild timeline (non-blocking)
+    buildTimeline(businessId, userId).catch(() => {});
 
     // ── 9f. Generate comparison if previous report exists (non-blocking) ────────
 Promise.resolve(supabaseAdmin

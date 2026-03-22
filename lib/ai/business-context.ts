@@ -32,6 +32,13 @@ export interface CompletedTask {
   completed_at: string;
 }
 
+export interface JourneyContext {
+  daysOnPlatform:  number | null;
+  tasksCompleted:  number | null;
+  scansCompleted:  number | null;
+  totalRecovered:  number | null;
+}
+
 export interface ActiveGoalContext {
   title:           string | null;
   type:            string | null;
@@ -118,6 +125,7 @@ export interface BusinessContext {
   prescan: PrescanSummary | null;
   liveScore: LiveScoreContext | null;
   activeGoal: ActiveGoalContext | null;
+  journey: JourneyContext | null;
 }
 
 // Minimal context for when DB queries fail
@@ -135,6 +143,7 @@ function emptyContext(businessId: string): BusinessContext {
     prescan: null,
     liveScore: null,
     activeGoal: null,
+    journey: null,
   };
 }
 
@@ -146,7 +155,7 @@ export async function buildBusinessContext(
 
   try {
     // All queries in parallel — 3-second timeout on the whole bundle
-    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes, ratioRes, prescanCtxRes, liveScoreRes, goalRes] = await Promise.all([
+    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes, ratioRes, prescanCtxRes, liveScoreRes, goalRes, journeyRes] = await Promise.all([
       // 1. Business profile
       supabaseAdmin
         .from("business_profiles")
@@ -249,6 +258,25 @@ export async function buildBusinessContext(
         .limit(1)
         .maybeSingle()
         .then(r => r.data),
+
+      // 12. Journey summary (Build 15)
+      supabaseAdmin
+        .from("business_timeline")
+        .select("event_type, savings_monthly_delta, event_date")
+        .eq("business_id", businessId)
+        .then(r => {
+          const rows = r.data ?? [];
+          const firstEvent = rows.reduce((min: any, row: any) =>
+            !min || new Date(row.event_date) < new Date(min.event_date) ? row : min, null);
+          const daysOnPlatform = firstEvent
+            ? Math.floor((Date.now() - new Date(firstEvent.event_date).getTime()) / 86400000)
+            : null;
+          const tasksCompleted = rows.filter((r: any) => r.event_type === "task_completed").length;
+          const scansCompleted = rows.filter((r: any) => ["diagnostic","rescan"].includes(r.event_type)).length;
+          const totalRecovered = rows.reduce((s: number, r: any) =>
+            s + (r.savings_monthly_delta && r.savings_monthly_delta > 0 ? r.savings_monthly_delta : 0), 0);
+          return { daysOnPlatform, tasksCompleted, scansCompleted, totalRecovered };
+        }),
     ]);
 
     // -- Profile
@@ -345,6 +373,12 @@ export async function buildBusinessContext(
       recovery,
       upcoming_deadlines: deadlines.slice(0, 5),
       tier,
+      journey: journeyRes?.daysOnPlatform != null ? {
+        daysOnPlatform: journeyRes.daysOnPlatform,
+        tasksCompleted: journeyRes.tasksCompleted,
+        scansCompleted: journeyRes.scansCompleted,
+        totalRecovered: Math.round(journeyRes.totalRecovered ?? 0),
+      } : null,
       activeGoal: goalRes ? (() => {
         const g = goalRes;
         const target = g.target_amount ?? g.target_score ?? g.target_count ?? 1;

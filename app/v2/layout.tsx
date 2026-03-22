@@ -11,6 +11,7 @@ function I({d,s=20}:{d:string;s?:number}){
 // ── Nav definitions ───────────────────────────────────────────────────────────
 const NAV_STANDARD = [
   { path:"/v2/dashboard",   icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
+  { path:"/v2/history", icon:'<path d=\"M3 3v5h5\"/><path d=\"M3.05 13A9 9 0 106 5.3L3 8\"/><path d=\"M12 7v5l4 2\"/>', label:"My Journey" },
   { path:"/v2/obligations", icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
   { path:"/v2/leaks",       icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"Leaks" },
   { path:"/v2/diagnostic",  icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
@@ -21,6 +22,7 @@ const NAV_STANDARD = [
 // Enterprise nav — Leaks replaced by Run Intake (T2/financials upload CTA)
 const NAV_ENTERPRISE = [
   { path:"/v2/dashboard/enterprise", icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
+  { path:"/v2/history", icon:'<path d=\"M3 3v5h5\"/><path d=\"M3.05 13A9 9 0 106 5.3L3 8\"/><path d=\"M12 7v5l4 2\"/>', label:"My Journey" },
   { path:"/v2/diagnostic/intake",    icon:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label:"Run Intake", cta:true },
   { path:"/v2/obligations",          icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
   { path:"/v2/diagnostic",           icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
@@ -31,7 +33,7 @@ const NAV_ENTERPRISE = [
 // Routes that always force enterprise nav regardless of pathname
 const ENTERPRISE_PATHS = ["/v2/dashboard/enterprise", "/v2/diagnostic/intake", "/v2/diagnostic/run"];
 // Routes where enterprise nav stays active (user is navigating around while enterprise)
-const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations"];
+const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history"];
 
 export default function V2Layout({children}:{children:React.ReactNode}) {
   const router   = useRouter();
