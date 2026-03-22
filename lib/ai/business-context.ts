@@ -7,6 +7,7 @@
 // =============================================================================
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getPrescanContext } from "./prescan-context";
 
 export interface BusinessFinding {
   title: string;
@@ -29,6 +30,24 @@ export interface CompletedTask {
   title: string;
   savings_monthly: number;
   completed_at: string;
+}
+
+export interface LiveScoreContext {
+  current:             number | null;
+  delta:               number | null;
+  lastDiagnosticScore: number | null;
+  daysSinceDiagnostic: number | null;
+  needsRescan:         boolean;
+}
+
+export interface PrescanSummary {
+  completedAt:            string;
+  industry:               string;
+  province:               string;
+  topLeaks:               Array<{ category: string; title: string; estimatedMonthlyLoss: number }>;
+  totalEstimatedLoss:     number;
+  daysSincePrescan:       number;
+  diagnosticConfirmedCount: number | null;
 }
 
 export interface RatiosContext {
@@ -85,6 +104,8 @@ export interface BusinessContext {
   tier: "solo" | "business" | "enterprise";
   break_even: BreakEvenContext | null;
   ratios: RatiosContext | null;
+  prescan: PrescanSummary | null;
+  liveScore: LiveScoreContext | null;
 }
 
 // Minimal context for when DB queries fail
@@ -99,6 +120,8 @@ function emptyContext(businessId: string): BusinessContext {
     tier: "solo",
     break_even: null,
     ratios: null,
+    prescan: null,
+    liveScore: null,
   };
 }
 
@@ -110,7 +133,7 @@ export async function buildBusinessContext(
 
   try {
     // All queries in parallel — 3-second timeout on the whole bundle
-    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes, ratioRes] = await Promise.all([
+    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes, ratioRes, prescanCtxRes, liveScoreRes] = await Promise.all([
       // 1. Business profile
       supabaseAdmin
         .from("business_profiles")
@@ -186,6 +209,19 @@ export async function buildBusinessContext(
         .select("current_ratio, dscr, gross_margin_pct, ebitda_margin_pct, dso_days, dpo_days, debt_to_equity, data_completeness_pct")
         .eq("business_id", businessId)
         .order("period_month", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(r => r.data),
+
+      // 9. Prescan context (Build 13)
+      getPrescanContext(businessId, userId).catch(() => null),
+
+      // 10. Live score (Build 04)
+      supabaseAdmin
+        .from("score_history")
+        .select("score, score_delta, calculated_at")
+        .eq("business_id", businessId)
+        .order("calculated_at", { ascending: false })
         .limit(1)
         .maybeSingle()
         .then(r => r.data),
@@ -285,6 +321,28 @@ export async function buildBusinessContext(
       recovery,
       upcoming_deadlines: deadlines.slice(0, 5),
       tier,
+      liveScore: liveScoreRes ? {
+        current:             liveScoreRes.score ?? null,
+        delta:               liveScoreRes.score_delta ?? null,
+        lastDiagnosticScore: latestReport?.score ?? null,
+        daysSinceDiagnostic: latestReport?.completed_at
+          ? Math.floor((Date.now() - new Date(latestReport.completed_at).getTime()) / 86400000)
+          : null,
+        needsRescan: latestReport?.completed_at
+          ? Math.floor((Date.now() - new Date(latestReport.completed_at).getTime()) / 86400000) >= 90
+          : false,
+      } : null,
+      prescan: prescanCtxRes ? {
+        completedAt:          prescanCtxRes.completedAt.toISOString(),
+        industry:             prescanCtxRes.industry,
+        province:             prescanCtxRes.province,
+        topLeaks:             prescanCtxRes.topLeaks.map(l => ({
+          category: l.category, title: l.title, estimatedMonthlyLoss: l.estimatedMonthlyLoss,
+        })),
+        totalEstimatedLoss:   prescanCtxRes.totalEstimatedLoss,
+        daysSincePrescan:     prescanCtxRes.daysSincePrescan,
+        diagnosticConfirmedCount: null, // enriched by linker after diagnostic runs
+      } : null,
       ratios: ratioRes ? {
         current_ratio:     ratioRes.current_ratio     ?? null,
         dscr:              ratioRes.dscr              ?? null,

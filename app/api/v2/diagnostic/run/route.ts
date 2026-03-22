@@ -19,6 +19,8 @@ import { fetchDiagnosticContext }      from "@/lib/ai/context";
 import { buildSystemPrompt, buildUserPrompt, buildTaxContext, PromptInputs } from "@/lib/ai/prompts";
 import { buildEnterprisePrompts } from "@/lib/ai/prompts/diagnostic/enterprise";
 import { generateTasksFromFindings } from "@/lib/ai/task-generator";
+import { getPrescanContext, type PrescanContext } from "@/lib/ai/prescan-context";
+import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export const maxDuration = 120;
@@ -216,6 +218,15 @@ export async function POST(req: NextRequest) {
       console.warn(`[Diagnostic] No industry benchmarks in DB for industry="${profile.industry_slug || profile.industry}" — AI will use Canadian averages`);
     }
 
+    // ── 4b. Fetch prescan context (2s timeout — never blocks diagnostic) ────
+    let prescanCtx: PrescanContext | null = null;
+    try {
+      prescanCtx = await Promise.race([
+        getPrescanContext(businessId, userId),
+        new Promise<null>((_res, rej) => setTimeout(() => rej(new Error("prescan timeout")), 2000)),
+      ]) as PrescanContext | null;
+    } catch { /* non-fatal — prescan context optional */ }
+
     let systemPrompt: string;
     let userPrompt: string;
 
@@ -322,6 +333,41 @@ export async function POST(req: NextRequest) {
     } else {
       systemPrompt = buildSystemPrompt(promptInputs);
       userPrompt   = buildUserPrompt(promptInputs);
+    }
+
+
+    // ── Append prescan baseline data to system prompt (under 400 tokens) ────
+    if (prescanCtx) {
+      const leakLines = prescanCtx.topLeaks.slice(0, 5)
+        .map(l => `  - [${l.category}] ${l.title}: ~$${(l.estimatedMonthlyLoss ?? 0).toLocaleString()}/month (${l.severity})`)
+        .join("\n");
+
+      const prescanSection = [
+        "",
+        "═══════════════════════════════════════════════════",
+        "PRESCAN BASELINE DATA:",
+        `This business completed an initial scan ${prescanCtx.daysSincePrescan} day${prescanCtx.daysSincePrescan !== 1 ? "s" : ""} ago.`,
+        "The prescan identified these potential issues:",
+        leakLines,
+        `Total estimated monthly loss from prescan: ~$${(prescanCtx.totalEstimatedLoss ?? 0).toLocaleString()}`,
+        "",
+        "INSTRUCTIONS FOR PRESCAN CONTINUITY:",
+        "- For each finding in your diagnostic, check if it matches a prescan leak.",
+        "  If it does: add a field confirmed_from_prescan: true and include the text",
+        "  'Confirmed from your initial scan' in the finding description.",
+        "- If you find issues the prescan missed: these are new discoveries — do not",
+        "  add confirmed_from_prescan. They are genuinely new findings.",
+        "- If a prescan leak is NOT confirmed by your full analysis: still include it",
+        "  as a finding but mark it prescan_only: true with a brief note.",
+        "- Open your diagnostic findings section with 1-2 sentences acknowledging",
+        "  the prescan: 'Your initial scan identified [X] potential issues. Our full",
+        "  diagnostic confirms [Y] of them and found [Z] additional areas requiring attention.'",
+        "- This continuity language builds user trust — they should feel Fruxal",
+        "  remembered and validated what they shared in the prescan.",
+        "═══════════════════════════════════════════════════",
+      ].join("\n");
+
+      systemPrompt = systemPrompt + prescanSection;
     }
 
     // ── 5. Create report record ───────────────────────────────────────────
@@ -475,6 +521,20 @@ export async function POST(req: NextRequest) {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET || ""}` },
       body: JSON.stringify({ businessId }),
     }).catch(() => { /* non-fatal */ });
+    }
+
+    // ── 9d. Link prescan to diagnostic (non-blocking) ────────────────────────
+    if (prescanCtx && reportId) {
+      const finalReportData = aiResult;
+      linkPrescanToDiagnostic(
+        prescanCtx.prescanRunId,
+        businessId,
+        reportId,
+        finalReportData,
+        prescanCtx
+      ).catch((e: any) =>
+        console.warn("[Diagnostic] Prescan link failed (non-blocking):", e?.message)
+      );
     }
 
     // ── 9c. Auto-extract financial ratios from diagnostic (non-blocking) ──────

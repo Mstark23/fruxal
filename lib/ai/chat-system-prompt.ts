@@ -25,6 +25,23 @@ function daysUntil(iso: string): number {
 
 // ── TIER 1 — Solo ─────────────────────────────────────────────────────────────
 function buildSoloPrompt(ctx: BusinessContext): string {
+  const liveScoreBlock = ctx.liveScore?.current
+    ? `Health score: ${ctx.liveScore.current}/100` +
+      (ctx.liveScore.delta !== null && ctx.liveScore.delta !== 0
+        ? ` (${ctx.liveScore.delta > 0 ? "+" : ""}${ctx.liveScore.delta} from last diagnostic` +
+          (ctx.liveScore.daysSinceDiagnostic !== null ? `, ${ctx.liveScore.daysSinceDiagnostic} days ago)` : ")")
+        : ctx.liveScore.daysSinceDiagnostic !== null ? ` (${ctx.liveScore.daysSinceDiagnostic} days since diagnostic)` : "") +
+      (ctx.liveScore.needsRescan ? "\nNote: Score is stale — recommend a rescan for accurate results." : "")
+    : "";
+  const prescanBlock = ctx.prescan
+    ? ctx.prescan.totalEstimatedLoss > 0
+      ? `PRESCAN HISTORY (initial scan ${ctx.prescan.daysSincePrescan} days ago):\n` +
+        `~$${(ctx.prescan.totalEstimatedLoss ?? 0).toLocaleString()}/month in potential losses identified.\n` +
+        (ctx.prescan.topLeaks.length > 0
+          ? `Top issues flagged: ${ctx.prescan.topLeaks.slice(0,3).map(l => l.title).join(", ")}.`
+          : "")
+      : ""
+    : "";
   const beBlock = ctx.break_even
     ? `BREAK-EVEN POSITION:\nMonthly break-even: ${fmt(ctx.break_even.break_even_revenue)}\nCurrent revenue: ${fmt(ctx.break_even.current_revenue)}\nSafety margin: ${fmt(ctx.break_even.safety_margin)} (${ctx.break_even.safety_margin_pct.toFixed(1)}%) — ${ctx.break_even.safety_margin_pct >= 20 ? "comfortable" : ctx.break_even.safety_margin_pct >= 0 ? "thin" : "below break-even"}`
     : "";
@@ -79,7 +96,7 @@ ${tasksBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 
-${beBlock ? beBlock + '\n\n' : ''}
+${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}
 YOUR ROLE AND RULES:
 - Respond in plain English — zero financial jargon
 - Keep responses to 3-5 sentences unless detail is requested
@@ -92,6 +109,23 @@ ${topTask ? `- Their top priority task right now is: "${topTask.title}" (${fmt(t
 
 // ── TIER 2 — Business ─────────────────────────────────────────────────────────
 function buildBusinessPrompt(ctx: BusinessContext): string {
+  const liveScoreBlock = ctx.liveScore?.current
+    ? `Health score: ${ctx.liveScore.current}/100` +
+      (ctx.liveScore.delta !== null && ctx.liveScore.delta !== 0
+        ? ` (${ctx.liveScore.delta > 0 ? "+" : ""}${ctx.liveScore.delta} from last diagnostic` +
+          (ctx.liveScore.daysSinceDiagnostic !== null ? `, ${ctx.liveScore.daysSinceDiagnostic} days ago)` : ")")
+        : ctx.liveScore.daysSinceDiagnostic !== null ? ` (${ctx.liveScore.daysSinceDiagnostic} days since diagnostic)` : "") +
+      (ctx.liveScore.needsRescan ? "\nNote: Score is stale — recommend a rescan for accurate results." : "")
+    : "";
+  const prescanBlock = ctx.prescan
+    ? ctx.prescan.totalEstimatedLoss > 0
+      ? `PRESCAN HISTORY (initial scan ${ctx.prescan.daysSincePrescan} days ago):\n` +
+        `~$${(ctx.prescan.totalEstimatedLoss ?? 0).toLocaleString()}/month in potential losses identified.\n` +
+        (ctx.prescan.topLeaks.length > 0
+          ? `Top issues flagged: ${ctx.prescan.topLeaks.slice(0,3).map(l => l.title).join(", ")}.`
+          : "")
+      : ""
+    : "";
   const ratioBlock = ctx.ratios && (ctx.ratios.dscr !== null || ctx.ratios.gross_margin_pct !== null)
     ? `KEY FINANCIAL RATIOS:\n` +
       (ctx.ratios.current_ratio   !== null ? `→ Current ratio: ${ctx.ratios.current_ratio}x\n` : "") +
@@ -160,7 +194,7 @@ ${completedBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - Data-driven responses with dollar amounts on everything
 - Reference their specific numbers — never generic advice
@@ -172,6 +206,23 @@ YOUR ROLE AND RULES:
 
 // ── TIER 3 — Enterprise ───────────────────────────────────────────────────────
 function buildEnterprisePrompt(ctx: BusinessContext): string {
+  const liveScoreBlock = ctx.liveScore?.current
+    ? `Health score: ${ctx.liveScore.current}/100` +
+      (ctx.liveScore.delta !== null && ctx.liveScore.delta !== 0
+        ? ` (${ctx.liveScore.delta > 0 ? "+" : ""}${ctx.liveScore.delta} from last diagnostic` +
+          (ctx.liveScore.daysSinceDiagnostic !== null ? `, ${ctx.liveScore.daysSinceDiagnostic} days ago)` : ")")
+        : ctx.liveScore.daysSinceDiagnostic !== null ? ` (${ctx.liveScore.daysSinceDiagnostic} days since diagnostic)` : "") +
+      (ctx.liveScore.needsRescan ? "\nNote: Score is stale — recommend a rescan for accurate results." : "")
+    : "";
+  const prescanBlock = ctx.prescan
+    ? ctx.prescan.totalEstimatedLoss > 0
+      ? `PRESCAN HISTORY (initial scan ${ctx.prescan.daysSincePrescan} days ago):\n` +
+        `~$${(ctx.prescan.totalEstimatedLoss ?? 0).toLocaleString()}/month in potential losses identified.\n` +
+        (ctx.prescan.topLeaks.length > 0
+          ? `Top issues flagged: ${ctx.prescan.topLeaks.slice(0,3).map(l => l.title).join(", ")}.`
+          : "")
+      : ""
+    : "";
   const ratioBlock = ctx.ratios && (ctx.ratios.dscr !== null || ctx.ratios.gross_margin_pct !== null)
     ? `KEY FINANCIAL RATIOS:\n` +
       (ctx.ratios.current_ratio   !== null ? `→ Current ratio: ${ctx.ratios.current_ratio}x\n` : "") +
@@ -234,7 +285,7 @@ ${tasksBlock}
 OBLIGATIONS IN NEXT 60 DAYS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - CFO-level depth and precision in every response
 - Structure longer responses: Situation → Options → Recommendation

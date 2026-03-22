@@ -170,3 +170,71 @@ export async function sendMilestoneEmail({
     text: `You just hit $${(milestone ?? 0).toLocaleString()}/month recovered. That's $${(annualized ?? 0).toLocaleString()}/year staying in your business. See your progress: ${tasksUrl}`,
   });
 }
+
+// =============================================================================
+// MONTHLY BRIEF TEMPLATE — Wraps Claude-generated body_html in Fruxal layout
+// Used by the monthly-brief cron and preview endpoint
+// =============================================================================
+
+interface MonthlyBriefArgs {
+  bodyHtml:     string;
+  bodyText:     string;
+  businessName: string;
+  unsubUrl:     string;
+  appUrl:       string;
+}
+
+export function renderMonthlyBrief({
+  bodyHtml, bodyText, businessName, unsubUrl, appUrl,
+}: MonthlyBriefArgs): { html: string; text: string } {
+  const now = new Date();
+  const monthYear = now.toLocaleDateString("en-CA", { month: "long", year: "numeric" });
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<div style="max-width:580px;margin:0 auto;padding:32px 16px">
+
+  <!-- Header -->
+  <div style="background:#1B3A2D;border-radius:16px 16px 0 0;padding:24px 32px">
+    <div style="font-size:18px;font-weight:900;color:white;margin-bottom:2px">💧 Fruxal</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.1em">Monthly Financial Brief</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:8px;font-weight:600">${businessName} — ${monthYear}</div>
+  </div>
+
+  <!-- Body -->
+  <div style="background:white;padding:28px 32px">
+    ${bodyHtml}
+  </div>
+
+  <!-- Divider + action links -->
+  <div style="background:white;border-top:1px solid #F0EFEB;padding:16px 32px 24px;border-radius:0 0 16px 16px">
+    <table style="width:100%;border-collapse:collapse">
+      <tr>
+        <td style="padding:0">
+          <a href="${appUrl}/v2/tasks" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:12px;padding:10px 20px;border-radius:8px;text-decoration:none">View action plan →</a>
+        </td>
+      </tr>
+    </table>
+    <div style="margin-top:16px;font-size:11px;color:#aaa">
+      <a href="${appUrl}/v2/settings" style="color:#aaa;text-decoration:none">Update preferences</a>
+      &nbsp;·&nbsp;
+      <a href="${unsubUrl}" style="color:#aaa;text-decoration:none">Unsubscribe from monthly briefs</a>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">
+    Fruxal Business Intelligence · fruxal.com
+  </div>
+</div>
+</body>
+</html>`;
+
+  const fullText = `${businessName} — Monthly Brief (${monthYear})\n\n${bodyText}\n\n---\nView your action plan: ${appUrl}/v2/tasks\nUnsubscribe: ${unsubUrl}`;
+
+  return { html, text: fullText };
+}

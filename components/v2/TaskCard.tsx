@@ -95,6 +95,26 @@ export function TaskCard({ task, onStatusChange, lang = "en", businessId: onBusi
           body: JSON.stringify({ businessId: onBusinessId }),
         }).catch(() => {});
       }
+      // Recalculate live score after task completion (non-blocking)
+      if (onBusinessId && newStatus === "done") {
+        fetch("/api/v2/score/recalculate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            businessId: onBusinessId,
+            triggerType: "task_completed",
+            triggerDetail: `Fixed: ${task.title} ($${(task.savings_monthly ?? 0).toLocaleString()}/mo)`,
+            taskId: task.id,
+          }),
+        })
+          .then(r => r.ok ? r.json() : null)
+          .then(d => {
+            if (d && typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("fruxal:score:updated", { detail: d }));
+            }
+          })
+          .catch(() => {});
+      }
     } finally {
       setLoading(false);
     }

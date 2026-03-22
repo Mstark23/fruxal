@@ -19,6 +19,14 @@
     {
       "path": "/api/cron/outreach",
       "schedule": "0 10 * * 2"
+    },
+    {
+      "path": "/api/v2/cron/monthly-brief",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/v2/cron/score-update",
+      "schedule": "0 8 * * *"
     }
   ],
   "headers": [

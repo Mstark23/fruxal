@@ -12,8 +12,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
 import { TaskList, Task } from "@/components/v2/TaskCard";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
+import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "@/components/v2/LiveScoreRing";
 import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
 import { RatioWidget } from "@/components/v2/RatioWidget";
+import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
+import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, c = 2 * Math.PI * r;
@@ -316,6 +319,9 @@ export default function BusinessDashboard() {
                   <span className="text-xs text-ink-faint mb-1">/100</span>
                 </div>
                 <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${score}%`, background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
+                {isPaid && dashboardBusinessId && (
+                  <ScoreRingAddons businessId={dashboardBusinessId} lang={lang} />
+                )}
               </>
             ) : (
               <>
@@ -731,6 +737,16 @@ export default function BusinessDashboard() {
         {isPaid && dashboardBusinessId && (
           <div className="mb-3" style={fade(0.12)}>
             <BreakEvenWidget businessId={dashboardBusinessId} tier="business" lang={lang} />
+          </div>
+        )}
+        {/* ── MONTHLY BRIEF ──────────────────────────────────────────── */}
+        {isPaid && dashboardBusinessId && (
+          <div className="mb-3" style={fade(0.14)}>
+          </div>
+        )}
+        {/* ── JOURNEY TIMELINE ───────────────────────────────────────── */}
+        {isPaid && dashboardBusinessId && (
+          <div className="mb-3" style={fade(0.15)}>
           </div>
         )}
         {/* ── ACTION PLAN (Tasks) ─────────────────────────────────────── */}

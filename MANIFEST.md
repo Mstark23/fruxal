@@ -1,71 +1,65 @@
-# BUILD IMPROVEMENT 142 — Financial Ratio Intelligence Engine
+# BUILD IMPROVEMENT 04 — Live Score Recalculation
 
 ## Files
 
 | File | Lines |
 |---|---|
-| `lib/ai/ratio-calculator.ts` | 349 |
-| `app/api/v2/ratios/route.ts` | 116 |
-| `app/api/v2/ratios/calculate/route.ts` | 82 |
-| `app/api/v2/ratios/extract/route.ts` | 173 |
-| `app/api/v2/ratios/narrative/route.ts` | 134 |
-| `app/v2/ratios/page.tsx` | 381 |
-| `components/v2/RatioWidget.tsx` | 190 |
-| `app/v2/dashboard/business/page.tsx` | 764 |
-| `app/v2/dashboard/solo/page.tsx` | 767 |
-| `app/v2/dashboard/enterprise/page.tsx` | 1938 |
-| `lib/ai/business-context.ts` | 310 |
-| `lib/ai/chat-system-prompt.ts` | 326 |
-| `app/api/v2/diagnostic/run/route.ts` | 560 |
-| `app/api/cron/monthly-report/route.ts` | 124 |
+| `lib/ai/score-calculator.ts` | 233 |
+| `app/api/v2/score/route.ts` | 185 |
+| `app/api/v2/score/recalculate/route.ts` | 68 |
+| `app/api/v2/cron/score-update/route.ts` | 107 |
+| `components/v2/LiveScoreRing.tsx` | 370 |
+| `components/v2/TaskCard.tsx` | 460 |
+| `app/v2/dashboard/business/page.tsx` | 780 |
+| `app/v2/dashboard/solo/page.tsx` | 780 |
+| `app/v2/dashboard/enterprise/page.tsx` | 1941 |
+| `lib/ai/business-context.ts` | 368 |
+| `lib/ai/chat-system-prompt.ts` | 377 |
+| `vercel.json` | 67 |
+
+## Audit findings (Step 1)
+
+1. **Score stored:** `diagnostic_reports.overall_score` (0–100). `business_profiles.health_score` used for prescan only.
+2. **Score generation:** Claude AI → `scores.overall` → `diagnostic_reports.overall_score`.
+3. **Schema:** 0–100 integer.
+4. **Score display:** Each dashboard has its own inline `Ring` SVG function. Score loaded via `/api/v2/dashboard` + `/api/v2/diagnostic/latest` on page load.
+5. **No existing score_history table** — created by this build.
+6. **Score fetched on page load only** — no real-time update. `fruxal:score:updated` event added by this build.
+
+
+## Scoring rules
+
+Task bonuses: <$100/mo = +1pt, $100–300 = +2, $300–600 = +3, $600–1000 = +4, $1000+ = +5
+Effort multipliers: easy ×1.0, medium ×1.2, hard ×1.5 (rounded to nearest int)
+Max task bonus cap: +25 points total above base
+Deadline penalties: tax/CRA −5, payroll −4, compliance −3, general −2 (cap −20)
+Decay: 0–30d = 0, 31–60d = −1, 61–90d = −3, 91–120d = −6, 120d+ = −10
+Final: clamp(base + taskBonus − deadlinePenalty − decayPenalty, 0, 100)
+
 
 ## SQL
-Run `financial-ratios.sql` in Supabase SQL editor.
-Handles both fresh install and upgrade (narrative columns added via `IF NOT EXISTS`).
+Run `score-history.sql` in Supabase SQL editor.
 
 
 ## Deploy
 ```
 git add -A
-git commit -m "feat: financial ratio intelligence engine — calculator, dashboard, chat context"
+git commit -m "feat: live score recalculation — task bonuses, decay, breakdown panel, sparkline"
 git push
 ```
 
 
-## Answers to spec questions
+## Confirmation answers
 
-**1. data_completeness_pct for tracubrain test account?**
-Depends on what the diagnostic extracted. From profile revenue alone: ~13%.
-With break_even_data (revenue + fixed + variable): ~27-40%.
-Full balance sheet from accounting sync needed for >80%. Current state shows
-exactly which data points are missing in Section 4 of the ratios page.
-
-**2. DSCR for test business?**
-DSCR requires monthly debt service (`fixed_loan_payments` from break_even_data).
-If no loan payments recorded: DSCR = null → shown as '—' in UI.
-To populate: enter loan payments in the break-even setup form → auto-flows to DSCR.
-
-**3. Ratio cards show '--' gracefully for null?**
-Yes — `fmtRatio(null)` returns '—'. Status icon hidden when null.
-Progress bar shows 0% when null. 'Score' formula uses neutral 50 for null ratios.
-
-**4. Advisor chat references ratios?**
-Yes — 8th parallel query in `buildBusinessContext()` pulls latest ratio row.
-Tier 2 and 3 system prompts include a KEY FINANCIAL RATIOS block.
-Example: 'Ask what is my current ratio?' → chat answers from the stored value.
-
-**5. Claude narrative section caching?**
-Narrative stored in `financial_ratios.narrative` column.
-Cache check: if `narrative_generated_at` is within 24h, return cached.
-Regeneration trigger: any ratio page load fetches narrative if cache is stale.
-One Claude call per 24h per business — very low cost.
+1. **Score animates on task completion?** Yes — `TaskCard.tsx` calls `POST /api/v2/score/recalculate` after marking done, response dispatches `fruxal:score:updated` event, `ScoreRingAddons` listens and updates.
+2. **Current live score for Brian Tracy's Business:** Calculated as: `diagnostic overall_score` + task bonuses (based on completed tasks) − deadline penalties (overdue obligations) − decay (days since diagnostic). Query `/api/v2/score?businessId=abf1125c-b541-4aad-96b0-83271adae552` after deployment.
+3. **Score breakdown panel:** `ScoreBreakdown` component shows base, per-task bonuses, per-deadline penalties, and decay with expand/collapse. Collapsible below the existing score display.
+4. **Chat references delta?** Yes — `liveScoreBlock` in all 3 tier prompts: 'Health score: X/100 (+Y from last diagnostic, Z days ago)'.
+5. **Score-update cron in vercel.json?** Yes — `{ path: '/api/v2/cron/score-update', schedule: '0 8 * * *' }` added.
 
 
 ## Architecture notes
-- `ratio-calculator.ts` is pure functions, zero deps, self-testing in dev
-- DSCR uses standard banker formula: annual EBITDA / annual debt service
-- Industry-aware gross margin benchmarks via `getGrossMarginBenchmark(industrySlug)`
-- Extract route queries break_even_data + diagnostic_reports + business_profiles in parallel
-- Narrative cached 24h in DB — never regenerated more than once per day per business
-- Sparklines use pure SVG (no chart library) — 64×24px, 3 data points
-- Bank qualifying check: DSCR >1.25×, Current ratio >1.2×, Interest coverage >2.0×
+- `ScoreRingAddons` — additive component injected below existing ring. Doesn't replace the existing Ring SVG.
+- `score_history` insert is deduplicated: only inserts when score changes by >=1 point
+- Cron only processes businesses with NEWLY overdue obligations (last 24h) — no double-penalizing
+- Self-tests in `score-calculator.ts` run at module load in dev — confirm $400/mo medium = +4pts

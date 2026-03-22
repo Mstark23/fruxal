@@ -26,6 +26,8 @@ interface Report {
   risk_matrix: RiskItem[];
   benchmark_comparisons: Benchmark[];
   totals: { annual_leaks: number; potential_savings: number; penalty_exposure: number; programs_value: number; findings_count: number; critical_findings: number };
+  prescan_context_used?: boolean;
+  prescan_run_id?: string;
   meta: { model: string; duration_ms: number; created_at: string; completed_at: string };
 }
 
@@ -35,6 +37,8 @@ interface Finding {
   recommendation: string; recommendation_fr: string; priority: number;
   timeline: string; difficulty: string; solution_type: string;
   partner_slugs?: string[]; program_slugs?: string[]; obligation_slug?: string;
+  confirmed_from_prescan?: boolean;
+  prescan_only?: boolean;
 }
 
 interface ActionItem {
@@ -77,9 +81,18 @@ export default function DiagnosticReportPage() {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("findings");
   const [filterSeverity, setFilterSeverity] = useState<string | null>(null);
+  const [prescanLink, setPrescanLink] = useState<any>(null);
   const [lang, setLang] = useState<"en" | "fr">("en");
   const isFr = lang === "fr";
   const t = (en: string, fr: string) => isFr ? fr : en;
+  // Fetch prescan continuity data when report loads with prescan context
+  useEffect(() => {
+    if (!report?.prescan_context_used || !report?.id) return;
+    fetch(`/api/v2/diagnostic/prescan-link?reportId=${report.id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setPrescanLink(d); })
+      .catch(() => {});
+  }, [report?.prescan_context_used, report?.id]);
 
   useEffect(() => {
     let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -289,15 +302,71 @@ export default function DiagnosticReportPage() {
               )}
             </div>
 
+
+            {/* Prescan continuity banner */}
+            {report?.prescan_context_used && (
+              <div className="mb-4 rounded-xl p-4"
+                style={{ background: "rgba(196,132,29,0.07)", border: "1px solid rgba(196,132,29,0.2)" }}>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg shrink-0">🔍</span>
+                  <div className="flex-1">
+                    <p className="text-[11px] font-bold text-amber-700 mb-1 uppercase tracking-wider">
+                      {isFr ? "Continuité avec votre analyse initiale" : "Continuity with your initial scan"}
+                    </p>
+                    {prescanLink ? (
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap gap-3 text-[11px]">
+                          <span className="text-ink/70">
+                            {isFr ? "Analyse initiale :" : "Initial scan flagged:"}{" "}
+                            <strong>{(prescanLink.leaks_confirmed ?? 0) + (prescanLink.leaks_not_found ?? 0)} {isFr ? "problèmes" : "issues"}</strong>
+                          </span>
+                          <span className="text-green-700">
+                            ✅ {isFr ? "Confirmés :" : "Confirmed:"} <strong>{prescanLink.leaks_confirmed ?? 0}</strong>
+                          </span>
+                          {(prescanLink.leaks_new ?? 0) > 0 && (
+                            <span className="text-blue-700">
+                              🔵 {isFr ? "Nouvelles découvertes :" : "New discoveries:"} <strong>{prescanLink.leaks_new}</strong>
+                            </span>
+                          )}
+                        </div>
+                        {prescanLink.continuity_narrative && (
+                          <p className="text-[11px] text-ink/60 italic mt-1">&ldquo;{prescanLink.continuity_narrative}&rdquo;</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-ink/50">
+                        {isFr
+                          ? "Ce diagnostic intègre les données de votre analyse initiale."
+                          : "This diagnostic incorporated data from your initial scan."}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               {findings.map((f, i) => {
                 const st = SEV_STYLE[f.severity] || SEV_STYLE.low;
                 return (
                   <div key={i} className={`${st.bg} border-l-2 ${st.border} rounded-r-xl p-4`}
                     style={{ animation: `fadeUp 0.2s ease-out ${i * 0.03}s both` }}>
+
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded ${st.bg} ${st.text}`}>{f.severity}</span>
                       <span className="text-[10px] text-ink/15 uppercase">{f.category}</span>
+                      {f.confirmed_from_prescan && (
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                          style={{ background: "rgba(196,132,29,0.12)", color: "#C4841D" }}>
+                          ✓ {isFr ? "Confirmé depuis l'analyse initiale" : "Confirmed from initial scan"}
+                        </span>
+                      )}
+                      {!f.confirmed_from_prescan && report?.prescan_context_used && (
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                          style={{ background: "rgba(59,130,246,0.10)", color: "#3B82F6" }}>
+                          {isFr ? "Nouvelle découverte" : "New — not in initial scan"}
+                        </span>
+                      )}
                       <span className="text-[10px] text-ink/10 ml-auto">#{f.priority}</span>
                     </div>
                     <h3 className="text-sm font-semibold text-ink mb-1">

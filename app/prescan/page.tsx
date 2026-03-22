@@ -48,7 +48,7 @@ function HealthRing({ score }: { score: number }) {
   );
 }
 
-function Snapshot({ analysis, prescanRunId }: { analysis: any; prescanRunId: string | null }) {
+function Snapshot({ analysis, prescanRunId, hasExistingDiagnostic = false }: { analysis: any; prescanRunId?: string | null; hasExistingDiagnostic?: boolean }) {
   const leaks = (analysis.leaks || []).map((l: any, i: number) => {
     const meta = LEAK_META[l.type] || { icon: "💧", title: l.type, desc: "" };
     return { ...meta, id: i, amount: l.amount ?? 0, severity: l.severity ?? 0, confidence: l.confidence ?? 0 };
@@ -132,27 +132,47 @@ function Snapshot({ analysis, prescanRunId }: { analysis: any; prescanRunId: str
         )}
 
 
-        {/* Break-even teaser — conversion hook */}
+        {/* Continuity CTA — adapts to whether user has a diagnostic already */}
         {totalLeak > 0 && (
-          <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 mb-4">
-            <div className="flex items-start gap-3">
-              <span className="text-xl shrink-0">📊</span>
-              <div className="flex-1">
-                <p className="text-[13px] font-bold text-white mb-1">Do you know your break-even point?</p>
-                <p className="text-[11px] text-white/60 leading-relaxed">
-                  Based on what you&apos;ve shared, businesses like yours typically need{" "}
-                  <span className="text-white font-semibold">
-                    ~${Math.round(totalLeak * 0.35 / 12).toLocaleString()}/month
-                  </span>{" "}
-                  just to cover fixed costs — before making a dollar of profit.
-                </p>
-                <p className="text-[11px] text-white/40 mt-2">
-                  The full diagnostic calculates your exact break-even and models the impact of every major business decision.
-                </p>
+          <div className="bg-white/[0.06] border border-white/[0.12] rounded-2xl p-5 mb-4">
+            {hasExistingDiagnostic ? (
+              <div className="flex items-start gap-3">
+                <span className="text-xl shrink-0">✅</span>
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-white mb-1">
+                    You&apos;ve already run your full diagnostic.
+                  </p>
+                  <p className="text-[11px] text-white/60 mb-3">
+                    See how your initial scan compared to the full analysis.
+                  </p>
+                  <a href="/v2/diagnostic"
+                    className="inline-block px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold rounded-xl transition-all">
+                    View how your prescan compared →
+                  </a>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-start gap-3">
+                <span className="text-xl shrink-0">📊</span>
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-white mb-1">
+                    Your initial scan found {Math.round(totalLeak > 0 ? (Array.isArray(leaks) ? leaks.length : 3) : 0)} potential issues.
+                  </p>
+                  <p className="text-[11px] text-white/60 leading-relaxed mb-3">
+                    The full diagnostic will confirm these findings and discover what else you&apos;re missing — with specific dollar amounts, a health score, and a step-by-step action plan.
+                  </p>
+                  <a
+                    href={`/register${prescanRunId ? `?prescanRunId=${prescanRunId}&from=prescan` : ""}`}
+                    className="inline-block px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-xl text-[12px] transition-all">
+                    Run your full diagnostic — confirms your prescan →
+                  </a>
+                  <p className="text-[10px] text-white/30 mt-2">Takes 5 minutes · Free to start</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
+
         {/* CTA */}
         <div className="bg-gradient-to-br from-emerald-950/60 to-slate-900/80 border border-emerald-500/20 rounded-2xl p-6">
           <div className="flex items-start gap-4">
@@ -216,6 +236,7 @@ export default function PrescanChatPage() {
   const [loading, setLoading]     = useState(false);
   const [result, setResult]       = useState<{ analysis: any; prescanRunId: string | null } | null>(null);
   const [lang, setLang]           = useState<"en" | "fr">(detectLang);
+  const [hasExistingDiagnostic, setHasExistingDiagnostic] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // Detect page language from <html lang=""> or browser locale
@@ -223,6 +244,15 @@ export default function PrescanChatPage() {
     const htmlLang = document.documentElement.lang?.toLowerCase();
     if (htmlLang?.startsWith("fr")) { setLang("fr"); return; }
     if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("fr")) setLang("fr");
+  }, []);
+
+
+  // Check if user already has a diagnostic (for continuity CTA in Snapshot)
+  useEffect(() => {
+    fetch("/api/v2/diagnostic/latest")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.data) setHasExistingDiagnostic(true); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -286,7 +316,7 @@ export default function PrescanChatPage() {
   };
 
   // Show snapshot inline — no navigation needed
-  if (result) return <Snapshot analysis={result.analysis} prescanRunId={result.prescanRunId} />;
+  if (result) return <Snapshot analysis={result.analysis} prescanRunId={result.prescanRunId} hasExistingDiagnostic={hasExistingDiagnostic} />;
 
   return (
     <div className="min-h-screen bg-[#020617] text-white flex flex-col">
