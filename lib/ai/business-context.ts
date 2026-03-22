@@ -31,6 +31,14 @@ export interface CompletedTask {
   completed_at: string;
 }
 
+export interface BreakEvenContext {
+  break_even_revenue: number;
+  current_revenue: number;
+  safety_margin: number;
+  safety_margin_pct: number;
+  data_source: string;
+}
+
 export interface UpcomingDeadline {
   title: string;
   due_date: string;
@@ -64,6 +72,7 @@ export interface BusinessContext {
   };
   upcoming_deadlines: UpcomingDeadline[];
   tier: "solo" | "business" | "enterprise";
+  break_even: BreakEvenContext | null;
 }
 
 // Minimal context for when DB queries fail
@@ -76,6 +85,7 @@ function emptyContext(businessId: string): BusinessContext {
     recovery: { recovered: 0, available: 0, tasks_completed: 0 },
     upcoming_deadlines: [],
     tier: "solo",
+    break_even: null,
   };
 }
 
@@ -87,7 +97,7 @@ export async function buildBusinessContext(
 
   try {
     // All queries in parallel — 3-second timeout on the whole bundle
-    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes] = await Promise.all([
+    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes] = await Promise.all([
       // 1. Business profile
       supabaseAdmin
         .from("business_profiles")
@@ -146,6 +156,14 @@ export async function buildBusinessContext(
         .select("tier")
         .eq("id", businessId)
         .eq("owner_user_id", userId)
+        .maybeSingle()
+        .then(r => r.data),
+
+      // 7. Break-even data (Build 112)
+      supabaseAdmin
+        .from("break_even_data")
+        .select("break_even_revenue, current_revenue, safety_margin, safety_margin_pct, data_source")
+        .eq("business_id", businessId)
         .maybeSingle()
         .then(r => r.data),
     ]);
@@ -244,6 +262,13 @@ export async function buildBusinessContext(
       recovery,
       upcoming_deadlines: deadlines.slice(0, 5),
       tier,
+      break_even: beRes ? {
+        break_even_revenue: Math.round(beRes.break_even_revenue ?? 0),
+        current_revenue:    Math.round(beRes.current_revenue ?? 0),
+        safety_margin:      Math.round(beRes.safety_margin ?? 0),
+        safety_margin_pct:  Math.round((beRes.safety_margin_pct ?? 0) * 10) / 10,
+        data_source:        beRes.data_source || "manual",
+      } : null,
     };
   } catch (err: any) {
     console.error("[buildBusinessContext] Error:", err.message);

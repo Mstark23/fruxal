@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
 import { TaskList, Task } from "@/components/v2/TaskCard";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
+import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, circ = 2 * Math.PI * r;
@@ -720,6 +721,13 @@ export default function SoloDashboard() {
           </div>
         </div>
 
+
+        {/* ── BREAK-EVEN WIDGET ───────────────────────────────────────── */}
+        {dashboardBusinessId && (
+          <div className="mb-3">
+            <BreakEvenWidget businessId={dashboardBusinessId} tier="solo" lang={lang} />
+          </div>
+        )}
         {/* ── ACTION PLAN (Tasks) ─────────────────────────────────────── */}
         {isPaid && (diagTasks.length > 0 || diagFindings.length > 0) && (
           <div className="mt-4">

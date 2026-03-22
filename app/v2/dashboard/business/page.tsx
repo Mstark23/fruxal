@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
 import { TaskList, Task } from "@/components/v2/TaskCard";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
+import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, c = 2 * Math.PI * r;
@@ -717,6 +718,13 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
+
+        {/* ── BREAK-EVEN WIDGET ───────────────────────────────────────── */}
+        {isPaid && dashboardBusinessId && (
+          <div className="mb-3" style={fade(0.12)}>
+            <BreakEvenWidget businessId={dashboardBusinessId} tier="business" lang={lang} />
+          </div>
+        )}
         {/* ── ACTION PLAN (Tasks) ─────────────────────────────────────── */}
         {isPaid && (diagTasks.length > 0 || diagFindings.length > 0) && (
           <div className="mt-4" style={fade(0.15)}>

@@ -131,6 +131,28 @@ function Snapshot({ analysis, prescanRunId }: { analysis: any; prescanRunId: str
           </div>
         )}
 
+
+        {/* Break-even teaser — conversion hook */}
+        {totalLeak > 0 && (
+          <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 mb-4">
+            <div className="flex items-start gap-3">
+              <span className="text-xl shrink-0">📊</span>
+              <div className="flex-1">
+                <p className="text-[13px] font-bold text-white mb-1">Do you know your break-even point?</p>
+                <p className="text-[11px] text-white/60 leading-relaxed">
+                  Based on what you&apos;ve shared, businesses like yours typically need{" "}
+                  <span className="text-white font-semibold">
+                    ~${Math.round(totalLeak * 0.35 / 12).toLocaleString()}/month
+                  </span>{" "}
+                  just to cover fixed costs — before making a dollar of profit.
+                </p>
+                <p className="text-[11px] text-white/40 mt-2">
+                  The full diagnostic calculates your exact break-even and models the impact of every major business decision.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         {/* CTA */}
         <div className="bg-gradient-to-br from-emerald-950/60 to-slate-900/80 border border-emerald-500/20 rounded-2xl p-6">
           <div className="flex items-start gap-4">

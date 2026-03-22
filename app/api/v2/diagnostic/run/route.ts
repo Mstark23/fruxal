@@ -468,6 +468,13 @@ export async function POST(req: NextRequest) {
       ).catch((e: any) =>
         console.warn("[Diagnostic] Task generation failed (non-blocking):", e?.message)
       );
+
+    // ── 9b. Auto-extract break-even data from diagnostic (non-blocking) ──────
+    fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v2/breakeven/extract`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET || ""}` },
+      body: JSON.stringify({ businessId }),
+    }).catch(() => { /* non-fatal */ });
     }
 
     // ── 10. Auto-create tier3_pipeline entry (enterprise) ─────────────────

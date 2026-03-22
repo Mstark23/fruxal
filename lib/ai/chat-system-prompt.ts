@@ -25,6 +25,9 @@ function daysUntil(iso: string): number {
 
 // ── TIER 1 — Solo ─────────────────────────────────────────────────────────────
 function buildSoloPrompt(ctx: BusinessContext): string {
+  const beBlock = ctx.break_even
+    ? `BREAK-EVEN POSITION:\nMonthly break-even: ${fmt(ctx.break_even.break_even_revenue)}\nCurrent revenue: ${fmt(ctx.break_even.current_revenue)}\nSafety margin: ${fmt(ctx.break_even.safety_margin)} (${ctx.break_even.safety_margin_pct.toFixed(1)}%) — ${ctx.break_even.safety_margin_pct >= 20 ? "comfortable" : ctx.break_even.safety_margin_pct >= 0 ? "thin" : "below break-even"}`
+    : "";
   const b = ctx.business;
   const r = ctx.latest_report;
   const openTasks = ctx.open_tasks.slice(0, 5);
@@ -76,6 +79,7 @@ ${tasksBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 
+${beBlock ? beBlock + '\n\n' : ''}
 YOUR ROLE AND RULES:
 - Respond in plain English — zero financial jargon
 - Keep responses to 3-5 sentences unless detail is requested
@@ -88,6 +92,9 @@ ${topTask ? `- Their top priority task right now is: "${topTask.title}" (${fmt(t
 
 // ── TIER 2 — Business ─────────────────────────────────────────────────────────
 function buildBusinessPrompt(ctx: BusinessContext): string {
+  const beBlock = ctx.break_even
+    ? `BREAK-EVEN POSITION:\nMonthly break-even: ${fmt(ctx.break_even.break_even_revenue)}\nCurrent revenue: ${fmt(ctx.break_even.current_revenue)}\nSafety margin: ${fmt(ctx.break_even.safety_margin)} (${ctx.break_even.safety_margin_pct.toFixed(1)}%) — ${ctx.break_even.safety_margin_pct >= 20 ? "comfortable" : ctx.break_even.safety_margin_pct >= 0 ? "thin" : "below break-even"}`
+    : "";
   const b = ctx.business;
   const r = ctx.latest_report;
   const openTasks = ctx.open_tasks.slice(0, 6);
@@ -142,7 +149,7 @@ ${completedBlock}
 
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
-
+${beBlock ? "\n" + beBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - Data-driven responses with dollar amounts on everything
 - Reference their specific numbers — never generic advice
@@ -154,6 +161,9 @@ YOUR ROLE AND RULES:
 
 // ── TIER 3 — Enterprise ───────────────────────────────────────────────────────
 function buildEnterprisePrompt(ctx: BusinessContext): string {
+  const beBlock = ctx.break_even
+    ? `BREAK-EVEN POSITION:\nMonthly break-even: ${fmt(ctx.break_even.break_even_revenue)}\nCurrent revenue: ${fmt(ctx.break_even.current_revenue)}\nSafety margin: ${fmt(ctx.break_even.safety_margin)} (${ctx.break_even.safety_margin_pct.toFixed(1)}%) — ${ctx.break_even.safety_margin_pct >= 20 ? "comfortable" : ctx.break_even.safety_margin_pct >= 0 ? "thin" : "below break-even"}`
+    : "";
   const b = ctx.business;
   const r = ctx.latest_report;
   const openTasks = ctx.open_tasks.slice(0, 8);
@@ -202,7 +212,7 @@ ${tasksBlock}
 
 OBLIGATIONS IN NEXT 60 DAYS:
 ${deadlineBlock}
-
+${beBlock ? "\n" + beBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - CFO-level depth and precision in every response
 - Structure longer responses: Situation → Options → Recommendation
