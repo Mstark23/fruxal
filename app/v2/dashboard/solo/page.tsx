@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
 import { TaskList, Task } from "@/components/v2/TaskCard";
+import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, circ = 2 * Math.PI * r;

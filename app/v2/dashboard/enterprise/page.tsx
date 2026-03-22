@@ -20,6 +20,7 @@
 
 
 import { useState, useEffect, useRef } from "react";
+import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { TaskList, Task } from "@/components/v2/TaskCard";

@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { TaskCard, Task } from "@/components/v2/TaskCard";
+import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 import { useLang } from "@/hooks/useLang";
 
 type FilterEffort = "all" | "easy" | "medium" | "hard";
@@ -133,6 +134,13 @@ export default function TasksPage() {
             </p>
           </div>
         </div>
+
+        {/* ── RECOVERY COUNTER ── */}
+        {businessId && (
+          <div className="mb-4">
+            <RecoveryCounter businessId={businessId} mode="hero" lang={isFR ? "fr" : "en"} />
+          </div>
+        )}
 
         {(totalAvailable > 0 || totalRecovered > 0) && (
           <div className="grid grid-cols-2 gap-3 mb-6">

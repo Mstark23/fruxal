@@ -104,3 +104,69 @@ export async function sendNudge(to: string, totalLeaking: number): Promise<boole
     ),
   });
 }
+
+// =============================================================================
+// MILESTONE EMAIL — Sent when savings_recovered crosses a threshold
+// Deduplication is handled by the snapshot route (milestone_sent column)
+// =============================================================================
+
+interface MilestoneEmailArgs {
+  to: string;
+  milestone: number;
+  savings_recovered: number;
+  savings_available: number;
+  annualized: number;
+  top_tasks: { title: string; savings_monthly: number }[];
+  next_task: { title: string; savings_monthly: number } | null;
+}
+
+export async function sendMilestoneEmail({
+  to, milestone, savings_recovered, savings_available,
+  annualized, top_tasks, next_task,
+}: MilestoneEmailArgs): Promise<boolean> {
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.com";
+  const tasksUrl = `${appUrl}/v2/tasks`;
+
+  const taskLines = top_tasks
+    .map(t => `<tr><td style="padding:6px 0;font-size:13px;color:#555">→ ${t.title}</td><td style="padding:6px 0;font-size:13px;font-weight:700;color:#00c853;text-align:right">$${(t.savings_monthly ?? 0).toLocaleString()}/mo</td></tr>`)
+    .join("");
+
+  const nextLine = next_task
+    ? `<p style="margin:16px 0 0;font-size:13px;color:#555">Your next easiest fix: <strong>${next_task.title}</strong> ($${(next_task.savings_monthly ?? 0).toLocaleString()}/mo)</p>`
+    : "";
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<div style="max-width:560px;margin:0 auto;padding:40px 20px">
+  <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+    <div style="font-size:20px;font-weight:900;margin-bottom:4px">💧 Fruxal</div>
+    <div style="font-size:12px;color:#888;margin-bottom:24px">Business Intelligence</div>
+    <div style="font-size:32px;margin-bottom:8px">🎉</div>
+    <div style="font-size:22px;font-weight:900;color:#1a1a2e;margin-bottom:8px">
+      You just hit $${(milestone ?? 0).toLocaleString()}/month recovered
+    </div>
+    <div style="font-size:14px;color:#555;margin-bottom:20px">
+      That's <strong>$${(annualized ?? 0).toLocaleString()}/year</strong> staying in your business.
+    </div>
+    <div style="background:#f7f8fa;border-radius:10px;padding:16px;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">What you've fixed</div>
+      <table style="width:100%;border-collapse:collapse">${taskLines}</table>
+    </div>
+    <div style="font-size:13px;color:#555;margin-bottom:20px">
+      You still have <strong style="color:#1B3A2D">$${(savings_available ?? 0).toLocaleString()}/month</strong> available to capture.
+      ${nextLine}
+    </div>
+    <a href="${tasksUrl}" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px;text-decoration:none">
+      Continue fixing →
+    </a>
+  </div>
+  <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">Fruxal · fruxal.com</div>
+</div></body></html>`;
+
+  return sendEmail({
+    to,
+    subject: `🎉 You've recovered $${(milestone ?? 0).toLocaleString()}/month on Fruxal`,
+    html,
+    text: `You just hit $${(milestone ?? 0).toLocaleString()}/month recovered. That's $${(annualized ?? 0).toLocaleString()}/year staying in your business. See your progress: ${tasksUrl}`,
+  });
+}

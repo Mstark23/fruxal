@@ -1,5 +1,6 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
+import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 
@@ -43,6 +44,16 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
   // Start with false to match SSR, then hydrate from localStorage in useEffect
   const [isEnterprise, setIsEnterprise] = useState(false);
   const [isBusiness, setIsBusiness] = useState(false);
+  const [layoutBusinessId, setLayoutBusinessId] = useState("");
+
+  // Fetch businessId for the compact recovery counter
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/v2/dashboard")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.data?.businessId) setLayoutBusinessId(d.data.businessId); })
+      .catch(() => {});
+  }, [user]);
 
   // Hydrate tier from localStorage after mount (avoids SSR/client mismatch)
   useEffect(() => {
@@ -151,6 +162,11 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
         </nav>
 
         {/* Bottom */}
+
+        {/* ── Recovery counter (compact) ───────────────────────────────── */}
+        {layoutBusinessId && (
+          <RecoveryCounter businessId={layoutBusinessId} mode="compact" />
+        )}
         <div className="px-3 pb-4">
           <div className="border-t border-border-light pt-3 space-y-0.5">
             <button onClick={() => router.push("/v2/settings")}

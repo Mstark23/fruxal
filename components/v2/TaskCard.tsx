@@ -27,6 +27,7 @@ interface TaskCardProps {
   task: Task;
   onStatusChange: (taskId: string, newStatus: Task["status"]) => Promise<void>;
   lang?: "en" | "fr";
+  businessId?: string;
 }
 
 const EFFORT_CONFIG = {
@@ -57,7 +58,7 @@ function LinkIcon() {
   );
 }
 
-export function TaskCard({ task, onStatusChange, lang = "en" }: TaskCardProps) {
+export function TaskCard({ task, onStatusChange, lang = "en", businessId: onBusinessId }: TaskCardProps) {
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const isFR = lang === "fr";
@@ -72,6 +73,28 @@ export function TaskCard({ task, onStatusChange, lang = "en" }: TaskCardProps) {
     setLoading(true);
     try {
       await onStatusChange(task.id, newStatus);
+
+      // Dispatch global event for RecoveryCounter on task completion or un-done
+      if (typeof window !== "undefined") {
+        if (newStatus === "done") {
+          window.dispatchEvent(new CustomEvent("fruxal:task:completed", {
+            detail: { taskId: task.id, savings_monthly: task.savings_monthly ?? 0 },
+          }));
+        } else if (task.status === "done") {
+          // Task reverted from done — signal counter to update
+          window.dispatchEvent(new CustomEvent("fruxal:task:completed", {
+            detail: { taskId: task.id, savings_monthly: 0 },
+          }));
+        }
+      }
+      // Update monthly recovery snapshot (non-blocking)
+      if (onBusinessId && (newStatus === "done" || task.status === "done")) {
+        fetch("/api/v2/recovery/snapshot", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ businessId: onBusinessId }),
+        }).catch(() => {});
+      }
     } finally {
       setLoading(false);
     }
@@ -392,6 +415,7 @@ export function TaskList({
             key={task.id}
             task={task}
             onStatusChange={handleStatusChange}
+            businessId={businessId}
             lang={lang}
           />
         ))

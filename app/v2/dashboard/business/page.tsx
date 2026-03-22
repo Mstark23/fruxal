@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
 import { TaskList, Task } from "@/components/v2/TaskCard";
+import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, c = 2 * Math.PI * r;
@@ -370,6 +371,13 @@ export default function BusinessDashboard() {
         </div>
 
         {/* MAIN 3-COL */}
+
+        {/* ── RECOVERY COUNTER ────────────────────────────────────────── */}
+        {isPaid && dashboardBusinessId && (
+          <div className="mb-4" style={fade(0.07)}>
+            <RecoveryCounter businessId={dashboardBusinessId} mode="hero" lang={lang} />
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_280px] gap-3" style={fade(0.1)}>
 
           {/* COL 1: LEAKS — with diagnostic math blocks */}

@@ -1,51 +1,40 @@
-# BUILD IMPROVEMENT 02 — MANIFEST
+# BUILD IMPROVEMENT 03 — MANIFEST
 
 ## Files
 
-| `lib/ai/task-generator.ts` | 204 lines |
-| `app/api/v2/tasks/route.ts` | 90 lines |
-| `app/api/v2/tasks/[id]/route.ts` | 100 lines |
-| `components/v2/TaskCard.tsx` | 416 lines |
-| `app/v2/tasks/page.tsx` | 217 lines |
-| `app/api/v2/diagnostic/run/route.ts` | 546 lines |
-| `app/v2/dashboard/business/page.tsx` | 740 lines |
-| `app/v2/dashboard/solo/page.tsx` | 750 lines |
-| `app/v2/dashboard/enterprise/page.tsx` | 1935 lines |
+| `app/api/v2/recovery/route.ts` | 107 lines |
+| `app/api/v2/recovery/snapshot/route.ts` | 150 lines |
+| `components/v2/RecoveryCounter.tsx` | 355 lines |
+| `components/v2/TaskCard.tsx` | 440 lines |
+| `app/v2/dashboard/business/page.tsx` | 748 lines |
+| `app/v2/dashboard/solo/page.tsx` | 751 lines |
+| `app/v2/dashboard/enterprise/page.tsx` | 1936 lines |
+| `app/v2/tasks/page.tsx` | 225 lines |
+| `app/v2/layout.tsx` | 231 lines |
+| `services/email/service.ts` | 172 lines |
+| `app/api/cron/monthly-report/route.ts` | 115 lines |
 
 ## SQL
-
-Run `diagnostic-tasks.sql` in Supabase SQL editor first.
-
+Run `recovery-snapshots.sql` in Supabase SQL editor.
 
 ## Deploy
-
-```powershell
+```
 git add -A
-git commit -m "feat: diagnostic task cards — auto-generate action plan after every diagnostic"
+git commit -m "feat: running recovery counter — persistent savings tracker with milestone emails"
 git push
 ```
 
+## Answers to spec questions
 
-## How it works
+**1. What happens when a task is un-done (reverted to open)?**
+TaskCard fires `fruxal:task:completed` with `savings_monthly: 0` (not the amount).
+RecoveryCounter catches this, busts its cache, and refetches live totals.
+The snapshot route recalculates from scratch on every PATCH — so the number
+decreases immediately and accurately. No stale data.
 
-1. User runs diagnostic → main Claude call generates findings
-
-2. Background Claude call (non-blocking) converts findings → task cards
-
-3. Tasks saved to `diagnostic_tasks` table
-
-4. Dashboard fetches tasks on load, shows TaskList with savings counter
-
-5. User checks off tasks → `completed_at` set, recovery total updates
-
-6. Full task management at `/v2/tasks`
-
-
-## Timeout risk
-
-Task generation is **fire-and-forget** — it runs via `.catch()` outside
-the await chain, so it NEVER adds to the diagnostic route's wall time.
-The diagnostic responds in ~30-90s as before. Task generation runs in
-parallel (~5-15s) and logs silently if it fails. Vercel's 120s `maxDuration`
-on the diagnostic route is not affected. The task generator itself has no
-explicit maxDuration because it's not a separate route.
+**2. Is recovery_snapshots necessary, or calculate live always?**
+Kept for two reasons: (a) monthly delta needs last month's number, which requires
+a historical record; (b) milestone deduplication uses `milestone_sent` stored per
+month-row. Live calculation is always used for accuracy on the dashboard. The
+snapshot is written on task completion but never used as the source of truth for
+the displayed number — only for delta + milestone tracking.
