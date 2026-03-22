@@ -1,40 +1,64 @@
-# BUILD IMPROVEMENT 03 — MANIFEST
+# BUILD IMPROVEMENT 01 — MANIFEST
 
 ## Files
 
-| `app/api/v2/recovery/route.ts` | 107 lines |
-| `app/api/v2/recovery/snapshot/route.ts` | 150 lines |
-| `components/v2/RecoveryCounter.tsx` | 355 lines |
-| `components/v2/TaskCard.tsx` | 440 lines |
-| `app/v2/dashboard/business/page.tsx` | 748 lines |
-| `app/v2/dashboard/solo/page.tsx` | 751 lines |
-| `app/v2/dashboard/enterprise/page.tsx` | 1936 lines |
-| `app/v2/tasks/page.tsx` | 225 lines |
-| `app/v2/layout.tsx` | 231 lines |
-| `services/email/service.ts` | 172 lines |
-| `app/api/cron/monthly-report/route.ts` | 115 lines |
+| `lib/ai/business-context.ts` | 252 lines |
+| `lib/ai/chat-system-prompt.ts` | 294 lines |
+| `app/api/v2/chat/route.ts` | 314 lines |
+| `app/v2/chat/page.tsx` | 469 lines |
 
-## SQL
-Run `recovery-snapshots.sql` in Supabase SQL editor.
+## What changed in the chat route
+
+BEFORE (old system prompt — client-assembled, fragile):
+  You are the Fruxal AI Business Advisor — a no-BS financial advisor for Canadian SMBs.
+  Business: {businessName from client}
+  Industry: {industry from client}
+  Province: {province from client}
+  Financial Health Score: {score from client}
+  Annual Revenue at Risk: {totalLeak from client}
+  [Context sent only on FIRST message. No tasks. No recovery. No deadlines. No tier.]
+
+AFTER: Context built server-side from 6 parallel DB queries.
+System prompt is now ~600-900 tokens, tier-aware (solo/business/enterprise).
+See lib/ai/chat-system-prompt.ts for full prompt content by tier.
+
+
+## Model string
+
+Hardcoded to `claude-sonnet-4-20250514` in both POST and GET handlers.
+
+
+## Streaming
+
+The original chat route did NOT use streaming (plain fetch, not SSE).
+This build also uses plain fetch — streaming can be added later without breaking context injection.
+
+
+## Confirm after deployment
+
+Test with tracubrain@gmail.com — welcome message should reference 'Brian Tracy's Business'
+and cite specific tasks/recovery numbers from the account.
+
 
 ## Deploy
+
 ```
 git add -A
-git commit -m "feat: running recovery counter — persistent savings tracker with milestone emails"
+git commit -m "feat: advisor chat context injection — full business intelligence in every conversation"
 git push
 ```
 
 ## Answers to spec questions
 
-**1. What happens when a task is un-done (reverted to open)?**
-TaskCard fires `fruxal:task:completed` with `savings_monthly: 0` (not the amount).
-RecoveryCounter catches this, busts its cache, and refetches live totals.
-The snapshot route recalculates from scratch on every PATCH — so the number
-decreases immediately and accurately. No stale data.
+1. **Old system prompt:** Inline stub, client-assembled, sent only on first message.
+   No tasks, no recovery, no deadlines, no tier. See BEFORE above.
 
-**2. Is recovery_snapshots necessary, or calculate live always?**
-Kept for two reasons: (a) monthly delta needs last month's number, which requires
-a historical record; (b) milestone deduplication uses `milestone_sent` stored per
-month-row. Live calculation is always used for accuracy on the dashboard. The
-snapshot is written on task completion but never used as the source of truth for
-the displayed number — only for delta + milestone tracking.
+2. **New system prompt (Tier 2 Business):** See lib/ai/chat-system-prompt.ts `buildBusinessPrompt()`.
+   Includes: health score, top 5 findings with amounts, action plan status, completed fixes,
+   open tasks with ROI, upcoming obligations with dates and risk levels.
+
+3. **Token count:** Solo ~400 tokens, Business ~700 tokens, Enterprise ~900 tokens.
+   Well under the 2,000 target. Findings are capped at 5, tasks at 8, deadlines at 5.
+
+4. **Streaming:** Not implemented in the original — still not streaming. Plain JSON response.
+   Context injection is fully compatible with streaming if added later.

@@ -1,56 +1,27 @@
 // =============================================================================
-// V2 POST /api/v2/chat — AI Consultation with full leak profile
+// V2 POST /api/v2/chat — AI Advisor with full business context injection
 // =============================================================================
-// Uses prompt-builder to package all user data into system prompt.
-// Supports streaming responses for real-time feel.
-// Saves conversation history for returning users.
+// CHANGED from original:
+//   - System prompt now built server-side from buildChatSystemPrompt(context)
+//   - Context fetched from DB via buildBusinessContext() with 3s timeout
+//   - businessId is read from server-side business_profiles — never trusted from client
+//   - Model pinned to claude-sonnet-4-20250514
+//   - maxDuration = 60 (was already set)
+//
+// UNCHANGED from original:
+//   - Auth check (getToken)
+//   - Paywall check (businesses.tier + user_progress fallback)
+//   - Rate limiting (30/min)
+//   - Conversation history loading/saving (chat_conversations)
+//   - Message array building (last 20 messages)
+//   - Response format { reply, conversationId, ... }
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { createClient } from "@supabase/supabase-js";
-// prompt-builder migrated to lib/ai/prompts/chat/advisor.ts
-// Inline stub until migration is applied
-async function buildSystemPrompt(userId: string, clientCtx?: any, scanId?: string): Promise<{ systemPrompt: string; context: any }> {
-  // Build a rich system prompt using any diagnostic context passed by the client
-  const businessName  = clientCtx?.businessName || "this business";
-  const industry      = clientCtx?.industry || "small business";
-  const province      = clientCtx?.province || "Canada";
-  // Handle both field name conventions (page sends overallScore/totalLeaks, some callers send score/totalLeak)
-  const rawLeak       = (clientCtx?.totalLeak || clientCtx?.totalLeaks) ?? 0;
-  const rawScore      = (clientCtx?.score || clientCtx?.overallScore) ?? 0;
-  const rawFindings   = clientCtx?.findings || clientCtx?.topFindings || [];
-  const totalLeak     = rawLeak ? "$" + Number(rawLeak).toLocaleString() + "/yr" : "unknown amount";
-  const score         = rawScore ? String(rawScore) + "/100" : "not yet calculated";
-  const topFindings   = Array.isArray(rawFindings)
-    ? rawFindings.slice(0, 5).map((f: any) =>
-        typeof f === "string" ? "- " + f : "- " + (f.title || "") + " ($" + ((f.annual_leak || f.impact_max) ?? 0).toLocaleString() + "/yr)"
-      ).join("\n")
-    : "";
-  const savingsAnchor = clientCtx?.savingsAnchor?.headline || clientCtx?.savingsAnchor || "";
-
-  const systemPrompt = [
-    "You are the Fruxal AI Business Advisor — a no-BS financial advisor for Canadian SMBs.",
-    "You answer questions about revenue leaks, tax optimization, compliance, and business finance.",
-    "Be specific, numbers-first, and actionable. Always cite Canadian context (CRA, province-specific rules).",
-    "",
-    "BUSINESS CONTEXT:",
-    "Business: " + businessName,
-    "Industry: " + industry,
-    "Province: " + province,
-    "Financial Health Score: " + score,
-    "Annual Revenue at Risk: " + totalLeak,
-    savingsAnchor ? "Key Insight: " + savingsAnchor : "",
-    topFindings ? "\nTop Identified Leaks:\n" + topFindings : "",
-    "",
-    "Use this context to give personalized, specific advice. If asked about something outside your context, say so and give general best practice.",
-  ].filter(Boolean).join("\n");
-
-  return {
-    systemPrompt,
-    context: { userId, scanId, industry, province, leakCount: (clientCtx?.findings || []).length, totalLeak: clientCtx?.totalLeak ?? 0, industryDisplay: industry },
-  };
-}
+import { buildBusinessContext } from "@/lib/ai/business-context";
+import { buildChatSystemPrompt } from "@/lib/ai/chat-system-prompt";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -67,49 +38,44 @@ function rateCheck(key: string, max: number, ms: number): boolean {
   return e.c <= max;
 }
 
-export const maxDuration = 60; // Vercel function timeout (seconds)
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth: always resolve userId from server-side token, never trust client
+    // ── Auth ──────────────────────────────────────────────────────────────────
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    const serverUserId = ((token as any)?.id || token?.sub) as string | undefined;
-    if (!serverUserId) {
+    const userId = ((token as any)?.id || token?.sub) as string | undefined;
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { scanId, conversationId, message, context: clientContext } = body;
-    const userId = serverUserId; // always use server-resolved userId
+    const { conversationId, message, language } = body;
+    // NOTE: clientContext is still accepted for backward compat but no longer used
+    // for the system prompt — we fetch fresh from DB instead
 
     if (!message) {
       return NextResponse.json({ error: "message required" }, { status: 400 });
     }
 
-    // ─── PAYWALL CHECK ─────────────────────────────────────────────────────
-    // Check paid tier — businesses.tier (written by Stripe webhook) is authoritative
+    // ── Paywall check (unchanged) ──────────────────────────────────────────────
     const { data: biz } = await supabase
       .from("businesses")
-      .select("tier")
+      .select("id, tier")
       .eq("owner_user_id", userId)
       .maybeSingle();
 
     const bizTier = (biz?.tier || "").toLowerCase();
     const isPaidTier = ["business","growth","team","corp","enterprise","advisor","solo"].includes(bizTier);
 
-    // Fallback: check legacy user_progress table
-    const { data: progress } = await Promise.resolve(await supabase
-      .from("user_progress")
-      .select("*")
-      .eq("userId", userId)
-      .single()
-      ).catch(() => ({ data: null }));
+    const { data: progress } = await Promise.resolve(
+      supabase.from("user_progress").select("payment_status, total_leak_found").eq("userId", userId).single()
+    ).catch(() => ({ data: null }));
 
     const isPaid = isPaidTier
       || progress?.payment_status === "active"
       || progress?.payment_status === "lifetime";
 
-    // Allow 2 free messages to hook the user, then paywall
     if (!isPaid) {
       const { data: convs } = await supabase
         .from("chat_conversations")
@@ -117,9 +83,7 @@ export async function POST(req: NextRequest) {
         .eq("userId", userId);
 
       const totalMessages = (convs || []).reduce((s: number, c: any) => s + (c.message_count ?? 0), 0);
-      const userMessageCount = Math.floor(totalMessages / 2);
-
-      if (userMessageCount >= 2) {
+      if (Math.floor(totalMessages / 2) >= 2) {
         return NextResponse.json({
           error: "paywall",
           message: "You've used your 2 free messages.",
@@ -129,15 +93,42 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Rate limit: 30 messages per minute
+    // ── Rate limit ─────────────────────────────────────────────────────────────
     if (!rateCheck(userId, 30, 60000)) {
       return NextResponse.json({ error: "Too many messages. Please wait a moment." }, { status: 429 });
     }
 
-    // 1. Build or retrieve system prompt
-    const { systemPrompt, context } = await buildSystemPrompt(userId, clientContext, scanId);
+    // ── CHANGED: Build system prompt from DB context ───────────────────────────
+    // businessId is resolved server-side from business_profiles — never from client
+    const businessId = biz?.id || "";
+    let systemPrompt: string;
+    let contextMeta = { industry: "small business", leakCount: 0, totalLeak: 0, tier: "solo" };
 
-    // 2. Load conversation history
+    try {
+      // 3-second timeout — if context fetch is slow, use a minimal fallback
+      const ctx = await Promise.race([
+        buildBusinessContext(businessId, userId),
+        new Promise<null>((_, rej) => setTimeout(() => rej(new Error("context timeout")), 3000)),
+      ]) as Awaited<ReturnType<typeof buildBusinessContext>>;
+
+      systemPrompt = buildChatSystemPrompt(ctx);
+      contextMeta = {
+        industry: ctx.business.industry,
+        leakCount: ctx.latest_report?.top_findings.length ?? 0,
+        totalLeak: ctx.latest_report?.top_findings.reduce((s, f) => s + (f.annual_leak ?? 0), 0) ?? 0,
+        tier: ctx.tier,
+      };
+    } catch {
+      // Context fetch failed — use minimal fallback prompt, never block chat
+      systemPrompt = [
+        "You are the Fruxal AI Business Advisor — a no-BS financial advisor for Canadian SMBs.",
+        "Answer questions about revenue leaks, tax optimization, compliance, and business finance.",
+        "Be specific, numbers-first, and actionable. Always cite Canadian context (CRA, province-specific rules).",
+        "Respond in French if the user writes in French.",
+      ].join("\n");
+    }
+
+    // ── Conversation history (unchanged) ──────────────────────────────────────
     let history: { role: string; content: string }[] = [];
     let convId = conversationId;
 
@@ -147,28 +138,23 @@ export async function POST(req: NextRequest) {
         .select("messages")
         .eq("id", convId)
         .single();
-      
-      if (conv?.messages) {
-        history = conv.messages as any[];
-      }
+      if (conv?.messages) history = conv.messages as any[];
     } else {
-      // Create new conversation
       const { data: newConv } = await supabase
         .from("chat_conversations")
         .insert({
-          userId: userId,
-          industry: context.industry,
-          leak_count: context.leakCount,
-          total_leak_amount: context.totalLeak,
-          title: `${context.industryDisplay} consultation`,
+          userId,
+          industry: contextMeta.industry,
+          leak_count: contextMeta.leakCount,
+          total_leak_amount: contextMeta.totalLeak,
+          title: `${contextMeta.industry} consultation`,
         })
         .select("id")
         .single();
-      
       convId = newConv?.id;
     }
 
-    // 3. Build messages for Claude API
+    // ── Build messages for Claude ──────────────────────────────────────────────
     const messages = [
       ...history.slice(-20).map((h: any) => ({
         role: h.role as "user" | "assistant",
@@ -177,11 +163,11 @@ export async function POST(req: NextRequest) {
       { role: "user" as const, content: message },
     ];
 
-    // 4. Call Claude API
+    // ── Call Claude API ────────────────────────────────────────────────────────
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       return NextResponse.json({
-        reply: `You have ${context.leakCount} confirmed leaks totaling approximately $${Math.round(context.totalLeak).toLocaleString()}/year. To get the full AI consultation, set ANTHROPIC_API_KEY in your environment.`,
+        reply: "ANTHROPIC_API_KEY is not set. Please configure it in your environment.",
         conversationId: convId,
       });
     }
@@ -194,16 +180,15 @@ export async function POST(req: NextRequest) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: process.env.AI_MODEL || "claude-sonnet-4-20250514",
-        max_tokens: 2048,
+        model: "claude-sonnet-4-20250514",   // CHANGED: hardcoded — no env var override
+        max_tokens: 1024,
         system: systemPrompt,
         messages,
       }),
     });
 
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      console.error("Claude API error:", res.status, errData);
+      console.error("[Chat] Claude API error:", res.status);
       return NextResponse.json({
         reply: "I'm having trouble connecting right now. Please try again in a moment.",
         conversationId: convId,
@@ -213,7 +198,7 @@ export async function POST(req: NextRequest) {
     const data = await res.json();
     const reply = data.content?.[0]?.text || "I couldn't generate a response. Please try again.";
 
-    // 5. Save conversation
+    // ── Save conversation (unchanged) ─────────────────────────────────────────
     const updatedMessages = [
       ...history,
       { role: "user", content: message, timestamp: new Date().toISOString() },
@@ -223,23 +208,107 @@ export async function POST(req: NextRequest) {
     if (convId) {
       await supabase
         .from("chat_conversations")
-        .update({
-          messages: updatedMessages,
-          message_count: updatedMessages.length,
-        })
+        .update({ messages: updatedMessages, message_count: updatedMessages.length })
         .eq("id", convId);
     }
 
     return NextResponse.json({
       reply,
       conversationId: convId,
-      leakCount: context.leakCount,
-      totalLeak: context.totalLeak,
-      industry: context.industryDisplay,
+      leakCount: contextMeta.leakCount,
+      totalLeak: contextMeta.totalLeak,
+      industry: contextMeta.industry,
     });
 
   } catch (error: any) {
-    console.error("V2 Chat error:", error);
+    console.error("[Chat] Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// ── GET /api/v2/chat/context — Returns welcome message + quick replies ────────
+// Called by the chat page on load, before first user message
+export async function GET(req: NextRequest) {
+  try {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const userId = ((token as any)?.id || token?.sub) as string | undefined;
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const lang = (req.nextUrl.searchParams.get("lang") || "en") as "en" | "fr";
+
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("owner_user_id", userId)
+      .maybeSingle();
+
+    const businessId = biz?.id || "";
+    if (!businessId) {
+      return NextResponse.json({
+        welcome: lang === "fr"
+          ? "Bonjour ! Je suis votre conseiller financier Fruxal. Quelle question financière puis-je vous aider à résoudre aujourd'hui ?"
+          : "Hi! I'm your Fruxal financial advisor. What financial question can I help you with today?",
+        quickReplies: [],
+      });
+    }
+
+    const [ctx] = await Promise.all([
+      buildBusinessContext(businessId, userId).catch(() => null),
+    ]);
+
+    if (!ctx) {
+      return NextResponse.json({
+        welcome: lang === "fr"
+          ? "Bonjour ! Je suis votre conseiller Fruxal. Comment puis-je vous aider ?"
+          : "Hi! I'm your Fruxal advisor. How can I help you today?",
+        quickReplies: [],
+      });
+    }
+
+    const { buildWelcomePrompt, buildQuickRepliesPrompt } = await import("@/lib/ai/chat-system-prompt");
+    const systemPrompt = buildChatSystemPrompt(ctx);
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json({ welcome: "", quickReplies: [] });
+    }
+
+    // Generate welcome + quick replies in parallel
+    const [welcomeRes, repliesRes] = await Promise.all([
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 150,
+          system: systemPrompt,
+          messages: [{ role: "user", content: buildWelcomePrompt(ctx, lang) }],
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
+
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 100,
+          system: "Output exactly 3 short questions, one per line, no numbering.",
+          messages: [{ role: "user", content: buildQuickRepliesPrompt(ctx, lang) }],
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]);
+
+    const welcome = welcomeRes?.content?.[0]?.text?.trim() || "";
+    const quickRepliesRaw = repliesRes?.content?.[0]?.text?.trim() || "";
+    const quickReplies = quickRepliesRaw
+      .split("\n")
+      .map((q: string) => q.trim().replace(/^[-•\d.]+\s*/, ""))
+      .filter((q: string) => q.length > 3)
+      .slice(0, 3);
+
+    return NextResponse.json({ welcome, quickReplies });
+  } catch (err: any) {
+    console.error("[Chat GET] Error:", err.message);
+    return NextResponse.json({ welcome: "", quickReplies: [] });
   }
 }
