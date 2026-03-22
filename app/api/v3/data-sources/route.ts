@@ -22,6 +22,8 @@ async function verifyOwnership(userId: string, businessId: string): Promise<bool
  * GET /api/v3/data-sources?businessId=xxx
  */
 export async function GET(req: NextRequest) {
+  try {
+
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,7 +44,10 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ sources: data || [] });
+  return NextResponse.json({ sources: data || [] });  } catch (e: any) {
+    console.error("[app/api/v3/data-sources/route.ts]", e.message);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 /**
@@ -50,6 +55,8 @@ export async function GET(req: NextRequest) {
  * Body: { id: string, businessId: string }
  */
 export async function DELETE(req: NextRequest) {
+  try {
+
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -71,5 +78,8 @@ export async function DELETE(req: NextRequest) {
   const { error } = await sb.from("data_sources").delete().eq("id", id).eq("business_id", businessId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true });  } catch (e: any) {
+    console.error("[app/api/v3/data-sources/route.ts]", e.message);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

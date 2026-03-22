@@ -23,6 +23,8 @@ async function verifyOwnership(userId: string, businessId: string): Promise<bool
  * GET /api/v3/transactions?businessId=xxx&page=1&limit=50&category=rent&from=2025-01-01&to=2025-12-31
  */
 export async function GET(req: NextRequest) {
+  try {
+
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -83,7 +85,10 @@ export async function GET(req: NextRequest) {
       uncategorized: (summary?.length ?? 0) - categorizedCount,
       categorization_pct: summary?.length ? Math.round((categorizedCount / summary.length) * 100) : 0,
     },
-  });
+  });  } catch (e: any) {
+    console.error("[app/api/v3/transactions/route.ts]", e.message);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 /**
@@ -91,6 +96,8 @@ export async function GET(req: NextRequest) {
  * Body: { ids: string[], category_code: string, businessId: string }
  */
 export async function PATCH(req: NextRequest) {
+  try {
+
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -117,5 +124,8 @@ export async function PATCH(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ success: true, updated: ids.length });
+  return NextResponse.json({ success: true, updated: ids.length });  } catch (e: any) {
+    console.error("[app/api/v3/transactions/route.ts]", e.message);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

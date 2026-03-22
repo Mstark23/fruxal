@@ -15,10 +15,20 @@ export default function DashboardRouter() {
     const params = new URLSearchParams(window.location.search);
     const rid    = params.get("prescanRunId");
     const paid   = params.get("paid"); // from Stripe success_url: ?paid=business&session_id=xxx
+    const sessionId = params.get("session_id");
     const suffix = rid ? "?prescanRunId=" + rid : "";
 
     // 0. Handle post-Stripe return — ?paid=plan means webhook may not have fired yet
     // Set localStorage immediately so user sees correct dashboard without waiting for webhook
+
+    // Verify Stripe session server-side if session_id present (prevents URL spoofing)
+    if (paid && sessionId) {
+      fetch("/api/v2/payment-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      }).catch(() => { /* non-blocking — webhook handles truth */ });
+    }
     if (paid) {
       try {
         const tierFromPayment = paid === "enterprise" ? "enterprise"

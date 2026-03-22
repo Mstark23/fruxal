@@ -7,7 +7,7 @@
 // Flow: User takes prescan → signs up → this bridge runs → dashboard has data
 // =============================================================================
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const _ip_bridgeRl = new Map<string, {c: number; r: number}>();
@@ -50,8 +50,8 @@ function mapSeverity(impactMonthly: number): string {
   return "low";
 }
 
-export async function POST(request: Request) {
-  const _ip_ip_bridge = (request as any).headers?.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+export async function POST(request: NextRequest) {
+  const _ip_ip_bridge = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (!ip_bridgeCheck(_ip_ip_bridge)) return NextResponse.json({error: "Too many requests"}, {status: 429});
   try {
     const body = await request.json();
