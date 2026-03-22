@@ -41,6 +41,15 @@ export async function POST(req: NextRequest) {
 
     for (const bizId of bizIds) {
       try {
+        // Get latest financial ratios
+        const { data: ratioRow } = await supabaseAdmin
+          .from("financial_ratios")
+          .select("gross_margin_pct, dscr, dso_days, data_completeness_pct")
+          .eq("business_id", bizId)
+          .order("period_month", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
         // Get recovery totals
         const { data: tasks } = await supabaseAdmin
           .from("diagnostic_tasks")

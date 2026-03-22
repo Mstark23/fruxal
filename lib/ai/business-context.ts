@@ -31,6 +31,17 @@ export interface CompletedTask {
   completed_at: string;
 }
 
+export interface RatiosContext {
+  current_ratio:     number | null;
+  dscr:              number | null;
+  gross_margin_pct:  number | null;
+  ebitda_margin_pct: number | null;
+  dso_days:          number | null;
+  dpo_days:          number | null;
+  debt_to_equity:    number | null;
+  data_completeness: number;
+}
+
 export interface BreakEvenContext {
   break_even_revenue: number;
   current_revenue: number;
@@ -73,6 +84,7 @@ export interface BusinessContext {
   upcoming_deadlines: UpcomingDeadline[];
   tier: "solo" | "business" | "enterprise";
   break_even: BreakEvenContext | null;
+  ratios: RatiosContext | null;
 }
 
 // Minimal context for when DB queries fail
@@ -86,6 +98,7 @@ function emptyContext(businessId: string): BusinessContext {
     upcoming_deadlines: [],
     tier: "solo",
     break_even: null,
+    ratios: null,
   };
 }
 
@@ -97,7 +110,7 @@ export async function buildBusinessContext(
 
   try {
     // All queries in parallel — 3-second timeout on the whole bundle
-    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes] = await Promise.all([
+    const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes, ratioRes] = await Promise.all([
       // 1. Business profile
       supabaseAdmin
         .from("business_profiles")
@@ -164,6 +177,16 @@ export async function buildBusinessContext(
         .from("break_even_data")
         .select("break_even_revenue, current_revenue, safety_margin, safety_margin_pct, data_source")
         .eq("business_id", businessId)
+        .maybeSingle()
+        .then(r => r.data),
+
+      // 8. Financial ratios (Build 142)
+      supabaseAdmin
+        .from("financial_ratios")
+        .select("current_ratio, dscr, gross_margin_pct, ebitda_margin_pct, dso_days, dpo_days, debt_to_equity, data_completeness_pct")
+        .eq("business_id", businessId)
+        .order("period_month", { ascending: false })
+        .limit(1)
         .maybeSingle()
         .then(r => r.data),
     ]);
@@ -262,6 +285,16 @@ export async function buildBusinessContext(
       recovery,
       upcoming_deadlines: deadlines.slice(0, 5),
       tier,
+      ratios: ratioRes ? {
+        current_ratio:     ratioRes.current_ratio     ?? null,
+        dscr:              ratioRes.dscr              ?? null,
+        gross_margin_pct:  ratioRes.gross_margin_pct  ?? null,
+        ebitda_margin_pct: ratioRes.ebitda_margin_pct ?? null,
+        dso_days:          ratioRes.dso_days          ?? null,
+        dpo_days:          ratioRes.dpo_days          ?? null,
+        debt_to_equity:    ratioRes.debt_to_equity    ?? null,
+        data_completeness: ratioRes.data_completeness_pct ?? 0,
+      } : null,
       break_even: beRes ? {
         break_even_revenue: Math.round(beRes.break_even_revenue ?? 0),
         current_revenue:    Math.round(beRes.current_revenue ?? 0),

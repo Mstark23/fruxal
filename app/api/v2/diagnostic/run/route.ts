@@ -477,6 +477,13 @@ export async function POST(req: NextRequest) {
     }).catch(() => { /* non-fatal */ });
     }
 
+    // ── 9c. Auto-extract financial ratios from diagnostic (non-blocking) ──────
+    fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v2/ratios/extract`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessId }),
+    }).catch(() => { /* non-fatal */ });
+
     // ── 10. Auto-create tier3_pipeline entry (enterprise) ─────────────────
     if (tier === "enterprise") {
       try {

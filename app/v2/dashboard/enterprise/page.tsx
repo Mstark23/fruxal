@@ -22,6 +22,7 @@
 import { useState, useEffect, useRef } from "react";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
+import { RatioWidget } from "@/components/v2/RatioWidget";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { TaskList, Task } from "@/components/v2/TaskCard";

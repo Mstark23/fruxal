@@ -13,6 +13,7 @@ import { useCelebration } from "@/hooks/useCelebration";
 import { TaskList, Task } from "@/components/v2/TaskCard";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
+import { RatioWidget } from "@/components/v2/RatioWidget";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, c = 2 * Math.PI * r;
@@ -718,6 +719,13 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
+
+        {/* ── RATIO WIDGET ────────────────────────────────────────────── */}
+        {isPaid && dashboardBusinessId && (
+          <div className="mb-3" style={fade(0.13)}>
+            <RatioWidget businessId={dashboardBusinessId} tier="business" lang={lang} />
+          </div>
+        )}
 
         {/* ── BREAK-EVEN WIDGET ───────────────────────────────────────── */}
         {isPaid && dashboardBusinessId && (
