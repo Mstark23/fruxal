@@ -18,6 +18,7 @@ import { resolveTier, tierMaxTokens } from "@/lib/ai/tier";
 import { fetchDiagnosticContext }      from "@/lib/ai/context";
 import { buildSystemPrompt, buildUserPrompt, buildTaxContext, PromptInputs } from "@/lib/ai/prompts";
 import { buildEnterprisePrompts } from "@/lib/ai/prompts/diagnostic/enterprise";
+import { generateTasksFromFindings } from "@/lib/ai/task-generator";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export const maxDuration = 120;
@@ -448,7 +449,28 @@ export async function POST(req: NextRequest) {
     await supabaseAdmin.from("detected_leaks").insert(leakRows); } catch { /* non-fatal */ }
     }
 
-    // ── 9. Auto-create tier3_pipeline entry (enterprise) ─────────────────
+    // ── 9. Generate task cards in background (non-blocking) ──────────────
+    // Fire-and-forget: task generation never blocks the diagnostic response.
+    // Uses a separate Claude call — failure is logged but never surfaces to user.
+    if (aiResult?.findings?.length) {
+      const taskProfile = {
+        industry: profile.industry_label || profile.industry,
+        province,
+        annual_revenue: annualRevenue,
+      };
+      generateTasksFromFindings(
+        aiResult.findings,
+        taskProfile,
+        tier,
+        reportId,
+        businessId,
+        language
+      ).catch((e: any) =>
+        console.warn("[Diagnostic] Task generation failed (non-blocking):", e?.message)
+      );
+    }
+
+    // ── 10. Auto-create tier3_pipeline entry (enterprise) ─────────────────
     if (tier === "enterprise") {
       try {
         const userEmail = (token as any)?.email as string | undefined;
@@ -502,7 +524,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── 10. Return ────────────────────────────────────────────────────────
+    // ── 11. Return ────────────────────────────────────────────────────────
     return NextResponse.json({
       success:                 true,
       reportId,

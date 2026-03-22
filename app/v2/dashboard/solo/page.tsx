@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
+import { TaskList, Task } from "@/components/v2/TaskCard";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, circ = 2 * Math.PI * r;
@@ -53,6 +54,10 @@ export default function SoloDashboard() {
   const [ninetyDay, setNinetyDay] = useState<any>(null);
   const [strengths, setStrengths] = useState<any[]>([]);
   const [diagFindings, setDiagFindings] = useState<any[]>([]);
+  const [diagTasks, setDiagTasks] = useState<Task[]>([]);
+  const [dashboardBusinessId, setDashboardBusinessId] = useState<string>("");
+  const [taskSavingsAvail, setTaskSavingsAvail] = useState(0);
+  const [taskSavingsRecov, setTaskSavingsRecov] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
@@ -164,6 +169,21 @@ export default function SoloDashboard() {
       }
       } catch { /* non-fatal */ }
     };
+    const taskP = (async () => {
+      try {
+        const dash = await fetch("/api/v2/dashboard").then(r => r.ok ? r.json() : null).catch(() => null);
+        const bid = dash?.data?.businessId;
+        if (!bid) return;
+        const data = await fetch(`/api/v2/tasks?businessId=${bid}`).then(r => r.ok ? r.json() : null).catch(() => null);
+        if (data?.tasks) {
+          setDiagTasks(data.tasks);
+          setTaskSavingsAvail(data.total_savings_available || 0);
+          setTaskSavingsRecov(data.total_savings_recovered || 0);
+          setDashboardBusinessId(bid);
+        }
+      } catch { /* non-fatal */ }
+    })();
+
     const actP = user?.id ? fetch("/api/v2/actions").then(r => r.json()).then(json => {
       if (json.stats) setActionStats(json.stats);
       if (json.actions) { setThisWeekActions(json.actions.this_week || []); setInProgressActions(json.actions.in_progress || []); setCompletedActions(json.actions.completed || []); }
@@ -698,6 +718,32 @@ export default function SoloDashboard() {
             </button>
           </div>
         </div>
+
+        {/* ── ACTION PLAN (Tasks) ─────────────────────────────────────── */}
+        {isPaid && (diagTasks.length > 0 || diagFindings.length > 0) && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">
+                {t("Action Plan", "Plan d'action")}
+              </span>
+            </div>
+            {diagTasks.length > 0 ? (
+              <TaskList
+                tasks={diagTasks}
+                totalAvailable={taskSavingsAvail}
+                totalRecovered={taskSavingsRecov}
+                businessId={dashboardBusinessId}
+                lang={lang}
+              />
+            ) : (
+              <div className="px-4 py-5 rounded-xl text-center" style={{ border: "1px dashed #E8E6E1" }}>
+                <p className="text-[11px] text-ink-faint">
+                  {t("Your action plan generates automatically after the diagnostic completes.", "Votre plan d'action se génère automatiquement après le diagnostic.")}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

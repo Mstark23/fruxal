@@ -22,6 +22,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { TaskList, Task } from "@/components/v2/TaskCard";
 
 const fade = (delay = 0) => ({
   animation: `fadeUp 0.4s ease ${delay}s both`,
@@ -39,6 +40,9 @@ export default function EnterpriseDashboard() {
   const [lang, setLang] = useState<"en" | "fr">("en");
   const [loading, setLoading] = useState(true);
   const [reportId,   setReportId]   = useState<string | null>(null);
+  const [diagTasks, setDiagTasks] = useState<Task[]>([]);
+  const [taskSavingsAvail, setTaskSavingsAvail] = useState(0);
+  const [taskSavingsRecov, setTaskSavingsRecov] = useState(0);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [rerunning,  setRerunning]  = useState(false);
   const [mounted,    setMounted]    = useState(false);
