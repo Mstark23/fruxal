@@ -28,10 +28,16 @@ const PERIOD_DAYS: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
 
 export async function GET(req: NextRequest) {
   try {
-    // ─── Auth check ──────────────────────────────────────────────
+    // ─── Auth check — use ADMIN_EMAILS (same as requireAdmin()) ─────
     const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== "admin") {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+      .split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+    const userEmail = (session.user.email || "").toLowerCase();
+    if (!adminEmails.includes(userEmail)) {
+      return NextResponse.json({ success: false, error: "Forbidden — admin access required" }, { status: 403 });
     }
 
     const period = req.nextUrl.searchParams.get("period") || "30d";
