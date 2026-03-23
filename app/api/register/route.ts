@@ -2,6 +2,7 @@
 // POST /api/register — Create account + bridge prescan data
 // =============================================================================
 import { NextRequest, NextResponse } from "next/server";
+import { sendWelcomeEmail } from "@/services/email/service";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -295,6 +296,14 @@ export async function POST(request: NextRequest) {
 
       process.env.NODE_ENV !== "production" && console.log(`✅ Prescan bridge complete: user=${userId}, biz=${businessId}, prescan=${prescanRunId}`);
     }
+
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail({
+      to:           email,
+      name:         name || undefined,
+      qualifiedPlan,
+      teaserLeaks:  [],
+    }).catch((err: any) => console.warn("[Register] Welcome email failed:", err.message));
 
     return NextResponse.json(
       { success: true, userId: user.id, businessId, qualifiedPlan },

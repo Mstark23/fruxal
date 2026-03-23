@@ -352,3 +352,79 @@ export async function sendPaymentFailedEmail({ to, plan }: PaymentFailedArgs): P
   );
   return sendEmail({ to, subject: `Action required — payment failed for your Fruxal ${plan}`, html });
 }
+
+// =============================================================================
+// WELCOME EMAIL — sent immediately after account creation
+// =============================================================================
+interface WelcomeEmailArgs {
+  to:           string;
+  name?:        string;
+  industry?:    string;
+  province?:    string;
+  qualifiedPlan?: string;
+  teaserLeaks?: Array<{ title?: string; title_fr?: string; impact_min?: number; category?: string }>;
+  lang?:        "en" | "fr";
+}
+
+export async function sendWelcomeEmail({
+  to, name, industry, province, qualifiedPlan, teaserLeaks, lang = "en",
+}: WelcomeEmailArgs): Promise<boolean> {
+  const appUrl  = process.env.NEXTAUTH_URL || "https://fruxal.com";
+  const isFR    = lang === "fr" || (province === "QC" && lang !== "en");
+  const greeting = name ? (isFR ? `Bonjour ${name}` : `Hi ${name}`) : (isFR ? "Bonjour" : "Hi there");
+  const topLeaks = (teaserLeaks ?? []).slice(0, 3);
+
+  const leaksHtml = topLeaks.length > 0
+    ? `<div style="margin:20px 0;background:#F5F9F6;border-radius:10px;padding:16px 20px;">
+        <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:#1B3A2D;">
+          ${isFR ? "Vos principales fuites détectées :" : "Your top leaks detected:"}
+        </p>
+        ${topLeaks.map(l => {
+          const title = isFR && l.title_fr ? l.title_fr : (l.title ?? l.category ?? "Financial leak");
+          const amt   = l.impact_min ? `~$${Math.round(l.impact_min / 12).toLocaleString()}/mo` : "";
+          return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid rgba(27,58,45,0.08);font-size:13px;">
+            <span style="color:#2C2C2A;">${title}</span>
+            <span style="font-weight:600;color:#1B3A2D;">${amt}</span>
+          </div>`;
+        }).join("")}
+      </div>`
+    : "";
+
+  const subject  = isFR ? "Bienvenue sur Fruxal — voici vos prochaines étapes" : "Welcome to Fruxal — here's what to do next";
+  const bodyText = isFR
+    ? `${greeting},<br><br>Votre compte Fruxal est prêt. Voici ce que vous devez faire maintenant :`
+    : `${greeting},<br><br>Your Fruxal account is ready. Here's what to do now:`;
+
+  const steps = isFR
+    ? [
+        { n: "1", text: "Lancez votre diagnostic complet", sub: "Obtenez votre score santé, tous vos constats et votre plan d'action personnalisé", href: `${appUrl}/v2/diagnostic` },
+        { n: "2", text: "Complétez votre première tâche", sub: "Chaque tâche complétée récupère de l'argent dans votre entreprise", href: `${appUrl}/v2/diagnostic` },
+        { n: "3", text: "Fixez un objectif de 90 jours", sub: "Engagez-vous sur un montant à récupérer ce trimestre", href: `${appUrl}/v2/dashboard` },
+      ]
+    : [
+        { n: "1", text: "Run your full diagnostic", sub: "Get your health score, all findings, and a personalized 90-day action plan", href: `${appUrl}/v2/diagnostic` },
+        { n: "2", text: "Complete your first task", sub: "Every task you complete recovers real money back into your business", href: `${appUrl}/v2/diagnostic` },
+        { n: "3", text: "Set a 90-day goal", sub: "Commit to a savings target for this quarter", href: `${appUrl}/v2/dashboard` },
+      ];
+
+  const stepsHtml = steps.map(s =>
+    `<div style="display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;">
+      <div style="width:28px;height:28px;border-radius:14px;background:#1B3A2D;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="color:white;font-size:12px;font-weight:700;">${s.n}</span>
+      </div>
+      <div>
+        <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#1A1A18;">${s.text}</p>
+        <p style="margin:0;font-size:12px;color:#56554F;">${s.sub}</p>
+      </div>
+    </div>`
+  ).join("");
+
+  const html = emailTemplate(
+    subject,
+    `${bodyText}<br><br>${leaksHtml}${stepsHtml}`,
+    isFR ? "Lancer mon diagnostic →" : "Run my diagnostic →",
+    `${appUrl}/v2/diagnostic`
+  );
+
+  return sendEmail({ to, subject, html });
+}
