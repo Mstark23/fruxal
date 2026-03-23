@@ -83,6 +83,7 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<"7d" | "30d" | "90d">("30d");
 
   useEffect(() => {
@@ -90,9 +91,12 @@ export default function AdminDashboard() {
       try {
         const res = await fetch(`/api/admin/stats?period=${period}`);
         const json = await res.json();
+        if (res.status === 401) { setError("You need to be logged in."); return; }
+        if (res.status === 403) { setError("Access denied. Make sure ADMIN_EMAILS is set in Vercel and redeploy, then log out and back in."); return; }
         if (json.success) setStats(json.data);
-      } catch (err) {
-        console.error(err);
+        else setError(json.error || "Failed to load stats.");
+      } catch (err: any) {
+        setError(err.message || "Network error.");
       } finally {
         setLoading(false);
       }
@@ -100,10 +104,28 @@ export default function AdminDashboard() {
     load();
   }, [period]);
 
-  if (loading || !stats) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#060a10] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="min-h-screen bg-[#060a10] flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <div className="text-4xl mb-4">🔒</div>
+          <p className="text-white/70 font-semibold mb-2">Admin access required</p>
+          <p className="text-white/40 text-sm mb-6">{error || "Could not load admin data."}</p>
+          <div className="text-left bg-white/5 rounded-xl p-4 text-xs text-white/40 space-y-1">
+            <p>1. Set ADMIN_EMAILS=your@email.com in Vercel env vars</p>
+            <p>2. Redeploy (git push)</p>
+            <p>3. Log out and log back in at /login</p>
+            <p>4. Navigate to /admin</p>
+          </div>
+        </div>
       </div>
     );
   }
