@@ -164,6 +164,8 @@ export default function DiagnosticIntakePage() {
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [progressStep, setProgressStep] = useState(0);
+  const [progressPct, setProgressPct] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   // Doc upload states
@@ -354,6 +356,42 @@ export default function DiagnosticIntakePage() {
       setSaving(false);
     }
   }
+
+  // Progress animation during diagnostic run
+  useEffect(() => {
+    if (!saving) { setProgressStep(0); setProgressPct(0); return; }
+    const STEPS_EN = [
+      { label: "Saving your intake data…",           labelFR: "Sauvegarde de vos données…",             pct: 8  },
+      { label: "Analyzing your financial profile…",  labelFR: "Analyse de votre profil financier…",     pct: 20 },
+      { label: "Running 4,273 leak detectors…",      labelFR: "Activation de 4 273 détecteurs…",        pct: 38 },
+      { label: "Calculating your health score…",     labelFR: "Calcul de votre score de santé…",        pct: 52 },
+      { label: "Matching government programs…",      labelFR: "Recherche de programmes gouvernementaux…",pct: 64 },
+      { label: "Generating your action plan…",       labelFR: "Génération de votre plan d'action…",     pct: 76 },
+      { label: "Building fix recommendations…",      labelFR: "Création des recommandations…",           pct: 88 },
+      { label: "Finalizing your report…",            labelFR: "Finalisation de votre rapport…",          pct: 96 },
+    ];
+    let idx = 0;
+    setProgressStep(0);
+    setProgressPct(STEPS_EN[0].pct);
+    const iv = setInterval(() => {
+      idx = Math.min(idx + 1, STEPS_EN.length - 1);
+      setProgressStep(idx);
+      setProgressPct(STEPS_EN[idx].pct);
+      if (idx === STEPS_EN.length - 1) clearInterval(iv);
+    }, 12000);
+    return () => clearInterval(iv);
+  }, [saving]);
+
+  const PROGRESS_STEPS = [
+    { label: "Saving your intake data…",           labelFR: "Sauvegarde de vos données…"             },
+    { label: "Analyzing your financial profile…",  labelFR: "Analyse de votre profil financier…"     },
+    { label: "Running 4,273 leak detectors…",      labelFR: "Activation de 4 273 détecteurs…"        },
+    { label: "Calculating your health score…",     labelFR: "Calcul de votre score de santé…"        },
+    { label: "Matching government programs…",      labelFR: "Recherche de programmes gouvernementaux…"},
+    { label: "Generating your action plan…",       labelFR: "Génération de votre plan d'action…"     },
+    { label: "Building fix recommendations…",      labelFR: "Création des recommandations…"           },
+    { label: "Finalizing your report…",            labelFR: "Finalisation de votre rapport…"          },
+  ];
 
   // ── Calculate quality score for review step ────────────────────────────────
   function calcQuality(): number {
