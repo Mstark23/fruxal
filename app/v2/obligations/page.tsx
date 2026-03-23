@@ -282,7 +282,13 @@ export default function ObligationsPage() {
               <div className="col-span-2 text-right">{t("Actions","Actions")}</div>
             </div>
             {allFlat.length===0 ? (
-              <div className="px-5 py-12 text-center text-[11px] text-ink-faint">{t("No obligations found","Aucune obligation trouvée")}</div>
+              <div className="px-5 py-10 text-center">
+              <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+              </div>
+              <p className="text-[12px] font-semibold text-ink mb-1">{t("No obligations yet","Aucune obligation")}</p>
+              <p className="text-[10px] text-ink-muted">{t("Run your diagnostic to discover your tax and compliance deadlines.","Lancez votre diagnostic pour découvrir vos échéances fiscales et réglementaires.")}</p>
+            </div>
             ) : allFlat.map((ob,i) => {
               const rc = RISK_COLOR[ob.risk_level] || RISK_COLOR.low;
               return (

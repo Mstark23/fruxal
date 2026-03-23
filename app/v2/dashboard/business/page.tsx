@@ -793,9 +793,12 @@ export default function BusinessDashboard() {
               />
             ) : (
               <div className="px-4 py-5 rounded-xl text-center" style={{ border: "1px dashed #E8E6E1" }}>
-                <p className="text-[11px] text-ink-faint">
-                  {t("Your action plan generates automatically after the diagnostic completes.", "Votre plan d'action se génère automatiquement après le diagnostic.")}
-                </p>
+                <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <p className="text-[12px] font-semibold text-ink mb-1">{t("Action plan not generated yet", "Plan d'action pas encore généré")}</p>
+                <p className="text-[10px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
+                <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
               </div>
             )}
           </div>

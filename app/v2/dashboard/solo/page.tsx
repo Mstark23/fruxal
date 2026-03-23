@@ -259,16 +259,30 @@ export default function SoloDashboard() {
 
   if (leaks.length === 0 && diagFindings.length === 0 && !totalLeak) return (
     <div className="min-h-screen bg-bg flex items-center justify-center px-6">
-      <div className="text-center max-w-xs">
-        <p className="font-serif text-xl text-ink mb-2">{isPaid ? t("No diagnostic yet", "Aucun diagnostic") : t("No analysis yet", "Aucune analyse")}</p>
-        <p className="text-sm text-ink-muted mb-6">
+      <div className="text-center max-w-sm">
+        <div className="w-16 h-16 rounded-2xl bg-brand/8 flex items-center justify-center mx-auto mb-5">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.5" strokeLinecap="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <h2 className="text-[20px] font-bold text-ink mb-2">
+          {isPaid ? t("Run your first diagnostic", "Lancez votre premier diagnostic") : t("See what your business is losing", "Voyez ce que perd votre entreprise")}
+        </h2>
+        <p className="text-[14px] text-ink-muted mb-2">
           {isPaid
-            ? t("Run your diagnostic to get your health score, detected leaks, and a personalised fix plan.", "Lancez votre diagnostic pour obtenir votre score santé et un plan de correction personnalisé.")
-            : t("Run your free prescan to get started.", "Lancez votre prescan gratuit pour commencer.")}
+            ? t("Get your financial health score, every detected leak with dollar amounts, and a step-by-step fix plan — in 5 minutes.", "Obtenez votre score de santé financière, chaque fuite détectée avec les montants, et un plan de correction — en 5 minutes.")
+            : t("A 2-minute scan shows exactly where your business is leaking money — for free.", "Un scan de 2 minutes montre exactement où votre entreprise perd de l'argent — gratuitement.")}
         </p>
-        <button onClick={() => router.push(isPaid ? "/v2/diagnostic" : "/")} className="px-6 py-2.5 text-sm font-semibold text-white bg-brand rounded-lg">
-          {isPaid ? t("Run diagnostic →", "Lancer le diagnostic →") : t("Start", "Lancer")}
+        <p className="text-[12px] text-ink-faint mb-6">
+          {isPaid ? t("Takes about 5 minutes · No accountant needed", "Environ 5 minutes · Sans comptable") : t("Takes 2 minutes · No signup needed", "2 minutes · Sans inscription")}
+        </p>
+        <button onClick={() => router.push(isPaid ? "/v2/diagnostic" : "/")}
+          className="px-7 py-3 text-[14px] font-bold text-white bg-brand rounded-xl hover:bg-brand/90 transition">
+          {isPaid ? t("Run my diagnostic →", "Lancer mon diagnostic →") : t("Start free scan →", "Lancer mon scan gratuit →")}
         </button>
+        <p className="text-[11px] text-ink-faint mt-4">
+          {t("Already did a prescan? Your results are waiting.", "Déjà fait un prescan? Vos résultats vous attendent.")}
+        </p>
       </div>
     </div>
   );
@@ -554,7 +568,14 @@ export default function SoloDashboard() {
                   </button>
                 </div>
               ) : allActions.length === 0 ? (
-                <div className="px-4 py-6 text-center text-[11px] text-ink-muted">{t("Actions appear after your first diagnostic.", "Les actions apparaissent apres votre diagnostic.")}</div>
+                <div className="px-4 py-6 text-center">
+                  <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                  </div>
+                  <p className="text-[12px] font-semibold text-ink mb-1">{t("No tasks yet", "Aucune tâche")}</p>
+                  <p className="text-[10px] text-ink-muted mb-2">{t("Run your diagnostic to get your personalized fix plan.", "Lancez votre diagnostic pour obtenir votre plan de correction personnalisé.")}</p>
+                  <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
+                </div>
               ) : allActions.slice(0, 4).map((a, i) => (
                 <div key={i} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
                   <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: "2px solid " + (a.status === "in_progress" ? "#C4841D" : "#E8E6E1") }}>
@@ -793,9 +814,12 @@ export default function SoloDashboard() {
               />
             ) : (
               <div className="px-4 py-5 rounded-xl text-center" style={{ border: "1px dashed #E8E6E1" }}>
-                <p className="text-[11px] text-ink-faint">
-                  {t("Your action plan generates automatically after the diagnostic completes.", "Votre plan d'action se génère automatiquement après le diagnostic.")}
-                </p>
+                <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <p className="text-[12px] font-semibold text-ink mb-1">{t("Action plan not generated yet", "Plan d'action pas encore généré")}</p>
+                <p className="text-[10px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
+                <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
               </div>
             )}
           </div>
