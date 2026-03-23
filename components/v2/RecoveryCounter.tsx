@@ -7,6 +7,7 @@
 // =============================================================================
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { MetricTooltip } from "@/components/v2/Tooltip";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export interface RecoveryData {
@@ -200,7 +201,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
       <div className="px-3 py-2 rounded-md mx-3 mb-2"
         style={{ background: "rgba(45,122,80,0.06)", border: "1px solid rgba(45,122,80,0.12)" }}>
         <p className="text-[9px] font-bold text-positive uppercase tracking-wider mb-0.5">
-          💰 {t("Recovered", "Récupéré")}
+          💰 {t("Recovered", "Récupéré")}<MetricTooltip id="recovery_counter" lang={lang} size={12} />
         </p>
         <p className="text-[13px] font-black text-positive">
           {fmt(animatedRecovered)}/{t("mo", "mois")}
@@ -254,7 +255,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[10px] font-bold text-positive uppercase tracking-wider">
-              💰 {t("Total Recovered", "Total récupéré")}
+              💰 {t("Total Recovered", "Total récupéré")}<MetricTooltip id="recovery_counter" lang={lang} size={12} />
             </span>
             {data.tasks_completed > 0 && (
               <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"

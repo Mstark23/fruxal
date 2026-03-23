@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
 import { TaskList, Task } from "@/components/v2/TaskCard";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
+import { MetricTooltip } from "@/components/v2/Tooltip";
 import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "@/components/v2/LiveScoreRing";
 import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
 import { RatioWidget } from "@/components/v2/RatioWidget";

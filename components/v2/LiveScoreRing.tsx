@@ -9,6 +9,7 @@
 // =============================================================================
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { MetricTooltip } from "@/components/v2/Tooltip";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface ScoreData {
