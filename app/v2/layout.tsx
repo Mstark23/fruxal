@@ -1,6 +1,7 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
+import { QuickStartWidget } from "@/components/v2/QuickStartWidget";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 
@@ -11,6 +12,7 @@ function I({d,s=20}:{d:string;s?:number}){
 // ── Nav definitions ───────────────────────────────────────────────────────────
 const NAV_STANDARD = [
   { path:"/v2/dashboard",   icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
+  { path:"/v2/quickstart", icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>', label:"Quick Start", qs:true },
   { path:"/v2/history", icon:'<path d=\"M3 3v5h5\"/><path d=\"M3.05 13A9 9 0 106 5.3L3 8\"/><path d=\"M12 7v5l4 2\"/>', label:"My Journey" },
   { path:"/v2/obligations", icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
   { path:"/v2/leaks",       icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"Leaks" },
@@ -24,6 +26,8 @@ const NAV_STANDARD = [
 // Enterprise nav — Leaks replaced by Run Intake (T2/financials upload CTA)
 const NAV_ENTERPRISE = [
   { path:"/v2/dashboard/enterprise", icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
+  { path:"/v2/quickstart", icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>', label:"Quick Start", qs:true },
+  { path:"/v2/quickstart", icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>', label:"Quick Start", qs:true },
   { path:"/v2/history", icon:'<path d=\"M3 3v5h5\"/><path d=\"M3.05 13A9 9 0 106 5.3L3 8\"/><path d=\"M12 7v5l4 2\"/>', label:"My Journey" },
   { path:"/v2/diagnostic/intake",    icon:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label:"Run Intake", cta:true },
   { path:"/v2/obligations",          icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
@@ -36,7 +40,7 @@ const NAV_ENTERPRISE = [
 // Routes that always force enterprise nav regardless of pathname
 const ENTERPRISE_PATHS = ["/v2/dashboard/enterprise", "/v2/diagnostic/intake", "/v2/diagnostic/run"];
 // Routes where enterprise nav stays active (user is navigating around while enterprise)
-const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history", "/v2/solutions", "/v2/faq"];
+const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history", "/v2/solutions", "/v2/faq", "/v2/quickstart"];
 
 export default function V2Layout({children}:{children:React.ReactNode}) {
   const router   = useRouter();
@@ -128,7 +132,13 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
           active ? "bg-brand-soft text-brand font-semibold" : "text-ink-secondary hover:bg-bg-warm hover:text-ink"
         }`}>
         <span className={active ? "text-brand" : "text-ink-muted"}><I d={item.icon} s={18}/></span>
-        <span className="text-[13px]">{item.label}</span>
+        <span className="text-[13px] flex-1">{item.label}</span>
+        {(item as any).qs && !active && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+            style={{ background:"rgba(27,58,45,0.08)", color:"#1B3A2D" }}>
+            Start
+          </span>
+        )}
       </button>
     );
   }
