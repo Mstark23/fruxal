@@ -8,6 +8,7 @@
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getPrescanContext } from "./prescan-context";
+import { findSolutionsForCategory } from "@/lib/solutions/matcher";
 
 export interface BusinessFinding {
   title: string;
@@ -30,6 +31,11 @@ export interface CompletedTask {
   title: string;
   savings_monthly: number;
   completed_at: string;
+}
+
+export interface TopSolutionEntry {
+  category:  string;
+  solutions: Array<{ name: string; url: string; savings_estimate: string | null }>;
 }
 
 export interface JourneyContext {
@@ -126,6 +132,7 @@ export interface BusinessContext {
   liveScore: LiveScoreContext | null;
   activeGoal: ActiveGoalContext | null;
   journey: JourneyContext | null;
+  topSolutions: TopSolutionEntry[] | null;
 }
 
 // Minimal context for when DB queries fail
@@ -144,6 +151,7 @@ function emptyContext(businessId: string): BusinessContext {
     liveScore: null,
     activeGoal: null,
     journey: null,
+    topSolutions: null,
   };
 }
 
@@ -281,6 +289,30 @@ export async function buildBusinessContext(
 
     // -- Profile
     const profile = profileRes;
+
+    // 13. Top solutions (after profile resolved to avoid circular reference)
+    let topSolRes: any = null;
+    try {
+      const openTaskCats = (tasksRes as any[] ?? [])
+        .filter((t: any) => t.status === "open")
+        .slice(0, 3)
+        .map((t: any) => t.category as string)
+        .filter(Boolean);
+      const uniqueCats = [...new Set(openTaskCats)] as string[];
+      if (uniqueCats.length > 0) {
+        const ind: string = (profile as any)?.industry ?? "general";
+        const prov: string = (profile as any)?.province ?? "QC";
+        const bycat = await Promise.all(
+          uniqueCats.map(async (cat: string) => ({
+            category: cat,
+            solutions: (await findSolutionsForCategory(cat, { industrySlug: ind, province: prov, tier: "solo" }))
+              .slice(0, 2)
+              .map(s => ({ name: s.name, url: s.url, savings_estimate: s.savings_estimate })),
+          }))
+        );
+        topSolRes = bycat.filter(g => g.solutions.length > 0);
+      }
+    } catch { topSolRes = null; }
     const annualRevenue = (profile?.exact_annual_revenue ?? profile?.annual_revenue) ?? 0;
     const monthlyRevenue = Math.round(annualRevenue / 12);
 
@@ -373,6 +405,7 @@ export async function buildBusinessContext(
       recovery,
       upcoming_deadlines: deadlines.slice(0, 5),
       tier,
+      topSolutions: (topSolRes as any) ?? null,
       journey: journeyRes?.daysOnPlatform != null ? {
         daysOnPlatform: journeyRes.daysOnPlatform,
         tasksCompleted: journeyRes.tasksCompleted,

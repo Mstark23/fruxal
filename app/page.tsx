@@ -178,6 +178,7 @@ export default function LandingPage() {
           <a href="#features" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Features", "Fonctionnalités")}</a>
           <a href="#how" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("How it works", "Comment ça marche")}</a>
           <a href="#pricing" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Pricing", "Tarification")}</a>
+          <a href="/faq" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("FAQ", "FAQ")}</a>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-border-light rounded-[7px] p-[3px] gap-[2px]">
@@ -695,7 +696,7 @@ export default function LandingPage() {
 
       {/* ══════ FOOTER ══════ */}
       <footer className="py-10 px-6 text-center border-t border-border-light bg-bg">
-        <p className="text-[13px] text-ink-muted">© 2026 Fruxal Inc. · <a href="#" className="text-ink-secondary hover:text-ink transition">{t("Privacy", "Confidentialité")}</a> · <a href="#" className="text-ink-secondary hover:text-ink transition">{t("Terms", "Conditions")}</a> · {t("Built in Quebec", "Construit au Québec")} 🇨🇦</p>
+        <p className="text-[13px] text-ink-muted">© 2026 Fruxal Inc. · <a href="#" className="text-ink-secondary hover:text-ink transition">{t("Privacy", "Confidentialité")}</a> · <a href="#" className="text-ink-secondary hover:text-ink transition">{t("Terms", "Conditions")}</a> · <a href="/faq" className="text-ink-secondary hover:text-ink transition">{t("FAQ", "FAQ")}</a> · {t("Built in Quebec", "Construit au Québec")} 🇨🇦</p>
       </footer>
 
     </div>

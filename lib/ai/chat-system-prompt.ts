@@ -42,6 +42,18 @@ function buildSoloPrompt(ctx: BusinessContext): string {
   const journeyBlock = ctx.journey?.daysOnPlatform
     ? `Platform history: ${ctx.journey.daysOnPlatform} days on Fruxal | ${ctx.journey.scansCompleted ?? 0} scan${(ctx.journey.scansCompleted ?? 0) !== 1 ? "s" : ""} | ${ctx.journey.tasksCompleted ?? 0} task${(ctx.journey.tasksCompleted ?? 0) !== 1 ? "s" : ""} completed | Total confirmed savings: $${(ctx.journey.totalRecovered ?? 0).toLocaleString()}/month`
     : "";
+  const solutionsBlock = ctx.topSolutions && ctx.topSolutions.length > 0
+    ? "RELEVANT SOLUTIONS FOR THEIR TOP ISSUES:\n" +
+      ctx.topSolutions
+        .map(g =>
+          `Category: ${g.category}\n` +
+          g.solutions.map(s =>
+            `→ ${s.name}${s.savings_estimate ? `: ${s.savings_estimate}` : ""} (${s.url})`
+          ).join("\n")
+        )
+        .join("\n") +
+      "\n\nWhen recommending solutions: reference these by name, mention savings estimates, say \'learn more at [url]\' rather than \'click here\'. Only recommend when genuinely relevant."
+    : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0
       ? `PRESCAN HISTORY (initial scan ${ctx.prescan.daysSincePrescan} days ago):\n` +
@@ -105,7 +117,7 @@ ${tasksBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 
-${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}${goalBlock ? goalBlock + '\n\n' : ''}${journeyBlock ? journeyBlock + '\n\n' : ''}
+${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}${goalBlock ? goalBlock + '\n\n' : ''}${journeyBlock ? journeyBlock + '\n\n' : ''}${solutionsBlock ? solutionsBlock + '\n\n' : ''}
 YOUR ROLE AND RULES:
 - Respond in plain English — zero financial jargon
 - Keep responses to 3-5 sentences unless detail is requested
@@ -134,6 +146,18 @@ function buildBusinessPrompt(ctx: BusinessContext): string {
     : "";
   const journeyBlock = ctx.journey?.daysOnPlatform
     ? `Platform history: ${ctx.journey.daysOnPlatform} days on Fruxal | ${ctx.journey.scansCompleted ?? 0} scan${(ctx.journey.scansCompleted ?? 0) !== 1 ? "s" : ""} | ${ctx.journey.tasksCompleted ?? 0} task${(ctx.journey.tasksCompleted ?? 0) !== 1 ? "s" : ""} completed | Total confirmed savings: $${(ctx.journey.totalRecovered ?? 0).toLocaleString()}/month`
+    : "";
+  const solutionsBlock = ctx.topSolutions && ctx.topSolutions.length > 0
+    ? "RELEVANT SOLUTIONS FOR THEIR TOP ISSUES:\n" +
+      ctx.topSolutions
+        .map(g =>
+          `Category: ${g.category}\n` +
+          g.solutions.map(s =>
+            `→ ${s.name}${s.savings_estimate ? `: ${s.savings_estimate}` : ""} (${s.url})`
+          ).join("\n")
+        )
+        .join("\n") +
+      "\n\nWhen recommending solutions: reference these by name, mention savings estimates, say \'learn more at [url]\' rather than \'click here\'. Only recommend when genuinely relevant."
     : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0
@@ -212,7 +236,7 @@ ${completedBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}${journeyBlock ? "\n" + journeyBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}${journeyBlock ? "\n" + journeyBlock + "\n" : ""}${solutionsBlock ? "\n" + solutionsBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - Data-driven responses with dollar amounts on everything
 - Reference their specific numbers — never generic advice
@@ -240,6 +264,18 @@ function buildEnterprisePrompt(ctx: BusinessContext): string {
     : "";
   const journeyBlock = ctx.journey?.daysOnPlatform
     ? `Platform history: ${ctx.journey.daysOnPlatform} days on Fruxal | ${ctx.journey.scansCompleted ?? 0} scan${(ctx.journey.scansCompleted ?? 0) !== 1 ? "s" : ""} | ${ctx.journey.tasksCompleted ?? 0} task${(ctx.journey.tasksCompleted ?? 0) !== 1 ? "s" : ""} completed | Total confirmed savings: $${(ctx.journey.totalRecovered ?? 0).toLocaleString()}/month`
+    : "";
+  const solutionsBlock = ctx.topSolutions && ctx.topSolutions.length > 0
+    ? "RELEVANT SOLUTIONS FOR THEIR TOP ISSUES:\n" +
+      ctx.topSolutions
+        .map(g =>
+          `Category: ${g.category}\n` +
+          g.solutions.map(s =>
+            `→ ${s.name}${s.savings_estimate ? `: ${s.savings_estimate}` : ""} (${s.url})`
+          ).join("\n")
+        )
+        .join("\n") +
+      "\n\nWhen recommending solutions: reference these by name, mention savings estimates, say \'learn more at [url]\' rather than \'click here\'. Only recommend when genuinely relevant."
     : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0
@@ -312,7 +348,7 @@ ${tasksBlock}
 OBLIGATIONS IN NEXT 60 DAYS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}${journeyBlock ? "\n" + journeyBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}${journeyBlock ? "\n" + journeyBlock + "\n" : ""}${solutionsBlock ? "\n" + solutionsBlock + "\n" : ""}
 YOUR ROLE AND RULES:
 - CFO-level depth and precision in every response
 - Structure longer responses: Situation → Options → Recommendation

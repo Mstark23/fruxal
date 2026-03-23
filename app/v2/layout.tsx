@@ -16,7 +16,9 @@ const NAV_STANDARD = [
   { path:"/v2/leaks",       icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"Leaks" },
   { path:"/v2/diagnostic",  icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
   { path:"/v2/programs",    icon:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label:"Programs" },
+  { path:"/v2/solutions", icon:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>', label:"Solutions" },
   { path:"/v2/chat",        icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"AI Chat" },
+  { path:"/v2/faq", icon:'<circle cx="12" cy="12" r="10"/><path d="M9 10a3 3 0 016 0c0 1.5-1.5 2.5-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>', label:"FAQ" },
 ];
 
 // Enterprise nav — Leaks replaced by Run Intake (T2/financials upload CTA)
@@ -28,12 +30,13 @@ const NAV_ENTERPRISE = [
   { path:"/v2/diagnostic",           icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
   { path:"/v2/programs",             icon:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label:"Programs" },
   { path:"/v2/chat",                 icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"AI Chat" },
+  { path:"/v2/faq", icon:'<circle cx="12" cy="12" r="10"/><path d="M9 10a3 3 0 016 0c0 1.5-1.5 2.5-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>', label:"FAQ" },
 ];
 
 // Routes that always force enterprise nav regardless of pathname
 const ENTERPRISE_PATHS = ["/v2/dashboard/enterprise", "/v2/diagnostic/intake", "/v2/diagnostic/run"];
 // Routes where enterprise nav stays active (user is navigating around while enterprise)
-const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history"];
+const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history", "/v2/solutions", "/v2/faq"];
 
 export default function V2Layout({children}:{children:React.ReactNode}) {
   const router   = useRouter();

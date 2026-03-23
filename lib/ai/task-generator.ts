@@ -6,6 +6,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { findSolutionsForTask } from "@/lib/solutions/matcher";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -105,7 +106,10 @@ Rules:
 - savings_monthly must be a number (annual_savings / 12, rounded)
 - effort must be exactly "easy", "medium", or "hard"
 - priority starts at 1 (highest) — order by highest savings × ease of implementation
-- solution_name should be a real Canadian-available tool (e.g. Moneris, Wave, Wealthsimple Tax, Humi, Jobber)
+- solution_name should be a real Canadian-available tool (e.g. Helcim/Moneris for payments, Wave/Quickbooks for accounting, Wagepoint/Humi for payroll, Wealthsimple Tax for tax, Jobber for field service)
+- For Canadian payment processing: Helcim saves 1-2% vs most processors
+- For free accounting: Wave is excellent for SMBs
+- For payroll: Wagepoint is purpose-built for Canadian businesses
 - If French: title, action, why must be in French; all other fields stay in English`;
 }
 

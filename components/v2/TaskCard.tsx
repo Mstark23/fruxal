@@ -17,6 +17,7 @@ export interface Task {
   time_to_implement: string;
   solution_name?: string | null;
   solution_url?: string | null;
+  solution_description?: string | null;
   category: string;
   priority: number;
   status: "open" | "in_progress" | "done" | "dismissed";
@@ -227,27 +228,49 @@ export function TaskCard({ task, onStatusChange, lang = "en", businessId: onBusi
             </div>
           )}
 
-          {/* Solution link */}
+          {/* Solution recommendation — upgraded with click tracking */}
           {task.solution_name && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
-              style={{ background: "rgba(27,58,45,0.03)", border: "1px solid rgba(27,58,45,0.08)" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10" /><polyline points="12 8 12 12 14 14" />
-              </svg>
-              <span className="text-[11px] font-medium text-ink flex-1">
-                {t("Recommended:", "Recommandé :")} {task.solution_name}
-              </span>
-              {task.solution_url && (
-                <a
-                  href={task.solution_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[10px] font-semibold text-brand hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {t("Open →", "Ouvrir →")} <LinkIcon />
-                </a>
-              )}
+            <div className="rounded-lg overflow-hidden"
+              style={{ background: "rgba(27,58,45,0.03)", border: "1px solid rgba(27,58,45,0.10)" }}>
+              <div className="px-3 py-1.5 border-b flex items-center gap-1.5"
+                style={{ borderColor: "rgba(27,58,45,0.08)", background: "rgba(27,58,45,0.05)" }}>
+                <span className="text-[10px]">💡</span>
+                <span className="text-[9px] font-bold text-ink-faint uppercase tracking-wider">
+                  {t("Recommended solution", "Solution recommandée")}
+                </span>
+              </div>
+              <div className="px-3 py-2 flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold text-ink leading-snug">{task.solution_name}</p>
+                  {task.solution_description && (
+                    <p className="text-[10px] text-ink-faint mt-0.5">{task.solution_description}</p>
+                  )}
+                </div>
+                {task.solution_url && (
+                  <button
+                    className="shrink-0 text-[10px] font-bold text-brand hover:underline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Track click then open
+                      fetch("/api/v2/solutions/click", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          solutionId:   task.id,
+                          solutionName: task.solution_name,
+                          url:          task.solution_url,
+                          source:       "task_card",
+                          taskId:       task.id,
+                          businessId:   onBusinessId ?? "",
+                        }),
+                      }).catch(() => {});
+                      window.open(task.solution_url ?? "", "_blank", "noopener noreferrer");
+                    }}
+                  >
+                    {t("Learn more →", "En savoir plus →")}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

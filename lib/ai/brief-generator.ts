@@ -7,6 +7,7 @@
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getPrescanContext } from "@/lib/ai/prescan-context";
+import { findSolutionsForTask } from "@/lib/solutions/matcher";
 
 export interface BriefResult {
   subject:    string;
@@ -168,11 +169,12 @@ async function assembleContext(businessId: string, userId: string) {
     prescanCtx: prescanCtx ?? null,
     activeGoal:        activeGoal ?? null,
     latestComparison:  latestComparison ?? null,
+    topSolution:       null as any,  // enriched below
   };
 }
 
 // ── Tier-specific user prompts ────────────────────────────────────────────────
-function buildUserPrompt(ctx: Awaited<ReturnType<typeof assembleContext>>, tier: string): string {
+async function buildUserPrompt(ctx: Awaited<ReturnType<typeof assembleContext>>, tier: string): Promise<string> {
   const { biz, currentScore, prevScore, completedTasks, openTasks, recovery, obligations, ratios, prescanCtx, activeGoal, latestComparison } = ctx;
   const topTask = openTasks[0];
   const topDeadline = obligations[0];
@@ -210,6 +212,23 @@ Keep it simple and direct. Maximum 3 short paragraphs. They are a solo operator 
   }
 
 
+
+
+  // Top solution for brief
+  let solutionNote = "";
+  try {
+    const briefTopTask = (openTasks as any[])[0];
+    if (briefTopTask) {
+      const briefMatches = await findSolutionsForTask(
+        { category: briefTopTask.category ?? "general", title: briefTopTask.title ?? "", savings_monthly: briefTopTask.savings_monthly ?? 0 },
+        { industrySlug: biz.industry ?? "general", province: biz.province ?? "QC", tier }
+      );
+      const s = briefMatches[0];
+      if (s) {
+        solutionNote = `\nTOP RECOMMENDED SOLUTION THIS MONTH:\nTask: ${briefTopTask.title} (~$${Math.round(briefTopTask.savings_monthly ?? 0).toLocaleString()}/month)\nSolution: ${s.name}${s.savings_estimate ? ` — ${s.savings_estimate}` : ""}\nURL: ${s.url}\nInclude this naturally in the brief. Mention the solution by name and link: 'learn more at ${s.url}'`;
+      }
+    }
+  } catch { /* non-fatal */ }
 
   // Goal progress note for brief
   const goalNote = (activeGoal as any)?.goal_title
@@ -285,7 +304,7 @@ ${completedLines}
 - Top open tasks:
 ${openLines}
 - Upcoming deadlines:
-${obligationLines}${ratioNote}${prescanNote}${goalNote}${compNote}
+${obligationLines}${ratioNote}${prescanNote}${goalNote}${compNote}${solutionNote}
 
 Write 3-4 substantive paragraphs. Include dollar amounts everywhere. The subject line should reference a specific number from their situation. CTA should link to their top priority task.`;
 }
@@ -305,7 +324,7 @@ export async function generateMonthlyBrief(
       return null;
     }
 
-    const userPrompt = buildUserPrompt(ctx, tier);
+    const userPrompt = await buildUserPrompt(ctx, tier);
 
     const systemPrompt = `You are writing a monthly financial brief for a Canadian SMB owner.
 Your job is to write a brief that feels personal, specific, and genuinely useful — not a generic newsletter.
