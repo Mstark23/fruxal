@@ -24,7 +24,7 @@ export const maxDuration = 300; // Vercel function timeout (seconds)
 export async function POST(req: NextRequest) {
   // Simple auth — check for cron secret
   const authHeader = req.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET || "dev-cron-secret";
+  const cronSecret = process.env.CRON_SECRET;
 
   if (authHeader !== `Bearer ${cronSecret}` && process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -8,6 +8,16 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
 
+const _deleteRl = new Map<string, { count: number; reset: number }>();
+function checkDeleteRl(userId: string): boolean {
+  const now = Date.now();
+  const e = _deleteRl.get(userId);
+  if (!e || e.reset < now) { _deleteRl.set(userId, { count: 1, reset: now + 3600000 }); return true; }
+  if (e.count >= 3) return false;
+  e.count++;
+  return true;
+}
+
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
@@ -16,6 +26,9 @@ export async function POST(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const userId = (session.user as any).id as string;
     const { confirm, reason } = await req.json();
+    if (!checkDeleteRl(userId)) {
+      return NextResponse.json({ error: "Too many deletion attempts — try again in an hour" }, { status: 429 });
+    }
     if (confirm !== true) return NextResponse.json({ error: "Confirmation required" }, { status: 400 });
 
     // Get business IDs owned by this user
