@@ -80,7 +80,7 @@ export function QuickStartWidget({ businessId, lang = "en" }: Props) {
       {/* Floating panel */}
       {open && (
         <div style={{
-          position: "fixed", bottom: 88, right: 20, width: 320, zIndex: 999,
+          position: "fixed", bottom: "calc(72px + 64px + 8px)", right: 16, width: "min(320px, calc(100vw - 32px))", zIndex: 999,
           background: "var(--color-background-primary)",
           border: "0.5px solid var(--color-border-secondary)",
           borderRadius: 16,
@@ -196,7 +196,8 @@ export function QuickStartWidget({ businessId, lang = "en" }: Props) {
         onClick={() => setOpen(o => !o)}
         title={t("Getting started", "Premiers pas")}
         style={{
-          position: "fixed", bottom: 24, right: 20, zIndex: 1000,
+          position: "fixed", bottom: "calc(72px + 16px)", right: 16, zIndex: 1000,
+        // On lg screens the bottom nav is hidden, so revert (handled via className below)
           width: 56, height: 56, borderRadius: 28,
           background: "#1B3A2D", border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",

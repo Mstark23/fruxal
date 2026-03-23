@@ -104,7 +104,7 @@ function ScoreChart({ points, projectedDate, latestScore }: {
       <svg
         viewBox={`0 0 ${W} ${H + 24}`}
         className="w-full"
-        style={{ height: 160, minWidth: 280 }}
+        style={{ height: 140, minWidth: 240 }}
       >
         {/* Bg grid */}
         {[0, 25, 50, 70, 100].map(s => (

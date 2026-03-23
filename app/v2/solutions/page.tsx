@@ -218,7 +218,7 @@ export default function SolutionsPage() {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         <button onClick={() => setActiveCategory(null)}
           className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition ${!activeCategory ? "bg-brand text-white" : "bg-bg-section text-ink-muted hover:text-ink"}`}>
           All

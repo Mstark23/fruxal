@@ -289,7 +289,7 @@ export default function SoloDashboard() {
 
   return (
     <div className="bg-bg min-h-screen">
-      <div className="px-6 lg:px-8 py-5 max-w-[1100px]">
+      <div className="px-4 sm:px-6 lg:px-8 py-5 max-w-[1100px]">
 
         {/* TOP BAR */}
         <div className="flex items-center justify-between mb-5" style={fadeDelay(0)}>
@@ -376,7 +376,7 @@ export default function SoloDashboard() {
         )}
 
         {/* KPI CARDS */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5" style={fadeDelay(0.04)}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5" style={fadeDelay(0.04)}>
           <button onClick={() => isPaid ? router.push("/v2/diagnostic") : router.push(upgradeUrl)} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all group" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score sante")}</div>
             {score > 0 ? (

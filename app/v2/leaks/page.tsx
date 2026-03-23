@@ -43,6 +43,8 @@ interface Leak {
 export default function LeaksPage() {
   const { lang, setLang, t, isFR } = useLang();
   const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState<"impact"|"effort"|"severity">("impact");
+  const [effortFilter, setEffortFilter] = useState<"all"|"easy"|"medium"|"hard">("all");
   const [leaks, setLeaks] = useState<Leak[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -113,7 +115,21 @@ export default function LeaksPage() {
     finally { setDownloading(false); }
   };
 
-  const filtered = filter === "all" ? leaks : leaks.filter(l => l.status === filter);
+  const filtered = leaks
+    .filter(l => filter === "all" || l.status === filter)
+    .filter(l => effortFilter === "all" || (l as any).effort === effortFilter)
+    .sort((a, b) => {
+      if (sortBy === "impact") return (b.impact_max ?? 0) - (a.impact_max ?? 0);
+      if (sortBy === "severity") {
+        const order: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+        return (order[a.severity] ?? 2) - (order[b.severity] ?? 2);
+      }
+      if (sortBy === "effort") {
+        const order: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
+        return (order[(a as any).effort] ?? 1) - (order[(b as any).effort] ?? 1);
+      }
+      return 0;
+    });
   const totalSavings = leaks.filter(l => l.status === "fixed").reduce((s, l) => s + l.savings_amount, 0);
   const potentialSavings = leaks.filter(l => l.status === "detected").reduce((s, l) => s + l.impact_max, 0);
 
@@ -160,6 +176,42 @@ export default function LeaksPage() {
           ))}
         </div>
         )}
+
+        {/* Sort + effort filter */}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          {/* Effort filter */}
+          <div className="flex gap-1 flex-wrap">
+            {([
+              { v: "all",    en: "All",    fr: "Tous"    },
+              { v: "easy",   en: "Easy",   fr: "Facile"  },
+              { v: "medium", en: "Medium", fr: "Moyen"   },
+              { v: "hard",   en: "Hard",   fr: "Difficile"},
+            ] as const).map(e => (
+              <button key={e.v} onClick={() => setEffortFilter(e.v)}
+                className={"px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all " + (effortFilter === e.v ? (e.v === "easy" ? "bg-emerald-500/10 text-emerald-600" : e.v === "hard" ? "bg-orange-500/10 text-orange-600" : e.v === "medium" ? "bg-amber-500/10 text-amber-600" : "bg-brand-soft text-brand/80") : "bg-bg-section text-ink-faint hover:text-ink-muted")}>
+                {isFR ? e.fr : e.en}
+              </button>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div className="h-4 w-px bg-border-light mx-1 hidden sm:block" />
+
+          {/* Sort */}
+          <div className="flex gap-1 flex-wrap">
+            <span className="text-[9px] text-ink-faint self-center mr-1">{isFR ? "Trier:" : "Sort:"}</span>
+            {([
+              { v: "impact",   en: "Highest impact", fr: "Impact"    },
+              { v: "effort",   en: "Easiest first",  fr: "Plus facile"},
+              { v: "severity", en: "Most urgent",    fr: "Urgence"   },
+            ] as const).map(s => (
+              <button key={s.v} onClick={() => setSortBy(s.v)}
+                className={"px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all " + (sortBy === s.v ? "bg-brand-soft text-brand/80" : "bg-bg-section text-ink-faint hover:text-ink-muted")}>
+                {isFR ? s.fr : s.en}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* List */}
         {loading ? (

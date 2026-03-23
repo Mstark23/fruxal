@@ -107,6 +107,15 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
 
   if (!showShell) return <>{children}</>;
 
+  // Mobile bottom nav — only show 5 most important items
+  const MOBILE_NAV_PATHS = isEnterprise
+    ? [navRoot, "/v2/diagnostic/intake", "/v2/obligations", "/v2/chat", "/v2/programs"]
+    : isBusiness
+    ? [navRoot, "/v2/diagnostic", "/v2/chat", "/v2/leaks", "/v2/solutions"]
+    : [navRoot, "/v2/diagnostic", "/v2/chat", "/v2/leaks", "/v2/solutions"];
+  const MOBILE_NAV = NAV.filter(item => MOBILE_NAV_PATHS.includes(item.path));
+
+
   // ── Shared NavButton renderer ─────────────────────────────────────────────
   function NavItem({ item }: { item: typeof NAV[0] }) {
     const active = normPath === item.path || (item.path !== navRoot && normPath?.startsWith(item.path + "/"))
@@ -225,17 +234,17 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
       {/* ── MOBILE BOTTOM NAV ────────────────────────────────────────────── */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-border-light z-50">
         <div className="flex justify-around px-2 py-2">
-          {NAV.map(item => {
+          {MOBILE_NAV.map(item => {
             const active = normPath === item.path
               || (item.path !== navRoot && normPath?.startsWith(item.path + "/"))
               || (item.path === navRoot && normPath === navRoot);
             return (
               <button key={item.path} onClick={() => router.push(item.path)}
-                className={`flex flex-col items-center py-1 px-2 rounded-sm transition ${
+                className={`flex flex-col items-center py-1.5 px-3 rounded-lg transition flex-1 ${
                   active ? "text-brand" : (item as any).cta ? "text-brand/60" : "text-ink-faint"
                 }`}>
-                <I d={item.icon} s={18}/>
-                <span className="text-[8px] font-semibold mt-0.5">{item.label}</span>
+                <I d={item.icon} s={20}/>
+                <span className="text-[9px] font-semibold mt-0.5 truncate max-w-[52px]">{item.label}</span>
               </button>
             );
           })}

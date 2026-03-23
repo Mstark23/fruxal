@@ -229,7 +229,7 @@ export default function BusinessDashboard() {
 
   return (
     <div className="bg-bg min-h-screen">
-      <div className="px-6 lg:px-8 py-5 max-w-[1100px]">
+      <div className="px-4 sm:px-6 lg:px-8 py-5 max-w-[1100px]">
 
         {/* TOP BAR */}
         <div className="flex items-center justify-between mb-5" style={fade(0)}>
