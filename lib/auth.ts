@@ -156,6 +156,15 @@ export const authOptions: NextAuthOptions = {
         token.id   = user.id;
         token.role = (user as any).role || "user";
       }
+      // Auto-elevate to admin if email is in ADMIN_EMAILS env var
+      // This means the DB role column never needs manual updates
+      if (token.email) {
+        const adminEmails = (process.env.ADMIN_EMAILS || "")
+          .split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (adminEmails.includes((token.email as string).toLowerCase())) {
+          token.role = "admin";
+        }
+      }
       return token;
     },
 
