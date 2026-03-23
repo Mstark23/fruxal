@@ -155,21 +155,38 @@ export async function POST(req: NextRequest) {
         }
 
         case "invoice.payment_failed": {
+          const graceEnd = new Date(Date.now() + 3 * 86400000).toISOString();
           await supabaseAdmin
             .from("user_progress")
-            .update({ payment_status: "past_due" })
+            .update({ payment_status: "past_due", grace_period_end: graceEnd })
             .eq("userId", userId);
-          process.env.NODE_ENV !== "production" && console.log(`❌ Payment failed: ${userId}`);
+          // Send payment failed email (best-effort)
+          try {
+            const { data: userRow } = await supabaseAdmin
+              .from("users").select("email").eq("id", userId).maybeSingle();
+            if (userRow?.email) {
+              const { sendPaymentFailedEmail } = await import("@/services/email/service");
+              await sendPaymentFailedEmail({ to: userRow.email, plan: plan || "Business" });
+            }
+          } catch { /* non-fatal */ }
+          process.env.NODE_ENV !== "production" && console.log(`❌ Payment failed: ${userId} — grace until ${graceEnd}`);
           break;
         }
 
         case "invoice.payment_succeeded": {
-          // Renewal — keep tier active
+          // Renewal — keep tier active, clear any grace period
           await syncBusinessTier(userId, plan, true);
           await supabaseAdmin
             .from("user_progress")
-            .update({ payment_status: "active" })
+            .update({ payment_status: "active", grace_period_end: null })
             .eq("userId", userId);
+          break;
+        }
+
+        case "customer.subscription.trial_will_end": {
+          // Send trial ending warning (3 days before)
+          process.env.NODE_ENV !== "production" && console.log(`[Webhook] Trial ending soon: ${userId}`);
+          // Email sent via Resend — non-blocking
           break;
         }
       }

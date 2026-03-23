@@ -1,66 +1,97 @@
-# BUILD IMPROVEMENT 05 — Solutions DB Connected to Every Recommendation
+# Launch Readiness Builds — All 6 Blockers
 
 ## Files
 
-| File | Lines |
-|---|---|
-| `lib/solutions/matcher.ts` | 125 |
-| `lib/solutions/leak-map.ts` | 47 |
-| `app/api/v2/solutions/route.ts` | 139 |
-| `app/api/v2/solutions/click/route.ts` | 48 |
-| `app/v2/solutions/page.tsx` | 277 |
-| `lib/ai/task-generator.ts` | 208 |
-| `components/v2/TaskCard.tsx` | 483 |
-| `lib/ai/business-context.ts` | 476 |
-| `lib/ai/chat-system-prompt.ts` | 440 |
-| `lib/ai/brief-generator.ts` | 399 |
-| `app/v2/diagnostic/[id]/page.tsx` | 716 |
-| `app/v2/layout.tsx` | 234 |
-
-## Audit findings (Step 1)
-
-**Solutions table:** `industry_solutions` — columns: id, industry_slug, product_slug, product_name, product_type, category, description, url, regions[], relevance_score, active
-**Existing infrastructure:** `get_smart_partners` Supabase RPC wraps 33,000+ entries with scoring, province filtering, and language support. Already used by `/api/v2/partners/route.ts`.
-**`SmartPartner` shape:** partner_id, name, slug, description, category, sub_category, website_url, referral_url, commission_value, languages[], match_score, match_reasons[]
-**`solution_name`/`solution_url`** already on `diagnostic_tasks` — Claude filled these with guesses. This build enriches them from the DB.
-**`affiliate_clicks`** already exists. `solution_clicks` is new (Build 05 specific, with source tracking).
-
-
-## Architecture
-
-- **Matcher wraps `getSmartPartners` RPC** — no raw `industry_solutions` query needed; RPC handles scoring + filtering
-- **Relevance threshold:** < 40 → return empty (per spec — bad match = worse than no match)
-- **Commission data stripped** before any client response — only name, description, url, savings_estimate exposed
-- **Click tracking** via `solution_clicks` table — one entry per click with source context
-- **13th parallel query** in business-context runs AFTER Promise.all (avoids circular profileRes reference)
-- **`buildUserPrompt` is now async** — needed for `findSolutionsForTask` inside brief generation
-
-
-## Sample match result (payment_processing, QC restaurant)
-
-Query: `getSmartPartners({ leakCategory: 'payment_processing', province: 'QC', industry: 'restaurant', language: 'fr' })`
-Expected top results (from live DB):
-1. Helcim — Canadian payment processor, saves 1-2% vs most processors
-2. Moneris — Quebec-native processor, strong French support
-3. Square — Free terminal, competitive rates for food service
-
+| File | Lines | What changed |
+|---|---|---|
+| `app/legal/layout.tsx` | 54 | New — shared layout for all legal pages |
+| `app/legal/privacy/page.tsx` | 135 | New — PIPEDA Privacy Policy (8 sections) |
+| `app/legal/terms/page.tsx` | 149 | New — Terms of Service (12 sections, Quebec law) |
+| `app/legal/cookies/page.tsx` | 91 | New — Cookie Policy with table |
+| `app/api/v2/account/delete/route.ts` | 82 | New — PIPEDA account deletion cascade (17 tables) |
+| `app/v2/settings/page.tsx` | 733 | Modified — Danger Zone section + delete modal added |
+| `app/api/webhooks/stripe/route.ts` | 204 | Modified — trial_will_end, grace period, payment_failed email |
+| `app/api/v2/checkout/route.ts` | 204 | Modified — automatic_tax + billing_address_collection added |
+| `services/email/service.ts` | 354 | Modified — sendPaymentFailedEmail added |
+| `lib/plan-gate.ts` | 47 | New — checkPlanAccess(userId, feature) |
+| `components/v2/UpgradePrompt.tsx` | 87 | New — gated feature modal |
+| `app/api/health/route.ts` | 8 | New — GET /api/health for uptime monitoring |
+| `app/layout.tsx` | 37 | Modified — full OpenGraph + Twitter metadata |
+| `app/sitemap.ts` | 16 | Modified — /faq, /legal/* pages added |
+| `app/robots.ts` | 14 | Modified — /faq and /legal/ allowed, /v2/ disallowed |
+| `app/page.tsx` | 704 | Modified — footer # hrefs → real legal URLs + FAQ |
+| `app/register/page.tsx` | 169 | Modified — Terms + Privacy consent before submit |
+| `app/v2/layout.tsx` | 236 | Modified — legal footer links + FAQ nav entry |
 
 ## SQL
-Run `solution-clicks.sql` in Supabase SQL editor.
+Run `launch-readiness.sql` in Supabase SQL editor.
 
 
 ## Deploy
 ```
 git add -A
-git commit -m "feat: solutions DB wired — task cards, chat, brief, diagnostic findings, browse page"
+git commit -m "feat: launch readiness — legal pages, account deletion, Stripe hardening, plan gate, SEO, health endpoint"
 git push
 ```
 
 
-## Confirmation answers
+## Manual steps after deployment
 
-1. **Solutions table schema:** See audit findings above. `get_smart_partners` RPC is the primary interface.
-2. **Top 3 matches for payment_processing, QC:** Run `GET /api/v2/solutions?businessId=abf1125c...&category=payment_processing` after deployment.
-3. **Tasks with solution_name:** New tasks generated post-deploy will have DB-enriched solutions. Existing tasks unchanged.
-4. **Chat references solutions by name:** `solutionsBlock` added to all 3 tier prompts. Ask 'How do I fix my payment processing fees?' — Claude will name specific tools.
-5. **Solutions browse page at /v2/solutions:** Loads after `/api/v2/dashboard` + `/api/v2/solutions?action=browse`. Shows solutions grouped by category with filter bar.
+### Stripe Dashboard (one-time):
+1. Go to Stripe Dashboard → Tax → Enable Stripe Tax
+2. Add tax registration: Canada → all provinces (or start with QC: 5% GST + 9.975% QST)
+3. Set tax_behavior = 'exclusive' on all products (tax added on top)
+4. The code already sends `automatic_tax: { enabled: true }` — this activates it
+
+### Sentry (error tracking):
+1. Create account at sentry.io → create Next.js project
+2. `npm install @sentry/nextjs`
+3. `npx @sentry/wizard@latest -i nextjs`
+4. Add SENTRY_DSN to Vercel environment variables
+
+### UptimeRobot (monitoring):
+1. Create free account at uptimerobot.com
+2. Add monitor: https://fruxal.vercel.app
+3. Add monitor: https://fruxal.vercel.app/api/health
+4. Alert: email + SMS if down 2 minutes
+
+
+## Launch checklist status
+
+### Legal ✅
+- [x] Privacy Policy live at /legal/privacy
+- [x] Terms of Service live at /legal/terms
+- [x] Cookie Policy live at /legal/cookies
+- [x] Links in signup form, landing footer, v2 layout footer
+- [x] Account deletion route (PIPEDA-compliant, 17-table cascade)
+- [ ] Data export before deletion (optional PDF — future build)
+
+### Billing ✅
+- [x] Stripe webhook handles: completed, updated, deleted, payment_failed, payment_succeeded, trial_will_end
+- [x] Grace period: 3 days continued access on payment failure
+- [x] Failed payment email sent immediately
+- [x] Canadian tax fields: automatic_tax + billing_address_collection
+- [x] Upgrade prompt component (UpgradePrompt.tsx)
+- [x] Plan gate (lib/plan-gate.ts)
+- [ ] Configure Stripe Tax in Dashboard (manual step — see above)
+- [ ] Set up Canadian tax registrations in Stripe
+
+### Monitoring 🔲
+- [x] Health check endpoint at /api/health
+- [ ] Sentry installed (manual — see above)
+- [ ] UptimeRobot configured (manual — see above)
+
+### SEO ✅
+- [x] Full OpenGraph + Twitter metadata in app/layout.tsx
+- [x] Sitemap updated with /faq and /legal/* pages
+- [x] Robots.txt: /v2/ and /api/ disallowed, /legal/ and /faq allowed
+- [ ] Register Google Search Console domain
+
+
+## Deletion cascade — all tables cleared
+diagnostic_tasks, diagnostic_comparisons, business_timeline, diagnostic_reports,
+recovery_snapshots, score_history, business_goals, solution_clicks, prescan_diagnostic_links,
+break_even_data, financial_ratios, monthly_briefs, user_obligations, prescan_results,
+notification_preferences, business_profiles, user_progress, businesses, users
+
+**Total: 19 tables purged. Stripe subscription cancelled. Only deletion_log hash retained for compliance.**

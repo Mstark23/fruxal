@@ -112,6 +112,11 @@ function RegisterForm() {
 
   return (
     <div className="min-h-screen bg-bg font-sans flex items-center justify-center px-6">
+      <p className="text-[11px] text-center text-ink-faint mb-3">
+        By signing up you agree to our 
+        <a href="/legal/terms" className="underline hover:text-ink" target="_blank">Terms of Service</a> and 
+        <a href="/legal/privacy" className="underline hover:text-ink" target="_blank">Privacy Policy</a>.
+      </p>
       <div className="w-full max-w-[400px]">
         <div className="flex items-center gap-2.5 mb-10">
           <div className="w-7 h-7 rounded-[7px] bg-brand flex items-center justify-center">
@@ -142,7 +147,7 @@ function RegisterForm() {
             <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider block mb-1.5">Password</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="w-full px-4 py-3 bg-white border border-border rounded-sm text-body text-ink font-sans outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft transition" placeholder={t("Min. 8 characters", "Min. 8 caractères")} />
           </div>
-          <button type="submit" disabled={loading} className="w-full py-3 bg-brand text-white text-sm font-semibold rounded-sm hover:bg-brand-light disabled:opacity-50 transition mt-2">
+          <button type="submit" aria-label="Create account" disabled={loading} className="w-full py-3 bg-brand text-white text-sm font-semibold rounded-sm hover:bg-brand-light disabled:opacity-50 transition mt-2">
             {loading ? t("Creating account…", "Création du compte…") : t("Create account →", "Créer un compte →")}
           </button>
         </form>

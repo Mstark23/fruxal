@@ -696,7 +696,7 @@ export default function LandingPage() {
 
       {/* ══════ FOOTER ══════ */}
       <footer className="py-10 px-6 text-center border-t border-border-light bg-bg">
-        <p className="text-[13px] text-ink-muted">© 2026 Fruxal Inc. · <a href="#" className="text-ink-secondary hover:text-ink transition">{t("Privacy", "Confidentialité")}</a> · <a href="#" className="text-ink-secondary hover:text-ink transition">{t("Terms", "Conditions")}</a> · <a href="/faq" className="text-ink-secondary hover:text-ink transition">{t("FAQ", "FAQ")}</a> · {t("Built in Quebec", "Construit au Québec")} 🇨🇦</p>
+        <p className="text-[13px] text-ink-muted">© 2026 Fruxal Inc. · <a href="/legal/privacy" className="text-ink-secondary hover:text-ink transition">{t("Privacy", "Confidentialité")}</a> · <a href="/legal/terms" className="text-ink-secondary hover:text-ink transition">{t("Terms", "Conditions")}</a> · <a href="/faq" className="text-ink-secondary hover:text-ink transition">{t("FAQ", "FAQ")}</a> · {t("Built in Quebec", "Construit au Québec")} 🇨🇦</p>
       </footer>
 
     </div>

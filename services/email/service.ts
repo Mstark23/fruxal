@@ -336,3 +336,19 @@ export async function sendRescanEmail({
     text: `${headline}\n\nScore: ${prevScore} → ${newScore} (${scoreSymbol})\nRecovered: $${(savingsRecovered ?? 0).toLocaleString()}/month\nNew issues: ${newIssuesCount}\n\n${narrative}\n\nView your diagnostic: ${reportUrl}`,
   });
 }
+
+// =============================================================================
+// PAYMENT FAILED EMAIL
+// =============================================================================
+interface PaymentFailedArgs { to: string; plan: string; }
+
+export async function sendPaymentFailedEmail({ to, plan }: PaymentFailedArgs): Promise<boolean> {
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.com";
+  const html = emailTemplate(
+    "Action required — payment failed",
+    `Your payment for Fruxal ${plan} failed.<br><br>You have <strong>3 days of continued access</strong> while we retry.<br><br>To update your payment method, visit your billing settings. If payment is not updated within 3 days, your account will be downgraded to the free tier. <strong>Your data is never deleted for billing reasons</strong> — it will be waiting when you return.`,
+    "Update payment method →",
+    `${appUrl}/v2/settings#billing`
+  );
+  return sendEmail({ to, subject: `Action required — payment failed for your Fruxal ${plan}`, html });
+}

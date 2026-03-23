@@ -162,6 +162,25 @@ const URGENCY_LEVELS = [
 export default function SettingsPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  async function handleDelete() {
+    if (deleteInput !== "DELETE") return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/v2/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (res.ok) { router.push("/?deleted=1"); }
+      else { const d = await res.json(); setDeleteError(d.error || "Deletion failed — contact privacy@fruxal.ca"); }
+    } catch { setDeleteError("Deletion failed — contact privacy@fruxal.ca"); }
+    setDeleting(false);
+  }
 
   const [tab, setTab] = useState<Tab>("profile");
   const { lang, setLang, t, isFR } = useLang();
@@ -624,6 +643,51 @@ export default function SettingsPage() {
         .input-field::placeholder { color:#B5B0A8; }
         .input-field option { background:white; color:#1A1A18; }
       `}</style>
+
+      {/* ── Danger Zone ─────────────────────────────────────────────────── */}
+      <div id="danger-zone" className="mt-8 rounded-xl border border-red-200 overflow-hidden">
+        <div className="px-4 py-3 bg-red-50 border-b border-red-200">
+          <p className="text-[11px] font-bold text-red-700 uppercase tracking-wider">⚠️ Danger zone</p>
+        </div>
+        <div className="px-4 py-4">
+          <p className="text-[13px] font-semibold text-ink mb-1">Delete account</p>
+          <p className="text-[12px] text-ink-muted mb-3">
+            This permanently deletes your account, all diagnostic history, and all associated data. This cannot be undone.
+          </p>
+          <button onClick={() => setShowDeleteModal(true)}
+            className="px-4 py-2 text-[12px] font-bold text-red-700 border border-red-300 rounded-lg hover:bg-red-50 transition">
+            Delete my account →
+          </button>
+        </div>
+      </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <p className="text-[17px] font-bold text-ink mb-2">Are you sure?</p>
+            <p className="text-[13px] text-ink-muted mb-4">
+              This will permanently delete all your diagnostic reports, completed tasks, and financial history.
+            </p>
+            <p className="text-[12px] font-semibold text-ink mb-1">Type DELETE to confirm:</p>
+            <input type="text" value={deleteInput} onChange={e => setDeleteInput(e.target.value)}
+              placeholder="DELETE"
+              className="w-full border border-border rounded-lg px-3 py-2 text-[13px] mb-4 focus:outline-none focus:border-red-400"
+            />
+            {deleteError && <p className="text-[11px] text-red-600 mb-2">{deleteError}</p>}
+            <div className="flex gap-3">
+              <button onClick={() => { setShowDeleteModal(false); setDeleteInput(""); setDeleteError(""); }}
+                className="flex-1 py-2 text-[13px] font-semibold border border-border rounded-lg hover:bg-bg-section transition">
+                Cancel
+              </button>
+              <button onClick={handleDelete} disabled={deleteInput !== "DELETE" || deleting}
+                className="flex-1 py-2 text-[13px] font-bold text-white rounded-lg transition disabled:opacity-40"
+                style={{ background: deleteInput === "DELETE" ? "#B34040" : "#ccc" }}>
+                {deleting ? "Deleting..." : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

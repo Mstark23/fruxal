@@ -184,6 +184,11 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    // Canadian tax support (automatic via Stripe Tax — configure in Stripe Dashboard first)
+    (sessionConfig as any).automatic_tax = { enabled: true };
+    (sessionConfig as any).billing_address_collection = "required";
+    (sessionConfig as any).customer_update = { address: "auto", name: "auto" };
+
     const checkoutSession = await stripe.checkout.sessions.create(sessionConfig);
 
     // Sync businesses.tier immediately — don't wait for Stripe webhook
