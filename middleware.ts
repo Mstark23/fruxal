@@ -7,6 +7,7 @@ const PROTECTED_PAGES = [
   "/v2/settings", "/v2/onboarding", "/v2/checkout",
   "/v2/chat", "/v2/programs", "/v2/integrations", "/v2/tour",
   "/v2/collect", "/v2/tier3", "/v2/business",
+  "/v2/history", "/v2/solutions", "/v2/faq",
   "/dashboard", "/scan", "/settings", "/stats", "/personal",
   "/intelligence-hub", "/industry", "/analytics", "/trending",
   "/exports", "/integrations", "/contracts", "/tasks",
@@ -15,7 +16,7 @@ const PROTECTED_PAGES = [
 
 const PUBLIC_API = [
   "/api/register", "/api/auth", "/api/debug", "/api/webhooks",
-  "/api/admin", "/api/cron", "/api/prescan", "/api/demo",
+  "/api/cron", "/api/prescan", "/api/demo",
   "/api/v1/partner", "/api/share", "/api/v3",
   "/api/v2/prescan",
 ];
