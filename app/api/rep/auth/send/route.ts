@@ -2,6 +2,7 @@
 // TEMP: auth-free mode — link contains repId as query param
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
+import { generateMagicToken } from "@/lib/rep-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: NextRequest) {
@@ -21,8 +22,9 @@ export async function POST(req: NextRequest) {
     if (!rep) return NextResponse.json({ success: false, error: "Rep not found" }, { status: 404 });
     if (rep.status !== "active") return NextResponse.json({ success: false, error: "Rep is not active" }, { status: 400 });
 
-    const baseUrl    = process.env.NEXTAUTH_URL || "https://fruxal.com";
-    const portalUrl  = `${baseUrl}/rep/dashboard?repId=${rep.id}`;
+    const baseUrl    = process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
+    const magicToken = generateMagicToken(rep.id, rep.email);
+    const portalUrl  = `${baseUrl}/api/rep/auth/verify?token=${encodeURIComponent(magicToken)}`;
 
     const RESEND_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_KEY) return NextResponse.json({ success: false, error: "Email not configured" }, { status: 500 });

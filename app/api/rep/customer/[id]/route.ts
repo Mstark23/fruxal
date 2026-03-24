@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireRep } from "@/lib/rep-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireRep(req);
+  if (!auth.authorized) return auth.error!;
+
   const diagId = params.id;
-  const repId  = req.nextUrl.searchParams.get("repId");
+  const repId  = auth.repId!;
 
   try {
     const [diag, pipeline, engagement] = await Promise.all([
@@ -22,11 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       ]);
     }
 
-    let rep: any = null;
-    if (repId) {
-      const { data } = await supabaseAdmin.from("tier3_reps").select("commission_rate").eq("id", repId).single();
-      rep = data;
-    }
+    const rep = auth.rep;
 
     const result = diag.result || {};
     const confirmedSavings = confirmedFindings.reduce((s: number, f: any) => s + (f.confirmed_amount ?? 0), 0);

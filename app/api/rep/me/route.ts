@@ -1,16 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireRep } from "@/lib/rep-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-export async function GET() {
-  try {
-    const { data: rep } = await supabaseAdmin
-      .from("tier3_reps")
-      .select("id, name, email, phone, province, commission_rate, status")
-      .eq("status", "active")
-      .limit(1)
-      .single();
+export async function GET(req: NextRequest) {
+  const auth = await requireRep(req);
+  if (!auth.authorized) return auth.error!;
 
-    if (!rep) return NextResponse.json({ success: true, rep: { name: "Rep", province: "", commission_rate: 20, stats: { clients:0, commissions_paid:0, commissions_pending:0 } } });
+  try {
+    const rep = auth.rep!;
 
     const [assignments, commissions] = await Promise.all([
       supabaseAdmin.from("tier3_rep_assignments").select("diagnostic_id").eq("rep_id", rep.id).then(r => r.data || []),

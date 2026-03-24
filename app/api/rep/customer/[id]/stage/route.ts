@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireRep } from "@/lib/rep-auth";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireRep(req);
+  if (!auth.authorized) return auth.error!;
   try {
   const token = await getToken({ req });
   if (!token?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
