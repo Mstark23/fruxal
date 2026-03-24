@@ -171,7 +171,7 @@ const INDUSTRIES = [
 export default function OnboardingPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [data, setData] = useState<OnboardingData>(INITIAL_DATA);
   const [saving, setSaving] = useState(false);
