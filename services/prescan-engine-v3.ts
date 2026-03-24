@@ -410,8 +410,10 @@ export function normalizeProvince(raw: string): string {
     'nt': 'NT', 'northwest territories': 'NT', 'territoires du nord-ouest': 'NT',
     'nu': 'NU', 'nunavut': 'NU',
     'yt': 'YT', 'yukon': 'YT',
-    'ca': 'QC', 'canada': 'QC', // default to QC if just "Canada"
+    // 'canada' alone is ambiguous — fall through to QC default only as last resort
   };
+  // If they said 'canada' without a province, don't default to QC
+  if (n === 'canada' || n === 'ca') return 'ON'; // neutral — ~40% of Canada's businesses
   return map[n] || (n.length === 2 ? n.toUpperCase() : 'QC');
 }
 
@@ -1323,7 +1325,7 @@ function detectRevenuePricingLeak(
   // Only flag if user indicated they haven't reviewed pricing recently
   // If tax was reviewed this year, assume pricing was too
   if ((input as any).taxLastReviewed === 'this_year') return null;
-  const inflationGap = input.tier === 'solo' ? 0.03 : input.tier === 'small' ? 0.025 : 0.02;
+  const inflationGap = input.tier === 'solo' ? 0.03 : 0.02;
   const estimatedLeak = input.annualRevenue * inflationGap;
   
   if (estimatedLeak < 500) return null;
@@ -1354,7 +1356,8 @@ function detectReceivablesLeak(
   // Service businesses that invoice are most at risk
   const serviceTypes = ['consulting', 'professional_services', 'construction', 'contractor', 'freelance', 'agency', 'marketing_agency', 'design', 'web_development', 'accounting', 'legal'];
   const isService = serviceTypes.some(t => input.industrySlug.includes(t) || input.businessType.toLowerCase().includes(t));
-  if (!isService && input.paymentMix !== 'mixed') return null;
+  // Only fire for known service businesses — don't assume invoicing for mixed-payment retail
+  if (!isService) return null;
   
   // 5-8% of invoiced revenue is typically collected late or written off
   const writeOffRate = input.tier === 'solo' ? 0.05 : 0.03;
@@ -1390,7 +1393,7 @@ function detectLatePaymentLeak(
   if (input.tier === 'solo') return null; // Solo typically pays directly, less exposure
   
   // Without tracking, businesses average $500-2000/yr in late fees (suppliers, taxes, utilities)
-  const lateRate = (input.tier as string) === 'solo' ? 0.005 : (input.tier as string) === 'small' ? 0.004 : 0.003;
+  const lateRate = (input.tier as string) === 'solo' ? 0.005 : 0.003;
   const estimatedLeak = input.annualRevenue * lateRate;
   
   if (estimatedLeak < 200) return null;
@@ -1488,9 +1491,10 @@ function detectSupplierDiscountLeak(
 ): DetectedLeak | null {
   if (!input.annualRevenue || input.annualRevenue < 100000) return null;
   if (input.tier === 'solo') return null;
+  // Only flag if user explicitly mentioned inventory/supply/material costs
+  if (!input.mainCosts.some(c => ['inventory', 'supplies', 'food', 'food_cost', 'materials', 'goods'].includes(c))) return null;
   
-  // Businesses not negotiating supplier terms miss 2-5% early payment discounts
-  const cogsRatio = input.mainCosts.some(c => ['inventory', 'supplies', 'food', 'materials', 'goods'].includes(c)) ? 0.35 : 0.20;
+  const cogsRatio = 0.35; // They mentioned COGS explicitly
   const missedDiscount = 0.02; // 2% early-pay discount typically available
   const estimatedLeak = input.annualRevenue * cogsRatio * missedDiscount;
   
@@ -1523,7 +1527,7 @@ function detectDebtInterestLeak(
   if (input.tier === 'solo') return null;
   // Most SMBs carry some business debt (LOC, equipment loan, credit card float)
   // Average business debt: 15-25% of annual revenue
-  const debtRatio = (input.tier as string) === 'solo' ? 0.15 : (input.tier as string) === 'small' ? 0.20 : 0.25;
+  const debtRatio = (input.tier as string) === 'solo' ? 0.15 : 0.22;
   const estimatedDebt = input.annualRevenue * debtRatio;
   // Rate optimization gap: 2-3% rate difference between best and worst SMB rates
   const rateGap = 0.025;
@@ -1737,7 +1741,7 @@ function detectEmergencyFundLeak(
   
   // Without reserves, businesses pay premium rates for emergency repairs, rush orders, short-term credit
   // Estimated reactive premium: 0.5-1.5% of revenue
-  const reactiveRate = input.tier === 'solo' ? 0.012 : input.tier === 'small' ? 0.008 : 0.006;
+  const reactiveRate = input.tier === 'solo' ? 0.012 : 0.006;
   const estimatedLeak = input.annualRevenue * reactiveRate;
   
   if (estimatedLeak < 300) return null;
@@ -1835,7 +1839,7 @@ export function detectLeaks(
     ['bookkeeping', detectBookkeepingGapLeak],
     ['subcontractor', detectSubcontractorLeak],
     ['scheduling', detectSchedulingLeak],
-    ['emergency_fund', detectEmergencyFundLeak],
+    // ['emergency_fund', detectEmergencyFundLeak], // Removed — pure speculation, no data gate
   ];
   
   for (const [name, detector] of detectors) {
@@ -1857,9 +1861,24 @@ export function detectLeaks(
   // Sort by priority descending
   leaks.sort((a, b) => b.priority_score - a.priority_score);
 
+  // Deduplicate root causes — cap 'no accounting software' leaks at 2
+  // (tax_optimization_gap, late_payment_penalties, tax_filing_inefficiency, 
+  //  equipment_depreciation_gap, no_bookkeeping_system all stem from same root)
+  const acctGapCodes = new Set([
+    'tax_optimization_gap', 'late_payment_penalties', 'tax_filing_inefficiency',
+    'equipment_depreciation_gap', 'no_bookkeeping_system'
+  ]);
+  let acctGapCount = 0;
+  const deduped = leaks.filter(l => {
+    if (acctGapCodes.has(l.leak_type_code)) {
+      acctGapCount++;
+      return acctGapCount <= 2; // Show top 2, filter rest
+    }
+    return true;
+  });
+
   // Cap prescan at 7 leaks — more looks fake, fewer looks credible
-  // Keep top leaks by priority; the full diagnostic surfaces all of them
-  return leaks.slice(0, 7);
+  return deduped.slice(0, 7);
 }
 
 // ============================================================================
@@ -2201,13 +2220,18 @@ export async function runPrescanForBusiness(
   
   // Step 4: Re-score each leak with proper math (scoreLeakV2)
   const dataPoints = [
-    input.annualRevenue, input.industrySlug, input.province,
-    input.paymentMix, input.paymentTools.length, input.mainCosts.length,
+    input.annualRevenue,
+    input.industrySlug,
+    input.province !== 'QC' ? input.province : null, // QC is default — only count if explicitly stated
+    input.paymentMix !== 'unknown' ? input.paymentMix : null, // 'unknown' means no data
+    input.paymentTools.length > 0 ? input.paymentTools.length : null,
+    input.mainCosts.length > 0 ? input.mainCosts.length : null,
+    input.employeeCount > 0 ? input.employeeCount : null,
   ].filter(Boolean).length;
   
   for (const leak of leaks) {
     const scores = scoreLeakV2(
-      { amount: leak.estimated_annual_leak, code: leak.leak_type_code },
+      { amount: leak.estimated_annual_leak, code: leak.leak_type_code, confidence_score: leak.confidence_score },
       input,
       benchmarks,
       dataPoints

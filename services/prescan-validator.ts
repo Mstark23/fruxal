@@ -55,6 +55,16 @@ export function validatePrescanData(tags: Record<string, any>): ValidationResult
     });
   }
 
+  // Province is required — benchmarks are province-specific
+  if (!tags.province) {
+    issues.push({
+      field: 'province',
+      severity: 'missing',
+      message_en: 'Which province does your business operate in?',
+      message_fr: 'Dans quelle province votre entreprise opère-t-elle ?',
+    });
+  }
+
   // Revenue is required — check multiple possible tag names
   const revenue = tags.set_revenue || tags.set_annual_revenue || tags.annual_revenue;
   const revenueBand = tags.revenue_band;

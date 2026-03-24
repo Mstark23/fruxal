@@ -30,9 +30,17 @@ export interface BHSResult {
 }
 
 export function calculateDataHealthScore(input: any): number {
-  const fields = ['revenue', 'province', 'industry', 'employees', 'structure'];
-  const filled = fields.filter(f => input?.[f] != null && input?.[f] !== '').length;
-  return Math.round((filled / fields.length) * 100);
+  // Check actual PrescanInput field names (not the old generic names)
+  const checks = [
+    !!input?.annualRevenue,
+    !!(input?.province && input.province !== 'QC'), // QC is default, not explicit
+    !!(input?.industrySlug && input.industrySlug !== 'generic'),
+    input?.employeeCount != null,
+    !!(input?.paymentMix && input.paymentMix !== 'unknown'),
+    !!(input?.mainCosts?.length > 0),
+  ];
+  const filled = checks.filter(Boolean).length;
+  return Math.round((filled / checks.length) * 100);
 }
 
 /** Alias — prescan-engine-v3 imports both names */
