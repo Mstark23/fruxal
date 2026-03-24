@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     // Call Claude API with language-aware system prompt
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
+      max_tokens: 1500, // Increased: final summary + tags + run_analysis needs room
       system: buildSystemPrompt(lang || "en"),
       messages,
     });

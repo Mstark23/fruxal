@@ -325,11 +325,11 @@ export default function LandingPage() {
                 onKeyDown={e => e.key === "Enter" && handleSend()}
                 placeholder={t("Type your answer...", "Tapez votre réponse...")}
                 className="flex-1 py-2.5 text-body text-ink bg-transparent border-none outline-none font-sans placeholder:text-ink-faint"
-                disabled={!chatStarted || chatLoading || !!result}
+                disabled={!chatStarted || chatLoading || preparing || !!result}
               />
               <button
                 onClick={handleSend}
-                disabled={!input.trim() || chatLoading}
+                disabled={!input.trim() || chatLoading || preparing}
                 className="w-[34px] h-[34px] rounded-sm bg-brand flex items-center justify-center hover:bg-brand-light transition disabled:opacity-40 shrink-0"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -496,6 +496,23 @@ export default function LandingPage() {
               </button>
             </div>
             <p className="text-[11px] text-ink-faint mt-2">{t("Free PDF · No account required · Full report unlocked on signup", "PDF gratuit · Aucun compte requis · Rapport complet sur inscription")}</p>
+            <div className="text-center mt-4">
+              <button
+                onClick={() => {
+                  try {
+                    sessionStorage.removeItem("lg_prescan_result");
+                    sessionStorage.removeItem("lg_prescan_messages");
+                    sessionStorage.removeItem("lg_prescan_sessionId");
+                    sessionStorage.removeItem("lg_prescan_rawHistory");
+                    sessionStorage.removeItem("lg_prescan_lang");
+                  } catch { /* non-fatal */ }
+                  window.location.reload();
+                }}
+                className="text-[12px] text-ink-faint hover:text-ink-secondary transition underline-offset-2 hover:underline"
+              >
+                {t("↩ Start a new analysis", "↩ Lancer une nouvelle analyse")}
+              </button>
+            </div>
           </div>
         </section>
       )}
