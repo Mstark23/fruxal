@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         success: true,
         data: {
-          tier: "free",
+          tier: "solo",
           profile: { province: "QC", industry: "Small Business", structure: "" },
           health_score: 50, total_leak_estimate: 0,
           leaks: { total: 0, detected: 0, fixed: 0, total_savings: 0, potential_savings: 0, top_unfixed: [] },
@@ -272,7 +272,8 @@ export async function GET(req: NextRequest) {
     } catch { /* non-fatal */ }
 
     // Tier — check businesses.tier first (owner_user_id), fallback to user_progress
-    let tier = "free";
+    // TEMP: all users get solo tier free while in beta
+    let tier = "solo";
     try {
       const { data: biz } = await supabaseAdmin
         .from("businesses").select("tier").eq("owner_user_id", userId).single();
