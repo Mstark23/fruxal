@@ -20,7 +20,7 @@ const LEAK_CATEGORIES = [
 ];
 
 const PROCESS_STEPS = [
-  { num: "01", title: "Contact", fr_title: "Contact", desc: "Fill the form below. Your dedicated Fruxal rep reaches out within 1 business day.", fr_desc: "Remplissez le formulaire. Votre représentant vous contacte dans 1 jour ouvrable." },
+  { num: "01", title: "Book a call", fr_title: "Réserver un appel", desc: "Pick a 30-minute slot that works for you. A dedicated Fruxal advisor will walk through your situation.", fr_desc: "Choisissez un créneau de 30 minutes. Un conseiller Fruxal dédié examinera votre situation." },
   { num: "02", title: "Diagnostic", fr_title: "Diagnostic", desc: "A structured financial diagnostic across 7 leak categories. Typically 2–3 weeks with document collection.", fr_desc: "Diagnostic financier structuré sur 7 catégories. Typiquement 2–3 semaines." },
   { num: "03", title: "Agreement", fr_title: "Entente", desc: "We agree on scope and a contingency fee (typically 12–18% of confirmed savings). No upfront cost.", fr_desc: "Nous convenons d'une portée et d'honoraires de performance (12–18%). Aucun frais initial." },
   { num: "04", title: "Recovery", fr_title: "Récupération", desc: "Your rep works the findings — vendor renegotiations, CRA submissions, insurance shopping, banking terms.", fr_desc: "Votre représentant travaille les résultats — renégociations, soumissions ARC, assurances." },
@@ -339,7 +339,7 @@ export default function EnterprisePage() {
             {error && <p className="sans" style={{ fontSize: 12, color: "#B34040" }}>{error}</p>}
             <button onClick={handleSubmit} disabled={submitting} className="cta sans"
               style={{ padding: "13px 24px", fontSize: 15, fontWeight: 700, color: "white", background: "#1B3A2D", border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer", opacity: submitting ? 0.7 : 1 }}>
-              {submitting ? t("Submitting…", "Envoi…") : t("Request free assessment →", "Demander l'évaluation gratuite →")}
+              {submitting ? t("Opening calendar…", "Ouverture du calendrier…") : t("Book your free discovery call →", "Réserver votre appel découverte gratuit →")}
             </button>
             <p className="sans" style={{ fontSize: 11, color: "#B5B3AD", textAlign: "center" }}>
               {t("No commitment. No cost. A rep will contact you within 1 business day.", "Aucun engagement. Aucun frais. Un représentant vous contacte dans 1 jour ouvrable.")}

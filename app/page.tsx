@@ -740,7 +740,7 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <a href="/enterprise" className="w-full py-3.5 text-sm font-semibold rounded-[8px] bg-emerald-600 text-white hover:bg-emerald-500 transition text-center block">
+            <a href="https://calendly.com/admin-fruxal/30min" target="_blank" rel="noopener noreferrer" className="w-full py-3.5 text-sm font-semibold rounded-[8px] bg-emerald-600 text-white hover:bg-emerald-500 transition text-center block">
               {t("Learn more & apply →", "En savoir plus et postuler →")}
             </a>
             <p className="text-[10px] text-ink-faint text-center mt-2">

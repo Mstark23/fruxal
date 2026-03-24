@@ -182,10 +182,10 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <button onClick={() => router.push("/v2/diagnostic/intake")}
-              className="w-full py-3.5 text-sm font-semibold rounded-xl border-2 border-brand text-brand hover:bg-brand-soft transition text-center">
-              Book a discovery call →
-            </button>
+            <a href="https://calendly.com/admin-fruxal/30min" target="_blank" rel="noopener noreferrer"
+              className="w-full py-3.5 text-sm font-semibold rounded-xl border-2 border-brand text-brand hover:bg-brand-soft transition text-center block">
+              Book a free 30-min discovery call →
+            </a>
           </div>
         </div>
 
