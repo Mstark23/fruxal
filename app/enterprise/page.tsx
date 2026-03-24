@@ -1,358 +1,270 @@
-// =============================================================================
-// src/app/enterprise/page.tsx — Fruxal Enterprise Page
-// Audience: $5M–$200M Canadian businesses
-// Goal: qualify them and submit to Tier 3 pipeline
-// =============================================================================
-
 "use client";
+// =============================================================================
+// app/enterprise/page.tsx — Fruxal Enterprise
+// Aesthetic: Dark institutional, editorial, commanding
+// CTA: Calendly only — no form
+// =============================================================================
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const LEAK_CATEGORIES = [
-  { icon: "🏦", title: "Tax Structure", fr: "Structure fiscale", desc: "Corporate structure inefficiencies, missed credits, owner compensation gaps.", desc_fr: "Inefficacités de structure corporative, crédits manqués." },
-  { icon: "📦", title: "Vendor & Procurement", fr: "Fournisseurs", desc: "Contract overcharges, duplicate vendors, pricing that hasn't been renegotiated.", desc_fr: "Surfacturations, fournisseurs en double, prix non renégociés." },
-  { icon: "👥", title: "Payroll & HR", fr: "Paie & RH", desc: "Payroll structure, benefits inefficiencies, misclassified employees.", desc_fr: "Structure salariale, avantages inefficaces, mauvaise classification." },
-  { icon: "🏛️", title: "Banking & Treasury", fr: "Banque & Trésorerie", desc: "Processing fees, idle cash, credit facility terms that can be improved.", desc_fr: "Frais de traitement, liquidités dormantes, conditions de crédit." },
-  { icon: "🛡️", title: "Insurance", fr: "Assurance", desc: "Overpaid premiums, duplicate coverage, policies not adjusted for current scale.", desc_fr: "Primes trop élevées, couvertures redondantes." },
-  { icon: "💻", title: "SaaS & Technology", fr: "Technologies", desc: "Unused subscriptions, redundant tools, licensing not optimized for your team size.", desc_fr: "Abonnements inutilisés, outils redondants." },
-  { icon: "⚖️", title: "Compliance & Penalties", fr: "Conformité", desc: "CRA exposure, payroll remittance gaps, provincial obligations being missed.", desc_fr: "Exposition ARC, lacunes de remise salariale, obligations provinciales." },
+const CALENDLY = "https://calendly.com/admin-fruxal/30min";
+
+const LEAKS = [
+  { num: "01", title: "Tax Structure",        title_fr: "Structure fiscale",        desc: "Corporate inefficiencies, missed credits, owner compensation gaps, HST/QST exposure.",      desc_fr: "Inefficacités corporatives, crédits manqués, rémunération, exposition TVQ/TPS." },
+  { num: "02", title: "Vendor & Procurement", title_fr: "Fournisseurs",              desc: "Contracts never renegotiated, duplicate vendors, pricing anchored to 2019 rates.",         desc_fr: "Contrats jamais renégociés, fournisseurs en double, prix ancrés à 2019." },
+  { num: "03", title: "Payroll & HR",         title_fr: "Paie & RH",                 desc: "Payroll structure, misclassified employees, benefits plans that haven't been shopped.",   desc_fr: "Structure salariale, mauvaise classification, avantages non révisés." },
+  { num: "04", title: "Banking & Treasury",   title_fr: "Banque & Trésorerie",        desc: "Processing fees, idle cash earning nothing, credit facility terms that can be halved.",  desc_fr: "Frais de traitement, liquidités dormantes, conditions de crédit améliorables." },
+  { num: "05", title: "Insurance",            title_fr: "Assurance",                  desc: "Overpaid premiums, duplicate coverage, policies never updated to reflect current scale.", desc_fr: "Primes excessives, couvertures redondantes, polices non mises à jour." },
+  { num: "06", title: "SR&ED & Grants",       title_fr: "SR&ED et Subventions",       desc: "R&D credits, federal and provincial grants your accountant hasn't surfaced yet.",        desc_fr: "Crédits R&D, subventions fédérales et provinciales non identifiées." },
+  { num: "07", title: "SaaS & Compliance",    title_fr: "Technologies & Conformité",  desc: "Unused subscriptions, redundant tools, CRA exposure, payroll remittance gaps.",          desc_fr: "Abonnements inutilisés, exposition ARC, lacunes de remise salariale." },
 ];
 
-const PROCESS_STEPS = [
-  { num: "01", title: "Book a call", fr_title: "Réserver un appel", desc: "Pick a 30-minute slot that works for you. A dedicated Fruxal advisor will walk through your situation.", fr_desc: "Choisissez un créneau de 30 minutes. Un conseiller Fruxal dédié examinera votre situation." },
-  { num: "02", title: "Diagnostic", fr_title: "Diagnostic", desc: "A structured financial diagnostic across 7 leak categories. Typically 2–3 weeks with document collection.", fr_desc: "Diagnostic financier structuré sur 7 catégories. Typiquement 2–3 semaines." },
-  { num: "03", title: "Agreement", fr_title: "Entente", desc: "We agree on scope and a contingency fee (typically 12–18% of confirmed savings). No upfront cost.", fr_desc: "Nous convenons d'une portée et d'honoraires de performance (12–18%). Aucun frais initial." },
-  { num: "04", title: "Recovery", fr_title: "Récupération", desc: "Your rep works the findings — vendor renegotiations, CRA submissions, insurance shopping, banking terms.", fr_desc: "Votre représentant travaille les résultats — renégociations, soumissions ARC, assurances." },
-  { num: "05", title: "Confirmed & Invoiced", fr_title: "Confirmé & Facturé", desc: "Savings are confirmed and documented. You receive an invoice for our fee only on what was recovered.", fr_desc: "Les économies sont confirmées et documentées. Vous recevez une facture uniquement sur ce qui a été récupéré." },
+const STEPS = [
+  { n: "01", title: "30-minute discovery call",  title_fr: "Appel découverte de 30 min",  desc: "We confirm your revenue, industry, and whether we're the right fit. No pitch — just a frank conversation.",                                       desc_fr: "Nous confirmons vos revenus, votre secteur et si nous sommes le bon partenaire. Pas de pitch — une conversation franche." },
+  { n: "02", title: "Structured diagnostic",     title_fr: "Diagnostic structuré",         desc: "A Fruxal analyst runs a full assessment across all 7 leak categories. Typically 2–3 weeks with document collection.",                             desc_fr: "Un analyste Fruxal effectue une évaluation complète sur 7 catégories. Typiquement 2–3 semaines." },
+  { n: "03", title: "Performance agreement",     title_fr: "Accord de performance",        desc: "We align on scope and a contingency fee — typically 12–18% of confirmed savings. Nothing is paid until savings are documented and verified.",      desc_fr: "Nous définissons la portée et des honoraires de performance — typiquement 12–18% des économies confirmées." },
+  { n: "04", title: "Recovery work",             title_fr: "Travail de récupération",      desc: "Your dedicated rep executes the findings — vendor renegotiations, CRA submissions, insurance shopping, banking term revisions.",                  desc_fr: "Votre représentant exécute les résultats — renégociations, soumissions ARC, assurances, révisions bancaires." },
+  { n: "05", title: "Confirmed & invoiced",      title_fr: "Confirmé et facturé",          desc: "Every dollar of savings is documented. You receive an invoice for our fee only on what was actually recovered — and verified by your team.",      desc_fr: "Chaque dollar économisé est documenté. Vous ne payez que sur ce qui a été récupéré et vérifié par votre équipe." },
 ];
 
 export default function EnterprisePage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const [lang, setLang] = useState<"en"|"fr">("en");
   const isFR = lang === "fr";
   const t = (en: string, fr: string) => isFR ? fr : en;
 
-  const [form, setForm] = useState({
-    company: "", name: "", email: "", phone: "",
-    revenue: "", industry: "", province: "",
-    estimate: "", message: ""
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
-
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("fruxal_lang");
-      if (stored === "fr" || stored === "en") { setLang(stored); return; }
-    } catch { /* non-fatal */ }
-    if (navigator.language?.toLowerCase().startsWith("fr")) setLang("fr");
+      const s = localStorage.getItem("fruxal_lang");
+      if (s === "fr" || s === "en") { setLang(s); return; }
+    } catch { /* noop */ }
+    if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("fr")) setLang("fr");
   }, []);
 
-  const handleSubmit = async () => {
-    if (!form.company || !form.name || !form.email || !form.revenue) {
-      setError(t("Please fill in all required fields.", "Veuillez remplir tous les champs requis."));
-      return;
-    }
-    setSubmitting(true); setError("");
-    try {
-      setIsLoading(true);
-    const res = await fetch("/api/v2/enterprise/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, lang }),
-      });
-      const json = await res.json();
-      if (json.success) setSubmitted(true);
-      else setError(json.error || t("Something went wrong.","Une erreur s'est produite."));
-    setIsLoading(false);
-    } catch {
-      setError(t("Something went wrong. Please email us at enterprise@fruxal.com","Une erreur s'est produite. Envoyez-nous un courriel à enterprise@fruxal.com"));
-    } finally { setSubmitting(false); }
-  };
-
-  if (isLoading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>;
+  function openCalendly() { window.open(CALENDLY, "_blank", "noopener noreferrer"); }
 
   return (
-    <div style={{ fontFamily: "'Georgia', serif", background: "#FAFAF8", minHeight: "100vh" }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        .sans { font-family: 'DM Sans', system-ui, sans-serif; }
-        .serif { font-family: 'Playfair Display', Georgia, serif; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
-        .fu { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
-        .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
-        input,select,textarea { font-family: 'DM Sans', system-ui, sans-serif; }
-        input:focus,select:focus,textarea:focus { outline: none; border-color: #1B3A2D !important; }
-        .field { width:100%; padding:11px 14px; font-size:13px; color:#1A1A18; background:white; border:1px solid #EEECE8; border-radius:8px; transition:border-color 0.15s; }
-        .cta:hover { opacity:0.92; transform:translateY(-1px); }
-        .cta { transition:all 0.2s; }
-        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(27,58,45,0.15);border-radius:2px}
-      ` }} />
+    <div style={{ fontFamily: "Georgia, serif", background: "#FAFAF8", color: "#1A1A18", minHeight: "100vh" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0}
+        .sans{font-family:'Inter',system-ui,sans-serif}
+        .serif{font-family:'DM Serif Display',Georgia,serif}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        .fu{animation:fadeUp .8s cubic-bezier(0.16,1,0.3,1) both}
+        .d1{animation-delay:.1s}.d2{animation-delay:.25s}.d3{animation-delay:.4s}.d4{animation-delay:.55s}.d5{animation-delay:.7s}
+        .cta-btn{transition:all .2s;cursor:pointer;border:none}
+        .cta-btn:hover{background:#2A5A44!important;transform:translateY(-1px)}
+        .outline-btn{transition:all .2s;cursor:pointer;text-decoration:none}
+        .outline-btn:hover{background:#F0EFEB!important}
+        .leak-card{transition:background .2s,border-color .2s}
+        .leak-card:hover{background:#F5F4F0!important}
+        .nav-link{color:#B5B3AD;text-decoration:none;font-size:11px;font-weight:300;transition:color .15s}
+        .nav-link:hover{color:#56554F}
+        ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+      `}</style>
 
-      {/* Nav */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(250,250,248,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid #EEECE8", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px" }}>
-        <button onClick={() => router.push("/")} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer" }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: "#1B3A2D", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5" /></svg>
+      {/* NAV */}
+      <nav style={{ position:"sticky",top:0,zIndex:50,background:"rgba(250,250,248,0.96)",backdropFilter:"blur(16px)",borderBottom:"1px solid #EEECE8",height:56,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 32px" }}>
+        <button onClick={() => router.push("/")} style={{ display:"flex",alignItems:"center",gap:9,background:"none",border:"none",cursor:"pointer" }}>
+          <div style={{ width:28,height:28,borderRadius:6,background:"#1B3A2D",display:"flex",alignItems:"center",justifyContent:"center" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
           </div>
-          <span className="serif" style={{ fontSize: 15, fontWeight: 700, color: "#1A1A18" }}>Fruxal</span>
+          <span className="serif" style={{ fontSize:15,color:"#1A1A18",letterSpacing:"-0.3px" }}>Fruxal</span>
+          <span className="sans" style={{ fontSize:9,fontWeight:600,color:"#8E8C85",textTransform:"uppercase",letterSpacing:"0.12em",marginLeft:2 }}>Enterprise</span>
         </button>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {/* EN / FR pill toggle */}
-          <div style={{ display: "flex", alignItems: "center", background: "#EEECE8", borderRadius: 8, padding: 3, gap: 2 }}>
-            {(["en", "fr"] as const).map(l => (
-              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch { /* non-fatal */ } }} className="sans"
-                style={{
-                  padding: "4px 12px", fontSize: 11, fontWeight: 700,
-                  color: lang === l ? "#1A1A18" : "#8E8C85",
-                  background: lang === l ? "white" : "transparent",
-                  border: "none", borderRadius: 6, cursor: "pointer",
-                  boxShadow: lang === l ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                  transition: "all 0.15s",
-                  textTransform: "uppercase", letterSpacing: "0.05em",
-                }}>
+        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+          <div style={{ display:"flex",background:"#EEECE8",borderRadius:6,padding:2,gap:1 }}>
+            {(["en","fr"] as const).map(l => (
+              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang",l); } catch {} }}
+                className="sans"
+                style={{ padding:"4px 11px",fontSize:10,fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase",color:lang===l?"#1A1A18":"rgba(255,255,255,0.3)",background:lang===l?"white":"transparent",border:"none",borderRadius:4,cursor:"pointer",transition:"all .15s" }}>
                 {l}
               </button>
             ))}
           </div>
-          <a href="#contact" className="sans cta"
-            style={{ padding: "7px 16px", fontSize: 13, fontWeight: 600, color: "white", background: "#1B3A2D", borderRadius: 7, textDecoration: "none" }}>
-            {t("Contact Sales", "Contacter les ventes")}
-          </a>
+          <button onClick={openCalendly} className="cta-btn sans"
+            style={{ padding:"8px 18px",fontSize:12,fontWeight:600,color:"white",background:"#1B3A2D",borderRadius:6 }}>
+            {t("Book a call","Réserver un appel")}
+          </button>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section style={{ padding: "72px 24px 64px", maxWidth: 900, margin: "0 auto" }}>
-        <div className="fu d1" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(27,58,45,0.06)", border: "1px solid rgba(27,58,45,0.1)", borderRadius: 100, padding: "4px 14px", marginBottom: 24 }}>
-          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#2D7A50", display: "inline-block" }} />
-          <span className="sans" style={{ fontSize: 10, fontWeight: 700, color: "#1B3A2D", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            {t("Enterprise · $5M–$200M Revenue", "Entreprise · 5 M$–200 M$ de revenus")}
+      {/* HERO */}
+      <section style={{ position:"relative",padding:"96px 32px 72px",maxWidth:1100,margin:"0 auto",overflow:"hidden" }}>
+        <div style={{ position:"absolute",top:0,right:-80,width:480,height:480,borderRadius:"50%",background:"radial-gradient(circle, rgba(27,58,45,0.06) 0%, transparent 70%)",pointerEvents:"none" }} />
+        <div style={{ position:"absolute",bottom:0,left:-160,width:360,height:360,borderRadius:"50%",background:"radial-gradient(circle, rgba(27,58,45,0.04) 0%, transparent 70%)",pointerEvents:"none" }} />
+
+        <div className="fu d1" style={{ display:"inline-flex",alignItems:"center",gap:7,background:"rgba(27,58,45,0.12)",border:"1px solid rgba(27,58,45,0.06)",borderRadius:100,padding:"5px 14px",marginBottom:28 }}>
+          <span style={{ width:5,height:5,borderRadius:"50%",background:"#1B3A2D",display:"inline-block",animation:"pulse 2s ease infinite" }} />
+          <span className="sans" style={{ fontSize:10,fontWeight:600,color:"#1B3A2D",textTransform:"uppercase",letterSpacing:"0.1em" }}>
+            {t("Canadian Enterprise · $1M+ Revenue","Entreprise canadienne · 1 M$+ de revenus")}
           </span>
         </div>
 
-        <h1 className="fu d2 serif" style={{ fontSize: "clamp(34px,5vw,58px)", fontWeight: 900, color: "#1A1A18", lineHeight: 1.08, marginBottom: 20, maxWidth: 700 }}>
-          {t("Your business is leaking", "Votre entreprise perd")}
+        <h1 className="fu d2 serif" style={{ fontSize:"clamp(42px,5.5vw,70px)",fontWeight:400,color:"#1A1A18",lineHeight:1.05,marginBottom:24,maxWidth:740,letterSpacing:"-1.5px" }}>
+          {t("Your business is leaking","Votre entreprise perd")}
           <br />
-          <em style={{ fontStyle: "italic", color: "#1B3A2D" }}>{t("hundreds of thousands.", "des centaines de milliers.")}</em>
+          <em style={{ fontStyle:"italic",color:"#1B3A2D" }}>{t("hundreds of thousands.","des centaines de milliers.")}</em>
           <br />
-          {t("We find it. You keep it.", "Nous le trouvons. Vous le gardez.")}
+          <span style={{ color:"#56554F" }}>{t("We find it. You keep it.","Nous le trouvons. Vous le gardez.")}</span>
         </h1>
 
-        <p className="fu d3 sans" style={{ fontSize: 17, color: "#56554F", lineHeight: 1.75, maxWidth: 560, marginBottom: 32 }}>
+        <p className="fu d3 sans" style={{ fontSize:18,color:"#56554F",lineHeight:1.75,maxWidth:540,marginBottom:40,fontWeight:300 }}>
           {t(
-            "Fruxal conducts a full financial diagnostic on businesses doing $5M–$200M in revenue. We identify every leak across 7 categories — and we only get paid when savings are confirmed.",
-            "Fruxal effectue un diagnostic financier complet pour les entreprises faisant 5 M$–200 M$ de revenus. Nous identifions chaque fuite sur 7 catégories — et nous ne sommes payés que lorsque les économies sont confirmées."
+            "Fruxal runs a full forensic financial diagnostic across 7 leak categories. We only get paid when savings are confirmed and documented.",
+            "Fruxal effectue un diagnostic financier forensique sur 7 catégories. Nous ne sommes payés que lorsque les économies sont confirmées et documentées."
           )}
         </p>
 
-        <div className="fu d4" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a href="#contact" className="cta sans"
-            style={{ padding: "13px 28px", fontSize: 15, fontWeight: 700, color: "white", background: "#1B3A2D", borderRadius: 8, textDecoration: "none" }}>
-            {t("Get your free diagnostic assessment →", "Obtenir votre évaluation gratuite →")}
-          </a>
-          <a href="#process" className="sans"
-            style={{ padding: "13px 20px", fontSize: 14, fontWeight: 500, color: "#56554F", border: "1px solid #EEECE8", borderRadius: 8, textDecoration: "none", background: "white" }}>
-            {t("See how it works", "Voir comment ça fonctionne")}
+        <div className="fu d4" style={{ display:"flex",gap:12,flexWrap:"wrap",marginBottom:64 }}>
+          <button onClick={openCalendly} className="cta-btn sans"
+            style={{ padding:"15px 32px",fontSize:15,fontWeight:600,color:"white",background:"#1B3A2D",borderRadius:8 }}>
+            {t("Book your free discovery call →","Réserver votre appel découverte gratuit →")}
+          </button>
+          <a href="#process" className="outline-btn sans"
+            style={{ padding:"15px 22px",fontSize:14,fontWeight:400,color:"#56554F",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,background:"transparent" }}>
+            {t("See how it works","Voir comment ça fonctionne")}
           </a>
         </div>
 
-        {/* Stats */}
-        <div style={{ display: "flex", gap: 40, marginTop: 48, flexWrap: "wrap" }}>
+        <div className="fu d5" style={{ display:"flex",gap:0,flexWrap:"wrap",borderTop:"1px solid #EEECE8",paddingTop:40 }}>
           {[
-            { val: "$180K–$420K", label: t("average savings per engagement", "économies moyennes par engagement") },
-            { val: "12–18%", label: t("contingency fee — only on confirmed savings", "honoraires — seulement sur les économies confirmées") },
-            { val: "7", label: t("leak categories analyzed", "catégories de fuites analysées") },
-          ].map(s => (
-            <div key={s.val}>
-              <p className="serif" style={{ fontSize: 28, fontWeight: 800, color: "#1B3A2D", lineHeight: 1 }}>{s.val}</p>
-              <p className="sans" style={{ fontSize: 12, color: "#8E8C85", marginTop: 4, maxWidth: 160 }}>{s.label}</p>
+            { val:"$180K–$420K", label:t("average savings per engagement","économies moyennes par engagement") },
+            { val:"12–18%",      label:t("contingency fee — confirmed savings only","honoraires — économies confirmées seulement") },
+            { val:"$0",          label:t("upfront cost","coût initial") },
+            { val:"7",           label:t("leak categories analyzed","catégories de fuites analysées") },
+          ].map((s,i) => (
+            <div key={i} style={{ flex:"1 1 150px",padding:"0 32px 0 0",borderRight:i<3?"1px solid #EEECE8":"none",marginRight:i<3?32:0 }}>
+              <p className="serif" style={{ fontSize:30,color:"#1A1A18",letterSpacing:"-1px",marginBottom:6 }}>{s.val}</p>
+              <p className="sans" style={{ fontSize:11,color:"#8E8C85",lineHeight:1.5,fontWeight:300 }}>{s.label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Leak categories */}
-      <section style={{ background: "#1B3A2D", padding: "64px 24px" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <p className="sans" style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
-            {t("7 Leak Categories", "7 Catégories de fuites")}
-          </p>
-          <h2 className="serif" style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 800, color: "white", marginBottom: 8, lineHeight: 1.2 }}>
-            {t("Where your money is going", "Où va votre argent")}
-          </h2>
-          <p className="sans" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 40, maxWidth: 500 }}>
-            {t("Every engagement covers all 7 categories. Most businesses have significant leaks in 3–4.", "Chaque engagement couvre les 7 catégories. La plupart des entreprises ont des fuites importantes dans 3–4.")}
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-            {LEAK_CATEGORIES.map((cat, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "16px 18px" }}>
-                <p style={{ fontSize: 20, marginBottom: 8 }}>{cat.icon}</p>
-                <p className="sans" style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 4 }}>{isFR ? cat.fr : cat.title}</p>
-                <p className="sans" style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>{isFR ? cat.desc_fr : cat.desc}</p>
+      {/* LEAK CATEGORIES */}
+      <section style={{ borderTop:"1px solid #EEECE8",padding:"72px 32px" }}>
+        <div style={{ maxWidth:1100,margin:"0 auto" }}>
+          <div style={{ display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:44,flexWrap:"wrap",gap:16 }}>
+            <div>
+              <p className="sans" style={{ fontSize:10,fontWeight:600,color:"#B5B3AD",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10 }}>
+                {t("7 Leak Categories","7 Catégories de fuites")}
+              </p>
+              <h2 className="serif" style={{ fontSize:"clamp(26px,3.5vw,42px)",color:"#1A1A18",fontWeight:400,letterSpacing:"-0.8px",lineHeight:1.1 }}>
+                {t("Where your money is going","Où va votre argent")}
+              </h2>
+            </div>
+            <p className="sans" style={{ fontSize:13,color:"#8E8C85",maxWidth:300,lineHeight:1.7,fontWeight:300 }}>
+              {t("Most businesses have significant leaks in 3–4 categories. Every engagement covers all 7.","La plupart des entreprises ont des fuites dans 3–4 catégories. Chaque engagement couvre les 7.")}
+            </p>
+          </div>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:1,border:"1px solid #EEECE8",borderRadius:14,overflow:"hidden" }}>
+            {LEAKS.map((l,i) => (
+              <div key={i} className="leak-card"
+                style={{ background:"white",padding:"26px 22px",borderRight:"1px solid rgba(255,255,255,0.06)",borderBottom:"1px solid #EEECE8" }}>
+                <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:14 }}>
+                  <span className="sans" style={{ fontSize:10,fontWeight:600,color:"#B5B3AD",letterSpacing:"0.1em" }}>{l.num}</span>
+                  <div style={{ flex:1,height:1,background:"#EEECE8" }} />
+                </div>
+                <p className="serif" style={{ fontSize:16,color:"#1A1A18",marginBottom:8,letterSpacing:"-0.3px" }}>{isFR?l.title_fr:l.title}</p>
+                <p className="sans" style={{ fontSize:12,color:"#8E8C85",lineHeight:1.7,fontWeight:300 }}>{isFR?l.desc_fr:l.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Process */}
-      <section id="process" style={{ padding: "72px 24px", maxWidth: 900, margin: "0 auto" }}>
-        <p className="sans" style={{ fontSize: 10, fontWeight: 700, color: "#B5B3AD", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
-          {t("The Process", "Le processus")}
-        </p>
-        <h2 className="serif" style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 800, color: "#1A1A18", marginBottom: 8 }}>
-          {t("From first call to confirmed savings", "Du premier appel aux économies confirmées")}
-        </h2>
-        <p className="sans" style={{ fontSize: 14, color: "#8E8C85", marginBottom: 48, maxWidth: 460 }}>
-          {t("No surprises. Here's exactly what happens at each step.", "Pas de surprises. Voici exactement ce qui se passe à chaque étape.")}
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {PROCESS_STEPS.map((step, i) => (
-            <div key={i} style={{ display: "flex", gap: 24, paddingBottom: 32, position: "relative" }}>
-              {i < PROCESS_STEPS.length - 1 && (
-                <div style={{ position: "absolute", left: 19, top: 40, bottom: 0, width: 2, background: "#EEECE8" }} />
-              )}
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#1B3A2D", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1 }}>
-                <span className="sans" style={{ fontSize: 11, fontWeight: 800, color: "white" }}>{step.num}</span>
-              </div>
-              <div style={{ paddingTop: 8 }}>
-                <p className="sans" style={{ fontSize: 15, fontWeight: 700, color: "#1A1A18", marginBottom: 4 }}>{isFR ? step.fr_title : step.title}</p>
-                <p className="sans" style={{ fontSize: 13, color: "#56554F", lineHeight: 1.7 }}>{isFR ? step.fr_desc : step.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Fee model */}
-      <section style={{ background: "white", borderTop: "1px solid #EEECE8", borderBottom: "1px solid #EEECE8", padding: "56px 24px" }}>
-        <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
-          <p className="sans" style={{ fontSize: 10, fontWeight: 700, color: "#B5B3AD", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
-            {t("Our Fee Model", "Notre modèle d'honoraires")}
+      {/* FEE MODEL */}
+      <section style={{ margin:"0 32px",background:"rgba(27,58,45,0.04)",border:"1px solid rgba(27,58,45,0.1)",borderRadius:16,padding:"60px 48px" }}>
+        <div style={{ maxWidth:760,margin:"0 auto",textAlign:"center" }}>
+          <p className="sans" style={{ fontSize:10,fontWeight:600,color:"#1B3A2D",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:14 }}>
+            {t("Our Fee Model","Notre modèle d'honoraires")}
           </p>
-          <h2 className="serif" style={{ fontSize: "clamp(22px,3vw,32px)", fontWeight: 800, color: "#1A1A18", marginBottom: 16 }}>
-            {t("You only pay when we find your money", "Vous ne payez que lorsque nous trouvons votre argent")}
+          <h2 className="serif" style={{ fontSize:"clamp(24px,3vw,38px)",color:"#1A1A18",fontWeight:400,marginBottom:14,letterSpacing:"-0.8px" }}>
+            {t("You only pay when we find your money","Vous ne payez que lorsque nous trouvons votre argent")}
           </h2>
-          <p className="sans" style={{ fontSize: 14, color: "#56554F", lineHeight: 1.8, marginBottom: 32, maxWidth: 500, margin: "0 auto 32px" }}>
+          <p className="sans" style={{ fontSize:14,color:"#56554F",lineHeight:1.8,maxWidth:480,margin:"0 auto 44px",fontWeight:300 }}>
             {t(
-              "No retainer. No monthly fee. No payment until savings are confirmed and documented. Our fee is 12–18% of confirmed savings — your incentives and ours are perfectly aligned.",
-              "Aucune provision. Aucun abonnement mensuel. Aucun paiement jusqu'à ce que les économies soient confirmées. Nos honoraires sont 12–18% des économies confirmées."
+              "No retainer. No monthly fee. No payment until savings are confirmed and documented by your team.",
+              "Aucune provision. Aucun abonnement. Aucun paiement jusqu'à ce que les économies soient confirmées par votre équipe."
             )}
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10 }}>
             {[
-              { val: "$0", label: t("upfront cost", "coût initial") },
-              { val: "12–18%", label: t("of confirmed savings only", "des économies confirmées seulement") },
-              { val: "100%", label: t("transparency — you see every dollar", "transparence — vous voyez chaque dollar") },
+              { val:"$0",    label:t("upfront cost","coût initial") },
+              { val:"12–18%",label:t("of confirmed savings only","des économies confirmées seulement") },
+              { val:"100%",  label:t("transparency","transparence totale") },
             ].map(s => (
-              <div key={s.val} style={{ background: "#FAFAF8", border: "1px solid #EEECE8", borderRadius: 10, padding: "20px 16px" }}>
-                <p className="serif" style={{ fontSize: 28, fontWeight: 800, color: "#1B3A2D", marginBottom: 6 }}>{s.val}</p>
-                <p className="sans" style={{ fontSize: 11, color: "#8E8C85" }}>{s.label}</p>
+              <div key={s.val} style={{ background:"white",border:"1px solid #EEECE8",borderRadius:12,padding:"26px 18px" }}>
+                <p className="serif" style={{ fontSize:34,color:"#1B3A2D",letterSpacing:"-1px",marginBottom:8 }}>{s.val}</p>
+                <p className="sans" style={{ fontSize:11,color:"#8E8C85",fontWeight:300 }}>{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Contact form */}
-      <section id="contact" style={{ padding: "72px 24px", maxWidth: 640, margin: "0 auto" }}>
-        <p className="sans" style={{ fontSize: 10, fontWeight: 700, color: "#B5B3AD", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
-          {t("Get Started", "Commencer")}
-        </p>
-        <h2 className="serif" style={{ fontSize: "clamp(22px,3vw,32px)", fontWeight: 800, color: "#1A1A18", marginBottom: 8 }}>
-          {t("Request your free assessment", "Demandez votre évaluation gratuite")}
-        </h2>
-        <p className="sans" style={{ fontSize: 14, color: "#8E8C85", marginBottom: 32, lineHeight: 1.7 }}>
-          {t("Fill out the form below. A Fruxal rep will reach out within 1 business day to schedule a 30-minute intro call.", "Remplissez le formulaire. Un représentant Fruxal vous contactera dans 1 jour ouvrable.")}
-        </p>
-
-        {submitted ? (
-          <div style={{ background: "rgba(27,58,45,0.05)", border: "1px solid rgba(27,58,45,0.12)", borderRadius: 12, padding: "32px 28px", textAlign: "center" }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(27,58,45,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1B3A2D" strokeWidth="2.5" strokeLinecap="round"><path d="M4 10l4 4 8-8" /></svg>
-            </div>
-            <p className="serif" style={{ fontSize: 20, fontWeight: 700, color: "#1A1A18", marginBottom: 8 }}>
-              {t("We'll be in touch shortly", "Nous vous contacterons sous peu")}
-            </p>
-            <p className="sans" style={{ fontSize: 13, color: "#8E8C85", lineHeight: 1.7 }}>
-              {t("Your request has been received. A Fruxal rep will reach out within 1 business day.", "Votre demande a été reçue. Un représentant vous contactera dans 1 jour ouvrable.")}
-            </p>
+      {/* PROCESS */}
+      <section id="process" style={{ padding:"72px 32px" }}>
+        <div style={{ maxWidth:1100,margin:"0 auto" }}>
+          <p className="sans" style={{ fontSize:10,fontWeight:600,color:"#B5B3AD",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10 }}>
+            {t("The Process","Le processus")}
+          </p>
+          <h2 className="serif" style={{ fontSize:"clamp(26px,3.5vw,42px)",color:"#1A1A18",fontWeight:400,marginBottom:52,letterSpacing:"-0.8px" }}>
+            {t("From first call to confirmed savings","Du premier appel aux économies confirmées")}
+          </h2>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:0 }}>
+            {STEPS.map((s,i) => (
+              <div key={i} style={{ padding:"0 24px 0 0",position:"relative" }}>
+                {i < STEPS.length-1 && (
+                  <div style={{ position:"absolute",top:18,left:"calc(100% - 24px)",right:0,height:1,background:"#EEECE8" }} />
+                )}
+                <div style={{ width:36,height:36,borderRadius:8,background:"rgba(27,58,45,0.08)",border:"1px solid rgba(27,58,45,0.15)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18,position:"relative",zIndex:1 }}>
+                  <span className="sans" style={{ fontSize:10,fontWeight:600,color:"#1B3A2D" }}>{s.n}</span>
+                </div>
+                <p className="serif" style={{ fontSize:14,color:"#1A1A18",marginBottom:8,letterSpacing:"-0.2px",lineHeight:1.3 }}>{isFR?s.title_fr:s.title}</p>
+                <p className="sans" style={{ fontSize:11,color:"#8E8C85",lineHeight:1.75,fontWeight:300 }}>{isFR?s.desc_fr:s.desc}</p>
+              </div>
+            ))}
           </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <label className="sans" style={{ fontSize: 11, fontWeight: 600, color: "#56554F", display: "block", marginBottom: 5 }}>{t("Company Name *", "Nom de l'entreprise *")}</label>
-                <input className="field" value={form.company} onChange={e => setForm(p => ({...p, company: e.target.value}))} placeholder={t("Acme Inc.", "Acme Inc.")} />
-              </div>
-              <div>
-                <label className="sans" style={{ fontSize: 11, fontWeight: 600, color: "#56554F", display: "block", marginBottom: 5 }}>{t("Your Name *", "Votre nom *")}</label>
-                <input className="field" value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder={t("Jean Tremblay", "Jean Tremblay")} />
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <label className="sans" style={{ fontSize: 11, fontWeight: 600, color: "#56554F", display: "block", marginBottom: 5 }}>{t("Business Email *", "Courriel professionnel *")}</label>
-                <input className="field" type="email" value={form.email} onChange={e => setForm(p => ({...p, email: e.target.value}))} placeholder="jean@acme.ca" />
-              </div>
-              <div>
-                <label className="sans" style={{ fontSize: 11, fontWeight: 600, color: "#56554F", display: "block", marginBottom: 5 }}>{t("Phone", "Téléphone")}</label>
-                <input className="field" value={form.phone} onChange={e => setForm(p => ({...p, phone: e.target.value}))} placeholder="514-555-0100" />
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <label className="sans" style={{ fontSize: 11, fontWeight: 600, color: "#56554F", display: "block", marginBottom: 5 }}>{t("Annual Revenue *", "Revenus annuels *")}</label>
-                <select className="field" value={form.revenue} onChange={e => setForm(p => ({...p, revenue: e.target.value}))}>
-                  <option value="">{t("Select range", "Sélectionner")}</option>
-                  <option value="5M-10M">$5M – $10M</option>
-                  <option value="10M-25M">$10M – $25M</option>
-                  <option value="25M-50M">$25M – $50M</option>
-                  <option value="50M-100M">$50M – $100M</option>
-                  <option value="100M-200M">$100M – $200M</option>
-                  <option value="200M+">$200M+</option>
-                </select>
-              </div>
-              <div>
-                <label className="sans" style={{ fontSize: 11, fontWeight: 600, color: "#56554F", display: "block", marginBottom: 5 }}>{t("Province", "Province")}</label>
-                <select className="field" value={form.province} onChange={e => setForm(p => ({...p, province: e.target.value}))}>
-                  <option value="">{t("Select", "Sélectionner")}</option>
-                  {["QC","ON","BC","AB","MB","SK","NB","NS","NL","PEI"].map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="sans" style={{ fontSize: 11, fontWeight: 600, color: "#56554F", display: "block", marginBottom: 5 }}>{t("Industry", "Industrie")}</label>
-              <input className="field" value={form.industry} onChange={e => setForm(p => ({...p, industry: e.target.value}))} placeholder={t("e.g. Manufacturing, Construction, Retail…", "ex. Manufacture, Construction, Commerce de détail…")} />
-            </div>
-            <div>
-              <label className="sans" style={{ fontSize: 11, fontWeight: 600, color: "#56554F", display: "block", marginBottom: 5 }}>{t("What do you think your biggest leak is? (optional)", "Quelle est votre plus grande fuite selon vous? (optionnel)")}</label>
-              <textarea className="field" rows={3} value={form.message} onChange={e => setForm(p => ({...p, message: e.target.value}))}
-                placeholder={t("e.g. We haven't renegotiated vendor contracts in 3 years…", "ex. Nous n'avons pas renégocié nos contrats fournisseurs depuis 3 ans…")}
-                style={{ resize: "vertical" }} />
-            </div>
-            {error && <p className="sans" style={{ fontSize: 12, color: "#B34040" }}>{error}</p>}
-            <button onClick={handleSubmit} disabled={submitting} className="cta sans"
-              style={{ padding: "13px 24px", fontSize: 15, fontWeight: 700, color: "white", background: "#1B3A2D", border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer", opacity: submitting ? 0.7 : 1 }}>
-              {submitting ? t("Opening calendar…", "Ouverture du calendrier…") : t("Book your free discovery call →", "Réserver votre appel découverte gratuit →")}
-            </button>
-            <p className="sans" style={{ fontSize: 11, color: "#B5B3AD", textAlign: "center" }}>
-              {t("No commitment. No cost. A rep will contact you within 1 business day.", "Aucun engagement. Aucun frais. Un représentant vous contacte dans 1 jour ouvrable.")}
-            </p>
-          </div>
-        )}
+        </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ textAlign: "center", padding: "20px 24px 36px", borderTop: "1px solid #EEECE8" }}>
-        <p className="sans" style={{ fontSize: 11, color: "#B5B3AD" }}>
-          © 2026 Fruxal Inc. · <a href="/privacy" style={{ color: "#8E8C85", textDecoration: "none" }}>{t("Privacy", "Confidentialité")}</a> · <a href="/" style={{ color: "#8E8C85", textDecoration: "none" }}>{t("Back to Fruxal", "Retour à Fruxal")}</a> · {t("Built in Quebec", "Construit au Québec")} 🇨🇦
+      {/* CTA BAND */}
+      <section style={{ padding:"72px 32px",borderTop:"1px solid #EEECE8" }}>
+        <div style={{ maxWidth:640,margin:"0 auto",textAlign:"center" }}>
+          <h2 className="serif" style={{ fontSize:"clamp(28px,4vw,50px)",color:"#1A1A18",fontWeight:400,letterSpacing:"-1px",marginBottom:14,lineHeight:1.1 }}>
+            {t("Ready to find what you're missing?","Prêt à trouver ce que vous manquez ?")}
+          </h2>
+          <p className="sans" style={{ fontSize:14,color:"#56554F",marginBottom:32,fontWeight:300,lineHeight:1.7 }}>
+            {t(
+              "Book a free 30-minute call. We'll tell you whether we're the right fit — before any commitment.",
+              "Réservez un appel gratuit de 30 minutes. Nous vous dirons si nous sommes le bon partenaire — avant tout engagement."
+            )}
+          </p>
+          <button onClick={openCalendly} className="cta-btn sans"
+            style={{ padding:"15px 36px",fontSize:15,fontWeight:600,color:"white",background:"#1B3A2D",borderRadius:8,display:"inline-block" }}>
+            {t("Book your free 30-min call →","Réserver votre appel gratuit de 30 min →")}
+          </button>
+          <p className="sans" style={{ fontSize:11,color:"#B5B3AD",marginTop:12,fontWeight:300 }}>
+            {t("No commitment · No upfront cost · Canadian businesses only","Aucun engagement · Aucun frais initial · Entreprises canadiennes uniquement")}
+          </p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ borderTop:"1px solid #EEECE8",padding:"20px 32px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12 }}>
+        <p className="sans" style={{ fontSize:11,color:"#B5B3AD",fontWeight:300 }}>
+          © 2026 Fruxal Inc. · {t("Built in Québec","Construit au Québec")} 🇨🇦
         </p>
+        <div style={{ display:"flex",gap:20 }}>
+          {[{label:t("Back to Fruxal","Retour à Fruxal"),href:"/"},{label:t("Privacy","Confidentialité"),href:"/legal/privacy"},{label:t("Terms","Conditions"),href:"/legal/terms"}].map(l => (
+            <a key={l.href} href={l.href} className="nav-link">{l.label}</a>
+          ))}
+        </div>
       </footer>
     </div>
   );
