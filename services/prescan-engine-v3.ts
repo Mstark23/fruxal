@@ -591,7 +591,10 @@ export function buildPrescanInputFromTags(tags: PrescanTags): PrescanInput {
     employeeCount,
     usesAccountingSoftware,
     tier,
-  };
+    // Pass through high-signal tags for conditional detector gating
+    taxLastReviewed:       tags.tax_last_reviewed,
+    vendorContractsStale:  tags.vendor_contracts_stale,
+  } as any;
 }
 
 // ============================================================================
@@ -1196,7 +1199,8 @@ function detectMarketingLeak(
   input: PrescanInput,
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
-  if (input.tier !== 'growth' && !input.mainCosts.includes('marketing')) return null;
+  // Only fire if user explicitly mentioned marketing as a cost — don't auto-assume
+  if (!input.mainCosts.includes('marketing')) return null;
   if (!input.annualRevenue) return null;
   
   const bench = benchmarks.find(b => b.metric_key === 'marketing_ratio');
@@ -1316,8 +1320,9 @@ function detectRevenuePricingLeak(
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
   if (!input.annualRevenue) return null;
-  // Inflation in Canada: ~3-4% in recent years. Most small businesses don't raise prices annually.
-  // Estimate: businesses that haven't adjusted lose ~2-3% of revenue to inflation erosion
+  // Only flag if user indicated they haven't reviewed pricing recently
+  // If tax was reviewed this year, assume pricing was too
+  if ((input as any).taxLastReviewed === 'this_year') return null;
   const inflationGap = input.tier === 'solo' ? 0.03 : input.tier === 'small' ? 0.025 : 0.02;
   const estimatedLeak = input.annualRevenue * inflationGap;
   
@@ -1380,11 +1385,12 @@ function detectLatePaymentLeak(
   input: PrescanInput,
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
-  if (!input.annualRevenue || input.annualRevenue < 30000) return null;
+  if (!input.annualRevenue || input.annualRevenue < 80000) return null;
   if (input.usesAccountingSoftware) return null; // Software tracks due dates
+  if (input.tier === 'solo') return null; // Solo typically pays directly, less exposure
   
   // Without tracking, businesses average $500-2000/yr in late fees (suppliers, taxes, utilities)
-  const lateRate = input.tier === 'solo' ? 0.005 : input.tier === 'small' ? 0.004 : 0.003;
+  const lateRate = (input.tier as string) === 'solo' ? 0.005 : (input.tier as string) === 'small' ? 0.004 : 0.003;
   const estimatedLeak = input.annualRevenue * lateRate;
   
   if (estimatedLeak < 200) return null;
@@ -1512,10 +1518,12 @@ function detectDebtInterestLeak(
   input: PrescanInput,
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
-  if (!input.annualRevenue || input.annualRevenue < 80000) return null;
+  if (!input.annualRevenue || input.annualRevenue < 150000) return null;
+  // Only flag for growth+ tier — solo businesses rarely have business credit facilities
+  if (input.tier === 'solo') return null;
   // Most SMBs carry some business debt (LOC, equipment loan, credit card float)
   // Average business debt: 15-25% of annual revenue
-  const debtRatio = input.tier === 'solo' ? 0.15 : input.tier === 'small' ? 0.20 : 0.25;
+  const debtRatio = (input.tier as string) === 'solo' ? 0.15 : (input.tier as string) === 'small' ? 0.20 : 0.25;
   const estimatedDebt = input.annualRevenue * debtRatio;
   // Rate optimization gap: 2-3% rate difference between best and worst SMB rates
   const rateGap = 0.025;
@@ -1545,11 +1553,12 @@ function detectTaxFilingLeak(
   input: PrescanInput,
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
-  if (!input.annualRevenue || input.annualRevenue < 30000) return null;
+  if (!input.annualRevenue || input.annualRevenue < 100000) return null;
   if (input.usesAccountingSoftware) return null;
+  if (input.tier === 'solo') return null; // Already covered by detectTaxLeak
   
   // Without proper ITCs tracking, businesses lose 1-2% to unclaimed input tax credits
-  const itcLossRate = input.tier === 'solo' ? 0.015 : 0.01;
+  const itcLossRate = (input.tier as string) === 'solo' ? 0.015 : 0.01;
   const estimatedLeak = input.annualRevenue * itcLossRate;
   
   if (estimatedLeak < 300) return null;
@@ -1576,7 +1585,8 @@ function detectProfessionalFeesLeak(
   input: PrescanInput,
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
-  if (!input.annualRevenue || input.annualRevenue < 100000) return null;
+  if (!input.annualRevenue || input.annualRevenue < 200000) return null;
+  if (input.tier === 'solo') return null; // Solo rarely overpays on professional fees
   
   // Most businesses don't shop accountant/lawyer fees. Overpayment: 0.5-1% of revenue
   const feeOverpay = input.tier === 'growth' ? 0.008 : 0.005;
@@ -1607,11 +1617,13 @@ function detectBookkeepingGapLeak(
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
   if (input.usesAccountingSoftware) return null;
-  if (!input.annualRevenue || input.annualRevenue < 30000) return null;
+  if (!input.annualRevenue || input.annualRevenue < 60000) return null;
+  // Don't double-count with detectTaxLeak — only add if growth tier
+  if (input.tier === 'solo') return null;
   
   // Businesses without bookkeeping systems: lost receipts, missed expenses, duplicate payments
   // Compound effect: 1-3% of revenue
-  const gapRate = input.tier === 'solo' ? 0.02 : 0.015;
+  const gapRate = (input.tier as string) === 'solo' ? 0.02 : 0.015;
   const estimatedLeak = input.annualRevenue * gapRate;
   
   if (estimatedLeak < 400) return null;
@@ -1844,8 +1856,10 @@ export function detectLeaks(
   
   // Sort by priority descending
   leaks.sort((a, b) => b.priority_score - a.priority_score);
-  
-  return leaks;
+
+  // Cap prescan at 7 leaks — more looks fake, fewer looks credible
+  // Keep top leaks by priority; the full diagnostic surfaces all of them
+  return leaks.slice(0, 7);
 }
 
 // ============================================================================

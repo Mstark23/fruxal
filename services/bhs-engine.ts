@@ -49,11 +49,36 @@ export function calculateFinancialHealthScore(leaks: any[], revenue?: number): n
 
 export function scoreLeakV2(leak: any, input: any, benchmarks?: any, dataPoints?: any): any {
   const base = leak?.annual_impact_max ?? leak?.annualImpact ?? leak?.amount ?? 0;
+  const dhScore = calculateDataHealthScore(input);
+
+  // Data richness — how many data points were actually collected
+  const points = typeof dataPoints === "number" ? dataPoints : 3;
+  const dataFactor = Math.min(1, points / 6); // 6 points = full confidence
+
+  // Leak-specific base confidence (from original detector logic)
+  const baseConfidence = leak?.confidence_score ?? 25; // already set by detector
+
+  // Adjust by data richness — sparse data = lower confidence
+  const adjustedConfidence = Math.round(baseConfidence * (0.5 + 0.5 * dataFactor));
+
+  // Severity derived from leak amount relative to revenue
+  const rev = input?.annualRevenue ?? 100_000;
+  const impactPct = base / rev;
+  const severity = Math.min(95, Math.max(10, Math.round(
+    impactPct >= 0.15 ? 85 :
+    impactPct >= 0.08 ? 70 :
+    impactPct >= 0.04 ? 55 :
+    impactPct >= 0.02 ? 40 : 25
+  )));
+
+  const priority = Math.round((severity * adjustedConfidence) / 100);
+
   return {
-    adjustedImpact: base,
-    severity:       leak?.severity === 'critical' ? 0.9 : 0.7,
-    confidence:     leak?.severity === 'critical' ? 0.9 : 0.7,
-    dhScore:        calculateDataHealthScore(input),
+    adjustedImpact:  base,
+    severity:        severity,
+    confidence:      adjustedConfidence,
+    priority:        priority,
+    dhScore,
   };
 }
 
