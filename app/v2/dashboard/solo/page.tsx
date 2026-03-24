@@ -352,26 +352,55 @@ export default function SoloDashboard() {
           </button>
         )}
 
-        {/* FREE UPGRADE BANNER */}
+        {/* FREE UPGRADE — RICH UNLOCK PANEL */}
         {isFree && totalLeak > 0 && (
-          <div className="rounded-xl mb-5 p-4 flex items-center justify-between gap-4 flex-wrap" style={{ background: "linear-gradient(135deg, #1B3A2D, #2A5A44)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: "all 0.45s cubic-bezier(0.16,1,0.3,1) 0.03s" }}>
-            <div>
-              <p className="text-[13px] font-bold text-white mb-1">
-                {isFR ? "Votre entreprise perd " + totalLeak.toLocaleString() + " $/an" : "Your business is leaking $" + totalLeak.toLocaleString() + "/year"}
-              </p>
-              <p className="text-[11px] text-white/60">
-                {recommendedPlan === "enterprise"
-                  ? t("Your revenue qualifies for Enterprise — we recover savings on contingency.", "Vos revenus vous qualifient pour Enterprise — nous récupérons à la performance.")
-                  : recommendedPlan === "business"
-                  ? t("Based on your revenue, you qualify for Business.", "Selon vos revenus, vous etes admissible au plan Business.")
-                  : t("Unlock the full report, fix steps and alerts.", "Debloquez le rapport complet et les corrections.")}
+          <div className="rounded-2xl mb-5 overflow-hidden border border-brand/20"
+            style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: "all 0.45s cubic-bezier(0.16,1,0.3,1) 0.03s" }}>
+            {/* Header */}
+            <div className="px-5 py-4" style={{ background: "linear-gradient(135deg, #1B3A2D, #2A5A44)" }}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[13px] font-bold text-white mb-0.5">
+                    {isFR
+                      ? `Votre entreprise perd ${(totalLeak ?? 0).toLocaleString()} $/an — voici ce que vous manquez :`
+                      : `Your business is leaking $${(totalLeak ?? 0).toLocaleString()}/year — here's what you're missing:`}
+                  </p>
+                  <p className="text-[11px] text-white/50">
+                    {t("Free plan shows 4 leaks. Your full diagnostic reveals all of them.", "Le plan gratuit montre 4 fuites. Votre diagnostic complet les révèle toutes.")}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {/* What you unlock */}
+            <div className="bg-white px-5 py-4">
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {[
+                  { icon: "📊", title: t("Full leak report", "Rapport complet"), sub: t("All leaks with exact $ amounts", "Toutes les fuites avec montants exacts") },
+                  { icon: "🎯", title: t("Health Score", "Score de santé"), sub: t("Your 0–100 financial grade", "Votre note financière 0–100") },
+                  { icon: "✅", title: t("90-day fix plan", "Plan 90 jours"), sub: t("Step-by-step actions to recover money", "Étapes pour récupérer votre argent") },
+                  { icon: "🏛️", title: t("Gov. programs", "Programmes gouv."), sub: t("Grants & credits you qualify for", "Subventions et crédits admissibles") },
+                ].map(u => (
+                  <div key={u.title} className="flex items-start gap-2.5 p-3 bg-bg-section rounded-xl">
+                    <span className="text-[16px] shrink-0">{u.icon}</span>
+                    <div>
+                      <p className="text-[11px] font-bold text-ink">{u.title}</p>
+                      <p className="text-[10px] text-ink-muted mt-0.5">{u.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => router.push(upgradeUrl)}
+                className="w-full py-3 text-[13px] font-bold text-white bg-brand rounded-xl hover:bg-brand-light transition">
+                {upgradeTarget === "enterprise"
+                  ? t("Book a discovery call →", "Réserver un appel →")
+                  : isFR
+                  ? `Débloquer mon rapport complet — ${upgradePrice}/mois →`
+                  : `Unlock my full report — ${upgradePrice}/month →`}
+              </button>
+              <p className="text-[10px] text-ink-faint text-center mt-2">
+                {t("7-day free trial · No credit card required · Cancel anytime", "7 jours gratuits · Aucune carte requise · Annulez à tout moment")}
               </p>
             </div>
-            <button onClick={() => router.push(upgradeUrl)} className="px-4 py-2 text-[12px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition flex-shrink-0">
-              {upgradeTarget === "enterprise"
-                ? t("Book strategy call →", "Réserver un appel →")
-                : `${upgradeName} ${upgradePrice}/${t("mo", "mois")}`}
-            </button>
           </div>
         )}
 

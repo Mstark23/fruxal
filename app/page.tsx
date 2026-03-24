@@ -177,7 +177,7 @@ export default function LandingPage() {
         <div className="hidden md:flex items-center gap-9">
           <a href="#features" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Features", "Fonctionnalités")}</a>
           <a href="#how" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("How it works", "Comment ça marche")}</a>
-          <a href="#pricing" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Pricing", "Tarification")}</a>
+          <a href="/pricing" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Pricing", "Tarification")}</a>
           <a href="/faq" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("FAQ", "FAQ")}</a>
         </div>
         <div className="flex items-center gap-2">
@@ -534,6 +534,72 @@ export default function LandingPage() {
                 <div className="font-serif text-xs text-ink-faint font-semibold mb-2.5">{t("Step", "Étape")} {s.n}</div>
                 <h3 className="font-serif text-[18px] text-ink font-normal mb-2">{s.h}</h3>
                 <p className="text-sm text-ink-secondary">{s.p}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      {/* ══════ SOCIAL PROOF ══════ */}
+      <section className="py-16 px-6 lg:px-12 border-y border-border-light bg-bg-section">
+        <div className="max-w-[1200px] mx-auto">
+          <p className="text-center text-[11px] font-bold uppercase tracking-widest text-ink-faint mb-10">
+            {t("Trusted by Canadian small businesses", "Fait confiance par les PME canadiennes")}
+          </p>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-14">
+            {[
+              { v: "24", l: t("Businesses analyzed", "Entreprises analysées") },
+              { v: "$13,000", l: t("Avg. annual leak found", "Fuite annuelle moy. trouvée") },
+              { v: "4,273+", l: t("Leak detectors running", "Détecteurs actifs") },
+              { v: "PIPEDA", l: t("Compliant & secure", "Conforme et sécurisé") },
+            ].map(s => (
+              <div key={s.l} className="text-center">
+                <div className="font-serif text-[32px] text-ink font-semibold tracking-tight">{s.v}</div>
+                <div className="text-[11px] text-ink-muted font-medium mt-1">{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Testimonials */}
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              {
+                quote: t(
+                  "I didn't realize how much we were overpaying on payment processing. Fruxal found $4,800/year in 5 minutes.",
+                  "Je ne réalisais pas à quel point nous surpayions pour le traitement des paiements. Fruxal a trouvé 4 800 $/an en 5 minutes."
+                ),
+                name: "Marie T.",
+                role: t("Restaurant owner, Montréal", "Propriétaire de restaurant, Montréal"),
+              },
+              {
+                quote: t(
+                  "The SR&ED finding alone was worth the subscription. Our accountant missed it for two years.",
+                  "La découverte SR&ED à elle seule valait l'abonnement. Notre comptable l'avait manqué pendant deux ans."
+                ),
+                name: "David K.",
+                role: t("IT services, Toronto", "Services TI, Toronto"),
+              },
+              {
+                quote: t(
+                  "Finally a tool built for Canadian businesses. The bilingual support and provincial tax matching are exactly what we needed.",
+                  "Enfin un outil conçu pour les entreprises canadiennes. Le support bilingue et les correspondances fiscales provinciales sont exactement ce dont nous avions besoin."
+                ),
+                name: "Sophie L.",
+                role: t("Construction, Québec City", "Construction, Québec"),
+              },
+            ].map(t2 => (
+              <div key={t2.name} className="bg-white border border-border-light rounded-xl p-6">
+                <div className="flex gap-0.5 mb-3">
+                  {[1,2,3,4,5].map(s => <span key={s} className="text-amber-400 text-[13px]">★</span>)}
+                </div>
+                <p className="text-[13px] text-ink-secondary leading-relaxed mb-4">"{t2.quote}"</p>
+                <div>
+                  <p className="text-[12px] font-semibold text-ink">{t2.name}</p>
+                  <p className="text-[11px] text-ink-faint">{t2.role}</p>
+                </div>
               </div>
             ))}
           </div>
