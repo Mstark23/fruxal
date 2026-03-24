@@ -44,8 +44,33 @@ export default function RepCustomerPage() {
   const [newFinding, setNewFinding] = useState({ leakName:"", category:"", confirmedAmount:"", estimatedLow:"", estimatedHigh:"", confidenceNote:"" });
   const [showFindingForm, setShowFindingForm] = useState(false);
   const [toast, setToast] = useState<string|null>(null);
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  async function sendClientAccess() {
+    if (!inviteEmail) return;
+    setInviting(true);
+    try {
+      const r = await fetch(`/api/rep/customer/${diagId}/invite`, {
+        credentials: "include", method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientEmail: inviteEmail, clientName: inviteName }),
+      });
+      const json = await r.json();
+      if (json.success) {
+        showToast("Access link sent to " + inviteEmail);
+        setShowInvite(false);
+        setInviteEmail(""); setInviteName("");
+      } else {
+        showToast("Error: " + (json.error || "Failed to send"));
+      }
+    } catch { showToast("Failed to send invite"); }
+    setInviting(false);
+  }
 
   const load = useCallback(() => {
     fetch(`/api/rep/customer/${diagId}`, { credentials: "include" })

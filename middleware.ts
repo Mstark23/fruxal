@@ -19,6 +19,8 @@ const PUBLIC_API = [
   "/api/cron", "/api/prescan", "/api/demo",
   "/api/v1/partner", "/api/share", "/api/v3",
   "/api/v2/prescan",
+  "/api/rep/client-access",
+  "/join",
 ];
 
 export async function middleware(req: NextRequest) {
@@ -47,11 +49,12 @@ export async function middleware(req: NextRequest) {
   }
 
   const isProtectedPage = PROTECTED_PAGES.some(p => pathname.startsWith(p));
+  const isJoinPage = pathname.startsWith("/join");
   const isApiRoute      = pathname.startsWith("/api/");
   const isPublicApi     = PUBLIC_API.some(p => pathname.startsWith(p));
   const isProtectedApi  = isApiRoute && !isPublicApi;
 
-  if (!isProtectedPage && !isProtectedApi) {
+  if (!isProtectedPage && !isProtectedApi || isJoinPage) {
     return NextResponse.next();
   }
 
