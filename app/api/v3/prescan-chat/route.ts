@@ -488,7 +488,7 @@ function parseTags(text: string): PrescanTags {
     const regex = new RegExp(`<${tagName} value="([\\d,.]+)"\\s*\\/>`, 'g');
     const tagMatch = regex.exec(text);
     if (tagMatch) {
-      (tags as any)[tagName] = parseInt(tagMatch[1].replace(/[,]/g, ''), 10);
+      (tags as any)[tagName] = parseInt(tagMatch[1].replace(/[,$\s]/g, ''), 10);
     }
   }
   
@@ -496,7 +496,8 @@ function parseTags(text: string): PrescanTags {
   const numericCollectedKeys = ['fuel_monthly', 'fleet_size', 'food_cost_pct', 'staffing_count'];
   for (const key of numericCollectedKeys) {
     if ((tags as any)[key] && typeof (tags as any)[key] === 'string') {
-      const num = parseFloat((tags as any)[key]);
+      const cleaned = String((tags as any)[key]).replace(/[,$\s]/g, '');
+      const num = parseFloat(cleaned);
       if (!isNaN(num)) (tags as any)[key] = num;
     }
   }

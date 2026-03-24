@@ -914,6 +914,8 @@ function detectTaxLeak(
 ): DetectedLeak | null {
   if (input.usesAccountingSoftware) return null;
   if (!input.annualRevenue || input.annualRevenue < 30000) return null;
+  // Boost confidence if they do R&D — SR&ED credits are commonly missed
+  const doesRD = (input as any).doesRD === 'yes';
   
   const bench = benchmarks.find(b => b.metric_key === 'deduction_miss_rate');
   // Use p75 (worst case) if no software, p50 if they have some tracking
