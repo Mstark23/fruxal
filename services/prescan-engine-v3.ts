@@ -920,9 +920,11 @@ function detectTaxLeak(
   const doesRD = (input as any).doesRD === 'yes';
   
   const bench = benchmarks.find(b => b.metric_key === 'deduction_miss_rate');
-  // Use p75 (worst case) if no software, p50 if they have some tracking
-  const tau = bench ? bench.p75 : 0.04;
-  const estimatedLeak = input.annualRevenue * tau;
+  // Use p50 by default — p75 is too aggressive without knowing their expense structure
+  // Apply to estimated expenses (~40% of revenue) not to gross revenue
+  const missRate = bench ? bench.p50 : 0.05;
+  const estimatedExpenses = input.annualRevenue * 0.40; // expenses ~40% of revenue
+  const estimatedLeak = estimatedExpenses * missRate;
   
   if (estimatedLeak < 200) return null;
   
@@ -938,7 +940,7 @@ function detectTaxLeak(
     priority_score: Math.round((severity * confidence) / 100),
     detection_confidence: confidence / 100,
     metadata: {
-      miss_rate_pct: (tau * 100).toFixed(1),
+      miss_rate_pct: (missRate * 100).toFixed(1),
       revenue: input.annualRevenue,
     }
   };
@@ -1005,21 +1007,20 @@ function detectInsuranceLeak(
   const bench = benchmarks.find(b => b.metric_key === 'insurance_cost_ratio');
   if (!bench) return null;
   
-  const assumed = input.tier === 'solo' ? bench.p75 :
-                  input.tier === 'small' ? bench.p50 :
-                  bench.p75;
-  const target = bench.p25 || bench.p50;
-  
+  // Solo → p75 (worst case), growth → p50 (average — they likely have some coverage)
+  const assumed = input.tier === 'solo' ? bench.p75 : bench.p50;
+  const target  = bench.p25 || bench.p50;
+
   const delta = Math.max(0, assumed - target);
   const estimatedLeak = input.annualRevenue * delta;
-  
+
   if (estimatedLeak < 300) return null;
-  
-  const impactScore = calculateImpactScore(estimatedLeak);
+
+  const impactScore    = calculateImpactScore(estimatedLeak);
   const deviationScore = calculateDeviationScore(assumed, bench.p25, bench.p75);
   const severity = 0.5 * impactScore + 0.3 * deviationScore + 0.2 * 20;
   const confidence = 50 * (50 / 100);
-  
+
   return {
     leak_type_code: 'insurance_overpayment',
     estimated_annual_leak: Math.round(estimatedLeak),
@@ -1182,8 +1183,7 @@ function detectBankingLeak(
   if (!bench) return null;
   
   const delta = Math.max(0, bench.p75 - (bench.p25 || bench.p50));
-  let estimatedLeak = input.annualRevenue * delta;
-  if (input.tier === 'growth') estimatedLeak *= 1.5;
+  const estimatedLeak = input.annualRevenue * delta; // removed 1.5x growth multiplier (unsupported)
   
   if (estimatedLeak < 200) return null;
   
@@ -1781,10 +1781,11 @@ function detectEmergencyFundLeak(
  * Impact score from leak amount (Section 9 of handoff)
  */
 function calculateImpactScore(amount: number): number {
-  if (amount < 500) return 10;
-  if (amount < 1500) return 30;
-  if (amount < 5000) return 60;
-  if (amount < 15000) return 80;
+  if (amount < 500)    return 10;
+  if (amount < 1500)   return 30;
+  if (amount < 5000)   return 55;
+  if (amount < 15000)  return 75;
+  if (amount < 50000)  return 90;
   return 100;
 }
 
