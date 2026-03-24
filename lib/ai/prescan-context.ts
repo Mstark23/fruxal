@@ -55,6 +55,7 @@ export async function getPrescanContext(
     if (!userId) return null;
 
     // ── Try prescan_results first (richer data) ───────────────────────────
+    // Query by user_id (most common — after bridge) OR by prescan_run_id in business_profiles
     const { data: resultRows } = await supabaseAdmin
       .from("prescan_results")
       .select("prescan_run_id, user_id, input_snapshot, summary, teaser_leaks, province, industry, created_at, tier")

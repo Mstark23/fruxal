@@ -324,13 +324,24 @@ export async function POST(request: NextRequest) {
             // Gap 2 fix: prescan_run_id as top-level column so dashboard API Path C can join on it
             prescan_run_id: prescanRunId,
             input_snapshot: {
-              province: tags.province || 'QC',
-              industry: tags.business_type || 'generic',
-              structure: tags.structure || 'sole_proprietor',
-              monthly_revenue: Number(tags.revenue_band) || 0,
-              annual_revenue: (Number(tags.revenue_band) || 0) * 12,
-              tier: tier || 'solo',
-              prescan_run_id: prescanRunId,
+              province:          tags.province || 'QC',
+              industry:          tags.business_type || 'generic',
+              structure:         tags.structure || 'sole_proprietor',
+              revenue_band:      tags.revenue_band || null,
+              // Actual revenue from set_* tags (correct), NOT from revenue_band string
+              annual_revenue:    tags.set_annual_revenue ?? tags.set_revenue ??
+                                 (tags.set_monthly_revenue ? tags.set_monthly_revenue * 12 : null) ??
+                                 (tags.set_weekly_earnings ? tags.set_weekly_earnings * 52 : null) ?? null,
+              monthly_revenue:   tags.set_monthly_revenue ?? (
+                tags.set_annual_revenue ? Math.round(tags.set_annual_revenue / 12) :
+                tags.set_revenue ? Math.round(tags.set_revenue / 12) : null
+              ),
+              employee_count:    tags.set_employee_count ?? tags.staffing_count ?? null,
+              tier:              tier || 'solo',
+              prescan_run_id:    prescanRunId,
+              payment_mix:       tags.payment_mix || null,
+              does_rd:           tags.does_rd || null,
+              uses_accounting_software: tags.uses_accounting_software || null,
             },
             summary: {
               health_score: result.fhScore,

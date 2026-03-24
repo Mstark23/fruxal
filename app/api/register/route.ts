@@ -152,15 +152,16 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        const { data: prResults } = await sb
-          .from("prescan_results")
-          .select("id")
-          .contains("input_snapshot", { prescan_run_id: prescanRunId });
-        if (prResults && prResults.length > 0) {
-          // Batch update — avoid N+1
-          const prIds = prResults.map((pr: any) => pr.id);
-          await sb.from("prescan_results").update({ user_id: userId }).in("id", prIds);
-          process.env.NODE_ENV !== "production" && console.log(`✅ Bridge step 3.5: ${prResults.length} prescan_results linked`);
+        // Query by BOTH top-level column AND JSONB fallback
+        const [{ data: prByCol }, { data: prByJson }] = await Promise.all([
+          sb.from("prescan_results").select("id").eq("prescan_run_id", prescanRunId),
+          sb.from("prescan_results").select("id").contains("input_snapshot", { prescan_run_id: prescanRunId }),
+        ]);
+        const prResults = [...(prByCol || []), ...(prByJson || [])];
+        const uniqueIds = [...new Set(prResults.map((pr: any) => pr.id))];
+        if (uniqueIds.length > 0) {
+          await sb.from("prescan_results").update({ user_id: userId }).in("id", uniqueIds);
+          process.env.NODE_ENV !== "production" && console.log(`✅ Bridge step 3.5: ${uniqueIds.length} prescan_results linked (col+jsonb)`);
         }
       } catch (e: any) {
         console.warn("⚠️ Bridge step 3.5:", e.message);
