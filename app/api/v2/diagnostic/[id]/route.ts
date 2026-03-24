@@ -42,11 +42,16 @@ export async function GET(
     const data = {
       ...(row.result_json || {}),
       id:              row.id,
+      businessId:      row.business_id,   // page needs this for solutions/goals calls
       tier:            row.tier,
+      language:        row.language,
       status:          row.status,
       created_at:      row.created_at,
       completed_at:    row.completed_at,
       model_used:      row.model_used,
+      prescan_context_used: row.prescan_context_used ?? false,
+      prescan_run_id:  row.prescan_run_id ?? null,
+      goal_suggestion: row.goal_suggestion ?? null,
       // Fallback denormalized scores (if result_json has flat fields)
       overall_score:        row.overall_score,
       compliance_score:     row.compliance_score,
@@ -77,15 +82,43 @@ export async function GET(
       // Normalize findings: add impact_min/impact_max if missing
       if (Array.isArray(data.findings)) {
         data.findings = data.findings.map((f: any) => {
-          const leak = (f.annual_leak || f.impact_max || f.impact_min) ?? 0;
+          const leak = (f.annual_leak || f.impact_max || f.impact_min || f.potential_savings) ?? 0;
+          const savings = f.potential_savings || leak;
+          // Map effort → difficulty (Claude returns 'effort', page renders 'difficulty')
+          const difficulty = f.difficulty || f.effort || "medium";
+          // Map action_items array → recommendation string (page reads string, Claude returns array)
+          const recommendation = f.recommendation || (
+            Array.isArray(f.action_items) && f.action_items.length > 0
+              ? f.action_items[0]
+              : ""
+          );
+          const recommendation_fr = f.recommendation_fr || (
+            Array.isArray(f.action_items_fr) && f.action_items_fr.length > 0
+              ? f.action_items_fr[0]
+              : recommendation
+          );
           return {
             ...f,
-            impact_min: f.impact_min || leak,
+            difficulty,
+            recommendation,
+            recommendation_fr,
+            impact_min: f.impact_min || Math.round(leak * 0.8),  // provide realistic range
             impact_max: f.impact_max || leak,
             annual_leak: leak,
+            potential_savings: savings,
           };
         });
       }
+    }
+
+    // Add meta object page reads at report.meta.duration_ms etc
+    if (data && !data.meta) {
+      (data as any).meta = {
+        model:        row.model_used || "claude-sonnet-4-20250514",
+        duration_ms:  row.duration_ms ?? 0,
+        created_at:   row.created_at,
+        completed_at: row.completed_at,
+      };
     }
 
     return NextResponse.json({ success: true, data, report_id: row.id });

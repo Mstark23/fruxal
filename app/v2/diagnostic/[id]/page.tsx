@@ -166,7 +166,12 @@ export default function DiagnosticReportPage() {
           setReport(json.data);
           if (json.data?.language === "fr") setLang("fr");
           // If still analyzing, start polling every 4s until complete (max 3 min)
-          if (json.data?.status === "analyzing" && !pollInterval) {
+          // If status is still 'analyzing' but report is >5 min old, treat as failed
+          const reportAge = json.data?.created_at
+            ? Date.now() - new Date(json.data.created_at).getTime()
+            : 0;
+          const stale = reportAge > 5 * 60 * 1000; // 5 minutes
+          if (json.data?.status === "analyzing" && !stale && !pollInterval) {
             pollInterval = setInterval(async () => {
               pollCount++;
               try {
@@ -175,7 +180,7 @@ export default function DiagnosticReportPage() {
                 if (pd.success && pd.data?.status === "completed") {
                   clearInterval(pollInterval!);
                   setReport(pd.data);
-                } else if (pollCount >= 45 || pd.data?.status === "failed") {
+                } else if (pollCount >= 32 || pd.data?.status === "failed") { // 32 × 4s = 128s ≈ Vercel limit
                   clearInterval(pollInterval!);
                   setError(t("Analysis timed out. Please try again.", "Délai dépassé. Veuillez réessayer."));
                 }
