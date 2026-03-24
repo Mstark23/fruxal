@@ -37,10 +37,14 @@ export function calculateDataHealthScore(input: any): number {
 
 /** Alias — prescan-engine-v3 imports both names */
 export function calculateFinancialHealthScore(leaks: any[], revenue?: number): number {
-  if (!leaks || leaks.length === 0) return 100;
+  if (!leaks || leaks.length === 0) return 72; // No leaks found = decent but not perfect (data gap)
   const totalLeak = leaks.reduce((s, l) => s + ((l.estimated_annual_leak || l.annualImpact) ?? 0), 0);
   const rev = revenue || 100_000;
-  return Math.max(0, Math.min(100, Math.round(100 - (totalLeak / rev) * 100)));
+  // Score is relative to revenue — 5% leak = -15pts, 10% = -25pts, 20%+ = critical
+  const leakPct = totalLeak / rev;
+  const penalty = Math.min(60, Math.round(leakPct * 250)); // 20% leak = 50pt penalty
+  const base = 78; // Start from 78 — no business is perfect
+  return Math.max(20, Math.min(79, base - penalty));
 }
 
 export function scoreLeakV2(leak: any, input: any, benchmarks?: any, dataPoints?: any): any {
@@ -58,10 +62,14 @@ function makeDim(score: number): BHSDimension {
 }
 
 export function calculateBHS(leaks: any[], input: any, benchmarks?: any): BHSResult {
-  const totalImpact = leaks.reduce((s, l) => s + ((l.annual_impact_max || l.annualImpact) ?? 0), 0);
-  const maxExpected  = 200_000;
-  const raw   = Math.max(0, 100 - Math.round((totalImpact / maxExpected) * 100));
-  const score = Math.min(100, Math.max(0, raw));
+  const totalImpact = leaks.reduce((s, l) => s + ((l.annual_impact_max || l.annualImpact || l.estimated_annual_leak) ?? 0), 0);
+  const rev = input?.annualRevenue || input?.revenue || 100_000;
+  // Revenue-relative: 10% leak = score ~55, 20% = score ~30, 3% = score ~65
+  const leakPct = totalImpact / rev;
+  const penalty = Math.min(55, Math.round(leakPct * 275));
+  const base = 78;
+  const raw   = Math.max(20, base - penalty);
+  const score = leaks.length === 0 ? 72 : Math.min(79, raw);
   const grade = score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : score >= 35 ? 'D' : 'F';
   const band  = score >= 80 ? 'Healthy' : score >= 60 ? 'At Risk' : 'Critical';
   return {

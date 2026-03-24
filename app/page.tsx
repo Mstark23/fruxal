@@ -13,7 +13,7 @@ interface PrescanChatResponse {
   rawMessage?: string;
   completed: boolean;
   prescanRunId?: string;
-  analysis?: { fhScore: number; dhScore: number; totalLeak: number; leaks: any[] };
+  analysis?: { fhScore: number; dhScore: number; totalLeak: number; leaks: any[]; bhs?: { score: number; band: string; confidence: number; leakImpactPct: number } };
   tier?: string;
   pricing?: number;
   inputs?: Record<string, any>;
@@ -355,7 +355,20 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-3 gap-px bg-border-light rounded-card overflow-hidden mb-8">
               <div className="bg-white p-6">
                 <div className="text-xs text-ink-muted uppercase tracking-wider font-semibold mb-2">{t("Health Score", "Score de santé")}</div>
-                <div className="font-serif text-[40px] text-ink tracking-tight">{result.analysis.fhScore}<span className="text-ink-muted text-lg font-sans">/100</span></div>
+                {(() => {
+                  const score = result.analysis.fhScore;
+                  const band = result.analysis.bhs?.band;
+                  const color = score >= 65 ? "#2D7A50" : score >= 45 ? "#C4841D" : "#B34040";
+                  const bandLabel = isFR
+                    ? (score >= 65 ? "En bonne santé" : score >= 45 ? "À risque" : "Critique")
+                    : (score >= 65 ? "Healthy" : score >= 45 ? "At Risk" : "Critical");
+                  return (
+                    <div>
+                      <div className="font-serif text-[40px] tracking-tight" style={{ color }}>{score}<span className="text-ink-muted text-lg font-sans">/100</span></div>
+                      <div className="text-xs font-semibold mt-1" style={{ color }}>{bandLabel}</div>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="bg-white p-6">
                 <div className="text-xs text-ink-muted uppercase tracking-wider font-semibold mb-2">{t("Estimated Annual Leak", "Fuite annuelle estimée")}</div>

@@ -430,7 +430,7 @@ export function normalizePaymentMix(raw: string): string {
   ].some(k => n.includes(k))) return 'mostly_card';
   if (['mostly_cash', 'cash', 'comptant', 'argent', 'especes', 'espèces', 'liquide'].some(k => n.includes(k))) return 'mostly_cash';
   if (['mix', 'mélange', 'melange', 'les deux', 'both', 'moitie', 'moitié', 'half'].some(k => n.includes(k))) return 'mixed';
-  return 'mixed';
+  return 'unknown'; // No data provided — don't assume payment mix
 }
 
 // ============================================================================
@@ -536,7 +536,7 @@ export function buildPrescanInputFromTags(tags: PrescanTags): PrescanInput {
   }
   
   // Extract payment info (varies by industry)
-  const paymentMix = normalizePaymentMix(tags.payment_mix || 'mixed');
+  const paymentMix = tags.payment_mix ? normalizePaymentMix(tags.payment_mix) : 'unknown';
   const paymentTools = tags.payment_tools 
     ? [tags.payment_tools]
     : tags.payment_processor
@@ -763,7 +763,9 @@ function detectProcessingLeak(
   input: PrescanInput,
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
-  // Only check if they accept cards
+  // Only flag if payment data was explicitly provided by user
+  // Default 'mixed' = no data given — don't assume a leak
+  if (!input.paymentMix || input.paymentMix === 'unknown') return null;
   if (input.paymentMix === 'mostly_cash') return null;
   if (!input.annualRevenue) return null;
   
