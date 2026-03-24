@@ -331,12 +331,17 @@ export default function DiagnosticIntakePage() {
     setSaving(true);
     setError(null);
 
+    // Client-side 130s timeout — just over Vercel's 120s limit
+    const controller = new AbortController();
+    const clientTimeout = setTimeout(() => controller.abort(), 130_000);
+
     try {
       // Save intake data
       const saveRes = await fetch("/api/v2/diagnostic/intake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessId, intakeData: data }),
+        signal: controller.signal,
       });
       const saveJson = await saveRes.json();
       if (!saveJson.success) throw new Error(saveJson.error);
@@ -346,13 +351,19 @@ export default function DiagnosticIntakePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessId, language: lang }),
+        signal: controller.signal,
       });
       const runJson = await runRes.json();
       if (!runJson.success) throw new Error(runJson.error);
 
+      clearTimeout(clientTimeout);
       router.push(`/v2/diagnostic/${runJson.reportId}`);
     } catch (e: any) {
-      setError(e.message);
+      clearTimeout(clientTimeout);
+      const msg = e?.name === "AbortError"
+        ? "The analysis is taking longer than expected. Please try again — your data has been saved."
+        : e.message;
+      setError(msg);
       setSaving(false);
     }
   }
@@ -378,7 +389,7 @@ export default function DiagnosticIntakePage() {
       setProgressStep(idx);
       setProgressPct(STEPS_EN[idx].pct);
       if (idx === STEPS_EN.length - 1) clearInterval(iv);
-    }, 12000);
+    }, 15000); // 15s per step × 8 steps = 120s — matches Vercel limit
     return () => clearInterval(iv);
   }, [saving]);
 

@@ -429,7 +429,8 @@ export async function POST(req: NextRequest) {
       try { aiResult = JSON.parse(jsonStr); } catch { throw new Error('AI returned invalid JSON — not parseable'); }
 
       // Schema validation: if Claude returned empty or schema-invalid output, retry once
-      if (!aiResult?.scores || !Array.isArray(aiResult?.findings) || aiResult.findings.length === 0) {
+      const hasValidScores = aiResult?.scores && typeof aiResult.scores.overall === 'number';
+      if (!hasValidScores || !Array.isArray(aiResult?.findings) || aiResult.findings.length === 0) {
         console.error("[Diagnostic] AI returned invalid schema:", JSON.stringify(aiResult).slice(0, 200));
         await supabaseAdmin.from("diagnostic_reports")
           .update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", reportId);
