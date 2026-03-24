@@ -380,6 +380,14 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {result.analysis.leaks.length === 0 && (
+              <div className="mb-8 p-6 bg-positive/5 border border-positive/20 rounded-2xl text-center">
+                <div className="text-3xl mb-3">✅</div>
+                <p className="font-semibold text-ink mb-1">{t("No major leaks detected from your answers", "Aucune fuite majeure détectée selon vos réponses")}</p>
+                <p className="text-sm text-ink-secondary">{t("The full diagnostic may reveal more with your real financial data.", "Le diagnostic complet peut en révéler davantage avec vos données réelles.")}</p>
+              </div>
+            )}
+
             {result.analysis.leaks.length > 0 && (() => {
               const VISIBLE = 5;
               const visibleLeaks = result.analysis.leaks.slice(0, VISIBLE);

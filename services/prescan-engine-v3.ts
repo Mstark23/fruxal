@@ -596,6 +596,10 @@ export function buildPrescanInputFromTags(tags: PrescanTags): PrescanInput {
     // Pass through high-signal tags for conditional detector gating
     taxLastReviewed:       tags.tax_last_reviewed,
     vendorContractsStale:  tags.vendor_contracts_stale,
+    insuranceStatus:       tags.insurance_status,
+    contractReviewStatus:  tags.contract_review_status,
+    softwareTools:         tags.software_tools,
+    multiLocation:         tags.multi_location,
   } as any;
 }
 
@@ -989,7 +993,10 @@ function detectInsuranceLeak(
   input: PrescanInput,
   benchmarks: Benchmark[]
 ): DetectedLeak | null {
-  if (!input.mainCosts.includes('insurance') && !(input as any).insuranceStatus) return null;
+  // Fire if insurance is a stated cost OR if insurance_status indicates it's not been reviewed
+  const hasInsuranceCost = input.mainCosts.includes('insurance');
+  const insuranceNotReviewed = (input as any).insuranceStatus === 'never_compared' || (input as any).insuranceStatus === 'original_policy';
+  if (!hasInsuranceCost && !insuranceNotReviewed) return null;
   if (!input.annualRevenue) return null;
   
   const bench = benchmarks.find(b => b.metric_key === 'insurance_cost_ratio');
@@ -1083,7 +1090,9 @@ function detectSoftwareLeak(
 ): DetectedLeak | null {
   if (input.tier === 'solo') return null;
   if (!input.annualRevenue) return null;
-  
+  // Require either explicit software cost mention OR softwareTools tag
+  const hasSoftwareCost = input.mainCosts.includes('subscriptions') || (input as any).softwareTools;
+  if (!hasSoftwareCost) return null;
   const bench = benchmarks.find(b => b.metric_key === 'software_cost_ratio');
   if (!bench) return null;
   
