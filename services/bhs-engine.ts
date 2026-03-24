@@ -104,14 +104,14 @@ export function calculateBHS(leaks: any[], input: any, benchmarks?: any): BHSRes
   const raw   = Math.max(20, base - penalty);
   const score = leaks.length === 0 ? 72 : Math.min(79, raw);
   const grade = score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : score >= 35 ? 'D' : 'F';
-  const band  = score >= 80 ? 'Healthy' : score >= 60 ? 'At Risk' : 'Critical';
+  const band  = score >= 65 ? 'Healthy' : score >= 45 ? 'At Risk' : 'Critical'; // aligned with frontend thresholds
   return {
     score,
     grade,
     band,
     dhScore:            calculateDataHealthScore(input),
-    confidence:         0.8,
-    leakImpactPct:      Math.min(100, Math.round((totalImpact / Math.max(1, input?.revenue || 100_000)) * 100)),
+    confidence:         Math.min(0.85, Math.max(0.3, calculateDataHealthScore(input) / 100)),
+    leakImpactPct:      Math.min(100, Math.round((totalImpact / Math.max(1, input?.annualRevenue || input?.revenue || 100_000)) * 100)),
     industryComparison: 'Average',
     dimensions: {
       expenseEfficiency: makeDim(score),

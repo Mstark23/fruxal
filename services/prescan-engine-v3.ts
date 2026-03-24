@@ -539,10 +539,12 @@ export function buildPrescanInputFromTags(tags: PrescanTags): PrescanInput {
   
   // Extract payment info (varies by industry)
   const paymentMix = tags.payment_mix ? normalizePaymentMix(tags.payment_mix) : 'unknown';
+  // Split comma-separated payment tools (Claude might emit "square, stripe")
+  const splitTools = (raw: string) => raw.split(/[,;/]+/).map(t => t.trim().toLowerCase()).filter(Boolean);
   const paymentTools = tags.payment_tools 
-    ? [tags.payment_tools]
+    ? splitTools(tags.payment_tools)
     : tags.payment_processor
-    ? [tags.payment_processor]
+    ? splitTools(tags.payment_processor)
     : [];
   
   // Extract costs
@@ -957,21 +959,20 @@ function detectPayrollLeak(
   const bench = benchmarks.find(b => b.metric_key === 'payroll_ratio');
   if (!bench) return null;
   
-  const assumed = input.tier === 'solo' ? bench.p75 :
-                  input.tier === 'small' ? bench.p50 :
-                  bench.p75;
-  const target = bench.p25 || bench.p50;
-  
+  // Solo → assume p75 (worst performers); growth → assume p50 (average)
+  const assumed = input.tier === 'solo' ? bench.p75 : bench.p50;
+  const target  = bench.p25 || bench.p50;
+
   const delta = Math.max(0, assumed - target);
   const estimatedLeak = input.annualRevenue * delta;
-  
+
   if (estimatedLeak < 500) return null;
-  
-  const impactScore = calculateImpactScore(estimatedLeak);
+
+  const impactScore    = calculateImpactScore(estimatedLeak);
   const deviationScore = calculateDeviationScore(assumed, bench.p25, bench.p75);
   const severity = 0.5 * impactScore + 0.3 * deviationScore + 0.2 * 20;
   const confidence = 55 * (50 / 100);
-  
+
   return {
     leak_type_code: 'payroll_ratio_high',
     estimated_annual_leak: Math.round(estimatedLeak),
