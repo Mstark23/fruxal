@@ -83,6 +83,7 @@ ${buildQualityBar("solo")}
 ${buildSolutionMatrix("solo", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
 STRUCTURAL RULES:
+${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Revenue is an estimate. Dollar amounts in findings must show ranges (e.g. "$4K–$12K"), not single figures. Set severity ≤ medium for revenue-dependent findings.` : ""}
 1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}).
 2. Keep language plain. This owner has no CFO, no accountant on retainer. No jargon.
 3. Maximum 5 findings. No finding under $500 annual impact.
@@ -98,6 +99,8 @@ STRUCTURAL RULES:
 ${isFr ? "12. All text fields in French. JSON keys stay in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
+  const { estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct } = ctx;
+
   const userPrompt = `Analyze this solo/micro business and return a complete JSON diagnostic report.
 
 PROFILE:
@@ -105,12 +108,16 @@ PROFILE:
 - Province:          ${province}
 - Structure:         ${structure}
 - Annual revenue:    $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource})
+- Gross margin:      ${grossMarginPct}%
+- Est. EBITDA:       $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource})
 - Employees:         ${employees}
+${estimatedPayroll > 0 ? `- Est. payroll:      $${estimatedPayroll.toLocaleString()}` : ""}
 - Has accountant:    ${profile.has_accountant  ? "YES" : "NO"}
 - Has bookkeeper:    ${profile.has_bookkeeper  ? "YES" : "NO"}
 - Does R&D:          ${profile.does_rd         ? "YES" : "NO"}
 - Physical location: ${profile.has_physical_location ? "YES" : "NO"}
 - E-commerce:        ${profile.has_ecommerce   ? "YES" : "NO"}
+- Has payroll:       ${profile.has_payroll      ? "YES" : "NO"}
 ${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — estimated penalty $${penaltyExposure.toLocaleString()}` : ""}
 
 Return ONLY this JSON (no markdown fences):

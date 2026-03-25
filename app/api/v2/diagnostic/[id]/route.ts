@@ -80,6 +80,35 @@ export async function GET(
         };
       }
       // Normalize findings: add impact_min/impact_max if missing
+      // Normalize benchmark_comparisons: new schema uses metric_name/metric_name_fr
+      // but results page TypeScript interface uses metric/metric_fr
+      if (Array.isArray(data.benchmark_comparisons)) {
+        data.benchmark_comparisons = data.benchmark_comparisons.map((b: any) => ({
+          ...b,
+          metric:    b.metric    || b.metric_name    || "",
+          metric_fr: b.metric_fr || b.metric_name_fr || b.metric || b.metric_name || "",
+        }));
+      }
+
+      // Normalize priority_sequence → action_plan.optimal_sequence
+      // Results page tab "Action Plan" reads action_plan.optimal_sequence
+      // New schema outputs priority_sequence with different field names
+      if (Array.isArray(data.priority_sequence) && !data.action_plan?.optimal_sequence?.length) {
+        data.action_plan = {
+          ...(data.action_plan || {}),
+          optimal_sequence: data.priority_sequence.map((s: any) => ({
+            priority:          s.rank        || s.step || 1,
+            title:             s.action      || s.title || "",
+            title_fr:          s.action_fr   || s.title_fr || "",
+            description:       s.why_first   || s.expected_result || s.description || "",
+            description_fr:    s.why_first_fr || s.description_fr || "",
+            estimated_savings: s.ebitda_improvement || s.enterprise_value_improvement || 0,
+            timeline:          s.timeline    || "90days",
+            difficulty:        s.effort      || s.difficulty || "medium",
+          })),
+        };
+      }
+
       if (Array.isArray(data.findings)) {
         data.findings = data.findings.map((f: any) => {
           const leak = (f.annual_leak || f.impact_max || f.impact_min || f.potential_savings) ?? 0;

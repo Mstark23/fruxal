@@ -91,6 +91,7 @@ ${buildQualityBar("business")}
 ${buildSolutionMatrix("business", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
 STRUCTURAL RULES:
+${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Revenue is an estimate. Dollar amounts in findings must show ranges (e.g. "$4K–$12K"), not single figures. Set severity ≤ medium for revenue-dependent findings.` : ""}
 1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()}.
 2. Maximum 7 findings. No finding under $2,000 annual impact.
 3. Every finding MUST include ebitda_improvement AND enterprise_value_improvement. Assume 3–5× EBITDA multiple. Show the math.
