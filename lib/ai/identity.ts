@@ -88,7 +88,7 @@ export function buildTaxContext(p: TaxContextInput): string {
   // CCPC-specific flags (only meaningful for enterprise/business tiers)
   if (p.hasHoldco)       lines.push("Holdco structure detected — assess RDTOH, CDA, intercorporate dividends, passive income grind.");
   if (p.passiveOver50k)  lines.push("Passive income >$50K confirmed — SBD grind-down applies: $5 SBD lost per $1 passive over $50K.");
-  if (p.lcgeEligible)    lines.push("LCGE eligible — $1,016,602 exemption (2024). Optimize QSBC share test before any exit event.");
+  if (p.lcgeEligible)    lines.push("LCGE eligible — $1,250,000 exemption (2025, indexed). Optimize QSBC share test before any exit event.");
   if ((p.rdtohBalance ?? 0) > 0) lines.push(`RDTOH balance $${(p.rdtohBalance ?? 0).toLocaleString()} — refund at 38.33% per $1 eligible dividend paid. Stranded if no dividend declared.`);
   if (p.hasCDA)          lines.push("CDA balance confirmed — tax-free capital dividend available. Quantify at owner's marginal rate.");
   if ((p.sredLastYear ?? 0) > 0) lines.push(`SR&ED claimed $${(p.sredLastYear ?? 0).toLocaleString()} last year — assess for additional eligible work and QC provincial credit.`);

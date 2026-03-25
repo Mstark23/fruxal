@@ -45,10 +45,12 @@ Before producing any JSON, reason through these questions in order:
 
 2. BUSINESS STRUCTURE
    Currently a ${structure}.
-   At what revenue point does incorporation save more than it costs (~$3K setup + $2K/yr compliance)?
+   ${(structure === "corporation" || structure === "ccpc" || structure === "incorporated")
+     ? "ALREADY INCORPORATED — skip incorporation timing analysis. Focus instead on: T4 vs dividend optimization, deductible expenses within the corp, and whether a holdco is warranted."
+     : `At what revenue does incorporation save more than it costs (~$3K setup + $2K/yr compliance)?
    ${annualRevenue >= 80_000
-     ? `At $${annualRevenue.toLocaleString()}, incorporation is likely worth analyzing. Model the T4 vs dividend split.`
-     : "Below the typical incorporation breakeven. Sole prop deductions (home office, vehicle, equipment) may be the bigger lever."}
+       ? `At $${annualRevenue.toLocaleString()}, incorporation is worth analyzing. Model the T4 vs dividend split.`
+       : "Below breakeven. Sole prop deductions (home office, vehicle, equipment) are the bigger lever."}`}
 
 3. DEDUCTIONS LIKELY BEING MISSED
    Does this ${industry} operator likely have:

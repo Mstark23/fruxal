@@ -41,7 +41,7 @@ have calculated a real dollar impact from this business's actual numbers.
    Owner salary: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "not provided"}
    Revenue: $${(annualRevenue ?? 0).toLocaleString()} | EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()}
    → What is the after-tax optimal T4 vs eligible dividend split?
-   → CPP: T4 salary above $68,500 triggers 11.9% combined (employer + employee). Over-contributing?
+   → CPP: T4 salary above $71,300 (2025 YMPE) triggers 11.9% combined CPP1. CPP2 adds 4% on $71,300–$81,900. Is owner over-contributing?
    → At what salary level does additional T4 become net-negative vs dividends?
    → Model the dollar saving between current mix and optimal.
 
@@ -53,7 +53,8 @@ have calculated a real dollar impact from this business's actual numbers.
 
 3. HST / GST
    → Quick Method election: at $${(annualRevenue ?? 0).toLocaleString()} revenue, is it applicable?
-   Quick Method rates: service ~8.8% (ON), retail ~4.4%. Compare to actual remittance.
+   ${province === "QC" ? "QC NOTE: Quick Method applies to GST only (5%) — no Quick Method for QST. Assess GST Quick Method savings only." : "Quick Method rates (ON/HST): service ~8.8%, retail ~4.4%. Compare to actual remittance."}
+   → Max revenue to use Quick Method: $400K in preceding year — confirm eligibility.
    → Input tax credits: are all eligible business expenses claiming full ITCs?
    → Any exempt supplies being incorrectly taxed or vice versa?
 
@@ -67,7 +68,7 @@ have calculated a real dollar impact from this business's actual numbers.
    → Key person insurance: if owner is incapacitated, what is the business continuity risk?
 
 6. SR&ED ELIGIBILITY
-   ${profile.does_rd ? "→ R&D flagged YES. Is ALL eligible work being claimed? Software dev, process improvement, prototyping?" : "→ R&D not flagged. Does this ${industry} do ANY process improvement, custom software, or technical development?"}
+   ${profile.does_rd ? "→ R&D flagged YES. Is ALL eligible work being claimed? Software dev, process improvement, prototyping?" : `→ R&D not flagged. Does this ${industry} do ANY process improvement, custom software, or technical development that could qualify?`}
    → CCPC refundable rate: 35% federal on first $3M eligible. ${province === "QC" ? "QC adds 30% provincial refundable." : ""}
 
 7. BIGGEST LEVER

@@ -53,18 +53,58 @@ export interface PromptInputs {
 
 export function buildTaxContext(inputs: PromptInputs): string {
   const { province, hasHoldco, passiveOver50k, lcgeEligible, rdtohBalance, hasCDA, sredLastYear } = inputs;
+  const payroll = (inputs as any).estimatedPayroll ?? 0;
+  const emp     = inputs.employees ?? 0;
   const lines: string[] = [];
-  if (province === "QC") lines.push("QST 9.975% applies. Bill 96 French language obligations. SR&ED additionnel QC available.");
-  if (province === "AB") lines.push("No provincial income tax. No provincial sales tax.");
-  if (province === "BC") lines.push("PST 7% applies. Employer Health Tax if payroll > $500K.");
-  if (province === "ON") lines.push("HST 13%. EHT applies on payroll. WSIB mandatory. Ontario Made ITC available.");
-  if (hasHoldco)         lines.push("Holdco structure — assess RDTOH, CDA, inter-corporate dividends.");
-  if (passiveOver50k)    lines.push("Passive income > $50K — small business deduction grind-down applies.");
-  if (lcgeEligible)      lines.push("LCGE eligible — optimize for $971,190 capital gains exemption.");
-  if (rdtohBalance > 0)  lines.push(`RDTOH balance: $${(rdtohBalance ?? 0).toLocaleString()} — dividend timing opportunity.`);
-  if (hasCDA)            lines.push("CDA balance present — tax-free capital dividend opportunity.");
-  if (sredLastYear > 0)  lines.push(`SR&ED claimed last year: $${(sredLastYear ?? 0).toLocaleString()}`);
-  return lines.join(" ");
+
+  // Full province coverage — all 10 provinces
+  switch (province) {
+    case "QC":
+      lines.push("QST 9.975% + GST 5%. Bill 96 French language obligations on client-facing materials. RS&DE provincial credit: 30% refundable for CCPC. No HST Quick Method for QST — GST Quick Method only.");
+      if (emp > 0) lines.push("CNESST contributions mandatory. CCQ applies to construction. CQRDA credit for R&D-adjacent work.");
+      break;
+    case "ON":
+      lines.push("HST 13%. WSIB mandatory for most industries. EHT: payroll >$1M triggers 1.95% on full amount.");
+      if (payroll > 500_000) lines.push(`EHT threshold: payroll ~$${payroll.toLocaleString()} — confirm exemption status.`);
+      break;
+    case "BC":
+      lines.push("No HST — PST 7% separate from GST 5%. Self-assess PST on SaaS and imported software. WorkSafe BC mandatory.");
+      if (payroll > 500_000) lines.push("BC EHT: payroll >$500K triggers 1.95% employer health tax.");
+      break;
+    case "AB":
+      lines.push("No provincial sales tax. GST 5% only. Corporate rate 8% (lowest in Canada). WCB Alberta instead of WSIB. No provincial payroll tax.");
+      break;
+    case "SK":
+      lines.push("PST 6% applies including on SaaS and digital services. Corporate rate 12%. WCB Saskatchewan.");
+      break;
+    case "MB":
+      lines.push("RST 7%. Health and post-secondary education levy on payroll >$2.25M. Manitoba Business Council grants available.");
+      break;
+    case "NS":
+      lines.push("HST 15% — highest combined rate in Canada. Corporate rate 14%. WCB Nova Scotia.");
+      break;
+    case "NB":
+      lines.push("HST 15%. Corporate rate 14%. WorkSafeNB.");
+      break;
+    case "NL":
+      lines.push("HST 15%. Corporate rate 15%. WorkplaceNL.");
+      break;
+    case "PE":
+      lines.push("HST 15%. Corporate rate 16%. WCB PEI.");
+      break;
+    default:
+      lines.push(`Province ${province} — apply standard federal rules. Confirm current provincial rates and WCB/WSIB equivalent.`);
+  }
+
+  // CCPC-specific flags
+  if (hasHoldco)         lines.push("Holdco structure — assess RDTOH, CDA, intercorporate dividends, passive income grind.");
+  if (passiveOver50k)    lines.push("Passive income >$50K confirmed — SBD grind-down applies: $5 SBD lost per $1 passive over $50K.");
+  if (lcgeEligible)      lines.push("LCGE eligible — $1,250,000 exemption (2025, indexed). Optimize QSBC share test before any exit event.");
+  if (rdtohBalance > 0)  lines.push(`RDTOH balance $${(rdtohBalance ?? 0).toLocaleString()} — refund at 38.33% per $1 eligible dividend paid.`);
+  if (hasCDA)            lines.push("CDA balance confirmed — tax-free capital dividend available. Quantify at owner marginal rate.");
+  if (sredLastYear > 0)  lines.push(`SR&ED claimed $${(sredLastYear ?? 0).toLocaleString()} last year — assess for additional eligible work.`);
+
+  return lines.join("\n");
 }
 
 // ── Benchmark context from real profile data ──────────────────────────────────

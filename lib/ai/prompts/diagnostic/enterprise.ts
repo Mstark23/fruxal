@@ -73,8 +73,9 @@ export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; us
 
   const evRange    = resolveEVMultiple(industrySlug);
   const evMultiple = evRange.label;
-  const evLow      = Math.round(estimatedEBITDA * evRange.low);
-  const evHigh     = Math.round(estimatedEBITDA * evRange.high);
+  // Floor: if EBITDA unknown/zero, use revenue multiple as proxy
+  const evLow  = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * evRange.low)  : Math.round(annualRevenue * 0.5);
+  const evHigh = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * evRange.high) : Math.round(annualRevenue * 0.8);
 
   const systemPrompt = `${FRUXAL_VOICE}
 
@@ -94,7 +95,7 @@ you can calculate a real dollar impact from this business's actual numbers.
 1. SALARY vs DIVIDEND MIX
    Owner salary: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "unknown"} | Revenue: $${annualRevenue.toLocaleString()} | EBITDA: ~$${estimatedEBITDA.toLocaleString()}
    → Optimal T4 vs eligible dividend split to minimize combined corporate + personal tax?
-   → CPP over-contribution: salary >$68,500 triggers 11.9% total (employer + employee) — quantify if over-contributing.
+   → CPP: T4 salary above $71,300 (2025 YMPE) triggers combined 11.9% CPP1 (employer + employee). CPP2 adds 4% on earnings $71,300–$81,900. Quantify if over-contributing.
    → At what salary level does additional T4 become net-negative vs dividends?
    → Model after-tax take-home: current mix vs optimal. Dollar difference = the finding.
 
@@ -112,10 +113,10 @@ you can calculate a real dollar impact from this business's actual numbers.
    → If CDA exists and not paid out: calculate the tax cost of delay.
 
 4. LCGE (LIFETIME CAPITAL GAINS EXEMPTION)
-   Eligible: ${lcgeEligible ? "YES — $1,016,602 exemption available (2024)" : "ASSESS — run QSBC share test"}
+   Eligible: ${lcgeEligible ? "YES — $1,250,000 exemption (2025, indexed)" : "ASSESS — run QSBC share test"}
    → QSBC test: >90% assets in active business? Owned by individual or related group?
    → Purification strategy needed? Move passive assets out of opco before exit event.
-   → On a sale at ${evMultiple}: LCGE saves ~$${Math.round(1_016_602 * 0.2676 * 0.5353).toLocaleString()} in tax per owner (at ON marginal rate).
+   → On a sale at ${evMultiple}: LCGE saves ~$${Math.round(1_250_000 * 0.5 * (province === "AB" ? 0.480 : province === "QC" ? 0.5331 : province === "BC" ? 0.535 : province === "SK" ? 0.475 : 0.535)).toLocaleString()} in tax per owner (at ${province} top marginal rate, capital gains inclusion 50%).
 
 5. PASSIVE INCOME GRIND-DOWN
    Passive >$50K: ${passiveOver50k ? "YES — SBD grind-down confirmed" : "assess — check investment income"}
@@ -127,7 +128,7 @@ you can calculate a real dollar impact from this business's actual numbers.
 6. IPP vs RRSP
    Owner salary: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "needed to assess"} | Exit horizon: ${exitHorizon}
    → IPP outperforms RRSP from ~age 40 onward. Past service contribution room can be $200K–$500K+.
-   → RRSP limit 2024: $31,560. IPP can significantly exceed this with past service.
+   → RRSP limit 2025: $32,490. IPP can significantly exceed this with past service — especially valuable if owner age 45+.
    → Fully deductible to the corporation. Actuarial cost ~$3K–5K setup. Quantify net benefit.
    → Only works with T4 income — not dividends.
 
@@ -149,7 +150,7 @@ you can calculate a real dollar impact from this business's actual numbers.
    Exit horizon: ${exitHorizon !== "unknown" ? exitHorizon : "not specified — assess if owner 50+"}
    → Section 86 estate freeze: crystallize current FMV, all future growth to next gen or family trust.
    → Freeze before value appreciates + LCGE on future shares = double tax benefit.
-   → Timing: freeze NOW on $${evLow.toLocaleString()} EV vs after growth to $${Math.round(evLow * 1.5).toLocaleString()} = $${Math.round((evLow * 1.5 - evLow) * 0.2676 * 0.5353).toLocaleString()} incremental tax on the growth.
+   → Timing: freeze NOW at $${evLow.toLocaleString()} EV vs after growth to $${Math.round(evLow * 1.5).toLocaleString()} = $${Math.round((evLow * 1.5 - evLow) * 0.5 * (province === "AB" ? 0.480 : province === "QC" ? 0.5331 : province === "BC" ? 0.535 : 0.535)).toLocaleString()} incremental tax on that growth (${province} top marginal rate, 50% capital gains inclusion).
 
 10. COMPLIANCE & AUDIT RISK
     Obligations: ${obligationsCount} tracked | Overdue: ${overdue} | Penalty exposure: $${(penaltyExposure ?? 0).toLocaleString()}
@@ -207,7 +208,7 @@ ${estimatedPayroll > 0 ? `- Est. Payroll:     $${estimatedPayroll.toLocaleString
 OWNER FINANCIALS
 - Owner Salary:     ${ownerSalary > 0 ? `$${ownerSalary.toLocaleString()}` : "Not provided"}
 - Net Income (LY):  ${exactNetIncome > 0 ? `$${exactNetIncome.toLocaleString()}` : "Not provided"}
-- Est. Tax Drag:    ${estimatedTaxDrag > 0 ? `$${estimatedTaxDrag.toLocaleString()}/yr` : "Not calculated"}
+- Est. Tax Drag:    ${estimatedTaxDrag > 0 ? `$${estimatedTaxDrag.toLocaleString()}/yr [ESTIMATED — formula proxy, not actual CRA filing]` : "Not calculated"}
 - Exit Horizon:     ${exitHorizon !== "unknown" ? exitHorizon : "Not specified"}
 
 CORPORATE TAX FLAGS
