@@ -407,15 +407,12 @@ export default function ChatPage() {
               <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <p className="text-[13px] font-bold text-white mb-1">
-                    {t("You've used your 2 free messages","Vous avez utilisé vos 2 messages gratuits")}
+                    {t("Ask anything about your finances","Posez n'importe quelle question sur vos finances")}
                   </p>
                   <p className="text-[11px]" style={{ color:"rgba(255,255,255,0.6)" }}>
-                    {t("Unlock Business to ask unlimited questions about your finances, leaks, and CPA strategy.","Débloquez Business pour des questions illimitées sur vos finances et stratégie CPA.")}
+                    {t("Your Fruxal Advisor is free. Ask about your leaks, tax strategy, and CPA questions.","Votre conseiller Fruxal est gratuit. Posez des questions sur vos fuites, stratégie fiscale et comptabilité.")}
                   </p>
                 </div>
-                <a href="/v2/checkout?plan=business" className="shrink-0 px-4 py-2 text-[12px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition">
-                  Business $149/mo →
-                </a>
               </div>
             </div>
           ) : (

@@ -580,7 +580,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-ink">
-                          {billing?.plan === "pro" ? "Pro" : billing?.plan === "growth" ? "Growth" : isFr ? "Gratuit" : "Free"}
+                          {billing?.plan === "enterprise" || billing?.plan === "corp" ? "Enterprise" : "Solo"}
                         </h3>
                         <p className="text-xs text-ink-faint">
                           {billing?.status === "active" ? (isFr ? "Actif" : "Active") :
@@ -619,11 +619,10 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Plan comparison */}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {[
-                      { key: "free", name: isFr ? "Gratuit" : "Free", price: "$0", features: [isFr ? "Préscan" : "Prescan", isFr ? "1 diagnostic" : "1 diagnostic", isFr ? "Obligations de base" : "Basic obligations"] },
-                      { key: "pro", name: "Pro", price: "$29/mo", features: [isFr ? "Diagnostics illimités" : "Unlimited diagnostics", isFr ? "Obligations complètes" : "Full obligations", isFr ? "Notifications" : "Notifications", "PDF"] },
-                      { key: "growth", name: "Growth", price: "$79/mo", features: ["Pro +", isFr ? "Benchmarks industrie" : "Industry benchmarks", isFr ? "Support prioritaire" : "Priority support", isFr ? "Multi-entreprises" : "Multi-business"] },
+                      { key: "solo", name: "Solo", price: isFr ? "Gratuit" : "Free", features: [isFr ? "Préscan + rapport" : "Prescan + report", isFr ? "Diagnostic complet" : "Full diagnostic", isFr ? "Obligations" : "Obligations", isFr ? "Programmes gouvernementaux" : "Government programs"] },
+                      { key: "enterprise", name: "Enterprise", price: isFr ? "À la performance" : "Performance fee", features: [isFr ? "Tout de Solo" : "Everything in Solo", isFr ? "Analyste dédié" : "Dedicated analyst", isFr ? "Audit forensique" : "Forensic audit", isFr ? "12% des économies confirmées" : "12% of confirmed savings"] },
                     ].map(plan => (
                       <div key={plan.key} className={`rounded-xl p-4 border transition-all ${
                         billing?.plan === plan.key

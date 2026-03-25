@@ -154,11 +154,8 @@ export default function BusinessDashboard() {
               <p className="text-[11px] text-white/60">{t("Full report · Payroll benchmarks · Fix steps · Advisor call · QuickBooks", "Rapport · Benchmarks · Corrections · Appel conseiller · QuickBooks")}</p>
             </div>
             <div className="flex flex-col gap-2 flex-shrink-0">
-              <button onClick={() => router.push("/v2/checkout?plan=business")} className="px-5 py-2.5 text-[13px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition">
-                {t("Unlock Business — $150/mo →", "Débloquer Business — 150 $/mois →")}
-              </button>
-              <button onClick={() => router.push("/v2/checkout?plan=solo")} className="text-[10px] font-semibold text-white/50 hover:text-white/80 transition text-center">
-                {t("Or start with Solo — $49/mo", "Ou commencer avec Solo — 49 $/mois")}
+              <button onClick={() => router.push("/enterprise")} className="px-5 py-2.5 text-[13px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition">
+                {t("Scale up with Enterprise →", "Passer à l'entreprise →")}
               </button>
             </div>
           </div>

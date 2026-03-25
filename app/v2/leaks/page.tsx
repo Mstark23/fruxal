@@ -319,7 +319,7 @@ export default function LeaksPage() {
         )}
 
         {/* Gate card — shown when free/solo user has locked leaks */}
-        {gated && lockedCount > 0 && (
+        {false && lockedCount > 0 && ( // disabled — leaks are free
           <div className="mt-4 rounded-xl overflow-hidden border"
             style={{ borderColor: "rgba(27,58,45,0.15)" }}>
             {/* Blurred ghost rows */}
@@ -348,11 +348,11 @@ export default function LeaksPage() {
                   Additional <span className="font-bold text-white">${(lockedValue ?? 0).toLocaleString()}</span> in recoverable savings
                 </p>
               )}
-              <a href="/v2/checkout?plan=business"
+              <a href="/register"
                 className="inline-block px-5 py-2.5 text-[12px] font-bold text-brand bg-white rounded-lg hover:opacity-90 transition">
-                Unlock Business $149/mo →
+                {isFR ? "Créer mon compte — Gratuit →" : "Create account — Free →"}
               </a>
-              <p className="text-[9px] mt-2" style={{ color: "rgba(255,255,255,0.4)" }}>Cancel anytime</p>
+              <p className="text-[9px] mt-2" style={{ color: "rgba(255,255,255,0.4)" }}>{isFR ? "Toujours gratuit · Aucune carte" : "Always free · No credit card"}</p>
             </div>
           </div>
         )}
