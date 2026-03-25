@@ -22,7 +22,8 @@ import { generateTasksFromFindings } from "@/lib/ai/task-generator";
 import { getPrescanContext, type PrescanContext } from "@/lib/ai/prescan-context";
 import { suggestGoal } from "@/lib/ai/goal-suggester";
 import { generateComparison } from "@/lib/ai/comparison-generator";
-import { buildTimeline } from "@/lib/ai/timeline-builder";
+import { buildTimeline }         from "@/lib/ai/timeline-builder";
+import { contributeBenchmarks } from "@/lib/benchmark/contribute";
 import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -509,6 +510,29 @@ export async function POST(req: NextRequest) {
 
     // ── 9g. Rebuild timeline (non-blocking)
     buildTimeline(businessId, userId).catch(() => {});
+
+    // ── 9h. Contribute anonymized metrics to benchmark flywheel (non-blocking) ──
+    // Strips all PII — only stores industry+province+revenue_band+metric_value.
+    // Powers benchmark_aggregates table used by Claude and /v2/benchmarks page.
+    contributeBenchmarks({
+      reportId,
+      industrySlug:     profile.industry_slug || profile.industry || "",
+      province,
+      tier,
+      annualRevenue,
+      revenueSource,
+      grossMarginPct,
+      estimatedEBITDA,
+      ebitdaSource,
+      estimatedPayroll,
+      employees,
+      exactNetIncome:   profile.net_income_last_year ?? 0,
+      estimatedTaxDrag: promptInputs.estimatedTaxDrag,
+      // Pass AI-computed benchmark values — highest quality since AI used real docs/QB data
+      aiBenchmarks:     aiResult?.benchmark_comparisons ?? [],
+    }).catch((e: any) =>
+      console.warn("[BenchmarkFlywheel] Non-blocking contribution failed:", e?.message)
+    );
 
     // ── 9f. Generate comparison if previous report exists (non-blocking) ────────
 Promise.resolve(supabaseAdmin

@@ -64,15 +64,43 @@ export async function fetchDiagnosticContext(
         .order("priority_score", { ascending: false })
         .limit(30),
 
-      // Industry benchmarks
-      supabaseAdmin
-        .from("industry_benchmarks")
-        .select("metric_key, metric_name, avg_value, top_performer, unit")
-        .in("industry_slug", [
-          industry,
-          industry.replace(/-\d+$/, ""), // strip trailing version number
-        ])
-        .limit(10),
+      // Industry benchmarks — prefer benchmark_aggregates (real user data) over seeded data
+      (async () => {
+        // Try real aggregated data first (province+industry specific)
+        const { data: agg } = await supabaseAdmin
+          .from("benchmark_aggregates")
+          .select("metric_key, metric_name, metric_name_fr, effective_avg, effective_p75, unit, confidence, sample_size, lower_is_better")
+          .eq("industry_slug", industry)
+          .or(`province.eq.${province},province.eq.ALL`)
+          .order("sample_size", { ascending: false })
+          .limit(10);
+
+        if (agg && agg.length >= 3) {
+          // Enough real data — return aggregates shaped like industry_benchmarks
+          return {
+            data: agg.map(a => ({
+              metric_key:   a.metric_key,
+              metric_name:  a.metric_name,
+              avg_value:    a.effective_avg,
+              top_performer: a.effective_p75,
+              unit:         a.unit || "%",
+              confidence:   a.confidence,
+              sample_size:  a.sample_size,
+            })),
+            error: null,
+          };
+        }
+
+        // Fall back to seeded industry_benchmarks
+        return supabaseAdmin
+          .from("industry_benchmarks")
+          .select("metric_key, metric_name, avg_value, top_performer, unit")
+          .in("industry_slug", [
+            industry,
+            industry.replace(/-\d+$/, ""),
+          ])
+          .limit(10);
+      })(),
     ]);
 
   // Parse obligations
