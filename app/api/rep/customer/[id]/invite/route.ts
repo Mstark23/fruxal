@@ -76,7 +76,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_KEY}` },
       body: JSON.stringify({
-        from: "Fruxal <noreply@fruxal.com>",
+        from: process.env.RESEND_FROM_EMAIL || "Fruxal <noreply@fruxal.com>",
         to:   [clientEmail.toLowerCase().trim()],
         subject: `Your Fruxal Financial Dashboard is Ready — ${companyName}`,
         html: `

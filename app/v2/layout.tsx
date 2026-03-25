@@ -27,7 +27,6 @@ const NAV_STANDARD = [
 const NAV_ENTERPRISE = [
   { path:"/v2/dashboard/enterprise", icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
   { path:"/v2/quickstart", icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>', label:"Quick Start", qs:true },
-  { path:"/v2/quickstart", icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>', label:"Quick Start", qs:true },
   { path:"/v2/history", icon:'<path d=\"M3 3v5h5\"/><path d=\"M3.05 13A9 9 0 106 5.3L3 8\"/><path d=\"M12 7v5l4 2\"/>', label:"My Journey" },
   { path:"/v2/diagnostic/intake",    icon:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label:"Run Intake", cta:true },
   { path:"/v2/obligations",          icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
@@ -55,14 +54,23 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
   const [isBusiness, setIsBusiness] = useState(false);
   const [layoutBusinessId, setLayoutBusinessId] = useState("");
 
-  // Fetch businessId for the compact recovery counter
+  // Fetch businessId for the compact recovery counter — cache in sessionStorage
   useEffect(() => {
     if (!user) return;
+    try {
+      const cached = sessionStorage.getItem("fruxal_businessId");
+      if (cached) { setLayoutBusinessId(cached); return; }
+    } catch { /* non-fatal */ }
     fetch("/api/v2/dashboard")
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.data?.businessId) setLayoutBusinessId(d.data.businessId); })
+      .then(d => {
+        if (d?.data?.businessId) {
+          setLayoutBusinessId(d.data.businessId);
+          try { sessionStorage.setItem("fruxal_businessId", d.data.businessId); } catch { /* non-fatal */ }
+        }
+      })
       .catch(() => {});
-  }, [user]);
+  }, [user?.id]);
 
   // Hydrate tier from localStorage after mount (avoids SSR/client mismatch)
   useEffect(() => {

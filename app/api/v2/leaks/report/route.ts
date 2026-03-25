@@ -146,7 +146,7 @@ export async function GET(req: NextRequest) {
     // Footer
     newPageIfNeeded(50); y -= 10;
     page.drawRectangle({ x: M, y: y - 1, width: CW, height: 1, color: light }); y -= 18;
-    const f1 = "Genere par Fruxal - fruxal.com";
+    const f1 = "Genere par Fruxal - fruxal.vercel.app";
     text(f1, M + (CW - font.widthOfTextAtSize(f1, 8)) / 2, y, 8, font, gray); y -= 12;
     const f2 = "Les resultats sont des estimations basees sur les references de l'industrie.";
     text(f2, M + (CW - font.widthOfTextAtSize(f2, 7)) / 2, y, 7, font, gray);

@@ -118,7 +118,7 @@ async function processRun(req: NextRequest) {
 
   const userMap = new Map((users || []).map((u: any) => [u.id, u]));
 
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.com";
+  const appUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.vercel.app";
   let sent = 0, skipped = 0, errors = 0;
 
   // ── 2. Generate + send brief for each eligible business ─────────────────

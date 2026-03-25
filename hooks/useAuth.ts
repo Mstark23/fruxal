@@ -41,7 +41,7 @@ export function useAuth() {
   }, [router]);
 
   const loginRedirect = useCallback(() => {
-    router.push("/auth/login");
+    router.push("/login"); // correct route — /auth/login doesn't exist
   }, [router]);
 
   return {
