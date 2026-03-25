@@ -296,18 +296,18 @@ export default function SoloDashboard() {
             <h1 className="text-[15px] font-semibold text-ink">{greeting}{user?.name ? ", " + user.name.split(" ")[0] : ""}</h1>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-[10px] text-ink-faint">{profile.industry} · {profile.province}</span>
-              <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: isFree ? "#F0EFEB" : "rgba(45,122,80,0.08)", color: isFree ? "#8E8C85" : "#1B3A2D" }}>
+              <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: isFree ? "#F0EFEB" : "rgba(45,122,80,0.08)", color: isFree ? "#8E8C85" : "#1B3A2D" }}>
                 {isFree ? t("Free", "Gratuit") : "Solo"}
               </span>
               {streak && streak.current > 0 && (
                 <div className="flex items-center gap-1">
                   <div className="flex gap-[2px]">{streak.week_map?.map((a: boolean, i: number) => <div className={"w-[4px] h-[4px] rounded-[1px] " + (a ? "bg-positive" : "bg-border")} />)}</div>
-                  <span key={String(Math.random())} className="text-[9px] text-ink-faint">{streak.current}{t("d", "j")}</span>
+                  <span key={String(Math.random())} className="text-[11px] text-ink-faint">{streak.current}{t("d", "j")}</span>
                 </div>
               )}
             </div>
           </div>
-          <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[9px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
+          <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
         </div>
 
         {/* ANALYZING BANNER */}
@@ -383,7 +383,7 @@ export default function SoloDashboard() {
                     <span className="text-[16px] shrink-0">{u.icon}</span>
                     <div>
                       <p className="text-[11px] font-bold text-ink">{u.title}</p>
-                      <p className="text-[10px] text-ink-muted mt-0.5">{u.sub}</p>
+                      <p className="text-[11px] text-ink-muted mt-0.5">{u.sub}</p>
                     </div>
                   </div>
                 ))}
@@ -406,27 +406,27 @@ export default function SoloDashboard() {
         {/* KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5" style={fadeDelay(0.04)}>
           <button onClick={() => isPaid ? router.push("/v2/diagnostic") : router.push(upgradeUrl)} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all group" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score sante")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score sante")}</div>
             {score > 0 ? (
               <>
                 <div className="flex items-end gap-1.5">
                   <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: score >= 60 ? "#1B3A2D" : "#C4841D" }}>{score}</span>
-                  <span className="text-xs text-ink-faint mb-1">/100</span>
+                  <span className="text-xs text-ink-muted mb-1">/100</span>
                 </div>
                 <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: score + "%", background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
               </>
             ) : (
               <>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
-                <div className="text-[10px] text-ink-faint mt-1.5">{isPaid ? t("Run diagnostic →", "Lancer →") : t("Upgrade to unlock", "Mettre à niveau")}</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{isPaid ? t("Run diagnostic →", "Lancer →") : t("Upgrade to unlock", "Mettre à niveau")}</div>
               </>
             )}
           </button>
 
           <button onClick={() => isPaid ? router.push("/v2/leaks") : router.push(upgradeUrl)} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
-            <div className="text-[10px] text-ink-faint mt-1.5">
+            <div className="text-[11px] text-ink-muted mt-1.5">
               {isPaid ? displayLeaks.length : 1} {t("leaks detected", "fuites detectees")}
               {!isPaid && allLeaks.length > 1 && (
                 <span className="ml-1 text-negative font-semibold">+{allLeaks.length - 1} {t("locked", "verrouillés")}</span>
@@ -435,12 +435,12 @@ export default function SoloDashboard() {
           </button>
 
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Recovered", "Recupere")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Recovered", "Recupere")}</div>
             {isPaid ? (
               <div className="flex items-start justify-between">
                 <div>
                   <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
-                  <div className="text-[10px] text-ink-faint mt-1.5">{leaksFixed} {t("fixed", "corriges")}</div>
+                  <div className="text-[11px] text-ink-muted mt-1.5">{leaksFixed} {t("fixed", "corriges")}</div>
                 </div>
                 <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
               </div>
@@ -450,7 +450,7 @@ export default function SoloDashboard() {
           </div>
 
           <button onClick={() => isPaid ? router.push("/v2/obligations") : router.push(upgradeUrl)} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">OBLIGATIONS</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">OBLIGATIONS</div>
             {isPaid ? (
               <div className="flex items-end gap-2">
                 <span className="font-serif text-[36px] font-bold leading-none tracking-tight">{obligationsTotal}</span>
@@ -468,8 +468,8 @@ export default function SoloDashboard() {
           {/* COL 1: LEAKS */}
           <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
-              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Detected Leaks", "Fuites detectees")}</span>
-              {isPaid && <button onClick={() => router.push("/v2/leaks")} className="text-[9px] font-semibold text-brand hover:underline">{t("View all", "Tout voir")}</button>}
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Detected Leaks", "Fuites detectees")}</span>
+              {isPaid && <button onClick={() => router.push("/v2/leaks")} className="text-[11px] font-semibold text-brand hover:underline">{t("View all", "Tout voir")}</button>}
             </div>
 
             {isFree ? (
@@ -480,19 +480,19 @@ export default function SoloDashboard() {
                       <div className="w-[7px] h-[7px] rounded-full shrink-0 mt-1.5" style={{ background: "#B34040" }} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[9px] font-bold text-white bg-negative px-1.5 py-0.5 rounded">#1</span>
+                          <span className="text-[11px] font-bold text-white bg-negative px-1.5 py-0.5 rounded">#1</span>
                           <span className="text-[12px] font-semibold text-ink">{isFR ? (l.title_fr || l.title) : l.title}</span>
                         </div>
-                        <div className="text-[10px] text-ink-faint mb-2">{l.category}</div>
+                        <div className="text-[11px] text-ink-muted mb-2">{l.category}</div>
                         {(isFR ? (l.action_fr || l.action) : l.action) && (
-                          <div className="p-2 rounded-lg text-[10px] text-ink-secondary mb-2" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.06)" }}>
+                          <div className="p-2 rounded-lg text-[11px] text-ink-secondary mb-2" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.06)" }}>
                             <span className="font-semibold text-brand">{t("Fix: ", "Correction : ")}</span>{isFR ? (l.action_fr || l.action) : l.action}
                           </div>
                         )}
                         {l.affiliates && l.affiliates.length > 0 && (
                           <div className="flex gap-1.5 flex-wrap">
                             {l.affiliates.slice(0, 3).map((a, ai) => (
-                              <a key={ai} href={a.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-semibold text-brand border border-brand/20 px-2 py-0.5 rounded-full hover:bg-brand/5 transition">{a.name}</a>
+                              <a key={ai} href={a.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-brand border border-brand/20 px-2 py-0.5 rounded-full hover:bg-brand/5 transition">{a.name}</a>
                             ))}
                           </div>
                         )}
@@ -510,7 +510,7 @@ export default function SoloDashboard() {
                       <div className="w-[7px] h-[7px] rounded-full shrink-0 bg-border" />
                       <div className="flex-1 min-w-0">
                         <div className="text-[12px] font-semibold text-ink truncate">{isFR ? (l.title_fr || l.title) : l.title}</div>
-                        <div className="text-[9px] text-ink-faint">{l.category}</div>
+                        <div className="text-[11px] text-ink-faint">{l.category}</div>
                       </div>
                       <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
                     </div>
@@ -535,8 +535,8 @@ export default function SoloDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors">{isFR ? (l.title_fr || l.title) : l.title}</div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[9px] text-ink-faint">{l.category}</span>
-                        {l.confidence && (<div className="flex items-center gap-1"><div className="w-5 h-[3px] bg-bg-section rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: l.confidence + "%", background: l.confidence >= 70 ? "#2D7A50" : "#C4841D" }} /></div><span className="text-[8px] text-ink-faint">{Math.round(l.confidence)}%</span></div>)}
+                        <span className="text-[11px] text-ink-faint">{l.category}</span>
+                        {l.confidence && (<div className="flex items-center gap-1"><div className="w-5 h-[3px] bg-bg-section rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: l.confidence + "%", background: l.confidence >= 70 ? "#2D7A50" : "#C4841D" }} /></div><span className="text-[10px] text-ink-faint">{Math.round(l.confidence)}%</span></div>)}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -560,15 +560,15 @@ export default function SoloDashboard() {
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex items-center gap-2">
                   <span className="text-[14px]">&#x1F319;</span>
-                  <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Do This Tonight", "A faire ce soir")}</span>
-                  <span className="text-[9px] text-ink-faint ml-auto">{tonightAction.time_required}</span>
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Do This Tonight", "A faire ce soir")}</span>
+                  <span className="text-[11px] text-ink-faint ml-auto">{tonightAction.time_required}</span>
                 </div>
                 <div className="px-4 py-3">
                   <p className="text-[13px] font-semibold text-ink mb-3">{tonightAction.title}</p>
                   <ol className="space-y-2">
                     {(tonightAction.steps || []).map((step, i) => (
                       <li key={i} className="flex items-start gap-2.5 text-[11px] text-ink-secondary">
-                        <span className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{i + 1}</span>
+                        <span className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{i + 1}</span>
                         {step}
                       </li>
                     ))}
@@ -585,7 +585,7 @@ export default function SoloDashboard() {
 
             <div className="bg-white rounded-xl border border-border-light overflow-hidden flex-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-3 border-b border-border-light">
-                <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Recovery Plan", "Plan de recuperation")}</span>
+                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Recovery Plan", "Plan de recuperation")}</span>
               </div>
               {!isPaid ? (
                 <div className="px-4 py-8 text-center">
@@ -601,17 +601,17 @@ export default function SoloDashboard() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
                   </div>
                   <p className="text-[12px] font-semibold text-ink mb-1">{t("No tasks yet", "Aucune tâche")}</p>
-                  <p className="text-[10px] text-ink-muted mb-2">{t("Run your diagnostic to get your personalized fix plan.", "Lancez votre diagnostic pour obtenir votre plan de correction personnalisé.")}</p>
+                  <p className="text-[11px] text-ink-muted mb-2">{t("Run your diagnostic to get your personalized fix plan.", "Lancez votre diagnostic pour obtenir votre plan de correction personnalisé.")}</p>
                   <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
                 </div>
               ) : allActions.slice(0, 4).map((a, i) => (
                 <div key={i} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
                   <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: "2px solid " + (a.status === "in_progress" ? "#C4841D" : "#E8E6E1") }}>
-                    {a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[9px] font-bold text-ink-faint">{i + 1}</span>}
+                    {a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[11px] font-bold text-ink-faint">{i + 1}</span>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[12px] font-semibold text-ink truncate">{a.leak_title}</div>
-                    {a.fix_description && <div className="text-[9px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}
+                    {a.fix_description && <div className="text-[11px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-serif text-[13px] font-bold text-positive">+${(a.estimated_value ?? 0).toLocaleString()}</div>
@@ -621,7 +621,7 @@ export default function SoloDashboard() {
               ))}
               {completedActions.length > 0 && (
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
-                  <span className="text-[10px] text-ink-muted">{completedActions.length} {t("completed", "terminees")}</span>
+                  <span className="text-[11px] text-ink-muted">{completedActions.length} {t("completed", "terminees")}</span>
                   <span className="text-[10px] font-bold text-positive">+${(recovered ?? 0).toLocaleString()}</span>
                 </div>
               )}
@@ -629,7 +629,7 @@ export default function SoloDashboard() {
 
             {isPaid && northStar && (
               <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <p className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Your North Star", "Votre etoile polaire")}</p>
+                <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">{t("Your North Star", "Votre etoile polaire")}</p>
                 {northStar.metric && <p className="text-[13px] font-semibold text-ink mb-2">{northStar.metric}</p>}
                 {(northStar.current_value || northStar.target_value) && (
                   <div className="flex items-center gap-2 text-[11px] mb-2">
@@ -644,7 +644,7 @@ export default function SoloDashboard() {
 
             {isPaid && ninetyDay && (
               <div className="rounded-xl p-4" style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
-                <p className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(45,122,80,0.7)" }}>{t("90-Day Goal", "Objectif 90 jours")}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(45,122,80,0.7)" }}>{t("90-Day Goal", "Objectif 90 jours")}</p>
                 {ninetyDay.success_statement && <p className="text-[11px] text-ink-secondary leading-relaxed mb-2">{ninetyDay.success_statement}</p>}
                 <div className="space-y-1">
                   {(ninetyDay.key_milestones || []).slice(0, 4).map((m: string, i: number) => (
@@ -659,7 +659,7 @@ export default function SoloDashboard() {
             {isPaid && strengths.length > 0 && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light">
-                  <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("What You Are Doing Well", "Ce que vous faites bien")}</span>
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("What You Are Doing Well", "Ce que vous faites bien")}</span>
                 </div>
                 {strengths.slice(0, 2).map((s, i) => (
                   <div key={i} className="px-4 py-2.5 border-b border-border-light last:border-0">
@@ -679,7 +679,7 @@ export default function SoloDashboard() {
                       ? t("Book a free strategy call", "Réserver un appel stratégie gratuit")
                       : t("Upgrade to " + upgradeName, "Passer a " + upgradeName)}
                   </p>
-                  <p className="text-[9px] text-ink-faint">
+                  <p className="text-[11px] text-ink-faint">
                     {upgradeTarget === "enterprise"
                       ? t("We recover savings on contingency — $0 upfront", "Récupération à la performance — $0 d'avance")
                       : t("Full diagnostic - Fix steps - Alerts", "Diagnostic complet - Etapes - Alertes")}
@@ -699,8 +699,8 @@ export default function SoloDashboard() {
             {/* Deadlines */}
             <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-2.5 border-b border-border-light flex justify-between items-center">
-                <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Deadlines", "Echeances")}</span>
-                {isPaid && <button onClick={() => router.push("/v2/obligations")} className="text-[9px] font-semibold text-brand hover:underline">{t("All", "Tout")}</button>}
+                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Deadlines", "Echeances")}</span>
+                {isPaid && <button onClick={() => router.push("/v2/obligations")} className="text-[11px] font-semibold text-brand hover:underline">{t("All", "Tout")}</button>}
               </div>
               {!isPaid ? (
                 <div className="px-4 py-4 text-center flex flex-col items-center gap-1.5"><LockIcon /><p className="text-[10px] text-ink-faint">{t("Upgrade to see deadlines", "Mettre a niveau")}</p></div>
@@ -710,7 +710,7 @@ export default function SoloDashboard() {
                 <div key={i} onClick={() => router.push("/v2/obligations")} className="px-4 py-2.5 flex items-center justify-between border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer">
                   <div className="flex-1 min-w-0 mr-2">
                     <div className="text-[11px] font-medium text-ink truncate">{dl.title}</div>
-                    {(dl.penalty_max ?? 0) > 0 && <div className="text-[8px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
+                    {(dl.penalty_max ?? 0) > 0 && <div className="text-[10px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
                   </div>
                   <div className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-md shrink-0" style={{ background: dl.days_until <= 3 ? "#B34040" : dl.days_until <= 7 ? "rgba(179,64,64,0.06)" : "#F0EFEB", color: dl.days_until <= 3 ? "white" : dl.days_until <= 7 ? "#B34040" : "#8E8C85" }}>{dl.days_until}{t("d", "j")}</div>
                 </div>
@@ -720,8 +720,8 @@ export default function SoloDashboard() {
             {/* Programs */}
             <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-2.5 border-b border-border-light flex justify-between items-center">
-                <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Government Programs", "Programmes gouvernementaux")}</span>
-                {isPaid && <button onClick={() => router.push("/v2/programs")} className="text-[9px] font-semibold text-brand hover:underline">{t("All", "Tout")}</button>}
+                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Government Programs", "Programmes gouvernementaux")}</span>
+                {isPaid && <button onClick={() => router.push("/v2/programs")} className="text-[11px] font-semibold text-brand hover:underline">{t("All", "Tout")}</button>}
               </div>
               {!isPaid ? (
                 <div className="px-4 py-4 text-center flex flex-col items-center gap-1.5"><LockIcon /><p className="text-[10px] text-ink-faint">{t("Unlock to see programs", "Mettre a niveau")}</p></div>
@@ -742,7 +742,7 @@ export default function SoloDashboard() {
               ) : (
                 <div className="px-4 py-4 text-center">
                   <span className="font-serif text-[28px] font-bold leading-none tracking-tight text-positive">{programsAvailable || "?"}</span>
-                  <p className="text-[10px] text-ink-faint mt-1">{t("Run diagnostic for matched programs", "Lancez le diagnostic pour vos programmes")}</p>
+                  <p className="text-[11px] text-ink-muted mt-1">{t("Run diagnostic for matched programs", "Lancez le diagnostic pour vos programmes")}</p>
                 </div>
               )}
             </div>
@@ -750,12 +750,12 @@ export default function SoloDashboard() {
             {/* Recovery bar */}
             {isPaid && (
               <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <div className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-3">{t("Recovery", "Recuperation")}</div>
+                <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("Recovery", "Recuperation")}</div>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="flex-1 h-2 bg-bg-section rounded-full overflow-hidden"><div className="h-full rounded-full bg-positive transition-all duration-700" style={{ width: Math.max(recovPct, 1) + "%" }} /></div>
                   <span className="text-[12px] font-bold text-ink tabular-nums">{recovPct}%</span>
                 </div>
-                <div className="flex justify-between text-[9px] text-ink-faint">
+                <div className="flex justify-between text-[11px] text-ink-faint">
                   <span>${(recovered ?? 0).toLocaleString()} {t("recovered", "recupere")}</span>
                   <span>${(totalLeak ?? 0).toLocaleString()} total</span>
                 </div>
@@ -770,7 +770,7 @@ export default function SoloDashboard() {
                 </div>
                 <div>
                   <div className="text-[12px] font-semibold text-ink">{t("Ask Fruxal AI", "Demander a Fruxal IA")}</div>
-                  <div className="text-[9px] text-ink-faint">{!isPaid ? t("Upgrade to unlock", "Mettre a niveau") : t("Get answers about your finances", "Posez vos questions financieres")}</div>
+                  <div className="text-[11px] text-ink-faint">{!isPaid ? t("Upgrade to unlock", "Mettre a niveau") : t("Get answers about your finances", "Posez vos questions financieres")}</div>
                 </div>
                 {!isPaid && <div className="ml-auto"><LockIcon /></div>}
               </div>
@@ -828,7 +828,7 @@ export default function SoloDashboard() {
         {isPaid && (diagTasks.length > 0 || diagFindings.length > 0) && (
           <div className="mt-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
                 {t("Action Plan", "Plan d'action")}
               </span>
             </div>
@@ -846,7 +846,7 @@ export default function SoloDashboard() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 </div>
                 <p className="text-[12px] font-semibold text-ink mb-1">{t("Action plan not generated yet", "Plan d'action pas encore généré")}</p>
-                <p className="text-[10px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
+                <p className="text-[11px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
                 <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
               </div>
             )}

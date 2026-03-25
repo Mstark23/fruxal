@@ -252,7 +252,7 @@ export default function DiagnosticReportPage() {
   return (
     <div className="min-h-screen bg-bg">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/90 backdrop-blur-xl border-b border-white/[0.04]">
+      <header className="sticky top-0 z-40 bg-bg/90 backdrop-blur-xl border-b border-white/[0.12]">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button onClick={() => router.push("/v2/dashboard")} className="text-ink-faint hover:text-ink-faint text-sm">←</button>
@@ -260,11 +260,11 @@ export default function DiagnosticReportPage() {
           </div>
           <div className="flex items-center gap-2">
             <a href={`/api/v2/diagnostic/${params.id}/pdf?language=${lang}`} target="_blank"
-              className="text-[10px] px-3 py-1.5 rounded-lg bg-white/[0.04] text-ink/40 hover:text-ink-secondary border border-white/[0.06] transition-colors">
+              className="text-[10px] px-3 py-1.5 rounded-lg bg-white/[0.04] text-ink/90 hover:text-ink-secondary border border-white/[0.16] transition-colors">
               📄 PDF
             </a>
             <button onClick={() => setLang(l => l === "fr" ? "en" : "fr")}
-              className="text-xs text-ink-faint hover:text-ink-faint px-2 py-1 rounded border border-white/[0.06]">
+              className="text-xs text-ink-faint hover:text-ink-faint px-2 py-1 rounded border border-white/[0.16]">
               {isFr ? "EN" : "FR"}
             </button>
           </div>
@@ -288,7 +288,7 @@ export default function DiagnosticReportPage() {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-2xl font-black text-ink">{scores.overall}</span>
-              <span className="text-[8px] text-ink-faint uppercase">{isFr ? "Score" : "Score"}</span>
+              <span className="text-[10px] text-ink-faint uppercase">{isFr ? "Score" : "Score"}</span>
             </div>
           </div>
 
@@ -309,7 +309,7 @@ export default function DiagnosticReportPage() {
             { key: "optimization", label: isFr ? "Optimisation" : "Optimization", color: "#8b5cf6" },
             { key: "growth", label: isFr ? "Croissance" : "Growth", color: "#f59e0b" },
           ] as const).map(s => (
-            <div key={s.key} className="bg-white/[0.02] border border-white/[0.05] rounded-xl px-3 py-2">
+            <div key={s.key} className="bg-white/[0.06] border border-white/[0.14] rounded-xl px-3 py-2">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] text-ink-faint">{s.label}</span>
                 <span className="text-xs font-bold" style={{ color: s.color }}>{(scores as any)[s.key]}</span>
@@ -322,9 +322,9 @@ export default function DiagnosticReportPage() {
         </div>
 
         {/* Executive Summary */}
-        <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-5 mb-6" style={{ animation: "fadeUp 0.4s ease-out" }}>
+        <div className="bg-white/[0.06] border border-white/[0.14] rounded-xl p-5 mb-6" style={{ animation: "fadeUp 0.4s ease-out" }}>
           <h2 className="text-sm font-semibold text-ink-secondary mb-3">{isFr ? "Résumé exécutif" : "Executive Summary"}</h2>
-          <p className="text-xs text-ink-faint leading-relaxed whitespace-pre-wrap">
+          <p className="text-xs text-ink-secondary leading-relaxed whitespace-pre-wrap">
             {isFr ? (report.executive_summary_fr || report.executive_summary) : report.executive_summary}
           </p>
         </div>
@@ -336,7 +336,7 @@ export default function DiagnosticReportPage() {
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                 tab === t.key
                   ? "bg-brand/10 text-brand-accent border border-brand/20"
-                  : "bg-white/[0.02] text-ink-faint border border-transparent hover:text-ink-faint"
+                  : "bg-white/[0.06] text-ink-faint border border-transparent hover:text-ink-faint"
               }`}>
               {isFr ? t.labelFr : t.label}
               {t.count !== undefined && <span className="text-[10px] opacity-50">{t.count}</span>}
@@ -356,14 +356,14 @@ export default function DiagnosticReportPage() {
                 return (
                   <button key={sev} onClick={() => setFilterSeverity(filterSeverity === sev ? null : sev)}
                     className={`text-[10px] px-2.5 py-1 rounded-md transition-all ${
-                      filterSeverity === sev ? `${st.bg} ${st.text}` : "bg-white/[0.02] text-ink/20"
+                      filterSeverity === sev ? `${st.bg} ${st.text}` : "bg-white/[0.06] text-ink/85"
                     }`}>
                     {sev} ({count})
                   </button>
                 );
               })}
               {filterSeverity && (
-                <button onClick={() => setFilterSeverity(null)} className="text-[10px] text-ink/15 hover:text-ink-faint ml-1">✕</button>
+                <button onClick={() => setFilterSeverity(null)} className="text-[10px] text-ink/55 hover:text-ink-faint ml-1">✕</button>
               )}
             </div>
 
@@ -389,7 +389,7 @@ export default function DiagnosticReportPage() {
                   )}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
                     <div>
-                      <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">Score</p>
+                      <p className="text-[11px] text-ink-muted uppercase tracking-wider mb-0.5">Score</p>
                       <p className="text-[12px] font-bold" style={{ color: (comparison.score_delta ?? 0) > 0 ? "#2D7A50" : (comparison.score_delta ?? 0) < 0 ? "#C4841D" : "#8E8C85" }}>
                         {comparison.previous_score} → {comparison.new_score}
                         {(comparison.score_delta ?? 0) !== 0 && ` (${comparison.score_delta > 0 ? "+" : ""}${comparison.score_delta})`}
@@ -398,18 +398,18 @@ export default function DiagnosticReportPage() {
                     </div>
                     {comparison.savings_recovered_monthly > 0 && (
                       <div>
-                        <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">{isFr ? "Récupéré" : "Fixed"}</p>
+                        <p className="text-[11px] text-ink-muted uppercase tracking-wider mb-0.5">{isFr ? "Récupéré" : "Fixed"}</p>
                         <p className="text-[12px] font-bold text-positive">+${(comparison.savings_recovered_monthly ?? 0).toLocaleString()}/mo</p>
                       </div>
                     )}
                     {comparison.findings_new_count > 0 && (
                       <div>
-                        <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">{isFr ? "Nouveaux" : "New"}</p>
+                        <p className="text-[11px] text-ink-muted uppercase tracking-wider mb-0.5">{isFr ? "Nouveaux" : "New"}</p>
                         <p className="text-[12px] font-bold" style={{ color: "#C4841D" }}>{comparison.findings_new_count} ⚠️</p>
                       </div>
                     )}
                     <div>
-                      <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">Net</p>
+                      <p className="text-[11px] text-ink-muted uppercase tracking-wider mb-0.5">Net</p>
                       <p className="text-[12px] font-bold" style={{ color: (comparison.net_monthly_improvement ?? 0) >= 0 ? "#2D7A50" : "#C4841D" }}>
                         {(comparison.net_monthly_improvement ?? 0) >= 0 ? "+" : ""}${(comparison.net_monthly_improvement ?? 0).toLocaleString()}/mo
                       </p>
@@ -451,12 +451,12 @@ export default function DiagnosticReportPage() {
                         &ldquo;{report.goal_suggestion.goal_title}&rdquo;
                       </p>
                       {report.goal_suggestion.goal_description && (
-                        <p className="text-[11px] text-ink/60 mb-2 leading-relaxed">
+                        <p className="text-[11px] text-ink/85 mb-2 leading-relaxed">
                           {report.goal_suggestion.goal_description}
                         </p>
                       )}
                       {report.goal_suggestion.suggestion_rationale && (
-                        <p className="text-[10px] text-ink/40 italic mb-3">
+                        <p className="text-[10px] text-ink/90 italic mb-3">
                           {report.goal_suggestion.suggestion_rationale}
                         </p>
                       )}
@@ -484,7 +484,7 @@ export default function DiagnosticReportPage() {
                           {isFr ? "Ajuster" : "Adjust"}
                         </button>
                         <button onClick={() => setGoalSaved(true)}
-                          className="px-3 py-1.5 text-[9px] text-ink-faint hover:text-ink transition">
+                          className="px-3 py-1.5 text-[11px] text-ink-faint hover:text-ink transition">
                           {isFr ? "Ignorer" : "Dismiss"}
                         </button>
                       </div>
@@ -520,7 +520,7 @@ export default function DiagnosticReportPage() {
                     {prescanLink ? (
                       <div className="space-y-1">
                         <div className="flex flex-wrap gap-3 text-[11px]">
-                          <span className="text-ink/70">
+                          <span className="text-ink/90">
                             {isFr ? "Analyse initiale :" : "Initial scan flagged:"}{" "}
                             <strong>{(prescanLink.leaks_confirmed ?? 0) + (prescanLink.leaks_not_found ?? 0)} {isFr ? "problèmes" : "issues"}</strong>
                           </span>
@@ -534,11 +534,11 @@ export default function DiagnosticReportPage() {
                           )}
                         </div>
                         {prescanLink.continuity_narrative && (
-                          <p className="text-[11px] text-ink/60 italic mt-1">&ldquo;{prescanLink.continuity_narrative}&rdquo;</p>
+                          <p className="text-[11px] text-ink/85 italic mt-1">&ldquo;{prescanLink.continuity_narrative}&rdquo;</p>
                         )}
                       </div>
                     ) : (
-                      <p className="text-[11px] text-ink/50">
+                      <p className="text-[11px] text-ink/80">
                         {isFr
                           ? "Ce diagnostic intègre les données de votre analyse initiale."
                           : "This diagnostic incorporated data from your initial scan."}
@@ -557,53 +557,53 @@ export default function DiagnosticReportPage() {
                     style={{ animation: `fadeUp 0.2s ease-out ${i * 0.03}s both` }}>
 
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded ${st.bg} ${st.text}`}>{f.severity}</span>
-                      <span className="text-[10px] text-ink/15 uppercase">{f.category}</span>
+                      <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded ${st.bg} ${st.text}`}>{f.severity}</span>
+                      <span className="text-[10px] text-ink/55 uppercase">{f.category}</span>
                       {f.confirmed_from_prescan && (
-                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
                           style={{ background: "rgba(196,132,29,0.12)", color: "#C4841D" }}>
                           ✓ {isFr ? "Confirmé depuis l'analyse initiale" : "Confirmed from initial scan"}
                         </span>
                       )}
                       {!f.confirmed_from_prescan && report?.prescan_context_used && (
-                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
                           style={{ background: "rgba(59,130,246,0.10)", color: "#3B82F6" }}>
                           {isFr ? "Nouvelle découverte" : "New — not in initial scan"}
                         </span>
                       )}
-                      <span className="text-[10px] text-ink/10 ml-auto">#{f.priority}</span>
+                      <span className="text-[10px] text-ink/80 ml-auto">#{f.priority}</span>
                     </div>
                     <h3 className="text-sm font-semibold text-ink mb-1">
                       {isFr ? (f.title_fr || f.title) : f.title}
                     </h3>
-                    <p className="text-xs text-ink/35 leading-relaxed mb-2">
+                    <p className="text-xs text-ink/90 leading-relaxed mb-2">
                       {isFr ? (f.description_fr || f.description) : f.description}
                     </p>
                     <div className="flex items-center gap-3 text-[10px] mb-2">
                       <span className={`font-bold ${st.text}`}>💰 ${(f.impact_min ?? 0).toLocaleString()}–${(f.impact_max ?? 0).toLocaleString()}/yr</span>
-                      <span className="text-ink/15">⏱ {f.timeline}</span>
-                      <span className="text-ink/15">📊 {f.difficulty}</span>
-                      <span className="text-ink/10">{f.solution_type}</span>
+                      <span className="text-ink/55">⏱ {f.timeline}</span>
+                      <span className="text-ink/55">📊 {f.difficulty}</span>
+                      <span className="text-ink/80">{f.solution_type}</span>
                     </div>
                     <div className="bg-brand/5 border border-brand/10 rounded-lg px-3 py-2">
-                      <p className="text-[11px] text-brand-accent/70">
+                      <p className="text-[11px] text-brand-accent">
                         ✅ {isFr ? (f.recommendation_fr || f.recommendation) : f.recommendation}
                       </p>
                     </div>
                     {/* Matched solutions for this finding */}
                     {findingSolutions[f.category]?.length > 0 && (
                       <div className="mt-2 pt-2 border-t border-border-light">
-                        <p className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-1.5">
+                        <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">
                           isFr ? "Solutions pour ce constat" : "Solutions for this finding"
                         </p>
                         <div className="space-y-1">
                           {findingSolutions[f.category].slice(0, 2).map((s: any, si: number) => (
                             <div key={si} className="flex items-center justify-between gap-2">
-                              <span className="text-[10px] text-ink-muted truncate">
+                              <span className="text-[11px] text-ink-muted truncate">
                                 → {s.name}{s.savings_estimate ? ` — ${s.savings_estimate}` : ""}
                               </span>
                               <button
-                                className="text-[9px] font-bold text-brand shrink-0 hover:underline"
+                                className="text-[11px] font-bold text-brand shrink-0 hover:underline"
                                 onClick={() => {
                                   fetch("/api/v2/solutions/click", {
                                     method: "POST",
@@ -630,22 +630,22 @@ export default function DiagnosticReportPage() {
         {tab === "plan" && (
           <div className="space-y-2">
             {((report.action_plan as any)?.optimal_sequence ?? []).map((a: any, i: number) => (
-              <div key={i} className="flex items-start gap-3 bg-white/[0.02] border border-white/[0.05] rounded-xl p-4"
+              <div key={i} className="flex items-start gap-3 bg-white/[0.06] border border-white/[0.14] rounded-xl p-4"
                 style={{ animation: `fadeUp 0.2s ease-out ${i * 0.04}s both` }}>
                 <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
                   <span className="text-xs font-bold text-brand-accent">{a.priority}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-ink/75 mb-0.5">
+                  <h3 className="text-sm font-semibold text-ink/90 mb-0.5">
                     {isFr ? (a.title_fr || a.title) : a.title}
                   </h3>
-                  <p className="text-xs text-ink-faint mb-1.5">
+                  <p className="text-xs text-ink-muted mb-1.5">
                     {isFr ? (a.description_fr || a.description) : a.description}
                   </p>
                   <div className="flex items-center gap-3 text-[10px]">
                     <span className="text-brand-accent font-semibold">${(a.estimated_savings ?? 0).toLocaleString()}</span>
-                    <span className="text-ink/15">{a.timeline}</span>
-                    <span className="text-ink/10">{a.difficulty}</span>
+                    <span className="text-ink/55">{a.timeline}</span>
+                    <span className="text-ink/80">{a.difficulty}</span>
                   </div>
                 </div>
               </div>
@@ -657,19 +657,19 @@ export default function DiagnosticReportPage() {
         {tab === "risk" && (
           <div className="space-y-2">
             {(report.risk_matrix ?? []).map((r: any, i: number) => (
-              <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4"
+              <div key={i} className="bg-white/[0.06] border border-white/[0.14] rounded-xl p-4"
                 style={{ animation: `fadeUp 0.2s ease-out ${i * 0.04}s both` }}>
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-sm font-semibold text-ink-secondary">{isFr ? (r.area_fr || r.area) : r.area}</h3>
-                  <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded ${RISK_BG[r.risk_level] || "bg-bg-section text-ink-faint"}`}>{r.risk_level}</span>
+                  <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded ${RISK_BG[r.risk_level] || "bg-bg-section text-ink-faint"}`}>{r.risk_level}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
-                  <div><span className="text-ink/20">{isFr ? "Probabilité" : "Likelihood"}:</span> <span className="text-ink/40">{r.likelihood}</span></div>
-                  <div><span className="text-ink/20">{isFr ? "Impact" : "Impact"}:</span> <span className="text-ink/40">{r.impact}</span></div>
+                  <div><span className="text-ink/85">{isFr ? "Probabilité" : "Likelihood"}:</span> <span className="text-ink/90">{r.likelihood}</span></div>
+                  <div><span className="text-ink/85">{isFr ? "Impact" : "Impact"}:</span> <span className="text-ink/90">{r.impact}</span></div>
                 </div>
                 <p className="text-xs text-ink-faint">{isFr ? (r.current_status_fr || r.current_status) : r.current_status}</p>
                 <div className="mt-2 bg-brand/5 border border-brand/10 rounded-lg px-3 py-2">
-                  <p className="text-[11px] text-brand-accent/60">
+                  <p className="text-[11px] text-brand-accent">
                     {isFr ? (r.recommendation_fr || r.recommendation) : r.recommendation}
                   </p>
                 </div>
@@ -682,13 +682,13 @@ export default function DiagnosticReportPage() {
         {tab === "benchmarks" && (
           <div className="space-y-2">
             {(report.benchmark_comparisons || []).map((b, i) => (
-              <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4"
+              <div key={i} className="bg-white/[0.06] border border-white/[0.14] rounded-xl p-4"
                 style={{ animation: `fadeUp 0.2s ease-out ${i * 0.04}s both` }}>
                 <h3 className="text-sm font-semibold text-ink-secondary mb-2">{isFr ? (b.metric_fr || b.metric) : b.metric}</h3>
                 <div className="grid grid-cols-3 gap-3 text-center mb-2">
-                  <div><div className="text-xs font-bold text-ink-secondary">{b.your_value}</div><div className="text-[9px] text-ink/15">{isFr ? "Vous" : "You"}</div></div>
-                  <div><div className="text-xs font-bold text-blue-400/60">{b.industry_avg}</div><div className="text-[9px] text-ink/15">{isFr ? "Moy. industrie" : "Industry Avg"}</div></div>
-                  <div><div className="text-xs font-bold text-brand-accent/60">{(b as any).top_quartile || (b as any).top_performer}</div><div className="text-[9px] text-ink/15">{isFr ? "Top 25%" : "Top 25%"}</div></div>
+                  <div><div className="text-xs font-bold text-ink-secondary">{b.your_value}</div><div className="text-[11px] text-ink/55">{isFr ? "Vous" : "You"}</div></div>
+                  <div><div className="text-xs font-bold text-blue-400/60">{b.industry_avg}</div><div className="text-[11px] text-ink/55">{isFr ? "Moy. industrie" : "Industry Avg"}</div></div>
+                  <div><div className="text-xs font-bold text-brand-accent">{(b as any).top_quartile || (b as any).top_performer}</div><div className="text-[11px] text-ink/55">{isFr ? "Top 25%" : "Top 25%"}</div></div>
                 </div>
                 <p className="text-[10px] text-ink-faint">{isFr ? (b.gap_fr || b.gap) : b.gap}</p>
               </div>
@@ -697,7 +697,7 @@ export default function DiagnosticReportPage() {
         )}
 
         {/* Footer meta */}
-        <div className="text-center text-[10px] text-ink/10 mt-8 pb-4">
+        <div className="text-center text-[10px] text-ink/80 mt-8 pb-4">
           {isFr ? "Généré en" : "Generated in"} {((report.meta?.duration_ms ?? 0) / 1000).toFixed(1)}s ·
           {report.meta?.model} ·
           {new Date(report.meta?.created_at).toLocaleDateString(isFr ? "fr-CA" : "en-CA")}
@@ -713,9 +713,9 @@ export default function DiagnosticReportPage() {
 
 function MiniKPI({ value, label, color }: { value: string; label: string; color: string }) {
   return (
-    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl px-3 py-2.5 text-center">
+    <div className="bg-white/[0.06] border border-white/[0.14] rounded-xl px-3 py-2.5 text-center">
       <div className={`text-base font-black ${color}`}>{value}</div>
-      <div className="text-[9px] text-ink/20 uppercase">{label}</div>
+      <div className="text-[11px] text-ink/85 uppercase">{label}</div>
     </div>
   );
 }

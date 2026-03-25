@@ -171,6 +171,13 @@ export async function trackClick(params: {
     .select()
     .single();
 
+  // Build tracked redirect URL — append UTM params + referralId for partner attribution
+  const baseUrl = partner.referral_url || "";
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  const trackedUrl = referral
+    ? `${baseUrl}${separator}utm_source=fruxal&utm_medium=diagnostic&utm_campaign=${params.leakCategory}&utm_content=${referral.id}&ref=fruxal`
+    : `${baseUrl}${separator}utm_source=fruxal&utm_medium=diagnostic&utm_campaign=${params.leakCategory}`;
+
   // 3. Track click in quick-tracking table
   await supabase.from("affiliate_clicks").insert({
     businessId: params.businessId || null,
@@ -189,7 +196,7 @@ export async function trackClick(params: {
 
   return {
     referralId: referral?.id || "",
-    redirectUrl: partner.referral_url || "",
+    redirectUrl: trackedUrl,
   };
 }
 

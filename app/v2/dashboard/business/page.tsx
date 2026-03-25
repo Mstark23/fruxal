@@ -237,18 +237,18 @@ export default function BusinessDashboard() {
             <h1 className="text-[15px] font-semibold text-ink">{greeting}{user?.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-[10px] text-ink-faint">{profile.industry} · {profile.province}</span>
-              <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: "rgba(27,58,45,0.10)", color: "#1B3A2D" }}>Business</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: "rgba(27,58,45,0.10)", color: "#1B3A2D" }}>Business</span>
               {streak && streak.current > 0 && (
                 <div className="flex items-center gap-1">
                   <div className="flex gap-[2px]">{streak.week_map?.map((a: boolean, i: number) => <div key={i} className={`w-[4px] h-[4px] rounded-[1px] ${a ? "bg-positive" : "bg-border"}`} />)}</div>
-                  <span className="text-[9px] text-ink-faint">{streak.current}{t("d", "j")}</span>
+                  <span className="text-[11px] text-ink-faint">{streak.current}{t("d", "j")}</span>
                 </div>
               )}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[9px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
-            {reportId && <button onClick={() => router.push(`/v2/diagnostic/${reportId}`)} className="h-6 px-2.5 text-[9px] font-bold text-brand bg-brand/5 border border-brand/15 rounded-md hover:bg-brand/10 transition">{t("Full Report →", "Rapport →")}</button>}
+            <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
+            {reportId && <button onClick={() => router.push(`/v2/diagnostic/${reportId}`)} className="h-6 px-2.5 text-[11px] font-bold text-brand bg-brand/5 border border-brand/15 rounded-md hover:bg-brand/10 transition">{t("Full Report →", "Rapport →")}</button>}
           </div>
         </div>
 
@@ -315,12 +315,12 @@ export default function BusinessDashboard() {
         {/* KPI CARDS — 5 on business (adds Bankability) */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5" style={fade(0.04)}>
           <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
             {score > 0 ? (
               <>
                 <div className="flex items-end gap-1.5">
                   <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: score >= 60 ? "#1B3A2D" : "#C4841D" }}>{score}</span>
-                  <span className="text-xs text-ink-faint mb-1">/100</span>
+                  <span className="text-xs text-ink-muted mb-1">/100</span>
                 </div>
                 <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${score}%`, background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
                 {isPaid && dashboardBusinessId && (
@@ -330,15 +330,15 @@ export default function BusinessDashboard() {
             ) : (
               <>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
-                <div className="text-[10px] text-ink-faint mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
               </>
             )}
           </button>
 
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
-            <div className="text-[10px] text-ink-faint mt-1.5">
+            <div className="text-[11px] text-ink-muted mt-1.5">
               {displayLeaks.length} {t("findings", "constats")}
               {!isPaid && (diagFindings.length > 3 || leaks.length > 3) && (
                 <span className="ml-1 text-negative font-semibold">
@@ -349,18 +349,18 @@ export default function BusinessDashboard() {
           </button>
 
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Recovered", "Récupéré")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Recovered", "Récupéré")}</div>
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
-                <div className="text-[10px] text-ink-faint mt-1.5">{leaksFixed} {t("fixed", "corrigés")}</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{leaksFixed} {t("fixed", "corrigés")}</div>
               </div>
               <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
             </div>
           </div>
 
           <button onClick={() => router.push("/v2/obligations")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">OBLIGATIONS</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">OBLIGATIONS</div>
             <div className="flex items-end gap-2">
               <span className="font-serif text-[36px] font-bold leading-none tracking-tight">{obligationsTotal}</span>
               {overdue > 0 && <span className="text-[10px] font-bold text-negative mb-1 px-1.5 py-0.5 rounded" style={{ background: "rgba(179,64,64,0.05)" }}>{overdue} {t("late", "retard")}</span>}
@@ -370,14 +370,14 @@ export default function BusinessDashboard() {
           {/* ── DIAGNOSTIC ADDITION: Bankability KPI ── */}
           <button onClick={() => reportId ? router.push(`/v2/diagnostic/${reportId}`) : router.push("/v2/diagnostic")}
             className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">BANKABILITY ★</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">BANKABILITY ★</div>
             {bankabilityScore > 0 ? (
               <>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: "#0369a1" }}>{bankabilityScore}</div>
                 <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${bankabilityScore}%`, background: "#0ea5e9" }} /></div>
               </>
             ) : (
-              <div className="text-[11px] text-ink-faint mt-1">{t("Run diagnostic →", "Lancer diagnostic →")}</div>
+              <div className="text-[11px] text-ink-muted mt-1">{t("Run diagnostic →", "Lancer diagnostic →")}</div>
             )}
           </button>
         </div>
@@ -395,8 +395,8 @@ export default function BusinessDashboard() {
           {/* COL 1: LEAKS — with diagnostic math blocks */}
           <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
-              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Detected Leaks", "Fuites détectées")}</span>
-              <button onClick={() => router.push("/v2/leaks")} className="text-[9px] font-semibold text-brand hover:underline">{t("View all →", "Tout voir →")}</button>
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Detected Leaks", "Fuites détectées")}</span>
+              <button onClick={() => router.push("/v2/leaks")} className="text-[11px] font-semibold text-brand hover:underline">{t("View all →", "Tout voir →")}</button>
             </div>
 
             {diagFindings.length > 0 ? (
@@ -413,15 +413,15 @@ export default function BusinessDashboard() {
                           <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">${(f.impact_max ?? f.impact_min ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[9px] text-ink-faint">{f.category}</span>
-                          {(f.cost_of_inaction_90_days ?? 0) > 0 && <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(196,132,29,0.06)", color: "#C4841D" }}>⏱ 90d: ${f.cost_of_inaction_90_days.toLocaleString()}</span>}
+                          <span className="text-[11px] text-ink-faint">{f.category}</span>
+                          {(f.cost_of_inaction_90_days ?? 0) > 0 && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(196,132,29,0.06)", color: "#C4841D" }}>⏱ 90d: ${f.cost_of_inaction_90_days.toLocaleString()}</span>}
                         </div>
                       </div>
                     </div>
                     {/* Calculation math — visible only for paid users */}
                     {isPaid && f.calculation_shown && (
                       <div className="ml-[14px] mt-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(27,58,45,0.03)", border: "1px solid rgba(27,58,45,0.06)" }}>
-                        <code className="text-[9px] text-ink-muted leading-relaxed">{f.calculation_shown}</code>
+                        <code className="text-[11px] text-ink-muted leading-relaxed">{f.calculation_shown}</code>
                       </div>
                     )}
                   </div>
@@ -449,7 +449,7 @@ export default function BusinessDashboard() {
                             {locked.length} {t("more findings locked", "constats supplémentaires verrouillés")}
                           </p>
                           {lockedVal > 0 && (
-                            <p className="text-[10px] text-ink-faint mb-3">
+                            <p className="text-[11px] text-ink-muted mb-3">
                               {t("Additional", "Supplémentaire")} <span className="font-bold text-negative">${(lockedVal ?? 0).toLocaleString()}</span> {t("in recoverable savings", "en économies récupérables")}
                             </p>
                           )}
@@ -476,7 +476,7 @@ export default function BusinessDashboard() {
                     <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
                     <div key={i} className="flex-1 min-w-0">
                       <div className={`text-[12px] font-semibold text-ink truncate ${isPaid ? "group-hover:text-brand transition-colors" : ""}`}>{isFR ? (l.title_fr || l.title) : l.title}</div>
-                      <span className="text-[9px] text-ink-faint">{l.category}</span>
+                      <span className="text-[11px] text-ink-faint">{l.category}</span>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
@@ -506,7 +506,7 @@ export default function BusinessDashboard() {
             {/* Recovery Plan */}
             <div className="bg-white rounded-xl border border-border-light overflow-hidden flex-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-3 border-b border-border-light">
-                <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Recovery Plan", "Plan de récupération")}</span>
+                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Recovery Plan", "Plan de récupération")}</span>
               </div>
               {!isPaid ? (
                 <div className="px-4 py-8 text-center">
@@ -521,11 +521,11 @@ export default function BusinessDashboard() {
               ) : allActions.slice(0, 4).map((a, i) => (
                 <div key={a.id} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
                   <div key={i} className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: `2px solid ${a.status === "in_progress" ? "#C4841D" : "#E8E6E1"}` }}>
-                    {a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[9px] font-bold text-ink-faint">{i + 1}</span>}
+                    {a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[11px] font-bold text-ink-faint">{i + 1}</span>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[12px] font-semibold text-ink truncate">{a.leak_title}</div>
-                    {a.fix_description && <div className="text-[9px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}
+                    {a.fix_description && <div className="text-[11px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-serif text-[13px] font-bold text-positive">+${(a.estimated_value ?? 0).toLocaleString()}</div>
@@ -535,7 +535,7 @@ export default function BusinessDashboard() {
               ))}
               {completedActions.length > 0 && (
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
-                  <span className="text-[10px] text-ink-muted">{completedActions.length} {t("completed", "terminées")}</span>
+                  <span className="text-[11px] text-ink-muted">{completedActions.length} {t("completed", "terminées")}</span>
                   <span className="text-[10px] font-bold text-positive">+${(recovered ?? 0).toLocaleString()}</span>
                 </div>
               )}
@@ -545,8 +545,8 @@ export default function BusinessDashboard() {
             {isPaid && briefing && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Accountant Briefing", "Briefing comptable")}</span>
-                  <span className="text-[9px] text-ink-faint">{t("Share with CPA", "Partagez avec votre comptable")}</span>
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Accountant Briefing", "Briefing comptable")}</span>
+                  <span className="text-[11px] text-ink-faint">{t("Share with CPA", "Partagez avec votre comptable")}</span>
                 </div>
                 <div className="px-4 py-3">
                   {/* intro / summary — AI uses 'intro', old schema used 'summary' */}
@@ -560,8 +560,8 @@ export default function BusinessDashboard() {
                     <div className="space-y-1 mb-3">
                       {briefing.talking_points.slice(0, 3).map((tp: any, i: number) => (
                         <div key={i} className="flex items-start gap-2">
-                          <span className="text-brand text-[9px] font-bold mt-0.5 shrink-0">→</span>
-                          <p className="text-[10px] text-ink-secondary">
+                          <span className="text-brand text-[11px] font-bold mt-0.5 shrink-0">→</span>
+                          <p className="text-[11px] text-ink-secondary">
                             {isFR ? (typeof tp === "string" ? tp : (tp.point_fr || tp.point)) : (typeof tp === "string" ? tp : tp.point)}
                           </p>
                         </div>
@@ -572,14 +572,14 @@ export default function BusinessDashboard() {
                   {(briefing.forms_to_discuss?.length > 0 || briefing.cra_forms_relevant?.length > 0) && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {(briefing.forms_to_discuss || briefing.cra_forms_relevant || []).map((form: string, i: number) => (
-                        <span key={i} className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)", color: "#0e7490" }}>{form}</span>
+                        <span key={i} className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)", color: "#0e7490" }}>{form}</span>
                       ))}
                     </div>
                   )}
                   {/* Tax exposure — AI returns string 'tax_exposures', old schema had numeric 'estimated_tax_exposure' */}
                   {(briefing.tax_exposures || briefing.estimated_tax_exposure > 0) && (
                     <div className="px-3 py-2 rounded-lg mb-3" style={{ background: "rgba(196,132,29,0.04)", border: "1px solid rgba(196,132,29,0.10)" }}>
-                      <p className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-1">{t("Tax Exposure", "Exposition fiscale")}</p>
+                      <p className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-1">{t("Tax Exposure", "Exposition fiscale")}</p>
                       {briefing.tax_exposures ? (
                         <p className="text-[11px] font-medium" style={{ color: "#C4841D" }}>
                           {isFR ? (briefing.tax_exposures_fr || briefing.tax_exposures) : briefing.tax_exposures}
@@ -591,7 +591,7 @@ export default function BusinessDashboard() {
                   )}
                   {/* Questions to ask accountant */}
                   {briefing.questions_to_ask?.slice(0, 3).map((q: string, i: number) => (
-                    <p key={i} className="text-[10px] text-ink-secondary italic mb-1 pl-2 border-l-2 border-border-light">"{q}"</p>
+                    <p key={i} className="text-[11px] text-ink-secondary italic mb-1 pl-2 border-l-2 border-border-light">"{q}"</p>
                   ))}
                 </div>
               </div>
@@ -601,15 +601,15 @@ export default function BusinessDashboard() {
             {isPaid && planSequence.length > 0 && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light">
-                  <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("What To Do First", "Quoi faire en premier")}</span>
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("What To Do First", "Quoi faire en premier")}</span>
                 </div>
                 {planSequence.slice(0, 4).map((s: any, i: number) => (
                   <div key={i} className="px-4 py-2.5 flex items-start gap-3 border-b border-border-light last:border-0">
-                    <span className="w-[20px] h-[20px] rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{s.step ?? i + 1}</span>
+                    <span className="w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{s.step ?? i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-[11px] font-medium text-ink-secondary">{isFR ? (s.action_fr || s.action || "") : (s.action || "")}</p>
-                      {s.unlocks?.length > 0 && <p className="text-[9px] text-ink-faint mt-0.5">{t("Unlocks:", "Débloque:")} {s.unlocks.join(", ")}</p>}
-                      {(s.why_first || s.description) && <p className="text-[9px] text-ink-faint mt-0.5 italic">{isFR ? (s.why_first_fr || s.why_first || s.description) : (s.why_first || s.description)}</p>}
+                      {s.unlocks?.length > 0 && <p className="text-[11px] text-ink-faint mt-0.5">{t("Unlocks:", "Débloque:")} {s.unlocks.join(", ")}</p>}
+                      {(s.why_first || s.description) && <p className="text-[11px] text-ink-faint mt-0.5 italic">{isFR ? (s.why_first_fr || s.why_first || s.description) : (s.why_first || s.description)}</p>}
                     </div>
                     {(s.value ?? s.estimated_savings ?? 0) > 0 && (
                       <span className="text-[10px] font-bold text-positive shrink-0">${(s.value ?? s.estimated_savings ?? 0).toLocaleString()}</span>
@@ -630,7 +630,7 @@ export default function BusinessDashboard() {
                 <p className="text-[12px] font-bold text-ink mb-1">
                   {t("CPA Briefing · Priority Sequence · Benchmarks", "Briefing CPA · Séquence · Benchmarks")}
                 </p>
-                <p className="text-[10px] text-ink-faint mb-4">
+                <p className="text-[11px] text-ink-muted mb-4">
                   {t("Full calculation math, accountant talking points, and peer comparisons included.", "Math de calcul, points pour comptable et comparaisons aux pairs inclus.")}
                 </p>
                 <button onClick={() => router.push(upgradeUrl)}
@@ -638,13 +638,13 @@ export default function BusinessDashboard() {
                   style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
                   {t(`Unlock Business ${upgradePrice}/mo →`, `Débloquer Business ${upgradePrice}/mois →`)}
                 </button>
-                <p className="text-[9px] text-ink-faint mt-2">{t("Cancel anytime", "Annulez en tout temps")}</p>
+                <p className="text-[11px] text-ink-muted mt-2">{t("Cancel anytime", "Annulez en tout temps")}</p>
               </div>
             ) : diagBenchmarks.length > 0 && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Costs vs Industry", "Coûts vs industrie")}</span>
-                  <div className="flex items-center gap-3 text-[8px] text-ink-faint">
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Costs vs Industry", "Coûts vs industrie")}</span>
+                  <div className="flex items-center gap-3 text-[10px] text-ink-faint">
                     <span>{t("You", "Vous")}</span><span>{t("Avg", "Moy.")}</span><span>Top 25%</span>
                   </div>
                 </div>
@@ -667,8 +667,8 @@ export default function BusinessDashboard() {
           <div className="flex flex-col gap-3">
             <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-2.5 border-b border-border-light flex justify-between items-center">
-                <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Deadlines", "Échéances")}</span>
-                <button onClick={() => router.push("/v2/obligations")} className="text-[9px] font-semibold text-brand hover:underline">{t("All →", "Tout →")}</button>
+                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Deadlines", "Échéances")}</span>
+                <button onClick={() => router.push("/v2/obligations")} className="text-[11px] font-semibold text-brand hover:underline">{t("All →", "Tout →")}</button>
               </div>
               {deadlines.length === 0 ? (
                 <div className="px-4 py-4 text-[11px] text-ink-faint text-center">{t("None upcoming", "Aucune échéance")}</div>
@@ -676,7 +676,7 @@ export default function BusinessDashboard() {
                 <div key={i} onClick={() => router.push("/v2/obligations")} className="px-4 py-2.5 flex items-center justify-between border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer">
                   <div key={i} className="flex-1 min-w-0 mr-2">
                     <div key={i} className="text-[11px] font-medium text-ink truncate">{dl.title}</div>
-                    {(dl.penalty_max ?? 0) > 0 && <div className="text-[8px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
+                    {(dl.penalty_max ?? 0) > 0 && <div className="text-[10px] text-ink-faint mt-0.5">${dl.penalty_max!.toLocaleString()}</div>}
                   </div>
                   <div className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-md shrink-0" style={{ background: dl.days_until <= 3 ? "#B34040" : dl.days_until <= 7 ? "rgba(179,64,64,0.06)" : "#F0EFEB", color: dl.days_until <= 3 ? "white" : dl.days_until <= 7 ? "#B34040" : "#8E8C85" }}>{dl.days_until}{t("d", "j")}</div>
                 </div>
@@ -684,7 +684,7 @@ export default function BusinessDashboard() {
             </div>
 
             <button onClick={() => router.push("/v2/programs")} className="w-full bg-white rounded-xl border border-border-light p-4 text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Government Programs", "Programmes gouvernementaux")}</div>
+              <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">{t("Government Programs", "Programmes gouvernementaux")}</div>
               <div className="flex items-end gap-2">
                 <span className="font-serif text-[28px] font-bold leading-none tracking-tight text-positive">{programsAvailable}</span>
                 <span className="text-[10px] text-ink-faint mb-0.5">{t("available for you", "disponibles pour vous")}</span>
@@ -692,12 +692,12 @@ export default function BusinessDashboard() {
             </button>
 
             <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-3">{t("Recovery", "Récupération")}</div>
+              <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("Recovery", "Récupération")}</div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="flex-1 h-2 bg-bg-section rounded-full overflow-hidden"><div className="h-full rounded-full bg-positive transition-all duration-700" style={{ width: `${Math.max(recovPct, 1)}%` }} /></div>
                 <span className="text-[12px] font-bold text-ink tabular-nums">{recovPct}%</span>
               </div>
-              <div className="flex justify-between text-[9px] text-ink-faint">
+              <div className="flex justify-between text-[11px] text-ink-faint">
                 <span>${(recovered ?? 0).toLocaleString()} {t("recovered", "récupéré")}</span>
                 <span>${(totalLeak ?? 0).toLocaleString()} total</span>
               </div>
@@ -710,7 +710,7 @@ export default function BusinessDashboard() {
                 </div>
                 <div>
                   <div className="text-[12px] font-semibold text-ink">{t("Book advisor call", "Réserver un appel")}</div>
-                  <div className="text-[9px] text-ink-faint">{isPaid ? t("Monthly 30-min included", "Session 30 min mensuelle incluse") : t("Free 30-min strategy call", "Appel stratégie gratuit de 30 min")}</div>
+                  <div className="text-[11px] text-ink-faint">{isPaid ? t("Monthly 30-min included", "Session 30 min mensuelle incluse") : t("Free 30-min strategy call", "Appel stratégie gratuit de 30 min")}</div>
                 </div>
               </div>
             </a>
@@ -722,7 +722,7 @@ export default function BusinessDashboard() {
                 </div>
                 <div>
                   <div className="text-[12px] font-semibold text-ink">{t("Ask Fruxal AI", "Demander à Fruxal IA")}</div>
-                  <div className="text-[9px] text-ink-faint">{t("Get answers about your finances", "Posez vos questions financières")}</div>
+                  <div className="text-[11px] text-ink-faint">{t("Get answers about your finances", "Posez vos questions financières")}</div>
                 </div>
               </div>
             </button>
@@ -779,7 +779,7 @@ export default function BusinessDashboard() {
         {isPaid && (diagTasks.length > 0 || diagFindings.length > 0) && (
           <div className="mt-4" style={fade(0.15)}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
                 {t("Action Plan", "Plan d'action")}
               </span>
             </div>
@@ -797,7 +797,7 @@ export default function BusinessDashboard() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 </div>
                 <p className="text-[12px] font-semibold text-ink mb-1">{t("Action plan not generated yet", "Plan d'action pas encore généré")}</p>
-                <p className="text-[10px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
+                <p className="text-[11px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
                 <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
               </div>
             )}

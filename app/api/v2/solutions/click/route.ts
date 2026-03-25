@@ -39,7 +39,11 @@ export async function POST(req: NextRequest) {
       clicked_at:    new Date().toISOString(),
     });
 
-    return NextResponse.json({ url });
+    // Append UTM params to URL for affiliate attribution
+    const separator = url.includes("?") ? "&" : "?";
+    const trackedUrl = `${url}${separator}utm_source=fruxal&utm_medium=solution_card&utm_campaign=${source ?? "task_card"}`;
+
+    return NextResponse.json({ url: trackedUrl });
   } catch (err: any) {
     // Non-fatal — still return url so the click works even if tracking fails
     const body = await req.json().catch(() => ({}));

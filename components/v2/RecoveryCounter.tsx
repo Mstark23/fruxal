@@ -184,7 +184,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
             </div>
             <button
               onClick={() => setShowMilestone(false)}
-              className="text-white/40 hover:text-white/70 transition text-[18px] leading-none"
+              className="text-white/75 hover:text-white/70 transition text-[18px] leading-none"
             >
               ×
             </button>
@@ -200,14 +200,14 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
     return (
       <div className="px-3 py-2 rounded-md mx-3 mb-2"
         style={{ background: "rgba(45,122,80,0.06)", border: "1px solid rgba(45,122,80,0.12)" }}>
-        <p className="text-[9px] font-bold text-positive uppercase tracking-wider mb-0.5">
+        <p className="text-[11px] font-bold text-positive uppercase tracking-wider mb-0.5">
           💰 {t("Recovered", "Récupéré")}<MetricTooltip id="recovery_counter" lang={lang} size={12} />
         </p>
         <p className="text-[13px] font-black text-positive">
           {fmt(animatedRecovered)}/{t("mo", "mois")}
         </p>
         {data.savings_available > 0 && (
-          <p className="text-[9px] text-ink-faint mt-0.5">
+          <p className="text-[11px] text-ink-faint mt-0.5">
             {fmt(data.savings_available)} {t("available", "disponible")}
           </p>
         )}
@@ -225,7 +225,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
       <div className="rounded-xl border border-border-light bg-white p-4"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
             💰 {t("Recovery", "Récupération")}
           </span>
         </div>
@@ -258,7 +258,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
               💰 {t("Total Recovered", "Total récupéré")}<MetricTooltip id="recovery_counter" lang={lang} size={12} />
             </span>
             {data.tasks_completed > 0 && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+              <span className="text-[11px] px-1.5 py-0.5 rounded-full font-bold"
                 style={{ background: "rgba(45,122,80,0.08)", color: "#2D7A50" }}>
                 {data.tasks_completed} {t("fix", "correctif")}{data.tasks_completed !== 1 ? (isFR ? "s" : "es") : ""}
               </span>
@@ -300,7 +300,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
         {/* Available */}
         {data.savings_available > 0 && (
           <div className="text-right shrink-0">
-            <p className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-0.5">
+            <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-0.5">
               {t("Still available", "Encore disponible")}
             </p>
             <a href="/v2/tasks"
@@ -308,7 +308,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
               style={{ fontSize: "18px" }}>
               {fmt(data.savings_available)}
             </a>
-            <p className="text-[9px] text-ink-faint">/{t("mo →", "mois →")}</p>
+            <p className="text-[11px] text-ink-faint">/{t("mo →", "mois →")}</p>
           </div>
         )}
       </div>
@@ -316,7 +316,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
       {/* Progress bar */}
       {data.savings_available > 0 && (
         <div className="px-4 pb-3.5">
-          <div className="flex justify-between text-[8px] text-ink-faint mb-1">
+          <div className="flex justify-between text-[11px] text-ink-muted mb-1">
             <span>{t("Recovered", "Récupéré")}</span>
             <span>{t("Available", "Disponible")}</span>
           </div>
@@ -333,7 +333,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
             />
           </div>
           {data.months_on_platform > 0 && (
-            <p className="text-[8px] text-ink-faint mt-1.5">
+            <p className="text-[11px] text-ink-muted mt-1.5">
               {t(`Based on ${data.tasks_completed} completed fix${data.tasks_completed !== 1 ? "es" : ""} · ${data.months_on_platform} month${data.months_on_platform !== 1 ? "s" : ""} on platform`,
                 `Basé sur ${data.tasks_completed} correctif${data.tasks_completed !== 1 ? "s" : ""} · ${data.months_on_platform} mois sur la plateforme`)}
             </p>

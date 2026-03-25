@@ -439,17 +439,17 @@ export default function EnterpriseDashboard() {
                 </span>
               )}
               {lastRun && (
-                <span className={`text-[9px] ${isStale ? "text-caution font-semibold" : "text-ink-faint/60"}`}>
+                <span className={`text-[11px] ${isStale ? "text-caution font-semibold" : "text-ink-faint/60"}`}>
                   {t("Analysed", "Analysé")} {daysStale}d {t("ago", "il y a")}
                   {isStale && " · " + t("refresh recommended", "actualisation recommandée")}
                 </span>
               )}
-              <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+              <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                 style={{ background: "rgba(27,58,45,0.10)", color: "#1B3A2D" }}>
                 Enterprise
               </span>
               {intakeQuality > 0 && (
-                <span className="text-[9px] text-ink-faint">
+                <span className="text-[11px] text-ink-faint">
                   {t("Data quality:", "Qualité données:")} {intakeQuality}%
                 </span>
               )}
@@ -458,12 +458,12 @@ export default function EnterpriseDashboard() {
 
           <div className="flex items-center gap-2">
             <button onClick={() => { const nl = lang === "fr" ? "en" : "fr"; setLang(nl); try { localStorage.setItem("fruxal_lang", nl); sessionStorage.setItem("lg_prescan_lang", nl); } catch { /* non-fatal */ } }}
-              className="h-6 px-2.5 text-[9px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">
+              className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">
               {isFr ? "EN" : "FR"}
             </button>
             {reportId && (
               <button onClick={() => router.push(`/v2/diagnostic/${reportId}`)}
-                className="h-6 px-2.5 text-[9px] font-bold text-brand bg-brand/5 border border-brand/15 rounded-md hover:bg-brand/10 transition">
+                className="h-6 px-2.5 text-[11px] font-bold text-brand bg-brand/5 border border-brand/15 rounded-md hover:bg-brand/10 transition">
                 {t("Full Report →", "Rapport →")}
               </button>
             )}
@@ -532,9 +532,9 @@ export default function EnterpriseDashboard() {
             ].filter(c => c.val).map(({ label, val, fmt, sub }) => (
               <div key={label} className="bg-white border border-border-light rounded-xl px-4 py-3"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <p className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-1">{label}</p>
+                <p className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-1">{label}</p>
                 <p className="text-[15px] font-bold text-ink">{fmt(val!)}</p>
-                <p className="text-[9px] text-ink-faint mt-0.5">{sub}</p>
+                <p className="text-[11px] text-ink-faint mt-0.5">{sub}</p>
               </div>
             ))}
           </div>
@@ -685,7 +685,7 @@ export default function EnterpriseDashboard() {
                     <p className="text-[11px] font-semibold text-ink-secondary">
                       {t("Boost accuracy", "Améliorer la précision")}
                     </p>
-                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                    <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded"
                       style={{ background: "rgba(196,132,29,0.08)", color: "#C4841D" }}>
                       {t("optional", "optionnel")}
                     </span>
@@ -728,10 +728,10 @@ export default function EnterpriseDashboard() {
                        "Analyse IA sur 7 dimensions — prêt à vendre, impact BAIIA, stratégie IMRTD/CDC, benchmarks et plus.")}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1.5">
-                    <span className="text-[9px] text-ink-faint">✓ {t("Exit readiness score", "Score de préparation à la vente")}</span>
-                    <span className="text-[9px] text-ink-faint">✓ {t("EBITDA gap analysis", "Analyse d'écart BAIIA")}</span>
-                    <span className="text-[9px] text-ink-faint">✓ {t("Board briefing memo", "Mémo conseil d'administration")}</span>
-                    <span className="text-[9px] text-ink-faint">✓ {t("CPA talking points", "Points pour comptable")}</span>
+                    <span className="text-[11px] text-ink-faint">✓ {t("Exit readiness score", "Score de préparation à la vente")}</span>
+                    <span className="text-[11px] text-ink-faint">✓ {t("EBITDA gap analysis", "Analyse d'écart BAIIA")}</span>
+                    <span className="text-[11px] text-ink-faint">✓ {t("Board briefing memo", "Mémo conseil d'administration")}</span>
+                    <span className="text-[11px] text-ink-faint">✓ {t("CPA talking points", "Points pour comptable")}</span>
                   </div>
                 </div>
                 <button
@@ -748,7 +748,7 @@ export default function EnterpriseDashboard() {
             {/* What you'll get — preview */}
             <div className="px-6 py-3 border-t border-border-light flex flex-wrap gap-x-5 gap-y-1"
               style={{ background: "#FAFAF8" }}>
-              <p className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider w-full mb-1">
+              <p className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-full mb-1">
                 {t("Your report will include", "Votre rapport inclura")}
               </p>
               {[
@@ -800,10 +800,10 @@ export default function EnterpriseDashboard() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>
                       {t("Next Best Action", "Action prioritaire")}
                     </span>
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(61,122,94,0.4)", color: "#a3d9b8" }}>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(61,122,94,0.4)", color: "#a3d9b8" }}>
                       #{nba.rank ?? 1}
                     </span>
                   </div>
@@ -822,7 +822,7 @@ export default function EnterpriseDashboard() {
                       <p className="text-[22px] font-bold leading-none" style={{ color: "#6ee7a0" }}>
                         +{fmtM(nba.ebitda_improvement)}
                       </p>
-                      <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {t("EBITDA", "BAIIA")}
                       </p>
                     </div>
@@ -855,7 +855,7 @@ export default function EnterpriseDashboard() {
             {/* Step counter row */}
             {planSequence.length > 1 && (
               <div className="px-5 py-2.5 flex items-center gap-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.15)" }}>
-                <span className="text-[9px] mr-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <span className="text-[11px] mr-2" style={{ color: "rgba(255,255,255,0.3)" }}>
                   {t("All steps", "Toutes les étapes")}
                 </span>
                 {planSequence.map((_: any, i: number) => (
@@ -879,13 +879,13 @@ export default function EnterpriseDashboard() {
             <button onClick={() => router.push("/v2/diagnostic")}
               className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
               {scores.overall > 0 ? (
                 <>
                   <div className="flex items-end gap-1.5">
                     <span className="font-serif text-[36px] font-bold leading-none tracking-tight"
                       style={{ color: scores.overall >= 60 ? "#1B3A2D" : "#C4841D" }}>{scores.overall}</span>
-                    <span className="text-xs text-ink-faint mb-1">/100</span>
+                    <span className="text-xs text-ink-muted mb-1">/100</span>
                   </div>
                   <div className="mt-3 h-[3px] bg-bg-section rounded-full">
                     <div className="h-full rounded-full transition-all duration-1000"
@@ -895,7 +895,7 @@ export default function EnterpriseDashboard() {
               ) : (
                 <>
                   <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
-                  <div className="text-[10px] text-ink-faint mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
+                  <div className="text-[11px] text-ink-muted mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
                 </>
               )}
             </button>
@@ -904,18 +904,18 @@ export default function EnterpriseDashboard() {
             <button onClick={() => router.push("/v2/leaks")}
               className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
               <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">
                 {fmtM(totals.leaks)}
               </div>
-              <div className="text-[10px] text-ink-faint mt-1.5">{findings.length} {t("findings", "constats")}</div>
+              <div className="text-[11px] text-ink-muted mt-1.5">{findings.length} {t("findings", "constats")}</div>
             </button>
 
             {/* EBITDA Impact */}
             <button onClick={() => reportId && router.push(`/v2/diagnostic/${reportId}`)}
               className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">
                 {t("EBITDA Impact", "Impact BAIIA")}
               </div>
               {hasEBITDA ? (
@@ -923,10 +923,10 @@ export default function EnterpriseDashboard() {
                   <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">
                     +{fmtM(totals.ebitda_impact)}
                   </div>
-                  <div className="text-[10px] text-ink-faint mt-1.5">{t("if all findings fixed", "si tout corrigé")}</div>
+                  <div className="text-[11px] text-ink-muted mt-1.5">{t("if all findings fixed", "si tout corrigé")}</div>
                 </>
               ) : (
-                <div className="text-[11px] text-ink-faint mt-1">{t("Run diagnostic →", "Lancer diagnostic →")}</div>
+                <div className="text-[11px] text-ink-muted mt-1">{t("Run diagnostic →", "Lancer diagnostic →")}</div>
               )}
             </button>
 
@@ -934,7 +934,7 @@ export default function EnterpriseDashboard() {
             <button onClick={() => reportId && router.push(`/v2/diagnostic/${reportId}`)}
               className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">
                 {t("Enterprise Value", "Valeur d'entreprise")}
               </div>
               {hasEV ? (
@@ -942,7 +942,7 @@ export default function EnterpriseDashboard() {
                   <div className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: "#1B3A2D" }}>
                     +{fmtM(totals.enterprise_value_impact)}
                   </div>
-                  <div className="text-[10px] text-ink-faint mt-1.5">
+                  <div className="text-[11px] text-ink-muted mt-1.5">
                     {(() => {
                       // Derive the actual multiple used from EV ÷ EBITDA impact
                       if (totals.ebitda_impact > 0 && totals.enterprise_value_impact > 0) {
@@ -956,7 +956,7 @@ export default function EnterpriseDashboard() {
                   </div>
                 </>
               ) : (
-                <div className="text-[11px] text-ink-faint mt-1">{t("Requires diagnostic", "Diagnostic requis")}</div>
+                <div className="text-[11px] text-ink-muted mt-1">{t("Requires diagnostic", "Diagnostic requis")}</div>
               )}
             </button>
           </div>
@@ -969,13 +969,13 @@ export default function EnterpriseDashboard() {
             {/* Exit Readiness */}
             <div className="bg-white rounded-xl p-5 border border-border-light"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Exit Readiness", "Prêt à vendre")}</div>
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Exit Readiness", "Prêt à vendre")}</div>
               {scores.exit_readiness > 0 ? (
                 <>
                   <div className="flex items-end gap-1.5">
                     <span className="font-serif text-[36px] font-bold leading-none tracking-tight"
                       style={{ color: scores.exit_readiness >= 70 ? "#2D7A50" : scores.exit_readiness >= 40 ? "#C4841D" : "#B34040" }}>{scores.exit_readiness}</span>
-                    <span className="text-xs text-ink-faint mb-1">/100</span>
+                    <span className="text-xs text-ink-muted mb-1">/100</span>
                   </div>
                   <div className="mt-3 h-[3px] bg-bg-section rounded-full">
                     <div className="h-full rounded-full transition-all duration-1000"
@@ -990,12 +990,12 @@ export default function EnterpriseDashboard() {
             {/* Bankability */}
             <div className="bg-white rounded-xl p-5 border border-border-light"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">BANKABILITY</div>
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">BANKABILITY</div>
               {scores.bankability > 0 ? (
                 <>
                   <div className="flex items-end gap-1.5">
                     <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: "#0369a1" }}>{scores.bankability}</span>
-                    <span className="text-xs text-ink-faint mb-1">/100</span>
+                    <span className="text-xs text-ink-muted mb-1">/100</span>
                   </div>
                   <div className="mt-3 h-[3px] bg-bg-section rounded-full">
                     <div className="h-full rounded-full transition-all duration-1000" style={{ width: scores.bankability + "%", background: "#0ea5e9" }} />
@@ -1010,11 +1010,11 @@ export default function EnterpriseDashboard() {
             <button onClick={() => router.push("/v2/obligations")}
               className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Penalty Exposure", "Pénalités à risque")}</div>
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Penalty Exposure", "Pénalités à risque")}</div>
               <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">
                 {fmtM(totals.penalties || penaltyExposure)}
               </div>
-              <div className="text-[10px] text-ink-faint mt-1.5">
+              <div className="text-[11px] text-ink-muted mt-1.5">
                 {overdue > 0 ? `${overdue} ${t("overdue", "en retard")}` : t("all compliant", "tout conforme")}
               </div>
             </button>
@@ -1023,11 +1023,11 @@ export default function EnterpriseDashboard() {
             <button onClick={() => router.push("/v2/programs")}
               className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Grant Programs", "Subventions")}</div>
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Grant Programs", "Subventions")}</div>
               <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">
                 {fmtM(totals.programs)}
               </div>
-              <div className="text-[10px] text-ink-faint mt-1.5">{t("available", "disponible")}</div>
+              <div className="text-[11px] text-ink-muted mt-1.5">{t("available", "disponible")}</div>
             </button>
           </div>
         )}
@@ -1039,11 +1039,11 @@ export default function EnterpriseDashboard() {
             <p className="text-[15px] font-bold text-ink">{isFr ? (savingsAnchorFr || savingsAnchor) : (savingsAnchor || savingsAnchorFr)}</p>
             <div className="flex items-center justify-center gap-3 mt-1.5">
               {savingsAnchorConf === "exact" ? (
-                <span className="text-[9px] font-medium border rounded-full px-2 py-0.5" style={{ color: "#2D7A50", borderColor: "rgba(45,122,80,0.25)", background: "rgba(45,122,80,0.04)" }}>
+                <span className="text-[11px] font-medium border rounded-full px-2 py-0.5" style={{ color: "#2D7A50", borderColor: "rgba(45,122,80,0.25)", background: "rgba(45,122,80,0.04)" }}>
                   ✓ {t("Based on your T2 and financial statements", "Basé sur votre T2 et états financiers")}
                 </span>
               ) : (
-                <span className="text-[9px] text-ink-faint border border-border-light rounded-full px-2 py-0.5">
+                <span className="text-[11px] text-ink-faint border border-border-light rounded-full px-2 py-0.5">
                   {t("Based on estimates — upload financials for exact figures", "Basé sur estimations — téléversez vos états financiers")}
                 </span>
               )}
@@ -1071,14 +1071,14 @@ export default function EnterpriseDashboard() {
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{findings.length} {t("Findings","Constats")}</span>
-                  {crit>0&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{background:"rgba(179,64,64,0.08)",color:"#B34040"}}>{crit} {t("Critical","Critique")}</span>}
-                  {high>0&&<span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{background:"rgba(196,132,29,0.08)",color:"#C4841D"}}>{high} {t("High","Élevé")}</span>}
-                  {med>0&&<span className="text-[9px] px-1.5 py-0.5 rounded" style={{background:"rgba(142,140,133,0.07)",color:"#8E8C85"}}>{med} {t("Med","Moy.")}</span>}
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{findings.length} {t("Findings","Constats")}</span>
+                  {crit>0&&<span className="text-[11px] font-bold px-1.5 py-0.5 rounded" style={{background:"rgba(179,64,64,0.08)",color:"#B34040"}}>{crit} {t("Critical","Critique")}</span>}
+                  {high>0&&<span className="text-[11px] font-semibold px-1.5 py-0.5 rounded" style={{background:"rgba(196,132,29,0.08)",color:"#C4841D"}}>{high} {t("High","Élevé")}</span>}
+                  {med>0&&<span className="text-[11px] px-1.5 py-0.5 rounded" style={{background:"rgba(142,140,133,0.07)",color:"#8E8C85"}}>{med} {t("Med","Moy.")}</span>}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {reportId&&<button onClick={()=>typeof window !== "undefined" && window.open(`/api/v2/diagnostic/${reportId}/pdf?language=${lang}`,"_blank")} className="text-[9px] font-medium text-ink-faint hover:text-brand border border-border-light rounded px-2 py-0.5">↓ PDF</button>}
-                  {reportId&&<button onClick={()=>router.push(`/v2/diagnostic/${reportId}`)} className="text-[9px] font-semibold text-brand hover:underline">{t("Full report →","Rapport complet →")}</button>}
+                  {reportId&&<button onClick={()=>typeof window !== "undefined" && window.open(`/api/v2/diagnostic/${reportId}/pdf?language=${lang}`,"_blank")} className="text-[11px] font-medium text-ink-faint hover:text-brand border border-border-light rounded px-2 py-0.5">↓ PDF</button>}
+                  {reportId&&<button onClick={()=>router.push(`/v2/diagnostic/${reportId}`)} className="text-[11px] font-semibold text-brand hover:underline">{t("Full report →","Rapport complet →")}</button>}
                 </div>
               </div>
               {/* ── Quick-win / Strategic filter tabs ── */}
@@ -1094,7 +1094,7 @@ export default function EnterpriseDashboard() {
                     ].map(tab => (
                       <button key={tab.key}
                         onClick={() => setFindingsTab(tab.key as any)}
-                        className="text-[9px] font-semibold px-2.5 py-1 rounded-md transition-colors"
+                        className="text-[11px] font-semibold px-2.5 py-1 rounded-md transition-colors"
                         style={findingsTab === tab.key
                           ? { background:"#1B3A2D", color:"#fff" }
                           : { background:"transparent", color:"#8E8C85" }}>
@@ -1102,7 +1102,7 @@ export default function EnterpriseDashboard() {
                       </button>
                     ))}
                     {findingsTab === "quick" && quickWins.length > 0 && (
-                      <span className="ml-auto text-[9px] text-positive font-semibold">
+                      <span className="ml-auto text-[11px] text-positive font-semibold">
                         {t("↑ Start here — low effort, immediate gain","↑ Commencez ici — effort faible, gain immédiat")}
                       </span>
                     )}
@@ -1139,19 +1139,19 @@ export default function EnterpriseDashboard() {
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[9px] text-ink-faint">{f.category}</span>
-                                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                                <span className="text-[11px] text-ink-faint">{f.category}</span>
+                                <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded"
                                   style={{ background: sev.badge, color: sev.text }}>{f.severity}</span>
-                                {f.timeline && <span className="text-[9px] text-ink-faint">{f.timeline}</span>}
+                                {f.timeline && <span className="text-[11px] text-ink-faint">{f.timeline}</span>}
                                 {f.ebitda_improvement > 0 && (
-                                  <span className="text-[9px] font-bold text-positive">+{fmtM(f.ebitda_improvement)} EBITDA</span>
+                                  <span className="text-[11px] font-bold text-positive">+{fmtM(f.ebitda_improvement)} EBITDA</span>
                                 )}
                                 {f.enterprise_value_improvement > 0 && (
-                                  <span className="text-[9px] font-semibold" style={{ color: "#1B3A2D" }}>+{fmtM(f.enterprise_value_improvement)} EV</span>
+                                  <span className="text-[11px] font-semibold" style={{ color: "#1B3A2D" }}>+{fmtM(f.enterprise_value_improvement)} EV</span>
                                 )}
                               </div>
                               {f.calculation_shown && (
-                                <p className="text-[9px] text-ink-faint font-mono mt-1.5 bg-bg-section px-2 py-1 rounded leading-relaxed">
+                                <p className="text-[11px] text-ink-faint font-mono mt-1.5 bg-bg-section px-2 py-1 rounded leading-relaxed">
                                   {isFr ? (f.calculation_shown_fr || f.calculation_shown) : f.calculation_shown}
                                 </p>
                               )}
@@ -1180,8 +1180,8 @@ export default function EnterpriseDashboard() {
                                 <span className="font-serif text-[13px] font-bold text-negative">{fmtM((f.impact_max || f.impact_min) ?? 0)}</span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[9px] text-ink-faint">{f.category}</span>
-                                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: sev.badge, color: sev.text }}>{f.severity}</span>
+                                <span className="text-[11px] text-ink-faint">{f.category}</span>
+                                <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded" style={{ background: sev.badge, color: sev.text }}>{f.severity}</span>
                               </div>
                             </div>
                           );
@@ -1202,7 +1202,7 @@ export default function EnterpriseDashboard() {
                                 {t("Additional", "Supplémentaire")} <span className="font-bold text-negative">{fmtM(lockedValue)}</span> {t("identified — recovered on contingency.", "identifié — récupéré à la performance.")}
                               </p>
                             )}
-                            <p className="text-[10px] text-ink-faint mb-4">
+                            <p className="text-[11px] text-ink-muted mb-4">
                               {t("We find it. We recover it. You pay 12% of what we save you — nothing upfront.", "Nous trouvons. Nous récupérons. Vous payez 12% de ce que nous économisons — rien d'avance.")}
                             </p>
                             <a href={callHref} target="_blank" rel="noopener noreferrer"
@@ -1211,7 +1211,7 @@ export default function EnterpriseDashboard() {
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 0112 2.18 2 2 0 0114.09 4v3.09a2 2 0 01-1.45 1.93l-1.37.46a16 16 0 006.29 6.29l.46-1.37a2 2 0 011.93-1.45z"/></svg>
                               {t("Book free strategy call →", "Réserver un appel stratégie gratuit →")}
                             </a>
-                            <p className="text-[9px] text-ink-faint mt-2">{t("No credit card · No commitment · 30 min", "Sans carte · Sans engagement · 30 min")}</p>
+                            <p className="text-[11px] text-ink-muted mt-2">{t("No credit card · No commitment · 30 min", "Sans carte · Sans engagement · 30 min")}</p>
                           </div>
                         </div>
                       </div>
@@ -1231,7 +1231,7 @@ export default function EnterpriseDashboard() {
             {hasReport && (
               <div className="bg-white rounded-xl border border-border-light p-4"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <div className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-3">{t("Score Breakdown", "Détail des scores")}</div>
+                <div className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("Score Breakdown", "Détail des scores")}</div>
                 <div className="space-y-2">
                   {[
                     { label: t("Compliance", "Conformité"),   val: scores.compliance,     color: "#3b82f6" },
@@ -1260,18 +1260,18 @@ export default function EnterpriseDashboard() {
             {exitReadiness && (
               <div className="bg-white rounded-xl border border-border-light p-4"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <div className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-3">{t("Exit Readiness Detail", "Détail — Prêt à vendre")}</div>
+                <div className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("Exit Readiness Detail", "Détail — Prêt à vendre")}</div>
                 {exitReadiness.value_killers?.map((vk: any, i: number) => (
                   <div key={i} className="flex items-center gap-2 rounded-lg px-3 py-2 mb-1.5"
                     style={{ background: "rgba(179,64,64,0.04)", border: "1px solid rgba(179,64,64,0.10)" }}>
-                    <span className="text-[10px] text-ink-muted flex-1">{vk.issue}</span>
+                    <span className="text-[11px] text-ink-muted flex-1">{vk.issue}</span>
                     <span className="text-[10px] text-negative font-bold shrink-0">-{fmtM(vk.valuation_discount ?? 0)}</span>
                   </div>
                 ))}
                 {exitReadiness.value_builders?.map((vb: any, i: number) => (
                   <div key={i} className="flex items-center gap-2 rounded-lg px-3 py-2 mb-1.5"
                     style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
-                    <span className="text-[10px] text-ink-muted flex-1">{vb.strength}</span>
+                    <span className="text-[11px] text-ink-muted flex-1">{vb.strength}</span>
                     <span className="text-[10px] text-positive font-bold shrink-0">{vb.valuation_premium_label || (vb.valuation_premium_amount ? `+$${vb.valuation_premium_amount.toLocaleString()}` : "")}</span>
                   </div>
                 ))}
@@ -1286,9 +1286,9 @@ export default function EnterpriseDashboard() {
               <div className="bg-white rounded-xl border border-border-light overflow-hidden"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Deadlines", "Échéances")}</span>
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Deadlines", "Échéances")}</span>
                   <button onClick={() => router.push("/v2/obligations")}
-                    className="text-[9px] font-semibold text-brand hover:underline">{t("All →", "Tout →")}</button>
+                    className="text-[11px] font-semibold text-brand hover:underline">{t("All →", "Tout →")}</button>
                 </div>
                 <div className="divide-y divide-border-light">
                   {deadlines.slice(0, 5).map((d: any, i: number) => (
@@ -1320,7 +1320,7 @@ export default function EnterpriseDashboard() {
           return (
             <div className="bg-white rounded-xl border border-border-light px-5 py-4 mb-3"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Executive Summary", "Résumé exécutif")}</p>
+              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">{t("Executive Summary", "Résumé exécutif")}</p>
               <p className="text-[12px] text-ink-muted leading-relaxed">{teaser}</p>
               <div className="mt-3 flex items-center gap-3 pt-3 border-t border-border-light">
                 <div className="w-4 h-4 flex items-center justify-center shrink-0"
@@ -1343,8 +1343,8 @@ export default function EnterpriseDashboard() {
           <div className="bg-white rounded-xl border border-border-light overflow-hidden mb-3"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
-              <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Risk Matrix", "Matrice de risques")}</span>
-              <span className="text-[9px] text-ink-faint">{riskMatrix.length} {t("risks identified", "risques identifiés")}</span>
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Risk Matrix", "Matrice de risques")}</span>
+              <span className="text-[11px] text-ink-faint">{riskMatrix.length} {t("risks identified", "risques identifiés")}</span>
             </div>
             <div className="divide-y divide-border-light">
               {riskMatrix.map((r: any, i: number) => {
@@ -1355,13 +1355,13 @@ export default function EnterpriseDashboard() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] font-semibold text-ink">{isFr ? (r.area_fr || r.area || r.risk) : (r.area || r.risk)}</span>
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0"
+                          <span className="text-[11px] font-bold px-1.5 py-0.5 rounded shrink-0"
                             style={{ background: rc.bg, color: rc.text }}>{r.risk_level}</span>
                         </div>
                         <p className="text-[10px] text-ink-faint mt-0.5">{isFr ? (r.current_status_fr || r.current_status) : r.current_status}</p>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-[9px] text-ink-faint">L{r.likelihood} × I{r.impact}</div>
+                        <div className="text-[11px] text-ink-faint">L{r.likelihood} × I{r.impact}</div>
                         <div className="text-[10px] font-bold" style={{ color: rc.text }}>{(r.likelihood ?? 0) * (r.impact ?? 0)}</div>
                       </div>
                     </div>
@@ -1437,7 +1437,7 @@ export default function EnterpriseDashboard() {
                   {t("Book free strategy call →", "Réserver un appel stratégie gratuit →")}
                 </a>
               </div>
-              <p className="text-center text-[9px] text-ink-faint pb-3">{t("No credit card · No commitment · 30 min call", "Sans carte · Sans engagement · Appel de 30 min")}</p>
+              <p className="text-center text-[11px] text-ink-faint pb-3">{t("No credit card · No commitment · 30 min call", "Sans carte · Sans engagement · Appel de 30 min")}</p>
             </div>
           );
         })()}
@@ -1448,7 +1448,7 @@ export default function EnterpriseDashboard() {
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <span className="text-ink-faint flex-shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
             <div>
-              <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Next Review Recommended", "Prochaine révision recommandée")}</p>
+              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Next Review Recommended", "Prochaine révision recommandée")}</p>
               <p className="text-[12px] text-ink">{nextReview}</p>
             </div>
             <button onClick={() => router.push("/v2/diagnostic/intake")}
@@ -1463,7 +1463,7 @@ export default function EnterpriseDashboard() {
           <div className="bg-white rounded-xl border border-border-light px-5 py-6 mb-3 text-center"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <p className="text-[13px] font-semibold text-ink mb-1">{t("Complete your intake for the full analysis", "Complétez votre questionnaire pour l'analyse complète")}</p>
-            <p className="text-[11px] text-ink-faint mb-3">{t("Upload financials and answer 5 more questions to unlock benchmarks, risk matrix, and board briefing.", "Téléversez vos états financiers pour débloquer les benchmarks, la matrice de risques et le briefing conseil.")}</p>
+            <p className="text-[11px] text-ink-muted mb-3">{t("Upload financials and answer 5 more questions to unlock benchmarks, risk matrix, and board briefing.", "Téléversez vos états financiers pour débloquer les benchmarks, la matrice de risques et le briefing conseil.")}</p>
             <button onClick={() => router.push("/v2/diagnostic/intake")}
               className="text-[11px] font-semibold text-white rounded-lg px-4 py-2"
               style={{ background: "#1B3A2D" }}>
@@ -1493,7 +1493,7 @@ export default function EnterpriseDashboard() {
             <div className="bg-white border border-border-light rounded-xl px-5 py-4 mb-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" , opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s" }}>
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Engagement Status","Statut de l'engagement")}</p>
+                  <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Engagement Status","Statut de l'engagement")}</p>
                   <p className="text-[13px] font-semibold text-ink mt-0.5">
                     {STAGES[currentIdx]?.label || t("In Progress","En cours")}
                     {entStatus.engagement?.targetCompletion && (
@@ -1514,7 +1514,7 @@ export default function EnterpriseDashboard() {
                   <div key={s.key} className="flex-1 flex flex-col items-center gap-1">
                     <div key={i} className="w-full h-[3px] rounded-full" style={{ background: i <= currentIdx ? "#1B3A2D" : "#E5E3DD" }} />
                     {i === currentIdx && (
-                      <div className="text-[8px] text-center font-semibold text-ink leading-tight hidden sm:block" style={{ color:"#1B3A2D" }}>
+                      <div className="text-[10px] text-center font-semibold text-ink leading-tight hidden sm:block" style={{ color:"#1B3A2D" }}>
                         {isFr ? s.labelFr : s.label}
                       </div>
                     )}
@@ -1522,7 +1522,7 @@ export default function EnterpriseDashboard() {
                 ))}
               </div>
               {/* Mobile: just show current stage name */}
-              <p className="text-[9px] text-ink-faint sm:hidden">
+              <p className="text-[11px] text-ink-faint sm:hidden">
                 {t("Step","Étape")} {currentIdx + 1}/{STAGES.length} — {isFr ? STAGES[currentIdx]?.labelFr : STAGES[currentIdx]?.label}
               </p>
             </div>
@@ -1534,7 +1534,7 @@ export default function EnterpriseDashboard() {
         ══════════════════════════════════════════════════════════════════ */}
         {entStatus?.rep && (
           <div className="bg-white border border-border-light rounded-xl px-5 py-4 mb-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" , opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s" }}>
-            <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-3">{t("Your Fruxal Advisor","Votre conseiller Fruxal")}</p>
+            <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("Your Fruxal Advisor","Votre conseiller Fruxal")}</p>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[14px] font-bold shrink-0"
                 style={{ background:"#1B3A2D" }}>
@@ -1543,7 +1543,7 @@ export default function EnterpriseDashboard() {
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-semibold text-ink">{entStatus.rep.name}</p>
                 <p className="text-[10px] text-ink-faint">{t("Senior Financial Advisor","Conseiller financier senior")} · Fruxal</p>
-                {entStatus.rep.province && <p className="text-[9px] text-ink-faint/70">{entStatus.rep.province}</p>}
+                {entStatus.rep.province && <p className="text-[11px] text-ink-faint/70">{entStatus.rep.province}</p>}
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
                 {entStatus.rep.email && (
@@ -1570,7 +1570,7 @@ export default function EnterpriseDashboard() {
               </div>
             </div>
             {entStatus.rep.assignedAt && (
-              <p className="text-[9px] text-ink-faint mt-2.5">
+              <p className="text-[11px] text-ink-muted mt-2.5">
                 {t("Assigned","Assigné")}: {new Date(entStatus.rep.assignedAt).toLocaleDateString(isFr?"fr-CA":"en-CA",{month:"long",day:"numeric",year:"numeric"})}
               </p>
             )}
@@ -1578,7 +1578,7 @@ export default function EnterpriseDashboard() {
         )}
         {!entStatus?.rep && (
           <div className="bg-white border border-border-light rounded-xl px-5 py-4 mb-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" , opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s" }}>
-            <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Your Fruxal Advisor","Votre conseiller Fruxal")}</p>
+            <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">{t("Your Fruxal Advisor","Votre conseiller Fruxal")}</p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full border-2 border-dashed border-border-light flex items-center justify-center text-ink-faint shrink-0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
               <div>
@@ -1597,7 +1597,7 @@ export default function EnterpriseDashboard() {
             <button onClick={() => setDocExpanded(!docExpanded)}
               className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-bg-section/40 transition">
               <div className="flex-1">
-                <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Document Vault","Coffre-fort documents")}</p>
+                <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Document Vault","Coffre-fort documents")}</p>
                 <div className="flex items-center gap-3 mt-1">
                   <p className="text-[13px] font-semibold text-ink">
                   {entStatus?.documents?.received ?? 0} / {entStatus?.documents?.total ?? 0} {t("received","reçus")}
@@ -1609,7 +1609,7 @@ export default function EnterpriseDashboard() {
                     </div>
                   )}
                   {(entStatus.documents?.pending ?? 0) > 0 && (
-                    <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background:"rgba(196,132,29,0.08)", color:"#C4841D" }}>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background:"rgba(196,132,29,0.08)", color:"#C4841D" }}>
                       {entStatus.documents.pending} {t("pending","en attente")}
                     </span>
                   )}
@@ -1632,9 +1632,9 @@ export default function EnterpriseDashboard() {
                           <span className="text-sm">{isOk ? (<span className="flex items-center justify-center w-5 h-5 rounded-full" style={{background:"rgba(45,122,80,0.1)",color:"#3D7A5E"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>) : (<span className="flex items-center justify-center w-5 h-5 rounded-full" style={{background:"rgba(142,140,133,0.08)",color:"#8E8C85"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>)}</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-[12px] font-medium text-ink truncate">{doc.label || doc.document_type}</p>
-                            {doc.notes && <p className="text-[9px] text-ink-faint truncate">{doc.notes}</p>}
+                            {doc.notes && <p className="text-[11px] text-ink-faint truncate">{doc.notes}</p>}
                           </div>
-                          <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
                             style={{ background: isOk ? "rgba(45,122,80,0.08)" : "rgba(142,140,133,0.08)", color: isOk ? "#2D7A50" : "#8E8C85" }}>
                             {isFr ? (isOk ? "Reçu" : "En attente") : (isOk ? "Received" : "Pending")}
                           </span>
@@ -1656,7 +1656,7 @@ export default function EnterpriseDashboard() {
         ══════════════════════════════════════════════════════════════════ */}
         {entStatusLoaded && !entStatus?.pipeline && !entStatus?.engagement && (
           <div className="bg-white border border-border-light rounded-xl px-5 py-4 mb-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" , opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s" }}>
-            <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Outreach Pipeline","Pipeline de prospection")}</p>
+            <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">{t("Outreach Pipeline","Pipeline de prospection")}</p>
             <p className="text-[12px] text-ink mb-3">{t("Your file has not entered the active pipeline yet. Once your diagnostic is reviewed by our team, you'll be contacted to discuss an engagement.","Votre dossier n'est pas encore entré dans le pipeline actif. Une fois votre diagnostic examiné par notre équipe, vous serez contacté.")}</p>
             <button onClick={() => router.push("/v2/diagnostic/intake")}
               className="text-[11px] font-semibold text-white px-4 py-2 rounded-lg"
@@ -1674,16 +1674,16 @@ export default function EnterpriseDashboard() {
             <button onClick={() => setSavingsExpanded(!savingsExpanded)}
               className="w-full px-5 py-4 flex items-start gap-4 text-left hover:bg-bg-section/40 transition">
               <div className="flex-1">
-                <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Savings Tracker","Suivi des économies")}</p>
+                <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Savings Tracker","Suivi des économies")}</p>
                 <div className="flex items-end gap-6 mt-1.5">
                   <div>
                     <p className="text-[22px] font-bold text-ink leading-none">{fmtM(entStatus.savings?.confirmed ?? 0)}</p>
-                    <p className="text-[9px] text-ink-faint mt-0.5">{t("Confirmed savings","Économies confirmées")}</p>
+                    <p className="text-[11px] text-ink-faint mt-0.5">{t("Confirmed savings","Économies confirmées")}</p>
                   </div>
                   {totals.savings > 0 && (
                     <div>
                       <p className="text-[15px] font-semibold text-ink-muted leading-none">{fmtM(totals.savings)}</p>
-                      <p className="text-[9px] text-ink-faint mt-0.5">{t("Projected","Projeté")}</p>
+                      <p className="text-[11px] text-ink-faint mt-0.5">{t("Projected","Projeté")}</p>
                     </div>
                   )}
                   {(entStatus.savings?.confirmed ?? 0) > 0 && totals.savings > 0 && (
@@ -1692,14 +1692,14 @@ export default function EnterpriseDashboard() {
                         <div className="h-full rounded-full transition-all duration-700"
                           style={{ width:Math.min(100,Math.round((entStatus.savings.confirmed/totals.savings)*100)) + "%", background:"#3D7A5E" }} />
                       </div>
-                      <p className="text-[8px] text-ink-faint mt-0.5">
+                      <p className="text-[10px] text-ink-faint mt-0.5">
                         {Math.min(100,Math.round((entStatus.savings.confirmed/totals.savings)*100))}% {t("realized","réalisé")}
                       </p>
                     </div>
                   )}
                 </div>
                 {(entStatus.savings?.feeOwed ?? 0) > 0 && (
-                  <p className="text-[10px] text-ink-faint mt-1.5">
+                  <p className="text-[11px] text-ink-muted mt-1.5">
                     {t("Contingency fee accrued","Honoraires à la performance accumulés")}:
                     <span className="font-semibold text-ink ml-1">{fmtM(entStatus.savings.feeOwed)}</span>
                     <span className="ml-1 text-ink-faint/70">({entStatus.savings.feePercentage}%)</span>
@@ -1721,7 +1721,7 @@ export default function EnterpriseDashboard() {
                         <span className="flex items-center justify-center w-6 h-6 rounded-full" style={{background:"rgba(45,122,80,0.08)",color:"#3D7A5E"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>
                         <div className="flex-1 min-w-0">
                           <p className="text-[12px] font-medium text-ink truncate">{f.leak_name}</p>
-                          <p className="text-[9px] text-ink-faint">{f.category}{f.confidence_note ? ` · ${f.confidence_note}` : ""}</p>
+                          <p className="text-[11px] text-ink-faint">{f.category}{f.confidence_note ? ` · ${f.confidence_note}` : ""}</p>
                         </div>
                         <p className="text-[13px] font-bold shrink-0 text-brand-accent">{fmtM(f.confirmed_amount)}</p>
                       </div>
@@ -1743,7 +1743,7 @@ export default function EnterpriseDashboard() {
             className="bg-white border border-border-light rounded-xl px-4 py-4 flex flex-col gap-2 hover:border-brand/30 hover:shadow-sm transition group">
             <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-bg-section text-ink-muted group-hover:text-brand transition-colors"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 0112 2.18 2 2 0 0114.09 4v3.09a2 2 0 01-1.45 1.93l-1.37.46a16 16 0 006.29 6.29l.46-1.37a2 2 0 011.93-1.45z"/></svg></span>
             <p className="text-[12px] font-bold text-ink">{t("Book a Call","Réserver un appel")}</p>
-            <p className="text-[9px] text-ink-faint">{t("Schedule a strategy call","Planifiez un appel stratégie")}</p>
+            <p className="text-[11px] text-ink-faint">{t("Schedule a strategy call","Planifiez un appel stratégie")}</p>
           </a>
 
           {/* Send to accountant */}
@@ -1757,7 +1757,7 @@ export default function EnterpriseDashboard() {
               </svg>
             </span>
             <p className="text-[12px] font-semibold text-ink">{t("Send to Accountant","Envoyer au comptable")}</p>
-            <p className="text-[9px] text-ink-faint">{t("Pre-written briefing email with findings","Courriel de synthèse pré-rédigé avec constats")}</p>
+            <p className="text-[11px] text-ink-faint">{t("Pre-written briefing email with findings","Courriel de synthèse pré-rédigé avec constats")}</p>
           </button>
 
           {/* Download PDF */}
@@ -1766,7 +1766,7 @@ export default function EnterpriseDashboard() {
             className="bg-white border border-border-light rounded-xl px-4 py-4 flex flex-col gap-2 hover:border-brand/30 hover:shadow-sm transition group disabled:opacity-40 text-left">
             <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-bg-section text-ink-muted group-hover:text-brand transition-colors"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
             <p className="text-[12px] font-semibold text-ink">{t("Download PDF","Télécharger PDF")}</p>
-            <p className="text-[9px] text-ink-faint">{t("Board-ready diagnostic report","Rapport de diagnostic prêt pour le conseil")}</p>
+            <p className="text-[11px] text-ink-faint">{t("Board-ready diagnostic report","Rapport de diagnostic prêt pour le conseil")}</p>
           </button>
 
           {/* Request deeper audit */}
@@ -1784,7 +1784,7 @@ export default function EnterpriseDashboard() {
             className="bg-white border border-border-light rounded-xl px-4 py-4 flex flex-col gap-2 hover:border-brand/30 hover:shadow-sm transition group">
             <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-bg-section text-ink-muted group-hover:text-brand transition-colors"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
             <p className="text-[12px] font-semibold text-ink">{t("Request Deeper Audit","Audit approfondi")}</p>
-            <p className="text-[9px] text-ink-faint">{t("QuickBooks, payroll, tax strategy deep dive","QuickBooks, paie, stratégie fiscale")}</p>
+            <p className="text-[11px] text-ink-faint">{t("QuickBooks, payroll, tax strategy deep dive","QuickBooks, paie, stratégie fiscale")}</p>
           </a>
 
           {/* Update intake */}
@@ -1792,7 +1792,7 @@ export default function EnterpriseDashboard() {
             className="bg-white border border-border-light rounded-xl px-4 py-4 flex flex-col gap-2 hover:border-brand/30 hover:shadow-sm transition group text-left">
             <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-bg-section text-ink-muted group-hover:text-brand transition-colors"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
             <p className="text-[12px] font-semibold text-ink">{t("Update Intake","Mettre à jour l'intake")}</p>
-            <p className="text-[9px] text-ink-faint">{t("New fiscal year? Update your profile for a fresh diagnostic","Nouvel exercice? Mettez à jour votre profil")}</p>
+            <p className="text-[11px] text-ink-faint">{t("New fiscal year? Update your profile for a fresh diagnostic","Nouvel exercice? Mettez à jour votre profil")}</p>
           </button>
 
           {/* AI advisor chat */}
@@ -1801,7 +1801,7 @@ export default function EnterpriseDashboard() {
             style={{ background:"linear-gradient(135deg,rgba(27,58,45,0.04),rgba(45,122,80,0.06))" }}>
             <span className="flex items-center justify-center w-9 h-9 rounded-xl text-ink-muted group-hover:text-brand transition-colors" style={{background:"rgba(27,58,45,0.06)"}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 014 4v1h1a3 3 0 013 3v6a3 3 0 01-3 3H7a3 3 0 01-3-3V10a3 3 0 013-3h1V6a4 4 0 014-4z"/><circle cx="9" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1" fill="currentColor" stroke="none"/><path d="M9 17s1 1 3 1 3-1 3-1"/></svg></span>
             <p className="text-[12px] font-semibold text-ink">{t("Ask AI Advisor","Demander à l'IA")}</p>
-            <p className="text-[9px] text-ink-faint">{t("Drill into any finding with your AI financial advisor","Explorez chaque résultat avec votre conseiller IA")}</p>
+            <p className="text-[11px] text-ink-faint">{t("Drill into any finding with your AI financial advisor","Explorez chaque résultat avec votre conseiller IA")}</p>
           </button>
         </div>
 
@@ -1884,13 +1884,13 @@ Best regards`;
 
                 {/* Subject preview */}
                 <div className="px-6 py-3 border-b border-border-light shrink-0" style={{ background: "#FAFAF8" }}>
-                  <p className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-1">{t("Subject", "Objet")}</p>
+                  <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-1">{t("Subject", "Objet")}</p>
                   <p className="text-[12px] text-ink">{emailSubject}</p>
                 </div>
 
                 {/* Email body preview */}
                 <div className="flex-1 overflow-y-auto px-6 py-4">
-                  <p className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Body", "Corps du message")}</p>
+                  <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">{t("Body", "Corps du message")}</p>
                   <pre className="text-[11px] text-ink-muted leading-relaxed whitespace-pre-wrap font-sans">
                     {emailBody}
                   </pre>
