@@ -16,8 +16,8 @@ import Anthropic           from "@anthropic-ai/sdk";
 import crypto              from "crypto";
 import { resolveTier, tierMaxTokens } from "@/lib/ai/tier";
 import { fetchDiagnosticContext }      from "@/lib/ai/context";
-import { buildSystemPrompt, buildUserPrompt, buildTaxContext, PromptInputs } from "@/lib/ai/prompts";
-import { buildEnterprisePrompts } from "@/lib/ai/prompts/diagnostic/enterprise";
+import { buildTaxContext, PromptInputs } from "@/lib/ai/prompts"; // buildTaxContext still needed for diagCtx assembly
+import { buildDiagnosticPrompts } from "@/lib/ai/prompts/diagnostic/index";
 import { generateTasksFromFindings } from "@/lib/ai/task-generator";
 import { getPrescanContext, type PrescanContext } from "@/lib/ai/prescan-context";
 import { suggestGoal } from "@/lib/ai/goal-suggester";
@@ -253,110 +253,56 @@ export async function POST(req: NextRequest) {
     let systemPrompt: string;
     let userPrompt: string;
 
-    if (tier === "enterprise") {
-      // Format DB context lists for the enterprise prompt
-      const leakList = ctx.leakDetectors.slice(0, 60).map((l: any) =>
-        `- ${l.leak_type_code || l.slug}: ${l.title || l.description} (impact: $${(l.annual_impact_min ?? 0).toLocaleString()}–$${(l.annual_impact_max ?? 0).toLocaleString()})`
-      ).join("\n");
+    // ── Build DiagCtx for all tiers — routes to solo/business/enterprise prompt ──
+    const leakList = ctx.leakDetectors.slice(0, tier === "enterprise" ? 60 : 30).map((l: any) =>
+      `- ${l.leak_type_code || l.slug}: ${l.title || l.description} (impact: $${(l.annual_impact_min ?? 0).toLocaleString()}–$${(l.annual_impact_max ?? 0).toLocaleString()})`
+    ).join("\n");
 
-      const programList = ctx.programs.slice(0, 20).map((p: any) =>
-        `- [${p.slug}] ${isFr ? (p.name_fr || p.name) : p.name}: ${isFr ? (p.description_fr || p.description) : p.description} (up to $${(p.annual_value_max ?? 0).toLocaleString()})`
-      ).join("\n");
+    const programList = ctx.programs.slice(0, tier === "enterprise" ? 20 : 12).map((p: any) =>
+      `- [${p.slug}] ${isFr ? (p.name_fr || p.name) : p.name}: ${isFr ? (p.description_fr || p.description) : p.description} (up to $${(p.annual_value_max ?? 0).toLocaleString()})`
+    ).join("\n");
 
-      const benchmarkList = ctx.benchmarks.slice(0, 10).map((b: any) =>
-        `- ${b.metric_name}: avg ${b.avg_value}${b.unit || "%"}, top quartile ${b.top_performer}${b.unit || "%"}`
-      ).join("\n");
+    const benchmarkList = ctx.benchmarks.slice(0, 10).map((b: any) =>
+      `- ${b.metric_name}: avg ${b.avg_value}${b.unit || "%"}, top quartile ${b.top_performer}${b.unit || "%"}`
+    ).join("\n");
 
-      const taxCtx = buildTaxContext(promptInputs);
+    const taxCtx = buildTaxContext(promptInputs);
 
-      // Build docData section to append to enterprise user prompt
-      const docSection = (() => {
-        const d = promptInputs.docData;
-        if (!d) return "";
-        const lines: string[] = [];
-        if (d.t2) {
-          lines.push("\nVERIFIED T2 CORPORATE RETURN DATA (treat as authoritative — from actual CRA filing):");
-          if (d.t2.tax_year)                 lines.push(`  Tax year: ${d.t2.tax_year}`);
-          if (d.t2.net_income_before_tax)    lines.push(`  Net income before tax: $${d.t2.net_income_before_tax.toLocaleString()}`);
-          if (d.t2.taxable_income)           lines.push(`  Taxable income: $${d.t2.taxable_income.toLocaleString()}`);
-          if (d.t2.total_tax_payable)        lines.push(`  Total tax payable: $${d.t2.total_tax_payable.toLocaleString()}`);
-          if (d.t2.small_business_deduction) lines.push(`  SBD claimed: $${d.t2.small_business_deduction.toLocaleString()}`);
-          if (d.t2.sred_credit_claimed)      lines.push(`  SR&ED credit: $${d.t2.sred_credit_claimed.toLocaleString()}`);
-          if (d.t2.rdtoh_balance)            lines.push(`  RDTOH balance: $${d.t2.rdtoh_balance.toLocaleString()}`);
-          if (d.t2.passive_income)           lines.push(`  Passive income: $${d.t2.passive_income.toLocaleString()}`);
-        }
-        if (d.financials) {
-          lines.push("\nVERIFIED FINANCIAL STATEMENTS (treat as authoritative):");
-          if (d.financials.total_revenue)    lines.push(`  Revenue: $${d.financials.total_revenue.toLocaleString()}`);
-          if (d.financials.gross_profit)     lines.push(`  Gross profit: $${d.financials.gross_profit.toLocaleString()}`);
-          if (d.financials.ebitda)           lines.push(`  EBITDA: $${d.financials.ebitda.toLocaleString()}`);
-          if (d.financials.net_income)       lines.push(`  Net income: $${d.financials.net_income.toLocaleString()}`);
-          if (d.financials.total_assets)     lines.push(`  Total assets: $${d.financials.total_assets.toLocaleString()}`);
-          if (d.financials.total_liabilities)lines.push(`  Total liabilities: $${d.financials.total_liabilities.toLocaleString()}`);
-          if (d.financials.accounts_receivable) lines.push(`  AR: $${d.financials.accounts_receivable.toLocaleString()}`);
-        }
-        if (d.gst) {
-          lines.push("\nVERIFIED GST/HST RETURN DATA:");
-          if (d.gst.total_sales_and_other_revenue) lines.push(`  Reported sales: $${d.gst.total_sales_and_other_revenue.toLocaleString()}`);
-          if (d.gst.gst_hst_collected)             lines.push(`  GST/HST collected: $${d.gst.gst_hst_collected.toLocaleString()}`);
-          if (d.gst.input_tax_credits)             lines.push(`  ITCs claimed: $${d.gst.input_tax_credits.toLocaleString()}`);
-          if (d.gst.quick_method !== undefined)    lines.push(`  Quick method: ${d.gst.quick_method ? "YES" : "NO"}`);
-        }
-        if (d.t4) {
-          lines.push("\nVERIFIED T4 SUMMARY DATA:");
-          if (d.t4.total_employment_income) lines.push(`  Total payroll: $${d.t4.total_employment_income.toLocaleString()}`);
-          if (d.t4.number_of_t4s)           lines.push(`  T4s issued: ${d.t4.number_of_t4s}`);
-          if (d.t4.total_cpp_deducted)      lines.push(`  CPP deducted: $${d.t4.total_cpp_deducted.toLocaleString()}`);
-        }
-        if (d.bank) {
-          lines.push("\nVERIFIED BANK STATEMENT DATA:");
-          if (d.bank.average_monthly_balance) lines.push(`  Avg monthly balance: $${d.bank.average_monthly_balance.toLocaleString()}`);
-          if (d.bank.monthly_revenue_deposits) lines.push(`  Monthly revenue deposits: $${d.bank.monthly_revenue_deposits.toLocaleString()}`);
-          if (d.bank.nsf_count)               lines.push(`  NSF count: ${d.bank.nsf_count}`);
-        }
-        return lines.join("\n");
-      })();
+    const diagCtx = {
+      profile,
+      province,
+      annualRevenue,
+      revenueSource,
+      employees,
+      isFr,
+      estimatedPayroll,
+      estimatedEBITDA,
+      ebitdaSource,
+      grossMarginPct,
+      ownerSalary:      profile.owner_salary ?? 0,
+      exactNetIncome:   profile.net_income_last_year ?? 0,
+      estimatedTaxDrag: promptInputs.estimatedTaxDrag,
+      taxCtx,
+      leakList,
+      programList,
+      benchmarkList,
+      overdue:          ctx.overdue,
+      penaltyExposure:  ctx.penaltyExposure,
+      obligationsCount: ctx.obligations.length,
+      exitHorizon:      profile.exit_horizon && profile.exit_horizon !== "none" ? profile.exit_horizon : "unknown",
+      hasHoldco:        profile.has_holdco            ?? false,
+      passiveOver50k:   profile.passive_income_over_50k ?? false,
+      lcgeEligible:     profile.lcge_eligible         ?? false,
+      rdtohBalance:     profile.rdtoh_balance ?? 0,
+      hasCDA:           profile.has_cda_balance       ?? false,
+      sredLastYear:     profile.sred_claimed_last_year ?? 0,
+      docData:          promptInputs.docData ?? { t2: null, financials: null, gst: null, t4: null, bank: null },
+    };
 
-      const diagCtx = {
-        profile,
-        province,
-        annualRevenue,
-        revenueSource,
-        employees,
-        isFr,
-        estimatedPayroll,
-        estimatedEBITDA,
-        ebitdaSource,
-        grossMarginPct,
-        ownerSalary:    profile.owner_salary ?? 0,
-        exactNetIncome: profile.net_income_last_year ?? 0,
-        estimatedTaxDrag: promptInputs.estimatedTaxDrag,
-        taxCtx,
-        leakList,
-        programList,
-        benchmarkList,
-        overdue:          ctx.overdue,
-        penaltyExposure:  ctx.penaltyExposure,
-        obligationsCount: ctx.obligations.length,
-        exitHorizon:    profile.exit_horizon && profile.exit_horizon !== "none" ? profile.exit_horizon : "unknown",
-        hasHoldco:      profile.has_holdco            ?? false,
-        passiveOver50k: profile.passive_income_over_50k ?? false,
-        lcgeEligible:   profile.lcge_eligible         ?? false,
-        rdtohBalance:   profile.rdtoh_balance ?? 0,
-        hasCDA:         profile.has_cda_balance       ?? false,
-        sredLastYear:   profile.sred_claimed_last_year ?? 0,
-        docData: promptInputs.docData ?? { t2: null, financials: null, gst: null, t4: null, bank: null },
-      };
-
-      const entPrompts = buildEnterprisePrompts(diagCtx);
-      systemPrompt = entPrompts.systemPrompt;
-      // Append verified doc data to enterprise user prompt if available
-      userPrompt = docSection ? entPrompts.userPrompt + docSection : entPrompts.userPrompt;
-
-    } else {
-      systemPrompt = buildSystemPrompt(promptInputs);
-      userPrompt   = buildUserPrompt(promptInputs);
-    }
+    // Single call — routes to correct tier prompt (solo / business / enterprise)
+    const prompts = buildDiagnosticPrompts(tier, diagCtx);
+    systemPrompt = prompts.systemPrompt;
+    userPrompt   = prompts.userPrompt;
 
 
     // ── Append prescan baseline data to system prompt (under 400 tokens) ────
