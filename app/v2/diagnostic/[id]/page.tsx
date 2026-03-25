@@ -438,7 +438,7 @@ export default function DiagnosticReportPage() {
                 style={{ borderColor: "rgba(27,58,45,0.2)", background: "rgba(27,58,45,0.03)" }}>
                 <div className="px-4 py-3 border-b" style={{ borderColor: "rgba(27,58,45,0.12)", background: "rgba(27,58,45,0.06)" }}>
                   <div className="flex items-center gap-2">
-                    <span>🎯</span>
+                    
                     <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#1B3A2D" }}>
                       {isFr ? "OBJECTIF SUGGÉRÉ SUR 90 JOURS" : "SUGGESTED 90-DAY GOAL"}
                     </span>
@@ -594,7 +594,7 @@ export default function DiagnosticReportPage() {
                     {findingSolutions[f.category]?.length > 0 && (
                       <div className="mt-2 pt-2 border-t border-border-light">
                         <p className="text-[9px] font-bold text-ink-faint uppercase tracking-wider mb-1.5">
-                          💡 {isFr ? "Solutions pour ce constat" : "Solutions for this finding"}
+                          isFr ? "Solutions pour ce constat" : "Solutions for this finding"
                         </p>
                         <div className="space-y-1">
                           {findingSolutions[f.category].slice(0, 2).map((s: any, si: number) => (

@@ -419,7 +419,7 @@ export default function LandingPage() {
                         </div>
                         <div className="px-5 pb-4">
                           <div className="flex items-start gap-2">
-                            <span className="text-positive text-xs mt-0.5 shrink-0">💡</span>
+                            <svg className="w-3 h-3 text-positive mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                             <p className="text-xs text-ink-secondary leading-relaxed"><strong className="text-ink font-medium">{t("What you can do:", "Ce que vous pouvez faire :")}</strong> {isFR ? leak.action_fr : leak.action}</p>
                           </div>
                           {leak.affiliates && leak.affiliates.length > 0 && (

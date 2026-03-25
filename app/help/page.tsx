@@ -41,10 +41,10 @@ const SECTIONS = [
   },
   {
     title: "Intelligence Engine",
-    icon: "🧠",
+    icon: "📊",
     items: [
       { q: "What is the Intelligence Engine?", a: "A 3-tier AI system. Tier 1 (free): automatic pattern detection that runs on every scan. Tier 2 (weekly): batch analysis across all businesses to find market-wide trends. Tier 3 (on-demand): deep AI analysis of your specific business using Claude." },
-      { q: "How does the AI chat work?", a: "The 🤖 button in the dashboard opens a chat with Claude AI that has access to all your leak data. Ask questions like 'What should I fix first?' or 'Why is my labor cost high?' and get personalized advice." },
+      { q: "How does the AI chat work?", a: "The chat button in the dashboard opens a conversation with Claude AI that has access to all your leak data. Ask questions like 'What should I fix first?' or 'Why is my labor cost high?' and get personalized advice." },
     ],
   },
 ];

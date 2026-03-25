@@ -226,7 +226,7 @@ export default function PrescanPage() {
               </div>
               <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-3">
                 <p className="text-[11px] text-amber-400/60">
-                  💡 {answers.province === "SK" ? "Saskatchewan has 0% provincial corporate tax on the first $600K — the best rate in Canada." :
+                  {answers.province === "SK" ? "Saskatchewan has 0% provincial corporate tax on the first $600K — the best rate in Canada." :
                      answers.province === "AB" ? "Alberta has the lowest corporate rate in Canada at 8%." :
                      answers.province === "NL" ? "NL has the biggest gap between personal (54.8%) and corporate (12%) rates in Canada." :
                      "Your business structure directly affects how much tax you pay. We'll check if you're optimized."}

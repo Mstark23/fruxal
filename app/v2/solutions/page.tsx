@@ -208,7 +208,7 @@ export default function SolutionsPage() {
       {/* Header */}
       <div>
         <h1 className="text-[18px] font-black text-ink">
-          💡 Solutions for {businessName}
+          Solutions for {businessName}
         </h1>
         <p className="text-[11px] text-ink-faint mt-0.5">
           {totalSolutions} tools and services matched to your situation

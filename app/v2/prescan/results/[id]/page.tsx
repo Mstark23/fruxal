@@ -387,7 +387,7 @@ export default function PrescanResultsPage() {
                   { icon: "📊", en: "Industry benchmarks", fr: "Repères de l'industrie" },
                   { icon: "🏛️", en: "All matching programs", fr: "Tous les programmes" },
                   { icon: "📄", en: "PDF report", fr: "Rapport PDF" },
-                  { icon: "🤖", en: "AI-powered analysis", fr: "Analyse par IA" },
+                  { icon: "📐", en: "AI-powered analysis", fr: "Analyse par IA" },
                 ].map((f, i) => (
                   <div key={i} className="flex items-center gap-2 text-[10px] text-white/25">
                     <span>{f.icon}</span><span>{isFR ? f.fr : f.en}</span>

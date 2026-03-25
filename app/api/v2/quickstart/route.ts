@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
         label_fr:    "Lancez votre prescan gratuit",
         description: "See your top financial leaks in 2 minutes — no signup needed",
         desc_fr:     "Voyez vos principales fuites financières en 2 minutes",
-        href:        "/prescan",
+        href:        "/",
         done:        !!prescanRow,
         points:      15,
       },

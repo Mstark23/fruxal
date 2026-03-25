@@ -19,7 +19,7 @@ const NAV_STANDARD = [
   { path:"/v2/diagnostic/intake",  icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
   { path:"/v2/programs",    icon:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label:"Programs" },
   { path:"/v2/solutions", icon:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>', label:"Solutions" },
-  { path:"/v2/chat",        icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"AI Chat" },
+  { path:"/v2/chat",        icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"Advisor" },
   { path:"/v2/faq", icon:'<circle cx="12" cy="12" r="10"/><path d="M9 10a3 3 0 016 0c0 1.5-1.5 2.5-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>', label:"FAQ" },
 ];
 
@@ -32,7 +32,7 @@ const NAV_ENTERPRISE = [
   { path:"/v2/obligations",          icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
   { path:"/v2/diagnostic/intake",    icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
   { path:"/v2/programs",             icon:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label:"Programs" },
-  { path:"/v2/chat",                 icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"AI Chat" },
+  { path:"/v2/chat",                 icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"Advisor" },
   { path:"/v2/faq", icon:'<circle cx="12" cy="12" r="10"/><path d="M9 10a3 3 0 016 0c0 1.5-1.5 2.5-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>', label:"FAQ" },
 ];
 
@@ -52,6 +52,7 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
   // Start with false to match SSR, then hydrate from localStorage in useEffect
   const [isEnterprise, setIsEnterprise] = useState(false);
   const [isBusiness, setIsBusiness] = useState(false);
+  const [lang, setLang] = useState<"en"|"fr">("en");
   const [layoutBusinessId, setLayoutBusinessId] = useState("");
 
   // Fetch businessId for the compact recovery counter — cache in sessionStorage
@@ -75,6 +76,8 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
   // Hydrate tier from localStorage after mount (avoids SSR/client mismatch)
   useEffect(() => {
     try {
+      const l = localStorage.getItem("fruxal_lang");
+      if (l === "fr") setLang("fr");
       const t = localStorage.getItem("fruxal_tier");
       setIsEnterprise(t === "enterprise");
       setIsBusiness(t === "business");

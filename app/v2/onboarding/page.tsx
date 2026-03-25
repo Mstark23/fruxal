@@ -422,7 +422,7 @@ export default function OnboardingPage() {
 
               <div className="bg-blue-500/8 border border-blue-500/15 rounded-xl px-4 py-3 mb-2">
                 <p className="text-xs text-blue-400/80">
-                  💡 {isFr ? "Plus vous remplissez de dates, plus vos échéances seront précises. Ne vous inquiétez pas si vous n'avez pas tout — vous pourrez les ajouter plus tard." : "The more dates you fill in, the more accurate your deadlines. Don't worry if you don't have everything — you can add them later."}
+                  {isFr ? "Plus vous remplissez de dates, plus vos échéances seront précises. Ne vous inquiétez pas si vous n'avez pas tout — vous pourrez les ajouter plus tard." : "The more dates you fill in, the more accurate your deadlines. Don't worry if you don't have everything — you can add them later."}
                 </p>
               </div>
 

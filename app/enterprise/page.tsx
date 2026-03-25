@@ -322,7 +322,7 @@ export default function EnterprisePage() {
               {[
                 t("🔒 NDA on day 1","🔒 NDA dès le jour 1"),
                 t("🇨🇦 Canadian data servers","🇨🇦 Serveurs canadiens"),
-                t("⚡ No upfront fees","⚡ Aucun frais initial"),
+                t("No upfront fees","Aucun frais initial"),
               ].map(item => (
                 <span key={item} className="text-[11px] text-[#8E8C85] font-medium">{item}</span>
               ))}
