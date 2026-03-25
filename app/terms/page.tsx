@@ -19,7 +19,7 @@ export default function TermsPage() {
           <p>You must provide accurate information when creating an account. You&apos;re responsible for maintaining the security of your account. One person or legal entity per account.</p>
 
           <h2 className="text-lg font-bold text-[#1a1a2e] mt-6">3. Billing</h2>
-          <p>Free plan: limited to 3 visible leaks per scan. Pro ($49/mo) and Team ($99/mo) plans are billed monthly via Stripe. You can cancel anytime from Settings. Refunds are available within 30 days of initial purchase.</p>
+          <p>Solo and Business tiers are free — no subscription, no credit card required. Enterprise tier is billed at 12% of confirmed savings recovered, as agreed in your engagement terms. All amounts are in Canadian dollars.</p>
 
           <h2 className="text-lg font-bold text-[#1a1a2e] mt-6">4. Your Data</h2>
           <p>You retain ownership of all data you provide. We use your data solely to provide the Service. We do not sell your data to third parties. See our Privacy Policy for details.</p>

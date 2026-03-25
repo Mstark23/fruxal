@@ -456,7 +456,7 @@ export default function BusinessDashboard() {
                           <button onClick={() => router.push(upgradeUrl)}
                             className="text-[11px] font-bold text-white px-4 py-2 rounded-lg transition hover:opacity-90"
                             style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
-                            {t(`Unlock Business ${upgradePrice}/mo →`, `Débloquer Business ${upgradePrice}/mois →`)}
+                            {t("Scale up with Enterprise →", "Passer à l'entreprise →")}
                           </button>
                         </div>
                       </div>
@@ -488,7 +488,7 @@ export default function BusinessDashboard() {
                   <div className="px-4 py-4 text-center border-t border-border-light">
                     <p className="text-[11px] text-ink-muted mb-2.5">{leaks.length - 3} {t("more leaks hidden", "fuites supplémentaires cachées")}</p>
                     <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-white bg-brand px-4 py-2 rounded-lg hover:opacity-90 transition">
-                      {t(`Unlock Business ${upgradePrice}/mo`, `Débloquer Business ${upgradePrice}/mois`)}
+                      {t("Scale up with Enterprise", "Passer à l'entreprise")}
                     </button>
                   </div>
                 )}
@@ -513,7 +513,7 @@ export default function BusinessDashboard() {
                   <LockIcon />
                   <p className="text-[11px] text-ink-muted mt-2 mb-3">{t("Your personalized fix plan unlocks with Business.", "Votre plan de correction se débloque avec Business.")}</p>
                   <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-brand border border-brand/20 px-3 py-1.5 rounded-lg hover:bg-brand/5 transition">
-                    {t(`Unlock ${upgradePrice}/mo`, `Débloquer ${upgradePrice}/mois`)}
+                    {t("Scale up →", "Passer →")}
                   </button>
                 </div>
               ) : allActions.length === 0 ? (
@@ -636,7 +636,7 @@ export default function BusinessDashboard() {
                 <button onClick={() => router.push(upgradeUrl)}
                   className="text-[11px] font-bold text-white px-5 py-2.5 rounded-lg transition hover:opacity-90"
                   style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
-                  {t(`Unlock Business ${upgradePrice}/mo →`, `Débloquer Business ${upgradePrice}/mois →`)}
+                  {t("Scale up with Enterprise →", "Passer à l'entreprise →")}
                 </button>
                 <p className="text-[11px] text-ink-muted mt-2">{t("Cancel anytime", "Annulez en tout temps")}</p>
               </div>

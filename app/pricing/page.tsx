@@ -95,7 +95,7 @@ export default function PricingPage() {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-brand-soft rounded-full text-xs font-semibold text-brand mb-5">
             <span className="w-1.5 h-1.5 rounded-full bg-positive" />
-            Try free for 7 days — no credit card required
+            Free forever — no credit card required
           </div>
           <h1 className="font-serif text-[40px] sm:text-[52px] text-ink font-normal mb-4 leading-tight">
             Simple, transparent pricing
@@ -115,9 +115,9 @@ export default function PricingPage() {
               <span className="text-[10px] font-bold uppercase tracking-wider text-positive bg-positive/10 px-2.5 py-1 rounded-full">Most popular</span>
             </div>
             <div className="font-serif text-[44px] text-ink tracking-tight font-normal leading-none mb-1">
-              $49<span className="font-sans text-[15px] text-ink-muted font-normal ml-1">/ month</span>
+              Free
             </div>
-            <p className="text-[12px] text-positive font-semibold mb-2">✶ Try free for 7 days</p>
+            <p className="text-[12px] text-positive font-semibold mb-2">✶ Free forever · No credit card</p>
             <p className="text-sm text-ink-secondary mb-6 leading-relaxed">For self-employed and solo operators under $500K revenue.</p>
             <ul className="mb-8 flex-1 space-y-0">
               {FEATURES_SOLO.map(([en]) => (
@@ -126,9 +126,9 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <button onClick={() => router.push("/v2/checkout?plan=solo")}
+            <button onClick={() => router.push("/register")}
               className="w-full py-3.5 text-sm font-semibold rounded-xl bg-brand text-white hover:bg-brand-light transition text-center">
-              Try free for 7 days →
+              Get started free →
             </button>
             <p className="text-[10px] text-ink-faint text-center mt-2">No credit card · Cancel anytime</p>
           </div>
@@ -140,9 +140,9 @@ export default function PricingPage() {
               <span className="text-[10px] font-bold uppercase tracking-widest text-brand bg-brand-soft px-2.5 py-1 rounded-full">Business</span>
             </div>
             <div className="font-serif text-[44px] text-ink tracking-tight font-normal leading-none mb-1">
-              $149<span className="font-sans text-[15px] text-ink-muted font-normal ml-1">/ month</span>
+              Free
             </div>
-            <p className="text-[12px] text-positive font-semibold mb-2">✶ Try free for 7 days</p>
+            <p className="text-[12px] text-positive font-semibold mb-2">✶ Free forever · No credit card</p>
             <p className="text-sm text-ink-secondary mb-6 leading-relaxed">For businesses with employees doing $150K–$1M revenue.</p>
             <ul className="mb-8 flex-1 space-y-0">
               {FEATURES_BUSINESS.map(([en]) => (
@@ -151,9 +151,9 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <button onClick={() => router.push("/v2/checkout?plan=business")}
+            <button onClick={() => router.push("/register")}
               className="w-full py-3.5 text-sm font-semibold rounded-xl bg-brand text-white hover:bg-brand-light transition text-center">
-              Try free for 7 days →
+              Get started free →
             </button>
             <p className="text-[10px] text-ink-faint text-center mt-2">No credit card · Cancel anytime</p>
           </div>

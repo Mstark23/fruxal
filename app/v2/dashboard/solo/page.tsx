@@ -394,7 +394,7 @@ export default function SoloDashboard() {
                   ? t("Book a discovery call →", "Réserver un appel →")
                   : isFR
                   ? `Débloquer mon rapport complet — ${upgradePrice}/mois →`
-                  : `Unlock my full report — ${upgradePrice}/month →`}
+                  : t("Scale up with Enterprise →", "Passer à l'entreprise →")}
               </button>
               <p className="text-[10px] text-ink-faint text-center mt-2">
                 {t("7-day free trial · No credit card required · Cancel anytime", "7 jours gratuits · Aucune carte requise · Annulez à tout moment")}
@@ -522,7 +522,7 @@ export default function SoloDashboard() {
                       {allLeaks.length - 1} {t("more leaks hidden", "fuites supplementaires cachees")}
                     </p>
                     <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-white bg-brand px-4 py-2 rounded-lg hover:opacity-90 transition">
-                      {t("Unlock " + upgradeName + " " + upgradePrice + "/mo", "Debloquer " + upgradeName + " " + upgradePrice + "/mois")}
+                      {t("Scale up with Enterprise", "Passer à l'entreprise")}
                     </button>
                   </div>
                 )}
@@ -592,7 +592,7 @@ export default function SoloDashboard() {
                   <LockIcon />
                   <p className="text-[11px] text-ink-muted mt-2 mb-3">{t("Your personalized fix plan is locked.", "Votre plan de correction est verrouille.")}</p>
                   <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-brand border border-brand/20 px-3 py-1.5 rounded-lg hover:bg-brand/5 transition">
-                    {t("Unlock for " + upgradePrice + "/mo", "Debloquer pour " + upgradePrice + "/mois")}
+                    {t("Scale up →", "Passer →")}
                   </button>
                 </div>
               ) : allActions.length === 0 ? (

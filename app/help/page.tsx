@@ -27,7 +27,7 @@ const SECTIONS = [
     items: [
       { q: "How do I fix a leak?", a: "Click 'Fix' on any leak to see recommended actions and vetted partner services. Some fixes are simple (renegotiate a rate), others connect you with a specialist (switch payment processors, get new insurance quotes)." },
       { q: "Who are the affiliate partners?", a: "We maintain a database of 200+ vetted service providers across categories like payment processing, insurance, payroll, marketing, and more. Each partner is matched to specific leak types they can solve." },
-      { q: "Do I pay anything to fix a leak?", a: "Using Fruxal to identify and track leaks is free (3 leaks) or $49/mo (all leaks). The partner services themselves have their own pricing, which is always shown upfront. We never charge hidden fees." },
+      { q: "Do I pay anything to fix a leak?", a: "Using Fruxal is completely free — all leaks visible, full diagnostic included. The partner services we recommend have their own pricing, which is always shown upfront. Fruxal earns a small referral fee from partners only when you choose to use them. We never charge you hidden fees." },
     ],
   },
   {
@@ -35,8 +35,8 @@ const SECTIONS = [
     icon: "billing",
     items: [
       { q: "What's included in the free plan?", a: "1 scan, 3 leaks visible with full details, health score, basic insights. Enough to see the value before upgrading." },
-      { q: "What does Pro ($49/mo) include?", a: "All leaks visible, fix recommendations with affiliate partners, AI intelligence engine, unlimited scans, reports & exports, email notifications." },
-      { q: "Can I cancel anytime?", a: "Yes. Go to Settings → Billing → Manage Subscription. Cancel in one click. 30-day money-back guarantee on all paid plans." },
+      { q: "What's included in the free plan?", a: "Everything — full diagnostic with all leaks visible, dollar amounts, fix recommendations, AI advisor, government programs matched, benchmarks, obligations tracking, and monthly re-scans. Solo and Business are both completely free." },
+      { q: "Is there really no catch?", a: "No catch. Solo and Business are free forever. We earn a small referral fee from partner services only when you choose to use them to fix a leak. If you fix nothing, we earn nothing. Our incentives are completely aligned with yours." },
     ],
   },
   {

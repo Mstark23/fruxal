@@ -117,14 +117,14 @@ const SECTIONS = [
     items: [
       {
         q: "What does Fruxal cost?",
-        a: "The prescan is always free. Fruxal has three tiers: Solo (under $150K/year revenue) — free to get started, with a basic diagnostic. Business ($150K–$1M/year) — $149/month, including full diagnostics, monthly comparisons, goals, AI advisor, financial ratios, break-even engine, monthly brief, and solutions library. Enterprise ($1M+/year) — custom contingency pricing based on confirmed savings recovered, with document verification and a dedicated advisor.",
+        a: "The prescan is always free. Fruxal has three tiers: Solo (under $150K/year revenue) — completely free, full diagnostic included. Business ($150K–$1M/year) — also completely free, full mid-market diagnostic with benchmarks and AI advisor. Enterprise ($1M+/year) — performance-based only, 12% of confirmed savings recovered. No subscription, no upfront cost.",
       },
       {
         q: "What's the difference between the three tiers?",
         a: "Solo: Prescan results, basic diagnostic, core task list, recovery counter. Best for freelancers and micro-businesses. Business: Everything in Solo plus full AI diagnostics, month-over-month comparisons, 90-day goals, AI advisor chat, financial ratios, break-even engine, monthly brief, and solutions library. Enterprise: Everything in Business plus document verification (T2, GST/HST, T4, bank statements), 7 diagnostic score dimensions, a dedicated advisor rep, SR&ED and grant identification, and multiple active goals simultaneously.",
       },
       {
-        q: "Is there a free trial for the Business tier?",
+        q: "Why is Solo and Business free?",
         a: "The prescan and initial diagnostic are always free regardless of tier. The Business tier features (AI advisor, monthly brief, goals, rescan comparisons) activate when you upgrade. Contact us if you'd like to discuss a trial arrangement for your specific situation.",
       },
     ],
@@ -134,7 +134,7 @@ const SECTIONS = [
     items: [
       {
         q: "How does billing work?",
-        a: "Business tier subscriptions are billed monthly at $149/month CAD through Stripe. Your subscription renews automatically on the same date each month. Enterprise pricing is custom and billed based on confirmed savings recovered — your advisor will explain the exact structure during onboarding. All amounts are in Canadian dollars.",
+        a: "Solo and Business are completely free — no subscription, no credit card. Enterprise is performance-based: we charge 12% of confirmed savings we recover for you. There is no upfront cost for any tier. All amounts are in Canadian dollars.",
       },
       {
         q: "Can I cancel my subscription at any time?",

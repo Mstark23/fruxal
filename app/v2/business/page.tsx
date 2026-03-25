@@ -206,7 +206,7 @@ export default function BusinessDashboard() {
                     <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
                   </div>
                 ))}
-                {leaks.length > 1 && <div className="px-4 py-4 text-center" style={{ background: "rgba(250,250,248,0.95)" }}><p className="text-[11px] font-semibold text-ink-muted mb-2">{leaks.length - 1} {t("more leaks hidden", "fuites cachées")}</p><button onClick={() => router.push("/v2/checkout?plan=business")} className="text-[11px] font-bold text-white bg-brand px-4 py-2 rounded-lg hover:opacity-90 transition">{t("Unlock full report — $150/mo →", "Débloquer — 150 $/mois →")}</button></div>}
+                
               </>
             ) : (
               <>
@@ -225,9 +225,7 @@ export default function BusinessDashboard() {
           <div className="flex flex-col gap-3">
             <div className="bg-white rounded-xl border border-border-light overflow-hidden flex-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-3 border-b border-border-light"><span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Recovery Plan", "Plan de récupération")}</span></div>
-              {!isPaid ? (
-                <div className="px-4 py-6 text-center"><div className="flex justify-center mb-2"><LockIcon /></div><p className="text-[11px] text-ink-muted mb-3">{t("Unlock fix steps, payroll benchmarks and more.", "Débloquez corrections et benchmarks.")}</p><button onClick={() => router.push("/v2/checkout?plan=business")} className="text-[11px] font-bold text-brand border border-brand/20 px-3 py-1.5 rounded-lg hover:bg-brand/5 transition">{t("Unlock for $150/mo →", "Débloquer pour 150 $/mois →")}</button></div>
-              ) : allActions.length === 0 ? (
+              {allActions.length === 0 ? (
                 <div className="px-4 py-6 text-center text-[11px] text-ink-muted">{t("Actions will appear after your first diagnostic.", "Actions après votre diagnostic.")}</div>
               ) : allActions.slice(0, 4).map((a, i) => (
                 <div key={i} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
