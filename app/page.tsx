@@ -692,11 +692,11 @@ export default function LandingPage() {
             </div>
             <div className="text-[13px] font-bold uppercase tracking-widest text-ink-muted mb-2">Solo</div>
             <div className="font-serif text-[42px] text-ink tracking-tight font-normal leading-none mb-1">
-              $49<span className="font-sans text-[15px] text-ink-muted font-normal ml-1">{t("/ month", "/ mois")}</span>
+              {t("Free", "Gratuit")}
             </div>
-            <p className="text-[12px] text-positive font-semibold mb-5 mt-1">{t("✶ Try free for 7 days", "✶ Essai gratuit 7 jours")}</p>
+            <p className="text-[12px] text-positive font-semibold mb-5 mt-1">{t("✶ Free forever · No credit card", "✶ Gratuit pour toujours · Aucune carte")}</p>
             <p className="text-sm text-ink-secondary mb-6 leading-relaxed">
-              {t("For self-employed and solo operators under $500K revenue.", "Pour travailleurs autonomes et solopreneurs sous 500 K$ de revenus.")}
+              {t("For self-employed and solo operators. Full diagnostic, all leaks, government programs — free forever.", "Pour travailleurs autonomes. Diagnostic complet, toutes les fuites, programmes gouvernementaux — gratuit pour toujours.")}
             </p>
             <ul className="mb-8 flex-1">
               {[
@@ -726,16 +726,16 @@ export default function LandingPage() {
                 {t("Tier 2", "Niveau 2")}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-brand px-2.5 py-1 rounded-full">
-                {t("Best value", "Meilleure valeur")}
+                {t("Most complete", "Plus complet")}
               </span>
             </div>
             <div className="text-[13px] font-bold uppercase tracking-widest text-ink-muted mb-2">Business</div>
             <div className="font-serif text-[42px] text-ink tracking-tight font-normal leading-none mb-1">
-              $149<span className="font-sans text-[15px] text-ink-muted font-normal ml-1">{t("/ month", "/ mois")}</span>
+              {t("Free", "Gratuit")}
             </div>
-            <p className="text-[12px] text-positive font-semibold mb-5 mt-1">{t("✶ Try free for 7 days", "✶ Essai gratuit 7 jours")}</p>
+            <p className="text-[12px] text-positive font-semibold mb-5 mt-1">{t("✶ Free forever · No credit card", "✶ Gratuit pour toujours · Aucune carte")}</p>
             <p className="text-sm text-ink-secondary mb-6 leading-relaxed">
-              {t("For businesses with employees doing $150K–$1M.", "Pour entreprises avec employés entre 500 K$ et 5 M$.")}
+              {t("For growing businesses with employees. Mid-market diagnostic, benchmarks, payroll audit — free forever.", "Pour entreprises en croissance avec employés. Diagnostic mid-market, repères, audit paie — gratuit pour toujours.")}
             </p>
             <ul className="mb-8 flex-1">
               {[
