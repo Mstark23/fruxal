@@ -99,7 +99,7 @@ export async function findUserLeaks(userId: string): Promise<LeakLookupResult> {
         if (teaser.length > 0) {
           rawLeaks = teaser.map((l: any) => ({
             leak_type_code: l.slug || l.title?.toLowerCase().replace(/\s+/g, "_"),
-            title: l.title_fr || l.title || "Unknown",
+            title: l.title || l.title_fr || "Unknown", // EN primary, FR fallback
             severity: l.severity || "medium",
             category: l.category || "general",
             description: l.description || "",

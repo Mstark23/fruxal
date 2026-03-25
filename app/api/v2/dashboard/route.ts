@@ -150,7 +150,7 @@ export async function GET(req: NextRequest) {
         const { data: pr } = await supabaseAdmin
           .from("prescan_results")
           .select("teaser_leaks, confirmed_leaks")
-          .eq("temp_user_id", prescanRunId)
+          .eq("prescan_run_id", prescanRunId) // was temp_user_id — wrong column for prescan_results
           .order("created_at", { ascending: false })
           .limit(1)
           .single();
@@ -325,17 +325,25 @@ export async function GET(req: NextRequest) {
         .from("affiliate_partners")
         .select("*", { count: "exact", head: true })
         .eq("is_government_program", true)
-        .eq("is_active", true);
+        .eq("active", true);
       programsAvailable = count || 7; // fallback to known count
     } catch { programsAvailable = 7; }
 
-    // Health score
-    let score = 72;
+    // Health score — use prescan BHS as base when available, adjust live
     const struct = profile.business_structure || "";
-    if (struct === "sole_proprietor" && (profile.annual_revenue ?? 0) > 50000) score -= 12;
-    if (!profile.has_accountant) score -= 8;
+    let score = 72;
+    try {
+      const { data: latestRun } = await supabaseAdmin
+        .from("prescan_runs")
+        .select("health_score")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      if (latestRun?.health_score) score = latestRun.health_score;
+    } catch { /* use default 72 */ }
     score -= Math.min(20, (obligations.overdue ?? 0) * 4);
-    score += Math.min(12, fixed.length * 2);
+    score += Math.min(8, fixed.length * 2);
     score = Math.max(8, Math.min(95, score));
 
     // ═══════════════════════════════════════════════════════════
