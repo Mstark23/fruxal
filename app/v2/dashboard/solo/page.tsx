@@ -72,18 +72,17 @@ export default function SoloDashboard() {
 
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
   const isFR = lang === "fr";
-  const isFree = tier === "free";
-  const isPaid = !isFree;
+  // T1/T2 are free — everyone has full access. Only enterprise is paid.
+  const isFree = false;
+  const isPaid = true;
   // Route to the right tier based on revenue qualification
   const upgradeTarget = recommendedPlan === "enterprise" ? "enterprise"
     : (recommendedPlan === "business") ? "business"
     : "solo";
-  const upgradeUrl = upgradeTarget === "enterprise"
-    ? "/v2/diagnostic/intake"   // enterprise → book call via intake form, no subscription
-    : "/v2/checkout?plan=" + upgradeTarget;
-  const upgradePrice = upgradeTarget === "business" ? "$149" : "$49";
-  const upgradeName = upgradeTarget === "enterprise" ? "Enterprise"
-    : upgradeTarget === "business" ? "Business" : "Solo";
+  // T1/T2 free: only upsell is enterprise (T3)
+  const upgradeUrl = "/enterprise";  // all upgrade CTAs → enterprise page
+  const upgradePrice = "";
+  const upgradeName = "Enterprise";
 
   useEffect(() => {
     let redirected = false;
@@ -251,7 +250,7 @@ export default function SoloDashboard() {
     }
     return leaks;
   })();
-  const displayLeaks = allLeaks.slice(0, isPaid ? 6 : 4);
+  const displayLeaks = allLeaks.slice(0, 6); // show all, no gating
 
   if (loading || authLoading) return (
     <div className="min-h-screen bg-bg flex items-center justify-center"><div className="w-6 h-6 border-2 border-border border-t-brand rounded-full animate-spin" /></div>

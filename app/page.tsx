@@ -648,10 +648,10 @@ export default function LandingPage() {
       <section id="pricing" className="py-24 px-6 lg:px-12 max-w-[1200px] mx-auto">
         <div className="text-label uppercase text-brand font-semibold mb-3.5">{t("Pricing", "Tarification")}</div>
         <h2 className="font-serif text-h2 text-ink font-normal max-w-[560px] mb-3.5">
-          {t("One platform. Three tiers. Built for every Canadian business.", "Une plateforme. Trois niveaux. Conçue pour chaque PME canadienne.")}
+          {t("Free for every Canadian business. Revenue on results only.", "Gratuit pour chaque PME canadienne. Revenus sur résultats uniquement.")}
         </h2>
         <p className="text-[16px] leading-relaxed text-ink-secondary max-w-[480px] mb-14">
-          {t("Try free for 7 days — no credit card required. Cancel anytime.", "Essayez gratuitement pendant 7 jours — aucune carte requise. Annulez à tout moment.")}
+          {t("T1 and T2 are completely free. We earn through affiliate partnerships when you fix your leaks. T3 is performance-only — we get paid when you save.", "T1 et T2 sont entièrement gratuits. Nous gagnons via des partenaires affiliés lorsque vous corrigez vos fuites. T3 à la performance — nous sommes payés quand vous économisez.")}
         </p>
 
         <div className="grid md:grid-cols-3 gap-6 items-start">
@@ -689,10 +689,10 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <a href="/v2/checkout?plan=solo" className="w-full py-3.5 text-sm font-semibold rounded-[8px] bg-brand text-white hover:bg-brand-light transition text-center block">
-              {t("Try free for 7 days →", "Essayer gratuitement 7 jours →")}
+            <a href="/register" className="w-full py-3.5 text-sm font-semibold rounded-[8px] bg-brand text-white hover:bg-brand-light transition text-center block">
+              {t("Get started free →", "Commencer gratuitement →")}
             </a>
-            <p className="text-[10px] text-ink-faint text-center mt-2">{t("No credit card · Cancel anytime", "Aucune carte · Annulez à tout moment")}</p>
+            <p className="text-[10px] text-ink-faint text-center mt-2">{t("No credit card · Always free", "Aucune carte · Toujours gratuit")}</p>
           </div>
 
           {/* TIER 2: BUSINESS */}
@@ -728,10 +728,10 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <a href="/v2/checkout?plan=business" className="w-full py-3.5 text-sm font-semibold rounded-[8px] bg-brand text-white hover:bg-brand-light transition text-center block">
-              {t("Try free for 7 days →", "Essayer gratuitement 7 jours →")}
+            <a href="/register" className="w-full py-3.5 text-sm font-semibold rounded-[8px] bg-brand text-white hover:bg-brand-light transition text-center block">
+              {t("Get started free →", "Commencer gratuitement →")}
             </a>
-            <p className="text-[10px] text-ink-faint text-center mt-2">{t("No credit card · Cancel anytime", "Aucune carte · Annulez à tout moment")}</p>
+            <p className="text-[10px] text-ink-faint text-center mt-2">{t("No credit card · Always free", "Aucune carte · Toujours gratuit")}</p>
           </div>
 
           {/* TIER 3: ENTERPRISE */}

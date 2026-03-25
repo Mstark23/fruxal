@@ -76,22 +76,7 @@ export async function POST(req: NextRequest) {
       || progress?.payment_status === "active"
       || progress?.payment_status === "lifetime";
 
-    if (!isPaid) {
-      const { data: convs } = await supabase
-        .from("chat_conversations")
-        .select("message_count")
-        .eq("userId", userId);
-
-      const totalMessages = (convs || []).reduce((s: number, c: any) => s + (c.message_count ?? 0), 0);
-      if (Math.floor(totalMessages / 2) >= 2) {
-        return NextResponse.json({
-          error: "paywall",
-          message: "You've used your 2 free messages.",
-          totalLeak: progress?.total_leak_found ?? 0,
-          paywallType: "chat_limit",
-        }, { status: 402 });
-      }
-    }
+    // Chat is free for all users — T1/T2 revenue from affiliates, not subscriptions
 
     // ── Rate limit ─────────────────────────────────────────────────────────────
     if (!rateCheck(userId, 30, 60000)) {

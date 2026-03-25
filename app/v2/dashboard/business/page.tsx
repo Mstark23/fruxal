@@ -75,11 +75,11 @@ export default function BusinessDashboard() {
   const [diagBenchmarks, setDiagBenchmarks] = useState<any[]>([]);
   const [planSequence, setPlanSequence] = useState<any[]>([]);
 
-  // — paywall state —
-  const [isPaid, setIsPaid] = useState(false);
+  // T2 is free — affiliates are the revenue, not subscriptions
+  const [isPaid, setIsPaid] = useState(true); // always true
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const upgradeUrl = "/v2/checkout?plan=business";
-  const upgradePrice = "$149";
+  const upgradeUrl = "/enterprise"; // upsell to enterprise (T3) only
+  const upgradePrice = "";
 
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
   const isFR = lang === "fr";
@@ -206,7 +206,7 @@ export default function BusinessDashboard() {
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon après-midi") : t("Good evening", "Bonsoir"); })();
   const fade = (d = 0) => ({ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: `all 0.45s cubic-bezier(0.16,1,0.3,1) ${d}s` } as React.CSSProperties);
   const allActions = [...inProgressActions, ...thisWeekActions];
-  const displayLeaks = diagFindings.length > 0 ? diagFindings.slice(0, isPaid ? 6 : 3) : leaks.slice(0, isPaid ? 6 : 3);
+  const displayLeaks = diagFindings.length > 0 ? diagFindings.slice(0, 6) : leaks.slice(0, 6);
 
   if (loading || authLoading) return (
     <div className="min-h-screen bg-bg flex items-center justify-center"><div className="w-6 h-6 border-2 border-border border-t-brand rounded-full animate-spin" /></div>

@@ -277,20 +277,15 @@ export async function GET(req: NextRequest) {
     } catch { /* non-fatal */ }
 
     // Tier — check businesses.tier first (owner_user_id), fallback to user_progress
-    // TEMP: all users get solo tier free while in beta
+    // All users get solo tier free — Credit Karma model (T1/T2 free, revenue via affiliates)
     let tier = "solo";
     try {
       const { data: biz } = await supabaseAdmin
         .from("businesses").select("tier").eq("owner_user_id", userId).single();
       if (biz?.tier) tier = biz.tier.toLowerCase();
     } catch { /* non-fatal */ }
-    if (tier === "free") {
-      try {
-        const { data: prog } = await supabaseAdmin
-          .from("user_progress").select("paid_plan").eq("userId", userId).single();
-        if (prog?.paid_plan) tier = prog.paid_plan.toLowerCase();
-      } catch { /* non-fatal */ }
-    }
+    // "free" tier → treat as "solo" — no gating on T1/T2
+    if (tier === "free") tier = "solo";
 
     // Recommended plan -- from revenue + prescan tier + paid tier
     let recommended_plan = "solo";
