@@ -276,15 +276,35 @@ export async function GET(req: NextRequest) {
       }
     } catch { /* non-fatal */ }
 
-    // Tier — check businesses.tier first (owner_user_id), fallback to user_progress
-    // All users get solo tier free — Credit Karma model (T1/T2 free, revenue via affiliates)
+    // Tier — T1/T2 are always "solo" or "business" (free).
+    // "enterprise" tier is ONLY set when a business is manually enrolled in T3
+    // by Jhordan (via the admin pipeline). Revenue size alone never gates to enterprise.
     let tier = "solo";
     try {
       const { data: biz } = await supabaseAdmin
-        .from("businesses").select("tier").eq("owner_user_id", userId).single();
-      if (biz?.tier) tier = biz.tier.toLowerCase();
+        .from("businesses")
+        .select("tier")
+        .eq("owner_user_id", userId)
+        .single();
+
+      if (biz?.tier) {
+        const rawTier = biz.tier.toLowerCase();
+        if (rawTier === "enterprise" || rawTier === "corp") {
+          // Only honour enterprise tier if they're in the T3 pipeline
+          // (i.e. Jhordan has actively enrolled them, not just revenue-detected)
+          const { data: pipe } = await supabaseAdmin
+            .from("tier3_pipeline")
+            .select("id, stage")
+            .eq("user_id", userId)
+            .in("stage", ["active", "onboarding", "engaged", "closed_won"])
+            .maybeSingle();
+          tier = pipe ? "enterprise" : "solo"; // not in active T3 = stays solo/free
+        } else {
+          tier = rawTier;
+        }
+      }
     } catch { /* non-fatal */ }
-    // "free" tier → treat as "solo" — no gating on T1/T2
+    // "free" tier → treat as "solo"
     if (tier === "free") tier = "solo";
 
     // Recommended plan -- from revenue + prescan tier + paid tier

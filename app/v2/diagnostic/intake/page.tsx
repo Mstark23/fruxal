@@ -227,8 +227,13 @@ export default function DiagnosticIntakePage() {
         // Get tier from dashboard
         const dashRes = await fetch("/api/v2/dashboard");
         const dashJson = await dashRes.json();
-        const dashTier = dashJson.tier || dashJson.data?.tier || null;
-        if (dashTier) setTier(dashTier);
+        const dashData = dashJson.data || dashJson;
+        const dashTier = dashData.tier || null;
+        // Only set enterprise tier if API confirmed it (not just recommended_plan)
+        // This prevents solo/business users seeing the LCGE/holdco/RDTOH enterprise step
+        if (dashTier && ["solo","business","enterprise","corp"].includes(dashTier)) {
+          setTier(dashTier);
+        }
 
         // Get full profile — authoritative source for businessId
         const profileRes = await fetch("/api/v2/diagnostic/intake");

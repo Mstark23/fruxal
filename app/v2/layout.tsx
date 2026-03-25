@@ -39,7 +39,10 @@ const NAV_ENTERPRISE = [
 ];
 
 // Routes that always force enterprise nav regardless of pathname
-const ENTERPRISE_PATHS = ["/v2/dashboard/enterprise", "/v2/diagnostic/intake", "/v2/diagnostic/run"];
+// IMPORTANT: Only the enterprise dashboard itself forces enterprise nav.
+// Intake and diagnostic/run are used by ALL tiers — removing them prevents
+// solo/business users from being permanently locked into enterprise mode.
+const ENTERPRISE_PATHS = ["/v2/dashboard/enterprise"];
 // Routes where enterprise nav stays active (user is navigating around while enterprise)
 const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history", "/v2/solutions", "/v2/faq", "/v2/quickstart", "/v2/benchmarks"];
 
