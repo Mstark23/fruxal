@@ -174,6 +174,26 @@ export async function POST(req: NextRequest) {
       annualRevenue * (tier === "enterprise" ? 0.027 : tier === "business" ? 0.031 : 0.038)
     );
 
+    // ── DATA QUALITY GATE — refuse to run on empty data ─────────────────────────
+    // A diagnostic with annualRevenue=0 produces meaningless output: all
+    // dollar amounts are $0 or hallucinated. Force the user to complete their
+    // profile first.
+    if (annualRevenue === 0) {
+      return NextResponse.json({
+        success: false,
+        error: "incomplete_profile",
+        message: isFr
+          ? "Veuillez compléter votre profil d'entreprise (revenus annuels requis) avant de lancer le diagnostic."
+          : "Please complete your business profile (annual revenue required) before running the diagnostic.",
+        redirect: "/v2/diagnostic/intake",
+      }, { status: 422 });
+    }
+
+    // Warn but don't block if industry is unknown — Claude will use generic benchmarks
+    if (!profile.industry && !profile.industry_label) {
+      console.warn("[Diagnostic] No industry set for businessId:", businessId, "— Claude will use generic benchmarks");
+    }
+
     // ── 3. Fetch DB context ───────────────────────────────────────────────
     const ctx = await fetchDiagnosticContext(
       businessId,

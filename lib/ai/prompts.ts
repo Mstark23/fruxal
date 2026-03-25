@@ -279,11 +279,23 @@ INSTRUCTIONS:
    - HR: Humi, Collage HR, Rise People
    - Legal: relevant law firms for the issue
 
-4. CALCULATIONS: Every dollar figure must be derived from:
-   Revenue = $${(annualRevenue ?? 0).toLocaleString()}
-   ${estimatedPayroll > 0 ? `Payroll = $${estimatedPayroll.toLocaleString()} (${employees} employees)` : ""}
-   ${overdue > 0 ? `Overdue obligations = ${overdue}, penalty exposure = $${penaltyExposure.toLocaleString()}` : ""}
-   ${province ? `Province = ${province}` : ""}
+4. CALCULATIONS: Every dollar figure must be derived from ACTUAL data below.
+   DATA CONFIDENCE LABELS — follow these strictly:
+   • VERIFIED = from uploaded document (T2, financials, bank). Treat as authoritative. Do not hedge.
+   • INTAKE = user-entered exact value. High confidence. Use directly.
+   • ESTIMATED = computed by formula or headcount proxy. Treat as approximate.
+     When using ESTIMATED values, add "(estimated)" to calculation_shown and
+     keep dollar ranges wide (±30%) to reflect uncertainty.
+   • DEFAULT = industry average used because no data provided.
+     When using DEFAULT values, explicitly flag findings with "based on industry average" in description.
+
+   Revenue = $\${(annualRevenue ?? 0).toLocaleString()} [\${revenueSource}]
+   \${estimatedPayroll > 0 ? \`Payroll = $\${estimatedPayroll.toLocaleString()} [\${profile.exact_payroll_total ? "INTAKE" : profile.qb_payroll_ttm ? "QB_VERIFIED" : "ESTIMATED — headcount x $55K proxy"}]\` : "Payroll = not provided"}
+   EBITDA = $\${estimatedEBITDA.toLocaleString()} [\${ebitdaSource}]
+   Gross margin = \${grossMarginPct}% [\${profile.gross_margin_pct ? "INTAKE" : profile.qb_gross_profit_ttm ? "QB_VERIFIED" : "DEFAULT — industry average"}]
+   Tax drag = $\${estimatedTaxDrag.toLocaleString()} [ESTIMATED — flat formula, not actual tax return]
+   \${overdue > 0 ? \`Overdue obligations = \${overdue}, penalty exposure = $\${penaltyExposure.toLocaleString()}\` : ""}
+   \${province ? \`Province = \${province}\` : ""}
 
 5. LANGUAGE: ${isFr ? "All text fields in French. JSON keys stay in English." : "English."}
 
@@ -308,7 +320,24 @@ export function buildUserPrompt(inputs: PromptInputs): string {
     ctx: { obligations, overdue, penaltyExposure },
   } = inputs;
 
-  return `Analyze this ${tier} business and return a complete JSON diagnostic report.
+  return `Analyze this \${tier} business and return a complete JSON diagnostic report.
+
+DATA QUALITY SUMMARY (read before generating findings):
+- Revenue confidence: \${
+    revenueSource.includes("verified") || revenueSource.includes("uploaded") ? "HIGH — from uploaded documents. Use exact figures." :
+    revenueSource.includes("QuickBooks") || revenueSource.includes("Stripe") || revenueSource.includes("Plaid") ? "MEDIUM-HIGH — from connected integration. Reliable." :
+    revenueSource.includes("intake") || revenueSource.includes("exact") ? "MEDIUM — user-entered exact value." :
+    "LOW — estimated from monthly x 12. Dollar amounts in findings should show ranges, not single points."
+  }
+- Payroll confidence: \${profile.exact_payroll_total ? "HIGH — exact intake value" : profile.qb_payroll_ttm ? "HIGH — QuickBooks TTM" : employees > 0 ? "LOW — headcount proxy ($55K/employee). Flag payroll findings as estimates." : "NONE — no payroll data."}
+- Financial statements uploaded: \${inputs.docData?.financials ? "YES — use these as authoritative" : "NO — using intake estimates"}
+- T2 return uploaded: \${inputs.docData?.t2 ? "YES — treat as authoritative" : "NO — tax findings based on estimates"}
+
+CRITICAL INSTRUCTION: When data confidence is LOW or NONE, your findings must:
+1. Show dollar ranges (e.g. "$8K–$24K/yr") rather than single precise numbers
+2. Include "Based on estimated revenue" in calculation_shown
+3. Set severity no higher than "medium" unless there is legal/compliance evidence independent of revenue size
+4. Do NOT invent financial details not in the profile
 
 BUSINESS PROFILE:
 - Name: ${profile.business_name || "Unknown"}
