@@ -204,10 +204,30 @@ export default function SettingsPage() {
         const res = await fetch("/api/v2/settings");
         const json = await res.json();
         if (json.success) {
-          setProfile(json.data.profile);
-          setDates(json.data.dates);
-          setNotifPrefs(json.data.notifications);
-          setBilling(json.data.billing);
+          // If no profile yet (new user), provide empty defaults so tabs render
+          setProfile(json.data.profile ?? {
+            business_name: "", industry: "", structure: "", province: "", city: "",
+            monthly_revenue: "", employee_count: "0", fiscal_year_end_month: "12",
+            has_payroll: false, handles_data: false, has_physical_location: false,
+            sells_alcohol: false, handles_food: false, does_construction: false,
+            has_professional_order: false, exports_goods: false, does_rd: false,
+            has_accountant: false, has_bookkeeper: false,
+            uses_payroll_software: false, uses_pos: false,
+          });
+          setDates(json.data.dates ?? {
+            incorporation_date: "", registration_date: "", gst_registration_date: "",
+            qst_registration_date: "", first_employee_date: "", licence_renewal_date: "",
+            insurance_renewal_date: "", lease_start_date: "", lease_end_date: "",
+          });
+          setNotifPrefs(json.data.notifications ?? {
+            email_enabled: true, in_app_enabled: true, email_frequency: "smart",
+            quiet_start_hour: 20, quiet_end_hour: 8, timezone: "America/Montreal",
+            min_urgency_email: "warning",
+          });
+          setBilling(json.data.billing ?? {
+            plan: "solo", status: "active", current_period_end: "",
+            diagnostics_used: 0, diagnostics_limit: 5, stripe_customer_id: null,
+          });
           if (json.data.profile?.province === "QC") setLang("fr");
         }
       } catch (err: any) {
@@ -265,12 +285,20 @@ export default function SettingsPage() {
     }
   };
 
-  const TABS: { key: Tab; icon: string; label: string; labelFr: string }[] = [
-    { key: "profile", icon: "", label: "Profile", labelFr: "Profil" },
-    { key: "dates", icon: "", label: "Key Dates", labelFr: "Dates clés" },
-    { key: "notifications", icon: "", label: "Notifications", labelFr: "Notifications" },
-    { key: "language", icon: "", label: "Language", labelFr: "Langue" },
-    { key: "billing", icon: "", label: "Billing", labelFr: "Facturation" },
+  // SVG icons for tabs — no emoji
+  const TAB_ICONS: Record<string, JSX.Element> = {
+    profile:       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
+    dates:         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,
+    notifications: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>,
+    language:      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>,
+    billing:       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>,
+  };
+  const TABS: { key: Tab; label: string; labelFr: string }[] = [
+    { key: "profile",       label: "Profile",       labelFr: "Profil" },
+    { key: "dates",         label: "Key Dates",     labelFr: "Dates clés" },
+    { key: "notifications", label: "Notifications", labelFr: "Notifications" },
+    { key: "language",      label: "Language",      labelFr: "Langue" },
+    { key: "billing",       label: "Billing",       labelFr: "Facturation" },
   ];
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -303,7 +331,7 @@ export default function SettingsPage() {
                       ? "bg-brand-soft text-brand border border-brand/15"
                       : "text-ink-muted hover:text-ink-secondary hover:bg-white"
                   }`}>
-                  <span>{t.icon}</span>
+                  {TAB_ICONS[t.key]}
                   <span className="font-medium">{isFr ? t.labelFr : t.label}</span>
                 </button>
               ))}
@@ -316,7 +344,7 @@ export default function SettingsPage() {
                   className={`flex items-center gap-1 px-3 py-2 rounded-lg text-[10px] whitespace-nowrap ${
                     tab === t.key ? "bg-brand-soft text-brand" : "bg-white text-ink-faint"
                   }`}>
-                  <span>{t.icon}</span>
+                  {TAB_ICONS[t.key]}
                   <span>{isFr ? t.labelFr : t.label}</span>
                 </button>
               ))}

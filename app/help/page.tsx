@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 const SECTIONS = [
   {
     title: "Getting Started",
-    icon: "🚀",
+    icon: "start",
     items: [
       { q: "How do I run my first scan?", a: "Click 'Find My Leaks' on the homepage, pick your industry, answer 5 simple questions about your business (revenue, costs, rates), and we'll analyze 303 data points against real industry benchmarks. Takes about 30 seconds." },
       { q: "What data do I need?", a: "For the quick scan: just approximate annual revenue and a few cost percentages. For better accuracy, you can connect QuickBooks, upload a CSV, or link your bank. The more data you provide, the more precise the leak detection." },
@@ -14,7 +14,7 @@ const SECTIONS = [
   },
   {
     title: "Understanding Your Leaks",
-    icon: "💧",
+    icon: "leak",
     items: [
       { q: "What is a 'leak'?", a: "A leak is any area where your business spends more than the industry benchmark. For example, if restaurants typically pay 2.5% for credit card processing and you're paying 3.2%, that gap is a leak. We calculate the annual dollar impact of each gap." },
       { q: "What do the severity levels mean?", a: "🔴 Urgent: Large leaks (usually >$10K/yr) that need immediate attention. 🟡 Important: Moderate leaks ($2K-$10K/yr) worth addressing soon. 🔵 Minor: Smaller leaks (<$2K/yr) to fix when you have time." },
@@ -23,7 +23,7 @@ const SECTIONS = [
   },
   {
     title: "Fixing Leaks",
-    icon: "🔧",
+    icon: "fix",
     items: [
       { q: "How do I fix a leak?", a: "Click 'Fix' on any leak to see recommended actions and vetted partner services. Some fixes are simple (renegotiate a rate), others connect you with a specialist (switch payment processors, get new insurance quotes)." },
       { q: "Who are the affiliate partners?", a: "We maintain a database of 200+ vetted service providers across categories like payment processing, insurance, payroll, marketing, and more. Each partner is matched to specific leak types they can solve." },
@@ -32,7 +32,7 @@ const SECTIONS = [
   },
   {
     title: "Account & Billing",
-    icon: "💳",
+    icon: "billing",
     items: [
       { q: "What's included in the free plan?", a: "1 scan, 3 leaks visible with full details, health score, basic insights. Enough to see the value before upgrading." },
       { q: "What does Pro ($49/mo) include?", a: "All leaks visible, fix recommendations with affiliate partners, AI intelligence engine, unlimited scans, reports & exports, email notifications." },
@@ -41,7 +41,7 @@ const SECTIONS = [
   },
   {
     title: "Intelligence Engine",
-    icon: "📊",
+    icon: "intel",
     items: [
       { q: "What is the Intelligence Engine?", a: "A 3-tier AI system. Tier 1 (free): automatic pattern detection that runs on every scan. Tier 2 (weekly): batch analysis across all businesses to find market-wide trends. Tier 3 (on-demand): deep AI analysis of your specific business using Claude." },
       { q: "How does the AI chat work?", a: "The chat button in the dashboard opens a conversation with Claude AI that has access to all your leak data. Ask questions like 'What should I fix first?' or 'Why is my labor cost high?' and get personalized advice." },
@@ -101,7 +101,7 @@ export default function HelpPage() {
         </div>
 
         <div className="mt-8 bg-white rounded-2xl p-6 border text-center">
-          <div className="text-2xl mb-2">💬</div>
+          <svg className="w-6 h-6 mx-auto mb-2 text-brand-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           <div className="text-sm font-bold mb-1">Still need help?</div>
           <div className="text-xs text-gray-400 mb-3">Use the AI chat in your dashboard or email us.</div>
           <a href="mailto:support@fruxal.com" className="text-xs text-blue-500 hover:underline">support@fruxal.com</a>

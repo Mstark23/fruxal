@@ -400,7 +400,7 @@ export default function LandingPage() {
                       <div key={i} className="bg-bg rounded-card border border-border-light overflow-hidden">
                         <div className="flex items-center justify-between p-5 pb-3">
                           <div className="flex items-center gap-3">
-                            <span className="text-xl">{leak.icon || '📊'}</span>
+                            <svg className="w-5 h-5 text-brand-accent shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
                             <div>
                               <div className="text-[15px] font-semibold text-ink">{isFR ? leak.title_fr : leak.title}</div>
                               <div className="text-xs text-ink-muted mt-0.5">{t("Confidence", "Confiance")}: {Math.round(leak.confidence)}%</div>

@@ -502,7 +502,7 @@ export default function EnterpriseDashboard() {
             style={{ background: "rgba(196,132,29,0.04)", border: "1px solid rgba(196,132,29,0.18)" }}
             {...fade(0.02)}>
             <div className="flex items-center gap-2.5">
-              <span className="text-amber-500 text-base">⚡</span>
+              <svg className="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               <div>
                 <p className="text-[11px] font-bold" style={{ color: "#92400e" }}>
                   {t("Enterprise analysis needs your exact numbers", "L'analyse enterprise nécessite vos chiffres exacts")}
@@ -1410,8 +1410,8 @@ export default function EnterpriseDashboard() {
               <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.04)" }}>
                 {[
                   { icon: "📋", label: t("CPA / Board Briefing Memo", "Mémo Briefing CPA"), sub: t("RDTOH strategy, tax exposure, talking points for your accountant", "Stratégie IMRTD, exposition fiscale, points pour votre comptable") },
-                  { icon: "🎯", label: t("Priority Action Sequence", "Séquence d'actions prioritaires"), sub: t("Step-by-step recovery plan ranked by ROI and effort", "Plan de récupération étape par étape classé par ROI") },
-                  { icon: "📊", label: t("Peer Benchmark Comparisons", "Comparaisons aux pairs sectoriels"), sub: t("How your margins, payroll ratio, and EBITDA compare to top quartile", "Comment vos marges, masse salariale et BAIIA se comparent aux meilleurs") },
+                  { icon: "seq", label: t("Priority Action Sequence", "Séquence d'actions prioritaires"), sub: t("Step-by-step recovery plan ranked by ROI and effort", "Plan de récupération étape par étape classé par ROI") },
+                  { icon: "bench", label: t("Peer Benchmark Comparisons", "Comparaisons aux pairs sectoriels"), sub: t("How your margins, payroll ratio, and EBITDA compare to top quartile", "Comment vos marges, masse salariale et BAIIA se comparent aux meilleurs") },
                 ].map((item, i) => (
                   <div key={i} className="px-5 py-3 flex items-center gap-4" style={{ filter: "blur(0.5px)", opacity: 0.55 }}>
                     <span key={i} className="text-lg shrink-0">{item.icon}</span>
