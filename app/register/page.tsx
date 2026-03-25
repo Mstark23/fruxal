@@ -112,11 +112,6 @@ function RegisterForm() {
 
   return (
     <div className="min-h-screen bg-bg font-sans flex items-center justify-center px-6">
-      <p className="text-[11px] text-center text-ink-faint mb-3">
-        By signing up you agree to our 
-        <a href="/legal/terms" className="underline hover:text-ink" target="_blank">Terms of Service</a> and 
-        <a href="/legal/privacy" className="underline hover:text-ink" target="_blank">Privacy Policy</a>.
-      </p>
       <div className="w-full max-w-[400px]">
         <div className="flex items-center gap-2.5 mb-10">
           <div className="w-7 h-7 rounded-[7px] bg-brand flex items-center justify-center">
@@ -161,22 +156,28 @@ function RegisterForm() {
           )}
           <div>
             <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider block mb-1.5">{t("Full name", "Nom complet")}</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full px-4 py-3 bg-white border border-border rounded-sm text-body text-ink font-sans outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft transition" placeholder={t("Your name", "Votre nom")} />
+            <input type="text" autoComplete="name" value={name} onChange={e => setName(e.target.value)} required className="w-full px-4 py-3 bg-white border border-border rounded-sm text-body text-ink font-sans outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft transition" placeholder={t("Your name", "Votre nom")} />
           </div>
           <div>
             <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider block mb-1.5">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-3 bg-white border border-border rounded-sm text-body text-ink font-sans outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft transition" placeholder="you@company.com" />
+            <input type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-3 bg-white border border-border rounded-sm text-body text-ink font-sans outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft transition" placeholder="you@company.com" />
           </div>
           <div>
             <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider block mb-1.5">Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="w-full px-4 py-3 bg-white border border-border rounded-sm text-body text-ink font-sans outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft transition" placeholder={t("Min. 8 characters", "Min. 8 caractères")} />
+            <input type="password" autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="w-full px-4 py-3 bg-white border border-border rounded-sm text-body text-ink font-sans outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft transition" placeholder={t("Min. 8 characters", "Min. 8 caractères")} />
           </div>
           <button type="submit" aria-label="Create account" disabled={loading} className="w-full py-3 bg-brand text-white text-sm font-semibold rounded-sm hover:bg-brand-light disabled:opacity-50 transition mt-2">
             {loading ? t("Creating account…", "Création du compte…") : t("Create account →", "Créer un compte →")}
           </button>
         </form>
 
-        <p className="text-xs text-ink-faint text-center mt-6">
+        <p className="text-[11px] text-center text-ink-faint mt-5">
+          {t("By signing up you agree to our", "En vous inscrivant vous acceptez nos")}{" "}
+          <a href="/legal/terms" className="underline hover:text-ink" target="_blank">{t("Terms of Service", "Conditions d'utilisation")}</a>{" "}
+          {t("and", "et")}{" "}
+          <a href="/legal/privacy" className="underline hover:text-ink" target="_blank">{t("Privacy Policy", "Politique de confidentialité")}</a>.
+        </p>
+        <p className="text-xs text-ink-faint text-center mt-3">
           {t("Already have an account?", "Déjà un compte ?")} <a href="/login" className="text-brand font-medium">{t("Sign in", "Se connecter")}</a>
         </p>
       </div>
