@@ -16,6 +16,11 @@ function isAuthorized(req: NextRequest): boolean {
   );
 }
 
+// Vercel Cron sends GET — alias to POST handler
+export async function GET(req: NextRequest) {
+  return POST(req);
+}
+
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -87,7 +92,7 @@ export async function POST(req: NextRequest) {
 
         if (!userRow?.email) continue;
 
-        const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.com";
+        const appUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.vercel.app";
         const bizName = prof.business_name || "your business";
 
         const bodyLines = [];

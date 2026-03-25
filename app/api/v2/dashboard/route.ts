@@ -71,6 +71,11 @@ export async function GET(req: NextRequest) {
           await supabaseAdmin.from("detected_leaks")
             .update({ business_id: newBizId })
             .eq("prescan_run_id", prescanRunId);
+          // Also update prescan_results so getPrescanContext can find it by user_id
+          await supabaseAdmin.from("prescan_results")
+            .update({ user_id: userId })
+            .eq("prescan_run_id", prescanRunId)
+            .is("user_id", null);
 
           profile = {
             province: run.province || "QC",

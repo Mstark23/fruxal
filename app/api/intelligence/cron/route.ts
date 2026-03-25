@@ -21,6 +21,11 @@ import { recalculateBenchmarks } from "@/services/intelligence/market-learning";
 
 export const maxDuration = 300; // Vercel function timeout (seconds)
 
+// Vercel Cron sends GET — alias to POST handler
+export async function GET(req: NextRequest) {
+  return POST(req);
+}
+
 export async function POST(req: NextRequest) {
   // Simple auth — check for cron secret
   const authHeader = req.headers.get("authorization");

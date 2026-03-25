@@ -31,6 +31,11 @@ export const maxDuration = 300; // Vercel function timeout (seconds)
 
 
 
+// Vercel Cron sends GET — alias to POST handler
+export async function GET(req: NextRequest) {
+  return POST(req);
+}
+
 export async function POST(req: NextRequest) {
   const start = Date.now();
 
