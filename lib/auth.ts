@@ -113,27 +113,33 @@ export const authOptions: NextAuthOptions = {
           .single();
 
         if (!existing) {
-          // Create new user
-          const { data: newUser, error } = await supabaseAdmin
-            .from("users")
-            .insert({
-              email,
-              name: user.name || email.split("@")[0],
-              image: user.image || null,
-              provider: "google",
-              role: "user",
-              created_at: new Date().toISOString(),
-            })
-            .select("id")
-            .single();
+          // Create new user — if DB fails, still allow sign-in using Google sub as ID
+          try {
+            const { data: newUser, error } = await supabaseAdmin
+              .from("users")
+              .insert({
+                email,
+                name: user.name || email.split("@")[0],
+                image: user.image || null,
+                provider: "google",
+                role: "user",
+                created_at: new Date().toISOString(),
+              })
+              .select("id")
+              .single();
 
-          if (error) {
-            console.error("[Auth] Google user creation error:", error);
-            return false;
+            if (error) {
+              console.error("[Auth] Google user creation error:", error.message, error.code);
+              // NEVER return false — blocking sign-in is worse than a missing DB row.
+              // Use Google account.providerAccountId as fallback so JWT still has an id.
+              user.id = (account as any)?.providerAccountId || user.id;
+            } else {
+              user.id = newUser.id;
+            }
+          } catch (dbErr: any) {
+            console.error("[Auth] Supabase unreachable during Google sign-in:", dbErr?.message);
+            user.id = (account as any)?.providerAccountId || user.id;
           }
-
-          // Attach DB id to user object
-          user.id = newUser.id;
         } else {
           user.id = existing.id;
 
