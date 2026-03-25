@@ -120,6 +120,19 @@ ${estimatedPayroll > 0 ? `- Est. payroll:      $${estimatedPayroll.toLocaleStrin
 - Has payroll:       ${profile.has_payroll      ? "YES" : "NO"}
 ${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — estimated penalty $${penaltyExposure.toLocaleString()}` : ""}
 
+${(() => {
+  const d = ctx.docData;
+  if (!d || (!d.t2 && !d.financials && !d.gst && !d.t4)) return "";
+  const lines: string[] = ["\nVERIFIED DOCUMENT DATA (treat as authoritative, overrides estimates below):"];
+  if (d.t2?.net_income_before_tax) lines.push(`  T2: Net income $${d.t2.net_income_before_tax.toLocaleString()}, tax payable $${(d.t2.total_tax_payable ?? 0).toLocaleString()}`);
+  if (d.t2?.small_business_deduction) lines.push(`  T2: SBD claimed $${d.t2.small_business_deduction.toLocaleString()}`);
+  if (d.t2?.sred_credit_claimed) lines.push(`  T2: SR&ED credit $${d.t2.sred_credit_claimed.toLocaleString()}`);
+  if (d.financials?.total_revenue) lines.push(`  Financials: Revenue $${d.financials.total_revenue.toLocaleString()}, Gross margin ${(d.financials.gross_margin_pct ?? 0).toFixed(1)}%, EBITDA $${(d.financials.ebitda ?? 0).toLocaleString()}, Net income $${(d.financials.net_income ?? 0).toLocaleString()}`);
+  if (d.gst?.quick_method !== undefined) lines.push(`  GST: Quick method elected = ${d.gst.quick_method ? "YES — already active" : "NO — assess eligibility"}`);
+  if (d.t4?.total_employment_income) lines.push(`  T4: Total payroll $${d.t4.total_employment_income.toLocaleString()}, ${d.t4.number_of_t4s ?? 0} employees on T4`);
+  return lines.join("\n");
+})()}
+
 Return ONLY this JSON (no markdown fences):
 ${buildDiagnosticSchema("solo", 5)}`;
 
