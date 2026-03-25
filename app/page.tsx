@@ -201,16 +201,16 @@ export default function LandingPage() {
         <div className="pt-5">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-brand-soft rounded-full text-xs font-semibold text-brand tracking-wide mb-7">
             <span className="w-1.5 h-1.5 rounded-full bg-positive" />
-            {t("Financial Operating System", "Système financier intelligent")}
+            {t("Free · No credit card · Built for Canadian SMBs", "Gratuit · Sans carte · Pour les PME canadiennes")}
           </div>
           <h1 className="font-serif text-h1 text-ink font-normal mb-5 max-w-[560px]">
             {t("Your business is ", "Votre entreprise ")}
             <em className="italic text-brand-accent">{t("leaking money.", "perd de l'argent.")}</em>
-            {t(" Find out how much.", " Découvrez combien.")}</h1>
+            {t(" Find out exactly how much.", " Découvrez exactement combien.")}</h1>
           <p className="text-[17px] leading-relaxed text-ink-secondary max-w-[440px] mb-9">
             {t(
-              "The average Canadian SMB loses $13,000/year to hidden financial leaks — tax inefficiencies, vendor overcharges, payroll gaps. We find them in 5 minutes. Free.",
-              "La PME canadienne moyenne perd 13 000 $/an en fuites financières cachées — inefficacités fiscales, surfacturations, écarts de paie. On les trouve en 5 minutes. Gratuitement."
+              "The average Canadian SMB loses $13,000/year to hidden leaks — missed tax credits, vendor overcharges, payroll gaps. A 3-minute conversation shows you exactly where. Free, forever.",
+              "La PME canadienne moyenne perd 13 000 $/an en fuites cachées — crédits fiscaux manqués, surfacturations, écarts de paie. Une conversation de 3 minutes vous montre exactement où. Gratuit, pour toujours."
             )}
           </p>
           <div className="flex flex-wrap items-center gap-4 mb-14">
@@ -224,8 +224,8 @@ export default function LandingPage() {
           <div className="flex gap-10">
             {[
               { v: "$13,000", l: t("Avg. leak / year", "Fuite moy. / an") },
-              { v: "5 min", l: t("To first insight", "Premier résultat") },
-              { v: "200+", l: t("Industries", "Industries") },
+              { v: "3 min", l: t("To first insight", "Premier résultat") },
+              { v: "$0", l: t("Always free", "Toujours gratuit") },
             ].map(m => (
               <div key={m.l} className="flex flex-col gap-0.5">
                 <span className="font-serif text-[28px] font-semibold text-ink tracking-tight">{m.v}</span>
@@ -517,21 +517,45 @@ export default function LandingPage() {
         </section>
       )}
 
-      {/* ══════ TRUST STRIP ══════ */}
-      <section className="py-12 px-6 border-y border-border-light text-center bg-white">
-        <p className="text-label uppercase text-ink-faint font-semibold mb-6">{t("Connects with the tools you already use", "Se connecte aux outils que vous utilisez déjà")}</p>
-        <div className="flex justify-center items-center gap-12 flex-wrap opacity-[0.22]">
-          {["QuickBooks", "Stripe", "Square", "Desjardins", "Plaid", "Wave"].map(n => (
-            <span key={n} className="font-serif text-[17px] text-ink font-semibold">{n}</span>
-          ))}
+      {/* ══════ WHY FREE STRIP ══════ */}
+      <section className="py-14 px-6 border-y border-border-light bg-white">
+        <div className="max-w-[900px] mx-auto">
+          <p className="text-label uppercase text-brand font-semibold text-center mb-10">
+            {t("Why is it free?", "Pourquoi c'est gratuit ?")}
+          </p>
+          <div className="grid md:grid-cols-3 gap-10 text-center">
+            {[
+              {
+                icon: <svg className="w-6 h-6 mx-auto mb-4 text-brand-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>,
+                h: t("We earn when you fix leaks", "On gagne quand vous corrigez"),
+                p: t("When we match you with a payroll service, insurer, or accounting firm that solves your exact issue — they pay us a small referral fee. You pay them nothing extra.", "Quand nous vous connectons avec un service qui résout votre problème — ils nous versent des frais de référence. Vous ne payez rien de plus.")
+              },
+              {
+                icon: <svg className="w-6 h-6 mx-auto mb-4 text-brand-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+                h: t("If we find nothing, we earn nothing", "Si on trouve rien, on gagne rien"),
+                p: t("Our incentives are completely aligned with yours. We have no reason to exaggerate your leaks — we only make money when a real solution actually helps you.", "Nos intérêts sont alignés avec les vôtres. Nous n'avons aucune raison d'exagérer — on gagne de l'argent seulement quand une solution vous aide vraiment.")
+              },
+              {
+                icon: <svg className="w-6 h-6 mx-auto mb-4 text-brand-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
+                h: t("You own your data. Always.", "Vos données vous appartiennent."),
+                p: t("We never sell your data to advertisers. We never share your financials without your consent. The diagnostic exists to help you — full stop.", "On ne vend jamais vos données à des annonceurs. On ne partage jamais vos finances sans votre accord. Le diagnostic existe pour vous aider — point final.")
+              },
+            ].map((item, i) => (
+              <div key={i}>
+                {item.icon}
+                <h3 className="font-serif text-[18px] text-ink font-normal mb-2">{item.h}</h3>
+                <p className="text-sm text-ink-secondary leading-relaxed">{item.p}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ══════ FEATURES ══════ */}
       <section id="features" className="py-24 px-6 lg:px-12 max-w-[1200px] mx-auto">
         <div className="text-label uppercase text-brand font-semibold mb-3.5">{t("Capabilities", "Fonctionnalités")}</div>
-        <h2 className="font-serif text-h2 text-ink font-normal max-w-[520px] mb-3.5">{t("Everything a CFO would monitor — automated for you", "Tout ce qu'un directeur financier surveille — automatisé")}</h2>
-        <p className="text-[16px] leading-relaxed text-ink-secondary max-w-[460px] mb-14">{t("We analyze your costs, revenue, and operations against industry benchmarks to surface what matters.", "Nous analysons vos coûts, revenus et opérations par rapport aux références de votre industrie.")}</p>
+        <h2 className="font-serif text-h2 text-ink font-normal max-w-[520px] mb-3.5">{t("What your accountant charges $300/hr to find — we find free", "Ce que votre comptable facture 300 $/h pour trouver — on le trouve gratuitement")}</h2>
+        <p className="text-[16px] leading-relaxed text-ink-secondary max-w-[460px] mb-14">{t("Compared against 4,000+ Canadian industry benchmarks. Specific dollar amounts. Real solutions. No subscription required.", "Comparé à plus de 4 000 repères de l'industrie canadienne. Montants précis. Solutions réelles. Aucun abonnement requis.")}</p>
 
         <div className="grid md:grid-cols-3 gap-px bg-border-light border border-border-light rounded-card overflow-hidden">
           {[
@@ -563,7 +587,7 @@ export default function LandingPage() {
               { n: "01", h: t("Quick conversation", "Conversation rapide"), p: t("Answer a few questions about your business — type, revenue, costs, and tools.", "Répondez à quelques questions sur votre entreprise — type, revenus, coûts et outils.") },
               { n: "02", h: t("Instant analysis", "Analyse instantanée"), p: t("We compare your structure to benchmarks and detect where money leaks.", "Nous comparons votre structure aux références et détectons les fuites.") },
               { n: "03", h: t("See your leaks", "Voyez vos fuites"), p: t("Get your Financial Health Score and a breakdown of each leak.", "Obtenez votre score de santé et le détail de chaque fuite.") },
-              { n: "04", h: t("Take action", "Passez à l'action"), p: t("Connect your data for live monitoring, or use the snapshot to fix leaks now.", "Connectez vos données pour un suivi en direct ou corrigez les fuites maintenant.") },
+              { n: "04", h: t("Fix it — free match included", "Corrigez — mise en relation incluse"), p: t("We match you with vetted Canadian partners who solve your exact leak type. No commissions charged to you. We handle the referral.", "On vous connecte avec des partenaires canadiens vérifiés qui résolvent votre fuite spécifique. Aucune commission à votre charge. On gère la mise en relation.") },
             ].map(s => (
               <div key={s.n}>
                 <div className="w-full h-px bg-border mb-6 relative">
@@ -648,10 +672,10 @@ export default function LandingPage() {
       <section id="pricing" className="py-24 px-6 lg:px-12 max-w-[1200px] mx-auto">
         <div className="text-label uppercase text-brand font-semibold mb-3.5">{t("Pricing", "Tarification")}</div>
         <h2 className="font-serif text-h2 text-ink font-normal max-w-[560px] mb-3.5">
-          {t("Free for every Canadian business. Revenue on results only.", "Gratuit pour chaque PME canadienne. Revenus sur résultats uniquement.")}
+          {t("Free forever for T1 and T2. Enterprise is performance-only.", "Gratuit pour T1 et T2. L'entreprise est à la performance uniquement.")}
         </h2>
         <p className="text-[16px] leading-relaxed text-ink-secondary max-w-[480px] mb-14">
-          {t("T1 and T2 are completely free. We earn through affiliate partnerships when you fix your leaks. T3 is performance-only — we get paid when you save.", "T1 et T2 sont entièrement gratuits. Nous gagnons via des partenaires affiliés lorsque vous corrigez vos fuites. T3 à la performance — nous sommes payés quand vous économisez.")}
+          {t("No trial. No credit card. No hidden fees. Solo and Business are free forever — we earn a small referral fee from partners only when you choose to fix a leak.", "Pas d'essai. Pas de carte. Pas de frais cachés. Solo et Business sont gratuits pour toujours — on touche des frais de référence de partenaires uniquement si vous choisissez de corriger une fuite.")}
         </p>
 
         <div className="grid md:grid-cols-3 gap-6 items-start">
@@ -791,8 +815,8 @@ export default function LandingPage() {
 
             {/* ══════ CTA BAND ══════ */}
       <section className="text-center py-24 px-6 bg-brand">
-        <h2 className="font-serif text-[38px] text-white font-normal tracking-tight mb-3.5">{t("Your business is leaking money right now.", "Votre entreprise perd de l'argent en ce moment.")}</h2>
-        <p className="text-[16px] text-white/60 max-w-[400px] mx-auto mb-8 leading-relaxed">{t("5 minutes. No credit card. Find out exactly how much.", "5 minutes. Sans carte de crédit. Découvrez exactement combien.")}</p>
+        <h2 className="font-serif text-[38px] text-white font-normal tracking-tight mb-3.5">{t("Start free. Stay free.", "Commencez gratuitement. Restez gratuit.")}</h2>
+        <p className="text-[16px] text-white/60 max-w-[480px] mx-auto mb-8 leading-relaxed">{t("3 minutes. No credit card. No subscription. Find out exactly what your business is losing — and who can fix it.", "3 minutes. Sans carte. Sans abonnement. Découvrez exactement ce que votre entreprise perd — et qui peut y remédier.")}</p>
         <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="px-8 py-3.5 text-[15px] font-semibold text-brand bg-white rounded-sm hover:-translate-y-px hover:shadow-lg transition-all">
           {t("Get your free analysis →", "Obtenez votre analyse gratuite →")}
         </button>
