@@ -47,7 +47,7 @@ export function emailTemplate(title: string, body: string, ctaText: string, ctaU
     <a href="${ctaUrl}" style="display:inline-block;background:#00c853;color:#000;font-weight:800;font-size:14px;padding:12px 24px;border-radius:12px;text-decoration:none">${ctaText}</a>
   </div>
   <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">
-    Fruxal · <a href="${ctaUrl}" style="color:#aaa">fruxal.vercel.app</a>
+    Fruxal · <a href="${ctaUrl}" style="color:#aaa">fruxal.ca</a>
   </div>
 </div></body></html>`;
 }
@@ -60,7 +60,7 @@ export async function sendScanComplete(to: string, businessName: string, totalLe
       `$${(totalLeaking ?? 0).toLocaleString()}/yr leaking from ${businessName}`,
       `We found <strong>${leakCount} leaks</strong> across your business. <strong>${urgentCount} need urgent attention.</strong><br><br>Open your dashboard to see exactly where the money is going and how to fix each one.`,
       "See Your Leaks →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.vercel.app"}/dashboard`
+      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/dashboard`
     ),
   });
 }
@@ -73,7 +73,7 @@ export async function sendLeakFixed(to: string, leakTitle: string, savings: numb
       `🎉 ${leakTitle} fixed!`,
       `That fix saves you <strong>$${(savings ?? 0).toLocaleString()}/yr</strong>. Nice work.<br><br>Check your dashboard to see your updated health score and find the next leak to fix.`,
       "See Your Progress →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.vercel.app"}/dashboard?tab=trends`
+      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/dashboard?tab=trends`
     ),
   });
 }
@@ -86,7 +86,7 @@ export async function sendWeeklyDigest(to: string, businessName: string, openLea
       `Weekly update for ${businessName}`,
       `<strong>${openLeaks} leaks</strong> still open · <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> still leaking${fixedThisWeek > 0 ? ` · <strong>${fixedThisWeek} fixed</strong> this week 🎉` : ""}<br><br>Your biggest open leak is waiting on your fix list.`,
       "Open Fix List →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.vercel.app"}/dashboard?tab=fix`
+      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/dashboard?tab=fix`
     ),
   });
 }
@@ -100,7 +100,7 @@ export async function sendNudge(to: string, totalLeaking: number): Promise<boole
       `$${daily} lost today. And yesterday. And the day before.`,
       `Your scan found <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> in leaks. Every day without action costs <strong>$${daily}</strong>.<br><br>The average user fixes their first leak within 48 hours. You can do it in one click.`,
       "Fix My First Leak →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.vercel.app"}/dashboard?tab=fix`
+      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/dashboard?tab=fix`
     ),
   });
 }
@@ -124,7 +124,7 @@ export async function sendMilestoneEmail({
   to, milestone, savings_recovered, savings_available,
   annualized, top_tasks, next_task,
 }: MilestoneEmailArgs): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const tasksUrl = `${appUrl}/v2/tasks`;
 
   const taskLines = top_tasks
@@ -160,7 +160,7 @@ export async function sendMilestoneEmail({
       Continue fixing →
     </a>
   </div>
-  <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">Fruxal · fruxal.com</div>
+  <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">Fruxal · fruxal.ca</div>
 </div></body></html>`;
 
   return sendEmail({
@@ -228,7 +228,7 @@ export function renderMonthlyBrief({
   </div>
 
   <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">
-    Fruxal Business Intelligence · fruxal.com
+    Fruxal Business Intelligence · fruxal.ca
   </div>
 </div>
 </body>
@@ -253,7 +253,7 @@ interface GoalCompletedEmailArgs {
 export async function sendGoalCompletedEmail({
   to, goalTitle, recoveredMo, daysAhead,
 }: GoalCompletedEmailArgs): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const html = emailTemplate(
     `🏆 Goal achieved: ${goalTitle}`,
     `You hit your goal${daysAhead > 0 ? ` <strong>${daysAhead} days early</strong>` : ""}! You recovered <strong>$${(recoveredMo ?? 0).toLocaleString()}/month</strong> — that's <strong>$${((recoveredMo ?? 0) * 12).toLocaleString()}/year</strong> staying in your business.<br><br>Set your next 90-day goal and keep the momentum going.`,
@@ -286,7 +286,7 @@ export async function sendRescanEmail({
   to, headline, narrative, scoreDelta, prevScore, newScore,
   savingsRecovered, newIssuesCount, netMonthly, daysBetween, newReportId,
 }: RescanEmailArgs): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const reportUrl = `${appUrl}/v2/diagnostic/${newReportId}`;
   const tasksUrl  = `${appUrl}/v2/tasks`;
 
@@ -325,7 +325,7 @@ export async function sendRescanEmail({
       <a href="${tasksUrl}" style="display:inline-block;background:#f0f0f0;color:#1B3A2D;font-weight:700;font-size:13px;padding:10px 20px;border-radius:10px;text-decoration:none">See what to fix next →</a>
     </div>
   </div>
-  <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">Fruxal Business Intelligence · fruxal.com</div>
+  <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">Fruxal Business Intelligence · fruxal.ca</div>
 </div>
 </body></html>`;
 
@@ -343,7 +343,7 @@ export async function sendRescanEmail({
 interface PaymentFailedArgs { to: string; plan: string; }
 
 export async function sendPaymentFailedEmail({ to, plan }: PaymentFailedArgs): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const html = emailTemplate(
     "Action required — payment failed",
     `Your payment for Fruxal ${plan} failed.<br><br>You have <strong>3 days of continued access</strong> while we retry.<br><br>To update your payment method, visit your billing settings. If payment is not updated within 3 days, your account will be downgraded to the free tier. <strong>Your data is never deleted for billing reasons</strong> — it will be waiting when you return.`,
@@ -369,7 +369,7 @@ interface WelcomeEmailArgs {
 export async function sendWelcomeEmail({
   to, name, industry, province, qualifiedPlan, teaserLeaks, lang = "en",
 }: WelcomeEmailArgs): Promise<boolean> {
-  const appUrl  = process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
+  const appUrl  = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const isFR    = lang === "fr" || (province === "QC" && lang !== "en");
   const greeting = name ? (isFR ? `Bonjour ${name}` : `Hi ${name}`) : (isFR ? "Bonjour" : "Hi there");
   const topLeaks = (teaserLeaks ?? []).slice(0, 3);
@@ -427,4 +427,87 @@ export async function sendWelcomeEmail({
   );
 
   return sendEmail({ to, subject, html });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Rep notification emails
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Sent to customer when a rep is assigned to them */
+export async function sendRepAssigned(
+  to: string,
+  businessName: string,
+  repName: string,
+  calendlyUrl: string | null,
+  totalLeak: number,
+  contingencyRate = 12,
+): Promise<boolean> {
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const keep = 100 - contingencyRate;
+  const keepAmount = Math.round(totalLeak * (keep / 100));
+  const ctaUrl = calendlyUrl || `${appUrl}/v2/dashboard`;
+  const ctaText = calendlyUrl ? `Book a Free Call with ${repName} →` : "View Your Dashboard →";
+  const body = `
+    <p style="font-size:15px;color:#1a1a2e;margin:0 0 16px">Hi ${businessName},</p>
+    <p style="color:#3d3d4e;margin:0 0 16px">
+      We've reviewed your scan results and assigned <strong>${repName}</strong> as your dedicated recovery expert.
+    </p>
+    <p style="color:#3d3d4e;margin:0 0 16px">
+      Based on what we found, you could recover <strong style="color:#2D7A50">$${keepAmount.toLocaleString()}/year</strong> 
+      (after our ${contingencyRate}% contingency fee). You don't pay anything until savings are confirmed.
+    </p>
+    <p style="color:#3d3d4e;margin:0 0 24px">
+      ${repName} will handle all the work — CRA calls, vendor renegotiations, grant applications. 
+      You just need to show up for one call.
+    </p>
+  `;
+  return sendEmail({ to, subject: `${repName} has been assigned to your Fruxal recovery`, html: emailTemplate(`Your recovery expert is ready`, body, ctaText, ctaUrl) });
+}
+
+/** Sent to rep when a new client is assigned */
+export async function sendRepNewClient(
+  to: string,
+  repName: string,
+  clientName: string,
+  industry: string | null,
+  province: string | null,
+  totalLeak: number,
+  dashUrl: string,
+): Promise<boolean> {
+  const body = `
+    <p style="font-size:15px;color:#1a1a2e;margin:0 0 16px">Hi ${repName},</p>
+    <p style="color:#3d3d4e;margin:0 0 16px">
+      You've been assigned a new client: <strong>${clientName}</strong>
+      ${industry ? ` (${industry}${province ? `, ${province}` : ''})` : ''}.
+    </p>
+    ${totalLeak > 0 ? `<p style="color:#3d3d4e;margin:0 0 16px">Estimated annual leak: <strong style="color:#B34040">$${totalLeak.toLocaleString()}/yr</strong></p>` : ''}
+    <p style="color:#3d3d4e;margin:0 0 24px">Review their file and make first contact within 24 hours for best conversion.</p>
+  `;
+  return sendEmail({ to, subject: `New client assigned: ${clientName}`, html: emailTemplate(`New client assigned`, body, `View Client File →`, dashUrl) });
+}
+
+/** Sent to customer when rep confirms a saving */
+export async function sendSavingConfirmed(
+  to: string,
+  businessName: string,
+  leakName: string,
+  confirmedAmount: number,
+  totalConfirmedToDate: number,
+  repName: string,
+): Promise<boolean> {
+  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const body = `
+    <p style="font-size:15px;color:#1a1a2e;margin:0 0 16px">Hi ${businessName},</p>
+    <p style="color:#3d3d4e;margin:0 0 16px">
+      <strong>${repName}</strong> has confirmed a recovery on your behalf:
+    </p>
+    <div style="background:#F0FBF5;border:1px solid #d1fae5;border-radius:12px;padding:20px;margin:0 0 20px">
+      <p style="margin:0 0 4px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px">Confirmed recovery</p>
+      <p style="margin:0 0 8px;font-size:28px;font-weight:900;color:#2D7A50">+$${confirmedAmount.toLocaleString()}</p>
+      <p style="margin:0;font-size:13px;color:#4b5563">${leakName}</p>
+    </div>
+    ${totalConfirmedToDate > confirmedAmount ? `<p style="color:#3d3d4e;margin:0 0 16px">Total recovered to date: <strong>$${totalConfirmedToDate.toLocaleString()}</strong></p>` : ''}
+    <p style="color:#3d3d4e;margin:0 0 24px">This has been added to your dashboard. Your rep continues working on the remaining items.</p>
+  `;
+  return sendEmail({ to, subject: `$${confirmedAmount.toLocaleString()} recovered — ${leakName}`, html: emailTemplate(`Saving confirmed`, body, `View Your Dashboard →`, `${appUrl}/v2/dashboard`) });
 }

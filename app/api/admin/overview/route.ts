@@ -204,6 +204,23 @@ export async function GET(req: NextRequest) {
   // Users
   const usersFree = Math.max(0, usersTotal - usersPaid);
 
+  // Contingency funnel metrics
+  let contingencyStats = { assigned: 0, in_engagement: 0, savings_confirmed: 0, commissions_pending: 0 };
+  try {
+    const [pipeAll, confirmedAll, commissionsAll] = await Promise.all([
+      supabaseAdmin.from("tier3_pipeline").select("stage").then(r => r.data || []),
+      supabaseAdmin.from("tier3_confirmed_findings").select("confirmed_amount").then(r => r.data || []),
+      supabaseAdmin.from("tier3_rep_commissions").select("commission_amount, status").then(r => r.data || []),
+    ]);
+    const activeStages = ["contacted","called","diagnostic_sent","agreement_out","signed","in_engagement","recovery_tracking","engaged","active"];
+    contingencyStats = {
+      assigned:            pipeAll.filter((p: any) => activeStages.includes(p.stage)).length,
+      in_engagement:       pipeAll.filter((p: any) => ["in_engagement","recovery_tracking"].includes(p.stage)).length,
+      savings_confirmed:   Math.round(confirmedAll.reduce((s: number, c: any) => s + (c.confirmed_amount ?? 0), 0)),
+      commissions_pending: Math.round(commissionsAll.filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + (c.commission_amount ?? 0), 0)),
+    };
+  } catch { /* non-fatal */ }
+
   // Prescan conversion
   const conversionRate = prescansAll > 0 ? Math.round((usersPaid / prescansAll) * 10000) / 100 : 0;
 

@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { sendSavingConfirmed } from "@/services/email/service";
 import crypto from "crypto";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
@@ -182,6 +183,42 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       } catch (propErr: any) {
         console.warn("[Engagement] Savings propagation failed (non-fatal):", propErr.message);
       }
+
+      // Email customer about confirmed saving
+      try {
+        const { data: eng2 } = await supabaseAdmin
+          .from("tier3_engagements")
+          .select("business_id, company_name")
+          .eq("id", id)
+          .single();
+        if (eng2?.business_id) {
+          const { data: biz2 } = await supabaseAdmin
+            .from("businesses")
+            .select("owner_user_id")
+            .eq("id", eng2.business_id)
+            .single();
+          if (biz2?.owner_user_id) {
+            const authUser = await supabaseAdmin.auth.admin.getUserById(biz2.owner_user_id).catch(() => ({ data: { user: null } })) as any;
+            const userEmail = authUser?.data?.user?.email;
+            const { data: prog2 } = await supabaseAdmin
+              .from("user_progress")
+              .select("total_recovered")
+              .eq("user_id", biz2.owner_user_id)
+              .maybeSingle();
+            if (userEmail) {
+              // Rep name from context (non-critical for email)
+              sendSavingConfirmed(
+                userEmail,
+                eng2.company_name || "your business",
+                leakName || "Identified leak",
+                Number(confirmedAmount),
+                prog2?.total_recovered ?? Number(confirmedAmount),
+                "Your Fruxal rep",
+              ).catch(() => {});
+            }
+          }
+        }
+      } catch { /* non-fatal */ }
 
       const totals = await getTotals(id);
       return NextResponse.json({ success: true, ...totals });

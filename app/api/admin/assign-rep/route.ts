@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
+import { sendRepAssigned, sendRepNewClient } from "@/services/email/service";
 
 export const maxDuration = 30;
 
@@ -96,6 +97,31 @@ export async function POST(req: NextRequest) {
         assigned_at:         new Date().toISOString(),
       });
     }
+
+    // Fire notification emails (non-fatal)
+    const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+    const leakTotal = (profile as any)?.annual_revenue ? Math.round((profile as any).annual_revenue * 0.05) : 0;
+    const clientDashUrl = `${appUrl}/rep/customer/${pipelineId}`;
+
+    Promise.all([
+      userEmail ? sendRepAssigned(
+        userEmail,
+        profile?.business_name || "your business",
+        rep.name,
+        rep.calendly_url || null,
+        leakTotal,
+        rep.contingency_rate ?? 12,
+      ) : Promise.resolve(false),
+      sendRepNewClient(
+        rep.email,
+        rep.name,
+        profile?.business_name || "New client",
+        profile?.industry || null,
+        profile?.province || null,
+        leakTotal,
+        clientDashUrl,
+      ),
+    ]).catch(() => {}); // non-fatal
 
     return NextResponse.json({
       success: true,

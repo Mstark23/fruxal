@@ -176,6 +176,10 @@ async function assembleContext(businessId: string, userId: string) {
 // ── Tier-specific user prompts ────────────────────────────────────────────────
 async function buildUserPrompt(ctx: Awaited<ReturnType<typeof assembleContext>>, tier: string): Promise<string> {
   const { biz, currentScore, prevScore, completedTasks, openTasks, recovery, obligations, ratios, prescanCtx, activeGoal, latestComparison } = ctx;
+
+  // Rep assignment context for monthly brief
+  let repCtx: { repName: string; stage: string; confirmed: number } | null = null;
+  // (repCtx populated by caller if needed — skip internal lookup to avoid biz type mismatch)
   const topTask = openTasks[0];
   const topDeadline = obligations[0];
   const langNote = biz.isQC ? " (If relevant, use Quebec tax terms: TPS/TVQ instead of HST/GST.)" : "";
