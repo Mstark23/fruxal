@@ -350,7 +350,7 @@ export default function GoPage() {
       {/* Footer */}
       <footer style={{textAlign:"center",padding:"20px 20px 32px",borderTop:"1px solid #EEECE8"}}>
         <p className="sans" style={{fontSize:11,color:"#B5B3AD"}}>
-          © 2026 Fruxal Inc. · <a href="/privacy" style={{color:"#8E8C85",textDecoration:"none"}}>{t("Privacy","Confidentialité")}</a> · {t("Built in Quebec","Construit au Québec")} 🇨🇦
+          © 2026 Fruxal Inc. · <a href="/legal/privacy" style={{color:"#8E8C85",textDecoration:"none"}}>{t("Privacy","Confidentialité")}</a> · {t("Built in Quebec","Construit au Québec")} 🇨🇦
         </p>
       </footer>
     </div>

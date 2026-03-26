@@ -162,23 +162,23 @@ export default function BusinessDashboard() {
         )}
         {/* KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5" style={fade(0.04)}>
-          <button onClick={() => isPaid ? router.push("/v2/diagnostic") : router.push("/v2/checkout?plan=business")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
             <div className="flex items-end gap-1.5"><span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: score >= 60 ? "#1B3A2D" : "#C4841D" }}>{score}</span><span className="text-xs text-ink-faint mb-1">/100</span></div>
             <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: score + "%", background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
           </button>
-          <button onClick={() => isPaid ? router.push("/v2/leaks") : router.push("/v2/checkout?plan=business")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
             <div className="text-[10px] text-ink-faint mt-1.5">{leaks.length} {t("leaks detected", "fuites détectées")}</div>
           </button>
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Recovered", "Récupéré")}</div>
-            {isPaid ? <div className="flex items-start justify-between"><div><div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${recovered.toLocaleString()}</div><div className="text-[10px] text-ink-faint mt-1.5">{leaksFixed} {t("fixed", "corrigés")}</div></div><div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div></div> : <div className="flex items-center gap-2 mt-2"><LockIcon /><span className="text-[11px] text-ink-faint">{t("Upgrade to track", "Mettre à niveau")}</span></div>}
+            <div className="flex items-start justify-between"><div><div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${recovered.toLocaleString()}</div><div className="text-[10px] text-ink-faint mt-1.5">{leaksFixed} {t("fixed", "corrigés")}</div></div><div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div></div>
           </div>
-          <button onClick={() => isPaid ? router.push("/v2/obligations") : router.push("/v2/checkout?plan=business")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <button onClick={() => router.push("/v2/obligations")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">OBLIGATIONS</div>
-            {isPaid ? <div className="flex items-end gap-2"><span className="font-serif text-[36px] font-bold leading-none tracking-tight">{obligationsTotal}</span>{overdue > 0 && <span className="text-[10px] font-bold text-negative mb-1 px-1.5 py-0.5 rounded" style={{ background: "rgba(179,64,64,0.05)" }}>{overdue} {t("late", "retard")}</span>}</div> : <div className="flex items-center gap-2 mt-2"><LockIcon /><span className="text-[11px] text-ink-faint">{t("Upgrade to see", "Mettre à niveau")}</span></div>}
+            <div className="flex items-end gap-2"><span className="font-serif text-[36px] font-bold leading-none tracking-tight">{obligationsTotal}</span>{overdue > 0 && <span className="text-[10px] font-bold text-negative mb-1 px-1.5 py-0.5 rounded" style={{ background: "rgba(179,64,64,0.05)" }}>{overdue} {t("late", "retard")}</span>}</div>
           </button>
         </div>
         {/* MAIN GRID */}
@@ -187,7 +187,7 @@ export default function BusinessDashboard() {
           <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
               <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Detected Leaks", "Fuites détectées")}</span>
-              {isPaid && <button onClick={() => router.push("/v2/leaks")} className="text-[9px] font-semibold text-brand hover:underline">{t("View all →", "Tout voir →")}</button>}
+              <button onClick={() => router.push("/v2/leaks")} className="text-[9px] font-semibold text-brand hover:underline">{t("View all →", "Tout voir →")}</button>
             </div>
             {isFree ? (
               <>
@@ -254,8 +254,8 @@ export default function BusinessDashboard() {
           {/* COL 3: SIDEBAR */}
           <div className="flex flex-col gap-3">
             <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="px-4 py-2.5 border-b border-border-light flex justify-between items-center"><span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Deadlines", "Échéances")}</span>{isPaid && <button onClick={() => router.push("/v2/obligations")} className="text-[9px] font-semibold text-brand hover:underline">{t("All →", "Tout →")}</button>}</div>
-              {!isPaid ? <div className="px-4 py-4 text-center"><div className="flex justify-center mb-1"><LockIcon /></div><p className="text-[10px] text-ink-faint">{t("Upgrade to see deadlines", "Mettre à niveau")}</p></div>
+              <div className="px-4 py-2.5 border-b border-border-light flex justify-between items-center"><span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Deadlines", "Échéances")}</span><button onClick={() => router.push("/v2/obligations")} className="text-[9px] font-semibold text-brand hover:underline">{t("All →", "Tout →")}</button></div>
+              {false ? null
               : deadlines.length === 0 ? <div className="px-4 py-4 text-[11px] text-ink-faint text-center">{t("None upcoming", "Aucune échéance")}</div>
               : deadlines.slice(0, 4).map((dl, i) => (
                 <div key={i} onClick={() => router.push("/v2/obligations")} className="px-4 py-2.5 flex items-center justify-between border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer">
@@ -264,9 +264,9 @@ export default function BusinessDashboard() {
                 </div>
               ))}
             </div>
-            <button onClick={() => isPaid ? router.push("/v2/programs") : router.push("/v2/checkout?plan=business")} className="w-full bg-white rounded-xl border border-border-light p-4 text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <button onClick={() => router.push("/v2/programs")} className="w-full bg-white rounded-xl border border-border-light p-4 text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2">{t("Government Programs", "Programmes")}</div>
-              {isPaid ? <div className="flex items-end gap-2"><span className="font-serif text-[28px] font-bold leading-none tracking-tight text-positive">{programsAvailable}</span><span className="text-[10px] text-ink-faint mb-0.5">{t("available", "disponibles")}</span></div> : <div className="flex items-center gap-2"><LockIcon /><span className="text-[11px] text-ink-faint">{t("Unlock to see grants", "Débloquer")}</span></div>}
+              <div className="flex items-end gap-2"><span className="font-serif text-[28px] font-bold leading-none tracking-tight text-positive">{programsAvailable}</span><span className="text-[10px] text-ink-faint mb-0.5">{t("available", "disponibles")}</span></div>
             </button>
             {isPaid && (
               <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -284,7 +284,7 @@ export default function BusinessDashboard() {
                 </div>
               </a>
             )}
-            <button onClick={() => isPaid ? router.push("/v2/chat") : router.push("/v2/checkout?plan=business")} className="w-full bg-white rounded-xl border border-brand/15 p-4 text-left hover:shadow-[0_4px_16px_rgba(27,58,45,0.08)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <button onClick={() => router.push("/v2/chat")} className="w-full bg-white rounded-xl border border-brand/15 p-4 text-left hover:shadow-[0_4px_16px_rgba(27,58,45,0.08)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-brand/5 border border-brand/10 flex items-center justify-center shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.7" strokeLinecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg></div>
                 <div><div className="text-[12px] font-semibold text-ink">{t("Ask Fruxal AI", "Demander à Fruxal IA")}</div><div className="text-[9px] text-ink-faint">{!isPaid ? t("Upgrade to unlock", "Mettre à niveau") : t("Get answers about your finances", "Posez vos questions")}</div></div>

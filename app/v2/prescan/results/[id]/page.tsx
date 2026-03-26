@@ -251,9 +251,9 @@ export default function PrescanResultsPage() {
                           ${(leak.impact_min ?? 0).toLocaleString()} — ${(leak.impact_max ?? 0).toLocaleString()}/yr
                         </span>
                         <span className="text-white/10 text-[9px]">
-                          {leak.solution_type === "free_fix" ? t("🆓 Free fix", "🆓 Gratuit") :
-                           leak.solution_type === "government_program" ? t("🏛️ Gov program", "🏛️ Programme gouvernemental") :
-                           leak.solution_type === "professional" ? t("👔 Professional", "👔 Professionnel") : t("🔗 Solution available", "🔗 Solution disponible")}
+                          {leak.solution_type === "free_fix" ? t("Free fix", "Gratuit") :
+                           leak.solution_type === "government_program" ? t("Gov program", "Programme gouvernemental") :
+                           leak.solution_type === "professional" ? t("Professional", "Professionnel") : t("Solution available", "Solution disponible")}
                         </span>
                       </div>
                     </div>
@@ -362,7 +362,7 @@ export default function PrescanResultsPage() {
             <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-5">
               {result.teaser_programs.map((prog, i) => (
                 <div key={i} className={`flex items-center gap-3 ${i > 0 ? "mt-3 pt-3 border-t border-emerald-500/5" : ""}`}>
-                  <span className="text-lg">🏛️</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="1.8" strokeLinecap="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
                   <div>
                     <p className="text-emerald-400/70 text-xs font-semibold">{prog.name}</p>
                     <p className="text-emerald-400/30 text-[10px]">{prog.category}</p>
@@ -394,9 +394,9 @@ export default function PrescanResultsPage() {
                   { icon: "plan", en: "90-day action plan", fr: "Plan d'action 90 jours" },
                   { icon: "risk", en: "Risk matrix", fr: "Matrice de risque" },
                   { icon: "benchmark", en: "Industry benchmarks", fr: "Repères de l'industrie" },
-                  { icon: "🏛️", en: "All matching programs", fr: "Tous les programmes" },
-                  { icon: "📄", en: "PDF report", fr: "Rapport PDF" },
-                  { icon: "📐", en: "AI-powered analysis", fr: "Analyse par IA" },
+                  { icon: "programs", en: "All matching programs", fr: "Tous les programmes" },
+                  { icon: "pdf", en: "PDF report", fr: "Rapport PDF" },
+                  { icon: "ai", en: "AI-powered analysis", fr: "Analyse par IA" },
                 ].map((f, i) => (
                   <div key={i} className="flex items-center gap-2 text-[10px] text-white/25">
                     <span>{f.icon}</span><span>{isFR ? f.fr : f.en}</span>

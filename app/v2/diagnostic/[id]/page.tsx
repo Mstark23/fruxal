@@ -261,7 +261,7 @@ export default function DiagnosticReportPage() {
           <div className="flex items-center gap-2">
             <a href={`/api/v2/diagnostic/${params.id}/pdf?language=${lang}`} target="_blank"
               className="text-[10px] px-3 py-1.5 rounded-lg bg-white/[0.04] text-ink/90 hover:text-ink-secondary border border-white/[0.16] transition-colors">
-              📄 PDF
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{display:"inline",marginRight:4}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
             </a>
             <button onClick={() => setLang(l => l === "fr" ? "en" : "fr")}
               className="text-xs text-ink-faint hover:text-ink-faint px-2 py-1 rounded border border-white/[0.16]">
@@ -377,7 +377,7 @@ export default function DiagnosticReportPage() {
                 <div className="px-4 py-3 border-b flex items-center justify-between"
                   style={{ borderColor: "rgba(27,58,45,0.12)", background: "rgba(27,58,45,0.06)" }}>
                   <div className="flex items-center gap-2">
-                    <span>📊</span>
+                    
                     <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#1B3A2D" }}>
                       {isFr ? `DEPUIS VOTRE DERNIER SCAN (${comparison.days_between_scans} jours)` : `SINCE YOUR LAST SCAN (${comparison.days_between_scans} days ago)`}
                     </span>
@@ -405,7 +405,7 @@ export default function DiagnosticReportPage() {
                     {comparison.findings_new_count > 0 && (
                       <div>
                         <p className="text-[11px] text-ink-muted uppercase tracking-wider mb-0.5">{isFr ? "Nouveaux" : "New"}</p>
-                        <p className="text-[12px] font-bold" style={{ color: "#C4841D" }}>{comparison.findings_new_count} ⚠️</p>
+                        <p className="text-[12px] font-bold" style={{ color: "#C4841D" }}>{comparison.findings_new_count} new</p>
                       </div>
                     )}
                     <div>
@@ -500,7 +500,7 @@ export default function DiagnosticReportPage() {
                   )}
                   {goalSaved && (
                     <p className="text-[11px] font-semibold text-positive">
-                      ✅ {isFr ? "Objectif enregistré — visible sur votre tableau de bord." : "Goal saved — visible on your dashboard."}
+                      {isFr ? "Objectif enregistré — visible sur votre tableau de bord." : "Goal saved — visible on your dashboard."}
                     </p>
                   )}
                 </div>
@@ -512,7 +512,7 @@ export default function DiagnosticReportPage() {
               <div className="mb-4 rounded-xl p-4"
                 style={{ background: "rgba(196,132,29,0.07)", border: "1px solid rgba(196,132,29,0.2)" }}>
                 <div className="flex items-start gap-3">
-                  <span className="text-lg shrink-0">🔍</span>
+                  <svg className="w-4 h-4 shrink-0 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                   <div className="flex-1">
                     <p className="text-[11px] font-bold text-amber-700 mb-1 uppercase tracking-wider">
                       {isFr ? "Continuité avec votre analyse initiale" : "Continuity with your initial scan"}
@@ -525,7 +525,7 @@ export default function DiagnosticReportPage() {
                             <strong>{(prescanLink.leaks_confirmed ?? 0) + (prescanLink.leaks_not_found ?? 0)} {isFr ? "problèmes" : "issues"}</strong>
                           </span>
                           <span className="text-green-700">
-                            ✅ {isFr ? "Confirmés :" : "Confirmed:"} <strong>{prescanLink.leaks_confirmed ?? 0}</strong>
+                            {isFr ? "Confirmés :" : "Confirmed:"} <strong>{prescanLink.leaks_confirmed ?? 0}</strong>
                           </span>
                           {(prescanLink.leaks_new ?? 0) > 0 && (
                             <span className="text-blue-700">
@@ -580,14 +580,14 @@ export default function DiagnosticReportPage() {
                       {isFr ? (f.description_fr || f.description) : f.description}
                     </p>
                     <div className="flex items-center gap-3 text-[10px] mb-2">
-                      <span className={`font-bold ${st.text}`}>💰 ${(f.impact_min ?? 0).toLocaleString()}–${(f.impact_max ?? 0).toLocaleString()}/yr</span>
+                      <span className={`font-bold ${st.text}`}>${(f.impact_min ?? 0).toLocaleString()}–${(f.impact_max ?? 0).toLocaleString()}/yr</span>
                       <span className="text-ink/55">⏱ {f.timeline}</span>
-                      <span className="text-ink/55">📊 {f.difficulty}</span>
+                      <span className="text-ink/55">{f.difficulty}</span>
                       <span className="text-ink/80">{f.solution_type}</span>
                     </div>
                     <div className="bg-brand/5 border border-brand/10 rounded-lg px-3 py-2">
                       <p className="text-[11px] text-brand-accent">
-                        ✅ {isFr ? (f.recommendation_fr || f.recommendation) : f.recommendation}
+                        {isFr ? (f.recommendation_fr || f.recommendation) : f.recommendation}
                       </p>
                     </div>
                     {/* Matched solutions for this finding */}

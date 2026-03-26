@@ -58,12 +58,12 @@ const INDUSTRIES = [
   { value: "retail", label: "Retail", fr: "Commerce de détail", icon: "🏪" },
   { value: "ecommerce", label: "E-Commerce", fr: "Commerce en ligne", icon: "🛒" },
   { value: "consulting", label: "Consulting", fr: "Consultation", icon: "💼" },
-  { value: "software_development", label: "Tech / SaaS", fr: "Tech / SaaS", icon: "💻" },
+  { value: "software_development", label: "Tech / SaaS", fr: "Tech / SaaS" },
   { value: "healthcare", label: "Healthcare", fr: "Santé", icon: "🏥" },
   { value: "salon", label: "Beauty / Salon", fr: "Beauté / Salon", icon: "💇" },
   { value: "trucking", label: "Transport", fr: "Transport", icon: "🚛" },
-  { value: "real_estate", label: "Real Estate", fr: "Immobilier", icon: "🏠" },
-  { value: "accounting", label: "Accounting", fr: "Comptabilité", icon: "📊" },
+  { value: "real_estate", label: "Real Estate", fr: "Immobilier" },
+  { value: "accounting", label: "Accounting", fr: "Comptabilité" },
   { value: "legal", label: "Legal", fr: "Services juridiques", icon: "⚖️" },
   { value: "fitness", label: "Fitness", fr: "Conditionnement physique", icon: "💪" },
   { value: "cleaning", label: "Cleaning", fr: "Nettoyage", icon: "🧹" },
@@ -73,8 +73,8 @@ const INDUSTRIES = [
 ];
 
 const STRUCTURES = [
-  { value: "sole_proprietor", label: "Sole Proprietor / Self-employed", fr: "Travailleur autonome / Propriétaire unique", icon: "👤" },
-  { value: "corporation", label: "Incorporated (Inc. / Ltd.)", fr: "Incorporé (Inc. / Ltée)", icon: "🏢" },
+  { value: "sole_proprietor", label: "Sole Proprietor / Self-employed", fr: "Travailleur autonome / Propriétaire unique" },
+  { value: "corporation", label: "Incorporated (Inc. / Ltd.)", fr: "Incorporé (Inc. / Ltée)" },
   { value: "partnership", label: "Partnership", fr: "Société de personnes", icon: "🤝" },
 ];
 
@@ -87,11 +87,11 @@ function getRevenueRanges(isFR: boolean) { return [
 ]; }
 
 const EMPLOYEE_RANGES = [
-  { value: 0, label: "Just me", fr: "Juste moi", icon: "👤" },
+  { value: 0, label: "Just me", fr: "Juste moi" },
   { value: 3, label: "1-5 employees", fr: "1-5 employés", icon: "👥" },
   { value: 12, label: "6-20 employees", fr: "6-20 employés", icon: "👥👥" },
   { value: 35, label: "20-50 employees", fr: "20-50 employés", icon: "👥👥👥" },
-  { value: 75, label: "50+ employees", fr: "50+ employés", icon: "🏢" },
+  { value: 75, label: "50+ employees", fr: "50+ employés" },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -167,7 +167,7 @@ export default function PrescanPage() {
       {/* Header */}
       <header className="px-4 pt-6 pb-2 max-w-lg mx-auto w-full">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center text-sm">🔍</div>
+          <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
           <div>
             <h1 className="text-white/80 text-sm font-semibold">Fruxal Free Scan</h1>
             <p className="text-white/20 text-[10px]">Quick chat · 60 seconds · No account needed</p>
@@ -267,9 +267,9 @@ export default function PrescanPage() {
             <div className="space-y-6">
               <Question q="Quick flags — check what applies:" qfr="Cochez ce qui s'applique:" isFR={isFR} />
               <div className="space-y-2">
-                <FlagToggle on={answers.has_accountant} onClick={() => set("has_accountant", !answers.has_accountant)} label="I have an accountant or bookkeeper" icon="📊" />
+                <FlagToggle on={answers.has_accountant} onClick={() => set("has_accountant", !answers.has_accountant)} label="I have an accountant or bookkeeper"  />
                 <FlagToggle on={answers.handles_data} onClick={() => set("handles_data", !answers.handles_data)} label="I collect customer data (emails, payments)" icon="🔐" />
-                <FlagToggle on={answers.has_physical_location} onClick={() => set("has_physical_location", !answers.has_physical_location)} label="I have a physical office, store or warehouse" icon="🏢" />
+                <FlagToggle on={answers.has_physical_location} onClick={() => set("has_physical_location", !answers.has_physical_location)} label="I have a physical office, store or warehouse"  />
                 <FlagToggle on={answers.exports_goods} onClick={() => set("exports_goods", !answers.exports_goods)} label="I sell to clients outside Canada" icon="🌎" />
                 <FlagToggle on={answers.does_rd} onClick={() => set("does_rd", !answers.does_rd)} label="I do any R&D, innovation, or custom software" icon="🔬" />
                 {["restaurant","salon","fitness","healthcare"].includes(answers.industry) && (
@@ -296,7 +296,7 @@ export default function PrescanPage() {
                   <p className="text-white/50 text-[11px] font-medium mb-2">When did you last review your tax setup with a professional?</p>
                   <div className="space-y-2">
                     {[
-                      { value: "this_year", label: "This year", icon: "✅" },
+                      { value: "this_year", label: "This year" },
                       { value: "1_2_years", label: "1–2 years ago", icon: "🟡" },
                       { value: "3_plus_years", label: "3+ years ago", icon: "🔴" },
                       { value: "never", label: "Never / Not sure", icon: "🔴" },
@@ -313,7 +313,7 @@ export default function PrescanPage() {
                   on={answers.vendor_contracts_stale}
                   onClick={() => set("vendor_contracts_stale", !answers.vendor_contracts_stale)}
                   label="My supplier/vendor contracts haven't been renegotiated in 2+ years"
-                  icon="📄"
+                  icon="pdf"
                 />
 
                 {/* Payroll software */}
@@ -322,7 +322,7 @@ export default function PrescanPage() {
                     on={answers.uses_payroll_software}
                     onClick={() => set("uses_payroll_software", !answers.uses_payroll_software)}
                     label="I use payroll software (Ceridian, ADP, Payworks, etc.)"
-                    icon="💻"
+                    
                   />
                 )}
 
@@ -362,7 +362,7 @@ export default function PrescanPage() {
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Scanning your business...
               </span>
-            ) : step === 5 ? t("🔍 Scan My Business — Free", "🔍 Scanner mon entreprise — Gratuit") : t("Continue", "Continuer")}
+            ) : step === 5 ? t("Scan My Business — Free →", "Scanner mon entreprise — Gratuit →") : t("Continue →", "Continuer →")}
           </button>
         </div>
       </div>
@@ -400,7 +400,7 @@ function OptionButton({ selected, onClick, label, icon, sub, wide }: {
   );
 }
 
-function FlagToggle({ on, onClick, label, icon }: { on: boolean; onClick: () => void; label: string; icon: string }) {
+function FlagToggle({ on, onClick, label, icon = "" }: { on: boolean; onClick: () => void; label: string; icon?: string }) {
   return (
     <button onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs text-left transition-all border ${

@@ -480,7 +480,7 @@ export default function BusinessDashboard() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
-                      <div className="text-[7px] text-ink-faint">/{t("yr", "an")}</div>
+                      <div className="text-[10px] text-ink-faint">/{t("yr", "an")}</div>
                     </div>
                   </div>
                 ))}
@@ -529,7 +529,7 @@ export default function BusinessDashboard() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-serif text-[13px] font-bold text-positive">+${(a.estimated_value ?? 0).toLocaleString()}</div>
-                    <span className="text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "À faire")}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "À faire")}</span>
                   </div>
                 </div>
               ))}
@@ -652,9 +652,9 @@ export default function BusinessDashboard() {
                     <div key={i} className="px-4 py-2 border-b border-border-light last:border-0">
                       <p key={i} className="text-[10px] font-semibold text-ink-secondary mb-1.5">{isFR ? (b.metric_name_fr || b.metric_fr || b.metric_name || b.metric || "") : (b.metric_name || b.metric || "")}</p>
                       <div key={i} className="grid grid-cols-3 text-center">
-                        <div><div className="text-[12px] font-bold text-ink-secondary">{b.your_value}</div><div className="text-[7px] text-ink-faint">{t("You", "Vous")}</div></div>
-                        <div><div className="text-[12px] font-bold" style={{ color: "#0369a1" }}>{b.industry_avg}</div><div className="text-[7px] text-ink-faint">{t("Avg", "Moy.")}</div></div>
-                        <div><div className="text-[12px] font-bold text-positive">{b.top_quartile}</div><div className="text-[7px] text-ink-faint">Top 25%</div></div>
+                        <div><div className="text-[12px] font-bold text-ink-secondary">{b.your_value}</div><div className="text-[10px] text-ink-faint">{t("You", "Vous")}</div></div>
+                        <div><div className="text-[12px] font-bold" style={{ color: "#0369a1" }}>{b.industry_avg}</div><div className="text-[10px] text-ink-faint">{t("Avg", "Moy.")}</div></div>
+                        <div><div className="text-[12px] font-bold text-positive">{b.top_quartile}</div><div className="text-[10px] text-ink-faint">Top 25%</div></div>
                       </div>
                     </div>
                   ))

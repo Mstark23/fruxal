@@ -28,7 +28,7 @@ function fmtRatio(v: number | null, unit?: string): string {
 type Status = "good" | "warning" | "danger";
 const STATUS_COLORS: Record<Status, string> = { good: "#2D7A50", warning: "#C4841D", danger: "#B34040" };
 const STATUS_BG: Record<Status, string>     = { good: "rgba(45,122,80,0.07)", warning: "rgba(196,132,29,0.07)", danger: "rgba(179,64,64,0.07)" };
-const STATUS_ICON: Record<Status, string>   = { good: "✅", warning: "⚠️", danger: "❌" };
+const STATUS_ICON: Record<Status, string>   = { good: "✓", warning: "!", danger: "✗" };
 const TREND_ICON: Record<string, string>    = { improving: "↑", stable: "→", declining: "↓" };
 const TREND_COLOR: Record<string, string>   = { improving: "#2D7A50", stable: "#8E8C85", declining: "#B34040" };
 const GRADE_COLOR: Record<string, string>   = { A: "#2D7A50", B: "#1B3A2D", C: "#C4841D", D: "#B34040", F: "#7B1F1F" };
@@ -121,14 +121,14 @@ function RatioCard({ label, value, unit, benchmark, description, trend, history 
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-bold text-ink-faint uppercase tracking-wider">Bank requirement:</span>
               <span className="text-[10px] font-semibold" style={{ color: value >= bankReq ? "#2D7A50" : "#B34040" }}>
-                {value >= bankReq ? "✅" : "❌"} &gt;{bankReq}{unit === "%" ? "%" : "×"}
+                {value >= bankReq ? "✓" : "✗"} &gt;{bankReq}{unit === "%" ? "%" : "×"}
               </span>
             </div>
           )}
           <div className="flex gap-3 text-[9px] text-ink-faint">
-            <span style={{ color: "#2D7A50" }}>✅ Good: {benchmark.good.min}{unit === "x" ? "×" : unit === "%" ? "%" : ""}+</span>
-            <span style={{ color: "#C4841D" }}>⚠️ Watch: {benchmark.warning.min}{unit === "x" ? "×" : unit === "%" ? "%" : ""}+</span>
-            <span style={{ color: "#B34040" }}>❌ Danger: &lt;{benchmark.warning.min}{unit === "x" ? "×" : unit === "%" ? "%" : ""}</span>
+            <span style={{ color: "#2D7A50" }}>✓ Good: {benchmark.good.min}{unit === "x" ? "×" : unit === "%" ? "%" : ""}+</span>
+            <span style={{ color: "#C4841D" }}>! Watch: {benchmark.warning.min}{unit === "x" ? "×" : unit === "%" ? "%" : ""}+</span>
+            <span style={{ color: "#B34040" }}>✗ Danger: &lt;{benchmark.warning.min}{unit === "x" ? "×" : unit === "%" ? "%" : ""}</span>
           </div>
         </div>
       )}
@@ -261,7 +261,7 @@ export default function RatiosPage() {
         {/* Setup required */}
         {setup_required && (
           <div className="bg-white rounded-xl border border-border-light p-6 text-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-3xl mb-3">📊</div>
+            <svg className="w-8 h-8 mx-auto mb-3 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
             <h2 className="text-[15px] font-bold text-ink mb-1">No ratio data yet</h2>
             <p className="text-[12px] text-ink-faint mb-4">Run your diagnostic to auto-populate financial ratios, or add balance sheet data manually.</p>
             <div className="flex gap-3 justify-center">

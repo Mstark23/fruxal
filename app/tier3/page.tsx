@@ -140,7 +140,7 @@ export default function Tier3DashboardPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-3xl mb-3">📋</div>
+            <svg className="w-8 h-8 mx-auto mb-3 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
             <p className="text-sm text-[#6b7694] mb-1">
               {diagnostics.length === 0 ? "No diagnostics yet" : `No ${filter} diagnostics`}
             </p>

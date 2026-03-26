@@ -21,7 +21,7 @@ export default function SharePage() {
   if (error) return (
     <div className="min-h-screen bg-[#0a0e17] text-white flex items-center justify-center">
       <div className="text-center">
-        <div className="text-4xl mb-4">🔗</div>
+        <svg className="w-10 h-10 mx-auto mb-4 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
         <div className="text-xl font-bold mb-2">{error}</div>
         <button onClick={() => router.push("/")} className="mt-4 px-6 py-3 bg-[#00c853] text-black font-bold rounded-xl">Try Fruxal Free →</button>
       </div>

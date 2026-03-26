@@ -77,7 +77,7 @@ const RISK_COLORS: Record<string, { text: string; bg: string }> = {
 const CATEGORY_ICONS: Record<string, string> = {
   tax: "", payroll: "", compliance: "", registration: "",
   permits: "", contract: "", insurance: "", operations: "",
-  government_program: "🏛️",
+  government_program: "",
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -320,9 +320,9 @@ export default function OnboardingTour() {
                           ${(leak.impact_min ?? 0).toLocaleString()} — ${(leak.impact_max ?? 0).toLocaleString()}/yr
                         </span>
                         <span className="text-white/10 text-[9px]">
-                          {leak.solution_type === "free_fix" ? "🆓 Free fix" :
-                           leak.solution_type === "government_program" ? "🏛️ Gov program" :
-                           leak.solution_type === "professional" ? "👔 Professional" : "🔗 Solution"}
+                          {leak.solution_type === "free_fix" ? "Free fix" :
+                           leak.solution_type === "government_program" ? "Gov program" :
+                           leak.solution_type === "professional" ? "Professional" : "Solution"}
                         </span>
                       </div>
                     </div>
@@ -344,7 +344,7 @@ export default function OnboardingTour() {
           {step === 3 && (
             <div>
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-lg">🏛️</div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="1.8" strokeLinecap="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></div>
                 <div>
                   <h2 className="text-white/70 text-base font-bold">Programs You Qualify For</h2>
                   <p className="text-white/20 text-[10px]">{data.programs.total} programs · {data.programs.government} government</p>
@@ -411,7 +411,7 @@ export default function OnboardingTour() {
               <div className="grid grid-cols-3 gap-2 mb-6">
                 <MiniSummary icon="calendar" value={data.obligations.total} label="Obligations" color="amber" />
                 <MiniSummary icon="💸" value={`$${Math.round(data.leaks.range_max / 1000)}K`} label="Leak Exposure" color="red" />
-                <MiniSummary icon="🏛️" value={data.programs.total} label="Programs" color="emerald" />
+                <MiniSummary icon="programs" value={data.programs.total} label="Programs" color="emerald" />
               </div>
 
               {/* What's next */}
