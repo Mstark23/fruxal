@@ -302,7 +302,7 @@ export default function SoloDashboard() {
               {streak && streak.current > 0 && (
                 <div className="flex items-center gap-1">
                   <div className="flex gap-[2px]">{streak.week_map?.map((a: boolean, i: number) => <div className={"w-[4px] h-[4px] rounded-[1px] " + (a ? "bg-positive" : "bg-border")} />)}</div>
-                  <span key={String(Math.random())} className="text-[11px] text-ink-faint">{streak.current}{t("d", "j")}</span>
+                  <span className="text-[11px] text-ink-faint">{streak.current}{t("d", "j")}</span>
                 </div>
               )}
             </div>
@@ -351,57 +351,6 @@ export default function SoloDashboard() {
           </button>
         )}
 
-        {/* FREE UPGRADE — RICH UNLOCK PANEL */}
-        {isFree && totalLeak > 0 && (
-          <div className="rounded-2xl mb-5 overflow-hidden border border-brand/20"
-            style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: "all 0.45s cubic-bezier(0.16,1,0.3,1) 0.03s" }}>
-            {/* Header */}
-            <div className="px-5 py-4" style={{ background: "linear-gradient(135deg, #1B3A2D, #2A5A44)" }}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[13px] font-bold text-white mb-0.5">
-                    {isFR
-                      ? `Votre entreprise perd ${(totalLeak ?? 0).toLocaleString()} $/an — voici ce que vous manquez :`
-                      : `Your business is leaking $${(totalLeak ?? 0).toLocaleString()}/year — here's what you're missing:`}
-                  </p>
-                  <p className="text-[11px] text-white/50">
-                    {t("Free plan shows 4 leaks. Your full diagnostic reveals all of them.", "Le plan gratuit montre 4 fuites. Votre diagnostic complet les révèle toutes.")}
-                  </p>
-                </div>
-              </div>
-            </div>
-            {/* What you unlock */}
-            <div className="bg-white px-5 py-4">
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {[
-                  { icon: "rep", title: t("Full leak report", "Rapport complet"), sub: t("All leaks with exact $ amounts", "Toutes les fuites avec montants exacts") },
-                  { icon: "score", title: t("Health Score", "Score de santé"), sub: t("Your 0–100 financial grade", "Votre note financière 0–100") },
-                  { icon: "plan", title: t("90-day fix plan", "Plan 90 jours"), sub: t("Step-by-step actions to recover money", "Étapes pour récupérer votre argent") },
-                  { icon: "🏛️", title: t("Gov. programs", "Programmes gouv."), sub: t("Grants & credits you qualify for", "Subventions et crédits admissibles") },
-                ].map(u => (
-                  <div key={u.title} className="flex items-start gap-2.5 p-3 bg-bg-section rounded-xl">
-                    <span className="text-[16px] shrink-0">{u.icon}</span>
-                    <div>
-                      <p className="text-[11px] font-bold text-ink">{u.title}</p>
-                      <p className="text-[11px] text-ink-muted mt-0.5">{u.sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button onClick={() => router.push(upgradeUrl)}
-                className="w-full py-3 text-[13px] font-bold text-white bg-brand rounded-xl hover:bg-brand-light transition">
-                {upgradeTarget === "enterprise"
-                  ? t("Book a discovery call →", "Réserver un appel →")
-                  : isFR
-                  ? `Débloquer mon rapport complet — ${upgradePrice}/mois →`
-                  : t("Scale up with Enterprise →", "Passer à l'entreprise →")}
-              </button>
-              <p className="text-[10px] text-ink-faint text-center mt-2">
-                {t("7-day free trial · No credit card required · Cancel anytime", "7 jours gratuits · Aucune carte requise · Annulez à tout moment")}
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5" style={fadeDelay(0.04)}>
@@ -418,7 +367,7 @@ export default function SoloDashboard() {
             ) : (
               <>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
-                <div className="text-[11px] text-ink-muted mt-1.5">{isPaid ? t("Run diagnostic →", "Lancer →") : t("Upgrade to unlock", "Mettre à niveau")}</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
               </>
             )}
           </button>
@@ -428,37 +377,27 @@ export default function SoloDashboard() {
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
             <div className="text-[11px] text-ink-muted mt-1.5">
               {isPaid ? displayLeaks.length : 1} {t("leaks detected", "fuites detectees")}
-              {!isPaid && allLeaks.length > 1 && (
-                <span className="ml-1 text-negative font-semibold">+{allLeaks.length - 1} {t("locked", "verrouillés")}</span>
-              )}
+
             </div>
           </button>
 
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Recovered", "Recupere")}</div>
-            {isPaid ? (
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
-                  <div className="text-[11px] text-ink-muted mt-1.5">{leaksFixed} {t("fixed", "corriges")}</div>
-                </div>
-                <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{leaksFixed} {t("fixed", "corriges")}</div>
               </div>
-            ) : (
-              <div className="flex items-center gap-2 mt-1"><LockIcon /><span className="text-[11px] text-ink-faint">{t("Upgrade to track", "Mettre a niveau")}</span></div>
-            )}
+              <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
+            </div>
           </div>
 
           <button onClick={() => isPaid ? router.push("/v2/obligations") : router.push(upgradeUrl)} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">OBLIGATIONS</div>
-            {isPaid ? (
-              <div className="flex items-end gap-2">
-                <span className="font-serif text-[36px] font-bold leading-none tracking-tight">{obligationsTotal}</span>
-                {overdue > 0 && <span className="text-[10px] font-bold text-negative mb-1 px-1.5 py-0.5 rounded" style={{ background: "rgba(179,64,64,0.05)" }}>{overdue} {t("late", "retard")}</span>}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 mt-1"><LockIcon /><span className="text-[11px] text-ink-faint">{t("Upgrade to see", "Mettre a niveau")}</span></div>
-            )}
+            <div className="flex items-end gap-2">
+              <span className="font-serif text-[36px] font-bold leading-none tracking-tight">{obligationsTotal}</span>
+              {overdue > 0 && <span className="text-[10px] font-bold text-negative mb-1 px-1.5 py-0.5 rounded" style={{ background: "rgba(179,64,64,0.05)" }}>{overdue} {t("late", "retard")}</span>}
+            </div>
           </button>
         </div>
 
@@ -559,7 +498,7 @@ export default function SoloDashboard() {
             {isPaid && tonightAction && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex items-center gap-2">
-                  <span className="text-[14px]">&#x1F319;</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Do This Tonight", "A faire ce soir")}</span>
                   <span className="text-[11px] text-ink-faint ml-auto">{tonightAction.time_required}</span>
                 </div>
@@ -587,15 +526,7 @@ export default function SoloDashboard() {
               <div className="px-4 py-3 border-b border-border-light">
                 <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Recovery Plan", "Plan de recuperation")}</span>
               </div>
-              {!isPaid ? (
-                <div className="px-4 py-8 text-center">
-                  <LockIcon />
-                  <p className="text-[11px] text-ink-muted mt-2 mb-3">{t("Your personalized fix plan is locked.", "Votre plan de correction est verrouille.")}</p>
-                  <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-brand border border-brand/20 px-3 py-1.5 rounded-lg hover:bg-brand/5 transition">
-                    {t("Scale up →", "Passer →")}
-                  </button>
-                </div>
-              ) : allActions.length === 0 ? (
+              {allActions.length === 0 ? (
                 <div className="px-4 py-6 text-center">
                   <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
@@ -670,27 +601,7 @@ export default function SoloDashboard() {
               </div>
             )}
 
-            {!isPaid && (
-            <button onClick={() => router.push(upgradeUrl)} className="w-full bg-white rounded-xl border border-border-light p-4 text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-ink mb-0.5">
-                    {upgradeTarget === "enterprise"
-                      ? t("Book a free strategy call", "Réserver un appel stratégie gratuit")
-                      : t("Upgrade to " + upgradeName, "Passer a " + upgradeName)}
-                  </p>
-                  <p className="text-[11px] text-ink-faint">
-                    {upgradeTarget === "enterprise"
-                      ? t("We recover savings on contingency — $0 upfront", "Récupération à la performance — $0 d'avance")
-                      : t("Full diagnostic - Fix steps - Alerts", "Diagnostic complet - Etapes - Alertes")}
-                  </p>
-                </div>
-                <span className="text-[12px] font-bold text-brand">
-                  {upgradeTarget === "enterprise" ? t("Free →", "Gratuit →") : `${upgradePrice}/${t("mo", "mois")}`}
-                </span>
-              </div>
-            </button>
-            )}
+
           </div>
 
           {/* COL 3: SIDEBAR */}
@@ -702,9 +613,7 @@ export default function SoloDashboard() {
                 <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Deadlines", "Echeances")}</span>
                 {isPaid && <button onClick={() => router.push("/v2/obligations")} className="text-[11px] font-semibold text-brand hover:underline">{t("All", "Tout")}</button>}
               </div>
-              {!isPaid ? (
-                <div className="px-4 py-4 text-center flex flex-col items-center gap-1.5"><LockIcon /><p className="text-[10px] text-ink-faint">{t("Upgrade to see deadlines", "Mettre a niveau")}</p></div>
-              ) : deadlines.length === 0 ? (
+              {deadlines.length === 0 ? (
                 <div className="px-4 py-4 text-[11px] text-ink-faint text-center">{t("None upcoming", "Aucune echeance")}</div>
               ) : deadlines.slice(0, 4).map((dl, i) => (
                 <div key={i} onClick={() => router.push("/v2/obligations")} className="px-4 py-2.5 flex items-center justify-between border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer">
@@ -723,9 +632,7 @@ export default function SoloDashboard() {
                 <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Government Programs", "Programmes gouvernementaux")}</span>
                 {isPaid && <button onClick={() => router.push("/v2/programs")} className="text-[11px] font-semibold text-brand hover:underline">{t("All", "Tout")}</button>}
               </div>
-              {!isPaid ? (
-                <div className="px-4 py-4 text-center flex flex-col items-center gap-1.5"><LockIcon /><p className="text-[10px] text-ink-faint">{t("Unlock to see programs", "Mettre a niveau")}</p></div>
-              ) : diagPrograms.length > 0 ? (
+              {diagPrograms.length > 0 ? (
                 <>
                   {diagPrograms.slice(0, 3).map((p, i) => (
                     <div key={i} className="px-4 py-2.5 border-b border-border-light last:border-0">
@@ -772,7 +679,7 @@ export default function SoloDashboard() {
                   <div className="text-[12px] font-semibold text-ink">{t("Ask Fruxal AI", "Demander a Fruxal IA")}</div>
                   <div className="text-[11px] text-ink-faint">{!isPaid ? t("Upgrade to unlock", "Mettre a niveau") : t("Get answers about your finances", "Posez vos questions financieres")}</div>
                 </div>
-                {!isPaid && <div className="ml-auto"><LockIcon /></div>}
+                
               </div>
             </button>
           </div>
@@ -814,16 +721,7 @@ export default function SoloDashboard() {
             <BreakEvenWidget businessId={dashboardBusinessId} tier="solo" lang={lang} />
           </div>
         )}
-        {/* ── MONTHLY BRIEF ──────────────────────────────────────────── */}
-        {dashboardBusinessId && (
-          <div className="mb-3">
-          </div>
-        )}
-        {/* ── JOURNEY TIMELINE ───────────────────────────────────────── */}
-        {dashboardBusinessId && (
-          <div className="mb-3">
-          </div>
-        )}
+        {/* Monthly Brief and Journey Timeline — reserved for future build */}
         {/* ── ACTION PLAN (Tasks) ─────────────────────────────────────── */}
         {isPaid && (diagTasks.length > 0 || diagFindings.length > 0) && (
           <div className="mt-4">
