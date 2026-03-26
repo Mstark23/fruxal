@@ -1,322 +1,175 @@
 // =============================================================================
-// /admin/tier3/reps — Rep Portal + Commission Tracker
+// app/admin/tier3/reps/page.tsx — Rep performance analytics
 // =============================================================================
-
 "use client";
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
 
-function fmt(n: number): string {
-  if (n >= 1_000_000) return "$" + (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return "$" + Math.round(n / 1_000) + "K";
-  return "$" + (n ?? 0).toLocaleString();
-}
-function fmtRaw(n: number): string { return "$" + (n ?? 0).toLocaleString(); }
+function fmt(n: number) { return n >= 1000000 ? "$" + (n/1000000).toFixed(1) + "M" : n >= 1000 ? "$" + Math.round(n/1000) + "K" : "$" + n.toLocaleString(); }
+function pct(n: number) { return n + "%"; }
+function days(n: number | null) { return n !== null ? n + "d" : "—"; }
 
-interface Rep {
-  id: string; name: string; email: string; phone: string | null;
-  province: string | null; status: string; commissionRate: number;
-  notes: string | null; createdAt: string;
-  activeDeals: number; totalEarned: number; totalPending: number; commissionsCount: number;
-}
+const STAGE_COLOR: Record<string, string> = {
+  active: "#2D7A50", inactive: "#B5B3AD",
+};
 
-interface RepDetail {
-  rep: any;
-  assignments: Array<{ diagnostic_id: string; companyName: string; assigned_at: string; stage_at_assignment: string; notes: string }>;
-  commissions: Array<{ id: string; companyName: string; confirmed_savings: number; fee_collected: number; commission_amount: number; commission_rate: number; status: string; paid_at: string | null }>;
-  totals: { earned: number; pending: number };
-}
-
-export default function RepsPage() {
-  const [reps, setReps] = useState<Rep[]>([]);
-  const [stats, setStats] = useState<any>(null);
+export default function RepsAnalyticsPage() {
+  const router = useRouter();
+  const [analytics, setAnalytics] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<any>(null);
 
-  // New rep form
-  const [newName, setNewName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newPhone, setNewPhone] = useState("");
-  const [newProv, setNewProv] = useState("");
-  const [newRate, setNewRate] = useState(20);
-
-  // Slide-over
-  const [selectedRep, setSelectedRep] = useState<RepDetail | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [markingPaid, setMarkingPaid] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/tier3/reps");
-      const json = await res.json();
-      if (json.success) { setReps(json.reps || []); setStats(json.stats || null); }
-    } catch { /* non-fatal */ }
-    setLoading(false);
+  useEffect(() => {
+    fetch("/api/admin/tier3/reps/analytics")
+      .then(r => r.json())
+      .then(d => { if (d.success) setAnalytics(d.analytics); })
+      .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  if (loading) return (
+    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-[#E5E3DD] border-t-[#1B3A2D] rounded-full animate-spin"/>
+    </div>
+  );
 
-  const createRep = async () => {
-    if (!newName.trim() || !newEmail.trim()) return;
-    setCreating(true);
-    try {
-      const res = await fetch("/api/admin/tier3/reps", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName, email: newEmail, phone: newPhone, province: newProv, commissionRate: newRate }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        setShowModal(false); setNewName(""); setNewEmail(""); setNewPhone(""); setNewProv(""); setNewRate(20);
-        fetchData();
-      }
-    } catch { /* non-fatal */ }
-    setCreating(false);
-  };
-
-  const openDetail = async (repId: string) => {
-    setLoadingDetail(true);
-    setSelectedRep(null);
-    try {
-      const res = await fetch(`/api/admin/tier3/reps/${repId}`);
-      const json = await res.json();
-      if (json.success) setSelectedRep(json);
-    } catch { /* non-fatal */ }
-    setLoadingDetail(false);
-  };
-
-  const markPaid = async (repId: string, commissionId: string) => {
-    setMarkingPaid(commissionId);
-    await fetch(`/api/admin/tier3/reps/${repId}?action=mark_paid`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ commissionId }),
-    });
-    setMarkingPaid(null);
-    openDetail(repId); // refresh
-    fetchData();
-  };
-
-  const cardCls = "bg-[#FFFFFF] border border-[#EEECE8] rounded-xl p-5";
-  const inputCls = "w-full bg-[#FAFAF8] border border-[#EEECE8] rounded-lg px-3 py-2 text-sm text-[#1A1A18] placeholder-[#1A1A18] focus:border-[#2D7A50] outline-none transition";
+  const totalEarned  = analytics.reduce((s, r) => s + r.commissionsEarned, 0);
+  const totalPending = analytics.reduce((s, r) => s + r.commissionsPending, 0);
+  const avgConv      = analytics.length ? Math.round(analytics.reduce((s, r) => s + r.conversionRate, 0) / analytics.length) : 0;
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <AdminNav />
+      <div className="bg-white border-b border-[#E5E3DD]">
+        <div className="max-w-[1100px] mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-[17px] font-bold text-[#1A1A18]">Rep Performance</h1>
+            <p className="text-[11px] text-[#8E8C85] mt-0.5">{analytics.filter(r => r.status === "active").length} active reps</p>
+          </div>
+          <AdminNav />
+        </div>
+      </div>
 
-        <div className="flex items-end justify-between mb-6">
-          <h1 className="text-2xl font-bold text-[#1A1A18] tracking-tight">Reps</h1>
-          <button onClick={() => setShowModal(true)} className="px-5 py-2.5 rounded-xl text-sm font-bold" style={{ background: "linear-gradient(135deg, #2D7A50, #2D7A50)", color: "#fff" }}>
-            + Add Rep
-          </button>
+      <div className="max-w-[1100px] mx-auto px-6 py-6">
+        {/* Summary KPIs */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {[
+            { label: "Total Commissions Earned", value: fmt(totalEarned), sub: "all time" },
+            { label: "Commissions Pending",      value: fmt(totalPending), sub: "to be paid" },
+            { label: "Avg Conversion Rate",      value: pct(avgConv),     sub: "lead → engagement" },
+          ].map(k => (
+            <div key={k.label} className="bg-white border border-[#E5E3DD] rounded-xl px-5 py-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <p className="text-[9px] font-bold text-[#B5B3AD] uppercase tracking-wider">{k.label}</p>
+              <p className="text-[22px] font-bold text-[#1A1A18] mt-1">{k.value}</p>
+              <p className="text-[10px] text-[#B5B3AD] mt-0.5">{k.sub}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Stats */}
-        {stats && (
-          <div className="grid grid-cols-4 gap-3 mb-6">
-            <div className={cardCls}>
-              <div className="text-[10px] font-bold text-[#56554F] uppercase tracking-widest">Active Reps</div>
-              <div className="text-2xl font-bold text-[#1A1A18] mt-1 tabular-nums">{stats.activeReps}</div>
-            </div>
-            <div className={cardCls}>
-              <div className="text-[10px] font-bold text-[#56554F] uppercase tracking-widest">Total Paid</div>
-              <div className="text-2xl font-bold text-[#2D7A50] mt-1 tabular-nums">{fmt(stats.totalPaid)}</div>
-            </div>
-            <div className={cardCls}>
-              <div className="text-[10px] font-bold text-[#56554F] uppercase tracking-widest">Pending Commissions</div>
-              <div className="text-2xl font-bold text-[#d97706] mt-1 tabular-nums">{fmt(stats.totalPending)}</div>
-            </div>
-            <div className={cardCls}>
-              <div className="text-[10px] font-bold text-[#56554F] uppercase tracking-widest">Total Assignments</div>
-              <div className="text-2xl font-bold text-[#1A1A18] mt-1 tabular-nums">{stats.totalAssignments}</div>
-            </div>
-          </div>
-        )}
-
-        {/* Rep Cards */}
-        {loading ? (
-          <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-24 bg-[#FFFFFF] rounded-xl animate-pulse border border-[#EEECE8]" />)}</div>
-        ) : reps.length === 0 ? (
-          <div className={`${cardCls} text-center py-12`}>
-            <p className="text-sm text-[#8E8C85]">No reps yet. Add your first rep to start tracking commissions.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {reps.map((r) => (
-              <div key={r.id} className={`${cardCls} hover:border-[#EEECE8] transition-all cursor-pointer`} onClick={() => openDetail(r.id)}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#EEECE8] flex items-center justify-center text-xs font-bold text-[#56554F]">
-                      {r.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-[#1A1A18]">{r.name}</span>
-                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${r.status === "active" ? "bg-[#1B3A2D]/12 text-[#2D7A50]" : "bg-[#EEECE8] text-[#56554F]"}`}>{r.status}</span>
+        {/* Rep table */}
+        <div className="bg-white border border-[#E5E3DD] rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <table className="w-full text-[12px]">
+            <thead>
+              <tr className="border-b border-[#E5E3DD] text-[9px] font-bold text-[#B5B3AD] uppercase tracking-wider">
+                {["Rep","Province","Clients","Active","Conversion","Avg Close","Earned","Pending",""].map(h => (
+                  <th key={h} className="px-4 py-3 text-left">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.map((rep: any) => (
+                <tr key={rep.id} className="border-b border-[#F0EFEB] hover:bg-[#FAFAF8] cursor-pointer transition-colors"
+                  onClick={() => setSelected(rep)}>
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-[#1A1A18]">{rep.name}</p>
+                    <p className="text-[10px] text-[#8E8C85]">{rep.email}</p>
+                  </td>
+                  <td className="px-4 py-3 text-[#56554F]">{rep.province || "—"}</td>
+                  <td className="px-4 py-3 font-semibold">{rep.totalClients}</td>
+                  <td className="px-4 py-3">
+                    <span className="font-semibold" style={{ color: rep.activeClients > 0 ? "#2D7A50" : "#B5B3AD" }}>{rep.activeClients}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 w-16 bg-[#F0EFEB] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: pct(rep.conversionRate), background: rep.conversionRate >= 50 ? "#2D7A50" : rep.conversionRate >= 25 ? "#C4841D" : "#B34040" }} />
                       </div>
-                      <div className="text-[10px] text-[#1A1A18]">{r.email}{r.province ? ` · ${r.province}` : ""} · {r.commissionRate}% rate</div>
+                      <span className="font-semibold text-[#1A1A18]">{pct(rep.conversionRate)}</span>
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-[#56554F]">{days(rep.avgDaysToClose)}</td>
+                  <td className="px-4 py-3 font-semibold text-[#2D7A50]">{fmt(rep.commissionsEarned)}</td>
+                  <td className="px-4 py-3 text-[#C4841D] font-semibold">{fmt(rep.commissionsPending)}</td>
+                  <td className="px-4 py-3">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
+                      style={{ background: rep.status === "active" ? "rgba(45,122,80,0.08)" : "rgba(181,179,173,0.15)",
+                               color: STAGE_COLOR[rep.status] || "#8E8C85" }}>
+                      {rep.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Detail slide-over */}
+        {selected && (
+          <div className="fixed inset-0 z-40 flex justify-end" onClick={() => setSelected(null)}>
+            <div className="fixed inset-0" style={{ background: "rgba(26,26,24,0.25)" }} />
+            <div className="relative w-[400px] h-full bg-white border-l border-[#EEECE8] shadow-xl overflow-y-auto z-50 p-6" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-[15px] font-bold text-[#1A1A18]">{selected.name}</h2>
+                  <p className="text-[11px] text-[#8E8C85]">{selected.province} · {selected.commissionRate}% commission rate</p>
+                </div>
+                <button onClick={() => setSelected(null)} className="text-[#B5B3AD] text-xl">×</button>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  ["Total Clients",     selected.totalClients],
+                  ["Active Clients",    selected.activeClients],
+                  ["Closed (Engaged)",  selected.closedClients],
+                  ["Conversion Rate",   pct(selected.conversionRate)],
+                  ["Avg Days to Close", days(selected.avgDaysToClose)],
+                  ["Commissions Earned", fmt(selected.commissionsEarned)],
+                  ["Commissions Pending", fmt(selected.commissionsPending)],
+                ].map(([l, v]) => (
+                  <div key={String(l)} className="flex justify-between border-b border-[#F0EFEB] pb-3">
+                    <span className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider">{l}</span>
+                    <span className="text-[13px] font-semibold text-[#1A1A18]">{v}</span>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-right">
-                      <div className="text-xs font-bold text-[#1A1A18] tabular-nums">{r.activeDeals}</div>
-                      <div className="text-[9px] text-[#1A1A18]">deals</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-bold text-[#2D7A50] tabular-nums">{fmtRaw(r.totalEarned)}</div>
-                      <div className="text-[9px] text-[#1A1A18]">earned</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-bold text-[#d97706] tabular-nums">{fmtRaw(r.totalPending)}</div>
-                      <div className="text-[9px] text-[#1A1A18]">pending</div>
-                    </div>
-                    <span className="text-[10px] text-[#2D7A50] font-semibold">View →</span>
+                ))}
+              </div>
+
+              {selected.monthlyBreakdown?.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-3">Monthly Commissions</p>
+                  <div className="space-y-2">
+                    {selected.monthlyBreakdown.map((m: any) => (
+                      <div key={m.month} className="flex items-center justify-between">
+                        <span className="text-[11px] text-[#56554F]">{m.month}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-24 bg-[#F0EFEB] rounded-full overflow-hidden">
+                            <div className="h-full bg-[#1B3A2D] rounded-full"
+                              style={{ width: `${Math.min(100, (m.earned / Math.max(1, ...selected.monthlyBreakdown.map((x: any) => x.earned))) * 100)}%` }} />
+                          </div>
+                          <span className="text-[11px] font-semibold text-[#1A1A18]">{fmt(m.earned)}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            ))}
+              )}
+
+              <button onClick={() => router.push(`/admin/tier3/reps/${selected.id}`)}
+                className="mt-6 w-full py-2.5 bg-[#1B3A2D] text-white text-[12px] font-semibold rounded-lg hover:bg-[#2A5A44] transition">
+                View Full Rep Profile →
+              </button>
+            </div>
           </div>
         )}
       </div>
-
-      {/* ═══ ADD REP MODAL ═══ */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => !creating && setShowModal(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-md bg-[#FAFAF8] border border-[#EEECE8] rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[#EEECE8]"><h3 className="text-sm font-bold text-[#1A1A18]">Add Rep</h3></div>
-            <div className="px-6 py-5 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-[10px] font-bold text-[#56554F] uppercase tracking-widest mb-1">Name *</label><input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full name" className={inputCls} /></div>
-                <div><label className="block text-[10px] font-bold text-[#56554F] uppercase tracking-widest mb-1">Email *</label><input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="email@example.com" className={inputCls} /></div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div><label className="block text-[10px] font-bold text-[#56554F] uppercase tracking-widest mb-1">Phone</label><input type="text" value={newPhone} onChange={e => setNewPhone(e.target.value)} className={inputCls} /></div>
-                <div><label className="block text-[10px] font-bold text-[#56554F] uppercase tracking-widest mb-1">Province</label>
-                  <select value={newProv} onChange={e => setNewProv(e.target.value)} className={inputCls}>
-                    <option value="">—</option>{["ON","QC","BC","AB","MB"].map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div><label className="block text-[10px] font-bold text-[#56554F] uppercase tracking-widest mb-1">Commission %</label><input type="number" min={5} max={50} value={newRate} onChange={e => setNewRate(Number(e.target.value))} className={inputCls} /></div>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t border-[#EEECE8] flex justify-end gap-2">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 text-xs font-semibold text-[#56554F]">Cancel</button>
-              <button onClick={createRep} disabled={creating || !newName.trim() || !newEmail.trim()} className="px-5 py-2 rounded-lg text-sm font-bold disabled:opacity-40" style={{ background: "linear-gradient(135deg, #2D7A50, #2D7A50)", color: "#fff" }}>
-                {creating ? "Adding…" : "Add Rep"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ REP DETAIL SLIDE-OVER ═══ */}
-      {(selectedRep || loadingDetail) && (
-        <div className="fixed inset-0 z-50 flex justify-end" onClick={() => { setSelectedRep(null); setLoadingDetail(false); }}>
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="relative w-full max-w-[480px] h-full bg-[#FAFAF8] border-l border-[#EEECE8] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-[#FAFAF8] border-b border-[#EEECE8] px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-sm font-bold text-[#1A1A18]">{selectedRep?.rep?.name || "Loading…"}</h3>
-              <button onClick={() => { setSelectedRep(null); setLoadingDetail(false); }} className="w-7 h-7 rounded-lg bg-[#EEECE8] flex items-center justify-center text-[#56554F] hover:text-[#1A1A18] transition">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-              </button>
-            </div>
-
-            {loadingDetail && !selectedRep ? (
-              <div className="flex items-center justify-center py-20"><div className="w-5 h-5 border-2 border-[#EEECE8] border-t-[#2D7A50] rounded-full animate-spin" /></div>
-            ) : selectedRep && (
-              <div className="px-6 py-5 space-y-6">
-                {/* Profile */}
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  {([
-                    ["Email", selectedRep.rep.email],
-                    ["Phone", selectedRep.rep.phone || "—"],
-                    ["Province", selectedRep.rep.province || "—"],
-                    ["Commission Rate", `${selectedRep.rep.commission_rate}%`],
-                    ["Status", selectedRep.rep.status],
-                    ["Joined", new Date(selectedRep.rep.created_at).toLocaleDateString("en-CA")],
-                  ] as [string, string][]).map(([k, v]) => (
-                    <div key={k}>
-                      <div className="text-[9px] font-bold text-[#1A1A18] uppercase tracking-wider">{k}</div>
-                      <div className="text-[#B5B3AD] mt-0.5">{v}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Totals */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-[#FFFFFF] border border-[#EEECE8] rounded-lg p-3 text-center">
-                    <div className="text-lg font-bold text-[#2D7A50] tabular-nums">{fmtRaw(selectedRep.totals.earned)}</div>
-                    <div className="text-[9px] text-[#1A1A18]">Total Earned</div>
-                  </div>
-                  <div className="bg-[#FFFFFF] border border-[#EEECE8] rounded-lg p-3 text-center">
-                    <div className="text-lg font-bold text-[#d97706] tabular-nums">{fmtRaw(selectedRep.totals.pending)}</div>
-                    <div className="text-[9px] text-[#1A1A18]">Pending</div>
-                  </div>
-                </div>
-
-                {/* Assignments */}
-                <div className="border-t border-[#EEECE8] pt-4">
-                  <div className="text-[10px] font-bold text-[#56554F] uppercase tracking-widest mb-3">Assigned Deals ({selectedRep.assignments.length})</div>
-                  {selectedRep.assignments.length === 0 ? (
-                    <p className="text-xs text-[#1A1A18]">No assignments yet.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {selectedRep.assignments.map((a: any, i: number) => (
-                        <div key={i} className="bg-[#F8F7F5] border border-[#EEECE8] rounded-lg p-3">
-                          <div className="text-xs font-semibold text-[#1A1A18]">{a.companyName}</div>
-                          <div className="text-[9px] text-[#1A1A18] mt-0.5">
-                            Assigned {new Date(a.assigned_at).toLocaleDateString("en-CA")}
-                            {a.stage_at_assignment ? ` · Stage: ${a.stage_at_assignment}` : ""}
-                          </div>
-                          {a.notes && <div className="text-[9px] text-[#56554F] italic mt-1">{a.notes}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Commissions */}
-                <div className="border-t border-[#EEECE8] pt-4">
-                  <div className="text-[10px] font-bold text-[#56554F] uppercase tracking-widest mb-3">Commissions ({selectedRep.commissions.length})</div>
-                  {selectedRep.commissions.length === 0 ? (
-                    <p className="text-xs text-[#1A1A18]">No commissions recorded.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {selectedRep.commissions.map((c: any) => (
-                        <div key={c.id} className="bg-[#F8F7F5] border border-[#EEECE8] rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold text-[#1A1A18]">{c.companyName}</span>
-                            <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${c.status === "paid" ? "bg-[#1B3A2D]/12 text-[#2D7A50]" : "bg-[#d97706]/12 text-[#d97706]"}`}>
-                              {c.status}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2 text-[10px] text-[#56554F]">
-                            <div>Savings: <span className="text-[#1A1A18]">{fmtRaw(c.confirmed_savings)}</span></div>
-                            <div>Fee: <span className="text-[#1A1A18]">{fmtRaw(c.fee_collected)}</span></div>
-                            <div>Commission: <span className="text-[#2D7A50] font-bold">{fmtRaw(c.commission_amount)}</span></div>
-                          </div>
-                          {c.status === "pending" && (
-                            <button
-                              onClick={() => markPaid(selectedRep!.rep.id, c.id)}
-                              disabled={markingPaid === c.id}
-                              className="mt-2 px-3 py-1.5 text-[10px] font-bold text-[#2D7A50] bg-[#1B3A2D]/10 rounded-lg hover:bg-[#1B3A2D]/20 transition disabled:opacity-50"
-                            >
-                              {markingPaid === c.id ? "Marking…" : "Mark as Paid"}
-                            </button>
-                          )}
-                          {c.paid_at && <div className="text-[9px] text-[#1A1A18] mt-1">Paid {new Date(c.paid_at).toLocaleDateString("en-CA")}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

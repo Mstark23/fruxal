@@ -41,6 +41,7 @@ export default function AdminTier3Page() {
   const [loading, setLoading] = useState(true);
   const [view, setView]       = useState<"kanban"|"table">("kanban");
   const [sortByScore, setSortByScore] = useState(false);
+  const [drawerRepId, setDrawerRepId]   = useState("");
   const [search, setSearch]   = useState("");
   const [selected, setSelected] = useState<PipelineEntry|null>(null);
   const [saving, setSaving]   = useState(false);
@@ -292,6 +293,26 @@ export default function AdminTier3Page() {
                   <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-2">Lost Reason</p>
                   <input defaultValue={selected.lostReason || ""} onBlur={e => selected.pipelineId && patch(selected.pipelineId, {lostReason:e.target.value})}
                     className="w-full px-3 py-2 bg-white border border-[#E8E6E1] rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1B3A2D]" />
+                </div>
+              )}
+
+              {reps.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-2">Assign Recovery Rep</p>
+                  <div className="flex gap-2">
+                    <select value={drawerRepId} onChange={e => setDrawerRepId(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-white border border-[#E8E6E1] rounded-lg text-sm text-[#1A1A18] focus:outline-none focus:ring-1 focus:ring-[#1B3A2D]">
+                      <option value="">Select rep…</option>
+                      {reps.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    </select>
+                    <button
+                      onClick={() => { if (drawerRepId && selected?.pipelineId && (selected as any).userId) assignRep(selected.pipelineId, (selected as any).userId, drawerRepId); setDrawerRepId(""); }}
+                      disabled={!drawerRepId || saving}
+                      className="px-4 py-2 bg-[#1B3A2D] text-white text-xs font-semibold rounded-lg hover:bg-[#2A5A44] transition disabled:opacity-40">
+                      Assign
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-[#B5B3AD] mt-1">Fires rep + client emails immediately.</p>
                 </div>
               )}
 

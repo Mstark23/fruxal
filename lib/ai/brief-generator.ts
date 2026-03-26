@@ -317,7 +317,8 @@ Write 3-4 substantive paragraphs. Include dollar amounts everywhere. The subject
 export async function generateMonthlyBrief(
   businessId: string,
   userId:     string,
-  tier:       string
+  tier:       string,
+  repNote?:   string
 ): Promise<BriefResult | null> {
   try {
     const ctx = await assembleContext(businessId, userId);

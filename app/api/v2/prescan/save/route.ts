@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
       const { score } = scoreLeadQuality({
         annualRevenue: annualRev,
         estimatedLeak: totalLeak,
-        province:      (prescanResult as any)?.province || null,
+        province:      (req as any)._parsedBody?.province || (prescanResult as any)?.province || null,
         hasAccountant: (prescanResult as any)?.has_accountant ?? null,
         lastTaxReview: (prescanResult as any)?.last_tax_review || null,
         doesRd:        (prescanResult as any)?.does_rd ?? null,

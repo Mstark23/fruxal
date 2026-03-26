@@ -212,8 +212,8 @@ export default function RepDashboard() {
               const daysUntil = c.pipeline?.followUpDate ? Math.ceil((new Date(c.pipeline.followUpDate).getTime()-Date.now())/86400000) : null;
               const isNew = (c.pipeline?.stage === "lead" || c.pipeline?.stage === "contacted") && c.assignedAt && (Date.now() - new Date(c.assignedAt).getTime()) < 86400000 * 2;
               return (
-                <button key={c.diagnosticId}
-                  onClick={() => router.push(`/rep/customer/${c.diagnosticId}`)}
+                <button key={c.pipelineId || c.diagnosticId}
+                  onClick={() => router.push(`/rep/customer/${c.pipelineId || c.diagnosticId}`)}
                   className="bg-white border border-[#E5E3DD] rounded-xl p-4 text-left hover:border-[#1B3A2D]/30 hover:shadow-md transition-all group"
                   style={{boxShadow:"0 1px 3px rgba(0,0,0,0.03)"}}>
                   <div className="flex items-start justify-between mb-3">

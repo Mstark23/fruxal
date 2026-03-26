@@ -118,7 +118,7 @@ async function processRun(req: NextRequest) {
 
   const userMap = new Map((users || []).map((u: any) => [u.id, u]));
 
-  const appUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.vercel.app";
+  const appUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.ca";
   let sent = 0, skipped = 0, errors = 0;
 
   // ── 2. Generate + send brief for each eligible business ─────────────────
@@ -135,7 +135,32 @@ async function processRun(req: NextRequest) {
       const normalizedTier = ["enterprise"].includes(tier) ? "enterprise"
         : ["business", "growth", "team"].includes(tier) ? "business" : "solo";
 
-      const brief = await generateMonthlyBrief(businessId, biz.owner_user_id, normalizedTier);
+      // Enrich with rep context for brief personalization
+      let repNote = "";
+      try {
+        const { data: pipeRow } = await supabaseAdmin
+          .from("tier3_pipeline")
+          .select("stage, tier3_rep_assignments(tier3_reps(name))")
+          .eq("user_id", biz.owner_user_id)
+          .in("stage", ["in_engagement","recovery_tracking","signed","contacted","called"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle() as any;
+        if (pipeRow?.tier3_rep_assignments?.[0]?.tier3_reps?.name) {
+          const { data: prog } = await supabaseAdmin
+            .from("user_progress")
+            .select("total_recovered")
+            .eq("user_id", biz.owner_user_id)
+            .maybeSingle();
+          const repName = pipeRow.tier3_rep_assignments[0].tier3_reps.name;
+          const confirmed = prog?.total_recovered ?? 0;
+          repNote = confirmed > 0
+            ? `Your recovery expert ${repName} has confirmed $${confirmed.toLocaleString()} in savings so far.`
+            : `${repName} is working your file — savings will be confirmed as work progresses.`;
+        }
+      } catch { /* non-fatal */ }
+
+      const brief = await generateMonthlyBrief(businessId, biz.owner_user_id, normalizedTier, repNote);
 
       if (!brief) { skipped++; continue; }
 

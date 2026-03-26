@@ -21,6 +21,7 @@ interface OverviewData {
   prescan:  { today:number; last7Days:number; last30Days:number; allTime:number; conversionRate:number; topIndustries:Array<{industry:string;count:number}>; topProvinces:Array<{province:string;count:number}> };
   users:    { total:number; paid:number; free:number; newThisWeek:number; newThisMonth:number; activeToday:number };
   tier3:    { totalDiagnostics:number; pipelineValue:number; byStatus:Record<string,number>; feesThisMonth:number };
+  contingency?: { assigned:number; in_engagement:number; savings_confirmed:number; commissions_pending:number };
   system:   { lastUpdated:string };
 }
 
@@ -191,7 +192,26 @@ export default function AdminOverviewPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              {Object.entries(d.tier3.byStatus || {}).map(([stage, count]) => (
+              {d.contingency && (
+              <div className="bg-white border border-[#EEECE8] rounded-xl p-4 mt-4">
+                <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-3">Contingency Funnel</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { l: "Leads Assigned",      v: fmtNum(d.contingency.assigned),           sub: "with rep" },
+                    { l: "In Engagement",        v: fmtNum(d.contingency.in_engagement),       sub: "active" },
+                    { l: "Savings Confirmed",    v: fmt(d.contingency.savings_confirmed),      sub: "total" },
+                    { l: "Commissions Pending",  v: fmt(d.contingency.commissions_pending),    sub: "to pay" },
+                  ].map(k => (
+                    <div key={k.l} className="bg-[#F8F7F5] rounded-lg px-3 py-2">
+                      <p className="text-[9px] font-bold text-[#B5B3AD] uppercase">{k.l}</p>
+                      <p className="text-[14px] font-bold text-[#1A1A18]">{k.v}</p>
+                      <p className="text-[9px] text-[#B5B3AD]">{k.sub}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {Object.entries(d.tier3.byStatus || {}).map(([stage, count]) => (
                 <div key={stage} className="flex items-center justify-between">
                   <span className="text-sm text-[#56554F] capitalize">{stage}</span>
                   <span className="text-sm font-semibold px-2 py-0.5 rounded text-[10px]"
