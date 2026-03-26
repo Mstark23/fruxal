@@ -558,13 +558,13 @@ export default function EnterpriseDashboard() {
             {profile.passive_income_over_50k && (
               <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold"
                 style={{ background: "rgba(179,64,64,0.07)", color: "#B34040", border: "1px solid rgba(179,64,64,0.15)" }}>
-                ⚠ {t("Passive income >$50K — SBD at risk", "Revenus passifs >50K$ — DPE à risque")}
+                {t("Passive income >$50K — SBD at risk", "Revenus passifs >50K$ — DPE à risque")}
               </span>
             )}
             {profile.lcge_eligible === true && (
               <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold"
                 style={{ background: "rgba(45,122,80,0.07)", color: "#2D7A50", border: "1px solid rgba(45,122,80,0.15)" }}>
-                ✓ {t("LCGE eligible ($1.25M)", "ECGC admissible (1,25 M$)")}
+                {t("LCGE eligible ($1.25M)", "ECGC admissible (1,25 M$)")}
               </span>
             )}
             {profile.shareholder_agreements && (
@@ -1557,7 +1557,7 @@ export default function EnterpriseDashboard() {
                   )}
                   <a href={`mailto:${entStatus.rep.email}`}
                     className="text-[10px] font-semibold px-3 py-1.5 rounded-lg border border-border-light text-ink hover:bg-bg-section transition text-center">
-                    ✉ {t("Email","Courriel")}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{display:"inline",marginRight:4}}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>{t("Email","Courriel")}
                   </a>
                   </div>
                 )}

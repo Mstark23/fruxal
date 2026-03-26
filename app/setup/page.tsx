@@ -40,7 +40,7 @@ export default function SetupPage() {
   if (needed === false || done) return (
     <div className="min-h-screen bg-[#0a0e17] text-white flex items-center justify-center" style={{ fontFamily: "system-ui" }}>
       <div className="text-center">
-        <div className="text-5xl mb-4">{done ? "✅" : "🔒"}</div>
+        <div className="mb-4">{done ? <svg className="w-12 h-12 mx-auto text-positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg> : <svg className="w-12 h-12 mx-auto text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}</div>
         <h1 className="text-2xl font-black mb-2">{done ? "Admin Created!" : "Setup Complete"}</h1>
         <p className="text-gray-400 text-sm mb-6">{done ? "Your admin account is ready. Log in to get started." : "An admin already exists. Log in instead."}</p>
         <button onClick={() => router.push("/login")} className="px-6 py-3 bg-[#00c853] text-black rounded-xl font-bold hover:bg-[#00e676] transition-all">
@@ -54,7 +54,7 @@ export default function SetupPage() {
     <div className="min-h-screen bg-[#0a0e17] text-white flex items-center justify-center" style={{ fontFamily: "system-ui" }}>
       <div className="w-full max-w-sm px-4">
         <div className="text-center mb-8">
-          <div className="text-4xl mb-3">💧</div>
+          <svg className="w-10 h-10 mx-auto mb-3 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>
           <h1 className="text-2xl font-black">First-Time Setup</h1>
           <p className="text-gray-400 text-sm mt-1">Create your admin account</p>
         </div>

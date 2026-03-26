@@ -17,7 +17,7 @@ const SECTIONS = [
     icon: "leak",
     items: [
       { q: "What is a 'leak'?", a: "A leak is any area where your business spends more than the industry benchmark. For example, if restaurants typically pay 2.5% for credit card processing and you're paying 3.2%, that gap is a leak. We calculate the annual dollar impact of each gap." },
-      { q: "What do the severity levels mean?", a: "🔴 Urgent: Large leaks (usually >$10K/yr) that need immediate attention. 🟡 Important: Moderate leaks ($2K-$10K/yr) worth addressing soon. 🔵 Minor: Smaller leaks (<$2K/yr) to fix when you have time." },
+      { q: "What do the severity levels mean?", a: "Critical: Large leaks (usually >$10K/yr) that need immediate attention. High: Moderate leaks ($2K–$10K/yr) worth addressing soon. Low: Smaller leaks (<$2K/yr) to fix when you have time." },
       { q: "What is the Health Score?", a: "A 0-100 score that measures how efficiently your business operates vs. industry standards. 80+ is excellent, 50-80 is average, below 50 means significant optimization opportunity." },
     ],
   },
@@ -62,7 +62,7 @@ export default function HelpPage() {
     <div className="min-h-screen bg-[#f7f8fa]">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-black text-[#1a1a2e]">❓ Help Center</h1>
+          <h1 className="text-xl font-black text-[#1a1a2e]">Help Center</h1>
           <button onClick={() => router.push("/dashboard")} className="text-sm text-gray-400 hover:text-gray-600">← Dashboard</button>
         </div>
 

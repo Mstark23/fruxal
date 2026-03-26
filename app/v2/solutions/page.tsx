@@ -85,7 +85,7 @@ function SolutionCard({
           {sol.canadian_specific && (
             <span className="text-[8px] font-bold px-1.5 py-0.5 rounded"
               style={{ background: "rgba(227,0,0,0.07)", color: "#CC0000" }}>
-              🍁 Canadian
+              Canadian
             </span>
           )}
           {sol.is_free && (
@@ -251,7 +251,7 @@ export default function SolutionsPage() {
           </button>
           <button onClick={() => setFilterCA(!filterCA)}
             className={`text-[9px] font-bold px-2.5 py-1.5 rounded-lg border transition ${filterCA ? "border-red-400 bg-red-50 text-red-600" : "border-border-light text-ink-faint"}`}>
-            🍁 Canadian
+            Canadian
           </button>
         </div>
       </div>

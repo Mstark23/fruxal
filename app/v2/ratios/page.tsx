@@ -282,7 +282,7 @@ export default function RatiosPage() {
                   <span className="text-[14px] font-bold text-ink-muted">{grades.overallScore}/100</span>
                 </div>
                 {bankFailing === 0 && current?.dscr !== null ? (
-                  <p className="text-[10px] font-semibold text-positive mt-1">✅ Bank qualifying — all key thresholds met</p>
+                  <p className="text-[10px] font-semibold text-positive mt-1">✓ Bank qualifying — all key thresholds met</p>
                 ) : bankFailing > 0 ? (
                   <p className="text-[10px] font-semibold text-negative mt-1">{`! ${bankFailing} ratio${bankFailing > 1 ? "s" : ""} below bank threshold`}</p>
                 ) : null}

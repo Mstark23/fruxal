@@ -7,7 +7,7 @@ export default function APIDocsPage() {
   return (
     <div className="min-h-screen bg-[#0a0e17] text-white" style={{ fontFamily: "system-ui, sans-serif" }}>
       <nav className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-white/5">
-        <button onClick={() => router.push("/")} className="text-lg font-black">💧 LEAK &amp; GROW</button>
+        <button onClick={() => router.push("/")} className="text-lg font-black">Fruxal</button>
         <button onClick={() => router.push("/register")} className="text-sm font-bold bg-[#00c853] text-black px-4 py-2 rounded-xl">Get Started →</button>
       </nav>
 

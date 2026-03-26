@@ -188,7 +188,7 @@ export async function GET(req: NextRequest) {
 <div class="pg">
 
   <div class="hd">
-    <h1>💧 Fruxal — ${t("Business Leak Report", "Rapport de fuites d'affaires")}</h1>
+    <h1>Fruxal — ${t("Business Leak Report", "Rapport de fuites d'affaires")}</h1>
     <p class="s">${industry} · ${province}</p>
     <p class="d">${date}</p>
   </div>

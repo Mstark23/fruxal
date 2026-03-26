@@ -408,7 +408,7 @@ export default function PrescanResultsPage() {
             {/* CTA button */}
             <button onClick={() => router.push(`/register?from=prescan&prescanRunId=${params.id}`)}
               className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-base shadow-xl shadow-emerald-500/20 transition-all active:scale-[0.98]">
-              🔬 Create Free Account & Unlock Full Report →
+              Create Free Account & Unlock Full Report →
             </button>
             <p className="text-center text-white/10 text-[9px] mt-2">
               Free account · No credit card · Takes 30 seconds

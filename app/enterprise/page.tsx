@@ -80,11 +80,11 @@ export default function EnterprisePage() {
 
   const LEAKS = [
     { icon: "audit_tax", title: t("Tax Structure","Structure fiscale"), money: t("up to $80K/yr","jusqu'à 80\u202fK$/an") },
-    { icon: "🤝", title: t("Vendor Contracts","Contrats fournisseurs"), money: t("up to $60K/yr","jusqu'à 60\u202fK$/an") },
-    { icon: "👥", title: t("Payroll & HR","Paie & RH"), money: t("up to $45K/yr","jusqu'à 45\u202fK$/an") },
+    { icon: "vendor", title: t("Vendor Contracts","Contrats fournisseurs"), money: t("up to $60K/yr","jusqu'à 60\u202fK$/an") },
+    { icon: "payroll", title: t("Payroll & HR","Paie & RH"), money: t("up to $45K/yr","jusqu'à 45\u202fK$/an") },
     { icon: "audit_bank", title: t("Banking & Treasury","Banque & Trésorerie"), money: t("up to $40K/yr","jusqu'à 40\u202fK$/an") },
-    { icon: "🧾", title: t("SR&ED & Grants","SR&ED & Subventions"), money: t("up to $80K/yr","jusqu'à 80\u202fK$/an") },
-    { icon: "🛡️", title: t("Insurance","Assurance"), money: t("up to $35K/yr","jusqu'à 35\u202fK$/an") },
+    { icon: "sred", title: t("SR&ED & Grants","SR&ED & Subventions"), money: t("up to $80K/yr","jusqu'à 80\u202fK$/an") },
+    { icon: "insurance", title: t("Insurance","Assurance"), money: t("up to $35K/yr","jusqu'à 35\u202fK$/an") },
   ];
 
   return (

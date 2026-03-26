@@ -257,7 +257,7 @@ export default function OnboardingTour() {
                         <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${rc.bg} ${rc.text}`}>
                           {ob.risk_level}
                         </span>
-                        <span className="text-white/10 text-[9px]">{CATEGORY_ICONS[ob.category] || "📌"} {ob.category}</span>
+                        <span className="text-white/10 text-[9px]">{ob.category}</span>
                         <span className="text-white/10 text-[9px] ml-auto">{ob.frequency}</span>
                       </div>
                       <p className="text-white/50 text-xs font-medium">{ob.title}</p>
@@ -286,7 +286,7 @@ export default function OnboardingTour() {
           {step === 2 && (
             <div>
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-lg">💸</div>
+                <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
                 <div>
                   <h2 className="text-white/70 text-base font-bold">Money Leaks Detected</h2>
                   <p className="text-white/20 text-[10px]">{data.leaks.total} leaks found · {data.leaks.critical} critical</p>
@@ -312,7 +312,7 @@ export default function OnboardingTour() {
                         <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${rc.bg} ${rc.text}`}>
                           {leak.severity}
                         </span>
-                        <span className="text-white/10 text-[9px]">{CATEGORY_ICONS[leak.category] || "📌"} {leak.category}</span>
+                        <span className="text-white/10 text-[9px]">{leak.category}</span>
                       </div>
                       <p className="text-white/50 text-xs font-medium mb-1">{leak.title}</p>
                       <div className="flex items-center justify-between">
@@ -410,7 +410,7 @@ export default function OnboardingTour() {
               {/* Summary cards */}
               <div className="grid grid-cols-3 gap-2 mb-6">
                 <MiniSummary icon="calendar" value={data.obligations.total} label="Obligations" color="amber" />
-                <MiniSummary icon="💸" value={`$${Math.round(data.leaks.range_max / 1000)}K`} label="Leak Exposure" color="red" />
+                <MiniSummary icon="leak" value={`$${Math.round(data.leaks.range_max / 1000)}K`} label="Leak Exposure" color="red" />
                 <MiniSummary icon="programs" value={data.programs.total} label="Programs" color="emerald" />
               </div>
 
@@ -418,7 +418,7 @@ export default function OnboardingTour() {
               <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 mb-4 text-left">
                 <p className="text-white/30 text-[10px] font-bold uppercase tracking-wider mb-2">What's Next</p>
                 <div className="space-y-2">
-                  <NextStep icon="🔬" label="Run Full AI Diagnostic" desc="Deep analysis with action plan & PDF report" primary />
+                  <NextStep icon="diagnostic" label="Run Full AI Diagnostic" desc="Deep analysis with action plan & PDF report" primary />
                   <NextStep icon="calendar" label="Review Your Deadlines" desc="See upcoming obligations on your calendar" />
                   <NextStep icon="search" label="Fix Your First Leak" desc="Start with the highest-impact finding" />
                 </div>

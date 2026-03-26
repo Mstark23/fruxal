@@ -104,7 +104,7 @@ export default function CollectPage() {
 
         {/* Header */}
         <div className="text-center">
-          <div className="text-3xl mb-3">📊</div>
+          <svg className="w-8 h-8 mx-auto mb-3 text-brand-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
           <h1 className="text-2xl font-black text-white">Let&apos;s get your real numbers</h1>
           <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
             The more data you share, the more accurate your report. Each item takes 1-2 minutes.
@@ -145,7 +145,7 @@ export default function CollectPage() {
             >
               <div className="flex items-start gap-3">
                 <div className="text-2xl shrink-0">
-                  {item.status === "done" ? "✅" : item.icon}
+                  {item.status === "done" ? "✓" : ""}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -163,13 +163,13 @@ export default function CollectPage() {
                           onClick={handleQuickBooksConnect}
                           className="text-xs bg-[#00c853]/15 text-[#00c853] px-4 py-2 rounded-lg hover:bg-[#00c853]/25 transition-colors font-medium"
                         >
-                          📗 Connect QuickBooks
+                          Connect QuickBooks
                         </button>
                       )}
 
                       {item.data_type === "upload" && (
                         <label className="text-xs bg-blue-500/15 text-blue-300 px-4 py-2 rounded-lg hover:bg-blue-500/25 transition-colors font-medium cursor-pointer">
-                          {uploading === item.id ? "Uploading..." : "📎 Upload File"}
+                          {uploading === item.id ? "Uploading..." : "Upload File"}
                           <input
                             type="file"
                             className="hidden"
@@ -188,7 +188,7 @@ export default function CollectPage() {
                           onClick={() => router.push(`/v2/collect/${item.id}`)}
                           className="text-xs bg-purple-500/15 text-purple-300 px-4 py-2 rounded-lg hover:bg-purple-500/25 transition-colors font-medium"
                         >
-                          📝 Fill Out
+                          Fill Out
                         </button>
                       )}
 
@@ -227,7 +227,7 @@ export default function CollectPage() {
                 : "bg-white/10 text-gray-400 hover:bg-white/15"
             }`}
           >
-            <span>📊</span>
+            
             <span>
               {doneItems === 0
                 ? "Generate Report (with estimates)"

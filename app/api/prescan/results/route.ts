@@ -82,28 +82,28 @@ const LEAK_LABELS: Record<string, { title: string; titleFR: string; description:
     titleFR: 'Frais bancaires trop élevés',
     description: 'Your banking fees are above average for your business size. Switching to a business account with lower fees can save money.',
     descriptionFR: 'Vos frais bancaires dépassent la moyenne. Un compte entreprise mieux adapté pourrait vous faire économiser.',
-    icon: '🏦',
+    icon: 'banking',
   },
   inventory_cogs_high: {
     title: 'Cost of Goods Too High',
     titleFR: 'Coût des marchandises trop élevé',
     description: 'Your COGS ratio exceeds the benchmark. Renegotiating supplier terms or finding alternative vendors could reduce this.',
     descriptionFR: 'Votre ratio coût des marchandises dépasse la moyenne. Renégocier avec vos fournisseurs pourrait réduire ce coût.',
-    icon: '📦',
+    icon: 'inventory',
   },
   marketing_waste: {
     title: 'Marketing Spend Inefficient',
     titleFR: 'Dépenses marketing inefficaces',
     description: 'Your marketing costs are high relative to revenue. Focusing on higher-ROI channels could improve efficiency.',
     descriptionFR: 'Vos dépenses marketing sont élevées par rapport à vos revenus.',
-    icon: '📣',
+    icon: 'marketing',
   },
   marketing_overspend: {
     title: 'Marketing Overspend',
     titleFR: 'Dépenses marketing excessives',
     description: 'Your marketing costs are high relative to revenue. Reviewing channel performance can reveal savings.',
     descriptionFR: 'Vos dépenses marketing sont élevées par rapport à vos revenus.',
-    icon: '📣',
+    icon: 'marketing',
   },
 };
 
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
       titleFR:     code.replace(/_/g, ' '),
       description: '',
       descriptionFR: '',
-      icon: '💧',
+      icon: 'general',
     };
     const sev = severityLabel(leak.severity_score ?? 0);
     return {

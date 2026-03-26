@@ -529,7 +529,7 @@ export default function DiagnosticReportPage() {
                           </span>
                           {(prescanLink.leaks_new ?? 0) > 0 && (
                             <span className="text-blue-700">
-                              🔵 {isFr ? "Nouvelles découvertes :" : "New discoveries:"} <strong>{prescanLink.leaks_new}</strong>
+                              {isFr ? "Nouvelles découvertes :" : "New discoveries:"} <strong>{prescanLink.leaks_new}</strong>
                             </span>
                           )}
                         </div>

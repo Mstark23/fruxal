@@ -268,18 +268,18 @@ export default function PrescanPage() {
               <Question q="Quick flags — check what applies:" qfr="Cochez ce qui s'applique:" isFR={isFR} />
               <div className="space-y-2">
                 <FlagToggle on={answers.has_accountant} onClick={() => set("has_accountant", !answers.has_accountant)} label="I have an accountant or bookkeeper"  />
-                <FlagToggle on={answers.handles_data} onClick={() => set("handles_data", !answers.handles_data)} label="I collect customer data (emails, payments)" icon="🔐" />
+                <FlagToggle on={answers.handles_data} onClick={() => set("handles_data", !answers.handles_data)} label="I collect customer data (emails, payments)" icon="" />
                 <FlagToggle on={answers.has_physical_location} onClick={() => set("has_physical_location", !answers.has_physical_location)} label="I have a physical office, store or warehouse"  />
-                <FlagToggle on={answers.exports_goods} onClick={() => set("exports_goods", !answers.exports_goods)} label="I sell to clients outside Canada" icon="🌎" />
-                <FlagToggle on={answers.does_rd} onClick={() => set("does_rd", !answers.does_rd)} label="I do any R&D, innovation, or custom software" icon="🔬" />
+                <FlagToggle on={answers.exports_goods} onClick={() => set("exports_goods", !answers.exports_goods)} label="I sell to clients outside Canada" icon="" />
+                <FlagToggle on={answers.does_rd} onClick={() => set("does_rd", !answers.does_rd)} label="I do any R&D, innovation, or custom software" icon="" />
                 {["restaurant","salon","fitness","healthcare"].includes(answers.industry) && (
-                  <FlagToggle on={answers.handles_food} onClick={() => set("handles_food", !answers.handles_food)} label="I handle or serve food" icon="🍽️" />
+                  <FlagToggle on={answers.handles_food} onClick={() => set("handles_food", !answers.handles_food)} label="I handle or serve food" icon="" />
                 )}
                 {answers.industry === "construction" && (
-                  <FlagToggle on={answers.does_construction} onClick={() => set("does_construction", !answers.does_construction)} label="I do construction or renovation work" icon="🔨" />
+                  <FlagToggle on={answers.does_construction} onClick={() => set("does_construction", !answers.does_construction)} label="I do construction or renovation work" icon="" />
                 )}
                 {["restaurant","salon"].includes(answers.industry) && (
-                  <FlagToggle on={answers.sells_alcohol} onClick={() => set("sells_alcohol", !answers.sells_alcohol)} label="I sell or serve alcohol" icon="🍷" />
+                  <FlagToggle on={answers.sells_alcohol} onClick={() => set("sells_alcohol", !answers.sells_alcohol)} label="I sell or serve alcohol" icon="" />
                 )}
               </div>
             </div>
@@ -299,7 +299,7 @@ export default function PrescanPage() {
                       { value: "this_year", label: "This year" },
                       { value: "1_2_years", label: "1–2 years ago" },
                       { value: "3_plus_years", label: "3+ years ago" },
-                      { value: "never", label: "Never / Not sure", icon: "🔴" },
+                      { value: "never", label: "Never / Not sure" },
                     ].map(opt => (
                       <OptionButton key={opt.value} selected={answers.tax_last_reviewed === opt.value}
                         onClick={() => set("tax_last_reviewed", opt.value)}
@@ -331,13 +331,13 @@ export default function PrescanPage() {
                   on={answers.has_business_insurance}
                   onClick={() => set("has_business_insurance", !answers.has_business_insurance)}
                   label="I have business liability insurance"
-                  icon="🛡️"
+                  icon=""
                 />
               </div>
 
               <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl px-4 py-3 mt-2">
                 <p className="text-xs text-emerald-400/70 font-medium">
-                  {t("🔬 Scanning", "🔬 Analyse des") + " " + (isFR ? PROVINCES.find(p => p.value === answers.province)?.fr || PROVINCES.find(p => p.value === answers.province)?.label : PROVINCES.find(p => p.value === answers.province)?.label) + " " + t("regulations,", "réglementations,") + " " + (answers.monthly_revenue >= 10000 ? "mid-market" : "small business") + " tax rules, and government programs for " + (INDUSTRIES.find(i => i.value === answers.industry)?.label?.toLowerCase()) + " businesses."}
+                  {t("Scanning", "Analyse des") + " " + (isFR ? PROVINCES.find(p => p.value === answers.province)?.fr || PROVINCES.find(p => p.value === answers.province)?.label : PROVINCES.find(p => p.value === answers.province)?.label) + " " + t("regulations,", "réglementations,") + " " + (answers.monthly_revenue >= 10000 ? "mid-market" : "small business") + " tax rules, and government programs for " + (INDUSTRIES.find(i => i.value === answers.industry)?.label?.toLowerCase()) + " businesses."}
                 </p>
               </div>
             </div>

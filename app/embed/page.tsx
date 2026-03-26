@@ -28,7 +28,7 @@ export default function EmbedWidget() {
       {step === "pick" && (
         <div className="bg-[#0a0e17] text-white rounded-2xl p-6">
           <div className="text-center mb-4">
-            <div className="text-xl font-black">💧 Free Leak Scan</div>
+            <div className="text-xl font-black">Fruxal — Free Business Scan</div>
             <div className="text-xs text-gray-400 mt-1">Find where your business is losing money</div>
           </div>
           <select value={industry} onChange={e => setIndustry(e.target.value)} className="w-full px-3 py-3 bg-white/10 border border-white/10 rounded-xl text-sm text-white outline-none mb-3">
@@ -38,7 +38,7 @@ export default function EmbedWidget() {
                 <option key={i.id} value={i.id} className="text-black">{i.icon} {i.name}</option>
               )}
             </optgroup>
-            <optgroup label="🏪 Mid-Size Business">
+            <optgroup label="Mid-Size Business">
               {ALL_INDUSTRIES.filter(i => i.tier === "mid-size-business").map(i =>
                 <option key={i.id} value={i.id} className="text-black">{i.icon} {i.name}</option>
               )}

@@ -21,7 +21,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         <Link href="/" style={{
           fontWeight: 700, fontSize: 17, color: "#1B3A2D", textDecoration: "none",
         }}>
-          💧 Fruxal
+          Fruxal
         </Link>
         <nav style={{ display: "flex", gap: 24 }}>
           {NAV.map(n => (

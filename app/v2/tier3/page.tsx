@@ -33,14 +33,14 @@ interface DiagnosticData {
 }
 
 const STAGE_LABELS: Record<string, { en: string; fr: string; icon: string }> = {
-  intake:              { en: "Intake",           fr: "Admission",         icon: "📋" },
-  diagnostic:          { en: "Diagnostic",       fr: "Diagnostic",        icon: "🔍" },
-  agreement:           { en: "Agreement",        fr: "Entente",           icon: "📝" },
-  document_collection: { en: "Documents",        fr: "Documents",         icon: "📁" },
-  active_recovery:     { en: "Active Recovery",  fr: "Récupération",      icon: "⚡" },
-  confirmed:           { en: "Confirmed",        fr: "Confirmé",          icon: "✅" },
-  invoiced:            { en: "Invoiced",         fr: "Facturé",           icon: "💳" },
-  complete:            { en: "Complete",         fr: "Terminé",           icon: "🎉" },
+  intake:              { en: "Intake",           fr: "Admission",         icon: "" },
+  diagnostic:          { en: "Diagnostic",       fr: "Diagnostic",        icon: "" },
+  agreement:           { en: "Agreement",        fr: "Entente",           icon: "" },
+  document_collection: { en: "Documents",        fr: "Documents",         icon: "" },
+  active_recovery:     { en: "Active Recovery",  fr: "Récupération",      icon: "" },
+  confirmed:           { en: "Confirmed",        fr: "Confirmé",          icon: "" },
+  invoiced:            { en: "Invoiced",         fr: "Facturé",           icon: "" },
+  complete:            { en: "Complete",         fr: "Terminé",           icon: "" },
 };
 
 const CAT_LABELS: Record<string, { en: string; fr: string }> = {

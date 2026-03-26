@@ -173,9 +173,9 @@ function CheckoutContent() {
         {/* Trust signals */}
         <div className="flex justify-center gap-6 mb-6 text-[10px] text-ink-faint">
           {[
-            t("🔒 Secure checkout", "🔒 Paiement sécurisé"),
-            t("🍁 Canadian company", "🍁 Entreprise canadienne"),
-            t("❌ Cancel anytime", "❌ Annulez à tout moment"),
+            t("Secure checkout", "Paiement sécurisé"),
+            t("Canadian company", "Entreprise canadienne"),
+            t("Cancel anytime", "Annulez à tout moment"),
           ].map(s => <span key={s}>{s}</span>)}
         </div>
 

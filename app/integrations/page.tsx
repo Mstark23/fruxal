@@ -56,7 +56,7 @@ export default function IntegrationsPage() {
     <div className="min-h-screen bg-[#f7f8fa]">
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-black text-[#1a1a2e]">🔌 Integrations</h1>
+          <h1 className="text-xl font-black text-[#1a1a2e]">Integrations</h1>
           <button onClick={() => router.push("/dashboard")} className="text-sm text-gray-400 hover:text-gray-600">← Dashboard</button>
         </div>
         <p className="text-sm text-gray-500 mb-6">Connect your data sources for more accurate leak detection.</p>
