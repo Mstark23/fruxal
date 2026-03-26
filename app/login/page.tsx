@@ -157,6 +157,7 @@ function LoginForm() {
               className="w-full px-4 py-3 bg-white border border-border rounded-sm text-body text-ink font-sans outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft transition"
               placeholder="••••••••" required />
           </div>
+          <div className="flex justify-end -mt-2 mb-1"><a href="/forgot-password" className="text-[11px] text-brand hover:underline">{t("Forgot password?", "Mot de passe oublié ?")}</a></div>
           <button type="submit" disabled={loading}
             className="w-full py-3 bg-brand text-white text-sm font-semibold rounded-sm hover:bg-brand-light transition disabled:opacity-50 mt-2">
             {loading ? t("Signing in…", "Connexion…") : t("Sign in →", "Se connecter →")}

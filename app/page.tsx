@@ -382,7 +382,7 @@ export default function LandingPage() {
 
             {result.analysis.leaks.length === 0 && (
               <div className="mb-8 p-6 bg-positive/5 border border-positive/20 rounded-2xl text-center">
-                <div className="text-3xl mb-3">✅</div>
+                <svg className="w-8 h-8 mx-auto mb-3 text-positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                 <p className="font-semibold text-ink mb-1">{t("No major leaks detected from your answers", "Aucune fuite majeure détectée selon vos réponses")}</p>
                 <p className="text-sm text-ink-secondary">{t("The full diagnostic may reveal more with your real financial data.", "Le diagnostic complet peut en révéler davantage avec vos données réelles.")}</p>
               </div>
@@ -427,7 +427,7 @@ export default function LandingPage() {
                               {leak.affiliates.map((aff: any, j: number) => (
                                 <a key={j} href={aff.url} target="_blank" rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand/5 border border-brand/15 rounded-sm text-xs font-medium text-brand hover:bg-brand/10 transition">
-                                  <span>🔗</span> {aff.name}
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{display:"inline",marginRight:4,verticalAlign:"middle"}}><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>{aff.name}
                                 </a>
                               ))}
                             </div>
@@ -461,7 +461,7 @@ export default function LandingPage() {
                         style={{ background: "linear-gradient(to bottom, transparent 0%, rgba(249,248,246,0.85) 30%, rgba(249,248,246,0.98) 60%)" }}>
                         <div className="mt-auto pb-6 px-6 text-center w-full max-w-sm mx-auto">
                           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-negative/8 border border-negative/15 rounded-full text-xs font-semibold text-negative mb-3">
-                            🔒 {hiddenCount} {t("more leaks hidden", `autres fuites masquées`)}
+                            {hiddenCount} {t("more leaks hidden", `autres fuites masquées`)}
                           </div>
                           <p className="text-sm text-ink-secondary mb-4">
                             {t(
@@ -492,7 +492,7 @@ export default function LandingPage() {
               <button
                 onClick={() => window.open(`/api/prescan/report?prescanRunId=${result!.prescanRunId}&lang=${lang}`, "_blank")}
                 className="px-6 py-3.5 text-[15px] font-medium text-ink-secondary bg-white border border-border rounded-sm hover:border-border-focus transition flex items-center justify-center gap-2">
-                <span>📄</span> {t("Download report", "Télécharger le rapport")}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{display:"inline",marginRight:6,verticalAlign:"middle"}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>{t("Download report", "Télécharger le rapport")}
               </button>
             </div>
             <p className="text-[11px] text-ink-faint mt-2">{t("Free PDF · No account required · Full report unlocked on signup", "PDF gratuit · Aucun compte requis · Rapport complet sur inscription")}</p>

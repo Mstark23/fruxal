@@ -268,7 +268,7 @@ export default function SoloDashboard() {
           {t("Run my diagnostic →", "Lancer mon diagnostic →")}
         </button>
         <p className="text-[11px] text-ink-faint mt-4">
-          {t("Already did a prescan? Your results are waiting.", "Déjà fait un prescan? Vos résultats vous attendent.")}
+          {t("Complete the prescan on the home page first, then come back.", "Faites d'abord le préscan sur la page d'accueil, puis revenez.")}
         </p>
       </div>
     </div>
@@ -325,7 +325,7 @@ export default function SoloDashboard() {
             <button onClick={() => router.push("/v2/diagnostic")}
               className="shrink-0 h-8 px-4 text-[11px] font-bold text-white rounded-lg transition hover:opacity-90"
               style={{ background: "#1B3A2D" }}>
-              {t("Run →", "Lancer →")}
+              {t("Run Diagnostic →", "Lancer le diagnostic →")}
             </button>
           </div>
         )}
@@ -343,7 +343,7 @@ export default function SoloDashboard() {
         {/* KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5" style={fadeDelay(0.04)}>
           <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all group" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score sante")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
             {score > 0 ? (
               <>
                 <div className="flex items-end gap-1.5">
