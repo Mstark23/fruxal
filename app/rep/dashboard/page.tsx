@@ -109,6 +109,7 @@ export default function RepDashboard() {
             { label:"Active",           value:activeCount,                               sub:"engagements" },
             { label:"Commissions Paid", value:fmtM(rep?.stats?.commissions_paid||0),    sub:"earned"      },
             { label:"Pending",          value:fmtM(rep?.stats?.commissions_pending ?? 0), sub:"to collect"  },
+            { label:"Pipeline Value",   value:fmtM(clients.filter((c:any) => c.engagement).reduce((s:number,c:any) => s+(c.annualLeak??0)*((rep?.commission_rate||20)/100),0)), sub:"if all close" },
           ].map(s => (
             <div key={s.label} className="bg-white border border-[#E5E3DD] rounded-xl px-4 py-3" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.03)"}}>
               <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">{s.label}</p>

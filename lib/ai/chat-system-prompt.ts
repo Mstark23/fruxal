@@ -23,6 +23,32 @@ function daysUntil(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
 }
 
+
+function buildRepBlock(ctx: BusinessContext): string {
+  if (!ctx.assignedRep) return "";
+  const { name, stage, calendlyUrl, confirmedSavings } = ctx.assignedRep;
+  const stageDesc: Record<string, string> = {
+    contacted: "reviewing your file", called: "in contact with you",
+    diagnostic_sent: "reviewing your diagnostic",
+    in_engagement: "actively working your file",
+    recovery_tracking: "tracking your recovery",
+  };
+  const desc = stageDesc[stage] || "assigned to your file";
+  const lines = [
+    "RECOVERY REP ASSIGNED:",
+    `Rep: ${name} (${desc}).`,
+    confirmedSavings > 0 ? `Confirmed savings so far: $${confirmedSavings.toLocaleString()}/yr` : "",
+    calendlyUrl ? `Booking link: ${calendlyUrl}` : "",
+    "",
+    "RULES WHEN REP IS ASSIGNED:",
+    `- For 'how to fix' questions: direct them to their rep ${name}, not DIY steps.`,
+    "- Do NOT recommend external tools, affiliate links, or URLs.",
+    "- DO explain what leaks mean, how amounts were calculated, what documents the rep needs.",
+    `- Example: '${name} is handling that — book a check-in if you want an update.'`,
+  ].filter(Boolean).join("\n");
+  return lines;
+}
+
 // ── TIER 1 — Solo ─────────────────────────────────────────────────────────────
 function buildSoloPrompt(ctx: BusinessContext): string {
   const goalBlock = ctx.activeGoal?.title
@@ -42,6 +68,7 @@ function buildSoloPrompt(ctx: BusinessContext): string {
   const journeyBlock = ctx.journey?.daysOnPlatform
     ? `Platform history: ${ctx.journey.daysOnPlatform} days on Fruxal | ${ctx.journey.scansCompleted ?? 0} scan${(ctx.journey.scansCompleted ?? 0) !== 1 ? "s" : ""} | ${ctx.journey.tasksCompleted ?? 0} task${(ctx.journey.tasksCompleted ?? 0) !== 1 ? "s" : ""} completed | Total confirmed savings: $${(ctx.journey.totalRecovered ?? 0).toLocaleString()}/month`
     : "";
+  const repBlock = buildRepBlock(ctx);
   const solutionsBlock = ctx.topSolutions && ctx.topSolutions.length > 0
     ? "RELEVANT SOLUTIONS FOR THEIR TOP ISSUES:\n" +
       ctx.topSolutions
@@ -52,7 +79,7 @@ function buildSoloPrompt(ctx: BusinessContext): string {
           ).join("\n")
         )
         .join("\n") +
-      "\n\nWhen recommending solutions: reference these by name, mention savings estimates, say \'learn more at [url]\' rather than \'click here\'. Only recommend when genuinely relevant."
+      "\n\nNote: if user has an assigned rep, direct fix questions to the rep rather than recommending specific URLs."
     : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0
@@ -117,7 +144,7 @@ ${tasksBlock}
 UPCOMING OBLIGATIONS:
 ${deadlineBlock}
 
-${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}${goalBlock ? goalBlock + '\n\n' : ''}${journeyBlock ? journeyBlock + '\n\n' : ''}${solutionsBlock ? solutionsBlock + '\n\n' : ''}
+${beBlock ? beBlock + '\n\n' : ''}${prescanBlock ? prescanBlock + '\n\n' : ''}${liveScoreBlock ? liveScoreBlock + '\n\n' : ''}${goalBlock ? goalBlock + '\n\n' : ''}${journeyBlock ? journeyBlock + '\n\n' : ''}${repBlock ? repBlock + '\n\n' : ''}${solutionsBlock ? solutionsBlock + '\n\n' : ''}
 YOUR ROLE AND RULES:
 - Respond in plain English — zero financial jargon
 - Keep responses to 3-5 sentences unless detail is requested
@@ -157,7 +184,7 @@ function buildBusinessPrompt(ctx: BusinessContext): string {
           ).join("\n")
         )
         .join("\n") +
-      "\n\nWhen recommending solutions: reference these by name, mention savings estimates, say \'learn more at [url]\' rather than \'click here\'. Only recommend when genuinely relevant."
+      "\n\nNote: if user has an assigned rep, direct fix questions to the rep rather than recommending specific URLs."
     : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0
@@ -275,7 +302,7 @@ function buildEnterprisePrompt(ctx: BusinessContext): string {
           ).join("\n")
         )
         .join("\n") +
-      "\n\nWhen recommending solutions: reference these by name, mention savings estimates, say \'learn more at [url]\' rather than \'click here\'. Only recommend when genuinely relevant."
+      "\n\nNote: if user has an assigned rep, direct fix questions to the rep rather than recommending specific URLs."
     : "";
   const prescanBlock = ctx.prescan
     ? ctx.prescan.totalEstimatedLoss > 0

@@ -205,6 +205,46 @@ export async function POST(req: NextRequest) {
 
     if (progErr) console.error("Failed to upsert user_progress:", progErr);
 
+    // Auto-assign HOT leads (score >= 60) to best available rep
+    try {
+      const { scoreLeadQuality } = await import("@/lib/lead-score");
+      const annualRev = revenue ? revenue * 12 : 0;
+      const { score } = scoreLeadQuality({
+        annualRevenue: annualRev,
+        estimatedLeak: totalLeak,
+        province:      (prescanResult as any)?.province || null,
+        hasAccountant: (prescanResult as any)?.has_accountant ?? null,
+        lastTaxReview: (prescanResult as any)?.last_tax_review || null,
+        doesRd:        (prescanResult as any)?.does_rd ?? null,
+        employeeCount: employees ?? null,
+        industry:      industry || null,
+        daysInPipeline: 0,
+      });
+
+      if (score >= 60 && userId) {
+        const { data: existingPipe } = await supabase
+          .from("tier3_pipeline").select("id").eq("user_id", userId).maybeSingle();
+
+        if (!existingPipe) {
+          const { data: reps } = await supabase
+            .from("tier3_reps").select("id, province").eq("status", "active")
+            .order("created_at", { ascending: true });
+          const prov = (prescanResult as any)?.province;
+          const rep = (reps || []).find((r: any) => r.province === prov) || reps?.[0];
+          if (rep) {
+            const baseUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+            fetch(baseUrl + "/api/admin/assign-rep", {
+              method: "POST",
+              headers: { "Content-Type": "application/json",
+                "Authorization": "Bearer " + process.env.CRON_SECRET },
+              body: JSON.stringify({ userId, repId: rep.id,
+                notes: "Auto-assigned. Score: " + score + ". Leak: $" + totalLeak }),
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch { /* non-fatal */ }
+
     return NextResponse.json({
       success: true,
       scanId,

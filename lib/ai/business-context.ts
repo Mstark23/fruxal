@@ -38,6 +38,13 @@ export interface TopSolutionEntry {
   solutions: Array<{ name: string; url: string; savings_estimate: string | null }>;
 }
 
+export interface AssignedRepContext {
+  name: string;
+  stage: string;
+  calendlyUrl: string | null;
+  confirmedSavings: number;
+}
+
 export interface JourneyContext {
   daysOnPlatform:  number | null;
   tasksCompleted:  number | null;
@@ -133,6 +140,7 @@ export interface BusinessContext {
   activeGoal: ActiveGoalContext | null;
   journey: JourneyContext | null;
   topSolutions: TopSolutionEntry[] | null;
+  assignedRep: AssignedRepContext | null;
 }
 
 // Minimal context for when DB queries fail
@@ -140,6 +148,7 @@ function emptyContext(businessId: string): BusinessContext {
   return {
     business: { id: businessId, name: "this business", industry: "small business", province: "Canada", monthly_revenue: 0, annual_revenue: 0, employees: 0, structure: "" },
     latest_report: null,
+    assignedRep: null,
     open_tasks: [],
     completed_tasks: [],
     recovery: { recovered: 0, available: 0, tasks_completed: 0 },
@@ -323,6 +332,37 @@ export async function buildBusinessContext(
       : ["business", "growth", "team", "corp", "advisor"].includes(rawTier) ? "business"
       : "solo";
 
+    // -- Assigned rep lookup (non-fatal)
+    let assignedRep: AssignedRepContext | null = null;
+    try {
+      const { data: pipeRow } = await supabaseAdmin
+        .from("tier3_pipeline")
+        .select("stage, tier3_rep_assignments(tier3_reps(name, calendly_url))")
+        .eq("user_id", userId)
+        .in("stage", ["contacted","called","diagnostic_sent","agreement_out",
+                       "signed","in_engagement","recovery_tracking","engaged","active"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle() as any;
+
+      if (pipeRow) {
+        const repData = pipeRow.tier3_rep_assignments?.[0]?.tier3_reps;
+        if (repData?.name) {
+          const { data: prog } = await supabaseAdmin
+            .from("user_progress")
+            .select("total_recovered")
+            .eq("user_id", userId)
+            .maybeSingle();
+          assignedRep = {
+            name:             repData.name,
+            stage:            pipeRow.stage,
+            calendlyUrl:      repData.calendly_url || null,
+            confirmedSavings: prog?.total_recovered ?? 0,
+          };
+        }
+      }
+    } catch { /* non-fatal */ }
+
     // -- Latest report findings (cap at 5)
     let latestReport: BusinessContext["latest_report"] = null;
     if (reportRes) {
@@ -406,6 +446,7 @@ export async function buildBusinessContext(
       upcoming_deadlines: deadlines.slice(0, 5),
       tier,
       topSolutions: (topSolRes as any) ?? null,
+      assignedRep: null,
       journey: journeyRes?.daysOnPlatform != null ? {
         daysOnPlatform: journeyRes.daysOnPlatform,
         tasksCompleted: journeyRes.tasksCompleted,
