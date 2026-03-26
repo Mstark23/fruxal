@@ -77,12 +77,20 @@ const INITIAL_DATA: OnboardingData = {
   does_construction: false, has_professional_order: false, exports_goods: false, does_rd: false,
 };
 
+
+const ONBOARDING_STEP_ICONS: Record<string, JSX.Element> = {
+  business:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>,
+  finances:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
+  dates:     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,
+  situation: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+  launch:    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+};
 const STEPS = [
-  { key: "basics", label: "Business", labelFr: "Entreprise", icon: "🏢" },
-  { key: "financial", label: "Finances", labelFr: "Finances", icon: "💰" },
-  { key: "dates", label: "Key Dates", labelFr: "Dates clés", icon: "📅" },
-  { key: "situation", label: "Situation", labelFr: "Situation", icon: "📋" },
-  { key: "confirm", label: "Launch", labelFr: "Lancement", icon: "🚀" },
+  { key: "basics", label: "Business", labelFr: "Entreprise", icon: "" },
+  { key: "financial", label: "Finances", labelFr: "Finances", icon: "" },
+  { key: "dates", label: "Key Dates", labelFr: "Dates clés", icon: "" },
+  { key: "situation", label: "Situation", labelFr: "Situation", icon: "" },
+  { key: "confirm", label: "Launch", labelFr: "Lancement", icon: "" },
 ];
 
 const STRUCTURES = [
@@ -275,7 +283,7 @@ export default function OnboardingPage() {
                 i < step ? "bg-emerald-500" : i === step ? "bg-emerald-500/50" : "bg-white/[0.06]"
               }`} />
               <div className="flex items-center gap-1">
-                <span className="text-xs">{s.icon}</span>
+                {ONBOARDING_STEP_ICONS[s.icon] ?? null}
                 <span className={`text-[10px] transition-colors ${
                   i <= step ? "text-white/50" : "text-white/15"
                 }`}>{isFr ? s.labelFr : s.label}</span>
@@ -405,7 +413,7 @@ export default function OnboardingPage() {
                 <ToggleCard active={data.has_payroll} onClick={() => toggleBool("has_payroll")}
                   label={isFr ? "J'ai des employés sur la paie" : "I run payroll"} icon="👥" />
                 <ToggleCard active={data.handles_data} onClick={() => toggleBool("handles_data")}
-                  label={isFr ? "Je collecte des données clients" : "I collect customer data"} icon="🔒" />
+                  label={isFr ? "Je collecte des données clients" : "I collect customer data"} />
                 <ToggleCard active={data.has_physical_location} onClick={() => toggleBool("has_physical_location")}
                   label={isFr ? "J'ai un local physique" : "I have a physical location"} icon="🏪" />
               </div>
@@ -490,7 +498,7 @@ export default function OnboardingPage() {
                 <ToggleCard active={data.has_bookkeeper} onClick={() => toggleBool("has_bookkeeper")}
                   label={isFr ? "J'ai un teneur de livres" : "I have a bookkeeper"} icon="📒" />
                 <ToggleCard active={data.uses_payroll_software} onClick={() => toggleBool("uses_payroll_software")}
-                  label={isFr ? "J'utilise un logiciel de paie" : "I use payroll software"} icon="💻" />
+                  label={isFr ? "J'utilise un logiciel de paie" : "I use payroll software"} />
                 <ToggleCard active={data.uses_pos} onClick={() => toggleBool("uses_pos")}
                   label={isFr ? "J'ai un système de point de vente (POS)" : "I use a POS system"} icon="🖥️" />
               </div>
@@ -606,7 +614,7 @@ export default function OnboardingPage() {
             ) : (
               <button onClick={handleComplete} disabled={saving}
                 className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 transition-all">
-                {saving ? "..." : isFr ? "🚀 Lancer l'analyse" : "🚀 Launch Analysis"}
+                {saving ? "..." : isFr ? "Lancer l'analyse →" : "Launch Analysis →"}
               </button>
             )}
           </div>
@@ -657,7 +665,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function ToggleCard({ active, onClick, label, icon }: {
-  active: boolean; onClick: () => void; label: string; icon: string;
+  active: boolean; onClick: () => void; label: string; icon?: string;
 }) {
   return (
     <button onClick={onClick}

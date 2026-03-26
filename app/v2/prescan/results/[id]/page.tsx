@@ -13,6 +13,15 @@
 // =============================================================================
 
 "use client";
+
+const FEATURE_ICONS: Record<string, JSX.Element> = {
+  search:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+  dollar:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
+  plan:      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>,
+  risk:      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  benchmark: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>,
+};
+
 import { useLang } from "@/hooks/useLang";
 import { LangToggle } from "@/components/ui/LangToggle";
 
@@ -81,9 +90,9 @@ const SEVERITY_CONFIG: Record<string, { color: string; bg: string; label: string
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  tax: "💰 Tax", payroll: "👥 Payroll", compliance: "📋 Compliance",
-  operations: "⚙️ Operations", insurance: "🛡️ Insurance", government_program: "🏛️ Programs",
-  registration: "📝 Registration", permits: "🪪 Permits", contract: "📄 Contracts",
+  tax: "Tax", payroll: "Payroll", compliance: "Compliance",
+  operations: "Operations", insurance: "Insurance", government_program: "Programs",
+  registration: "Registration", permits: "Permits", contract: "Contracts",
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -274,14 +283,14 @@ export default function PrescanResultsPage() {
                     {/* CTA overlay */}
                     <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 text-center">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-[10px] font-bold text-red-400 mb-2">
-                        🔒 {totalHidden} more leaks — ${(hiddenValue ?? 0).toLocaleString()}/yr hidden
+                        {totalHidden} more leaks — ${(hiddenValue ?? 0).toLocaleString()}/yr
                       </div>
                       <p className="text-white/25 text-[10px] mb-3">
                         Create a free account to unlock all findings, action plan & full PDF report
                       </p>
                       <button onClick={() => router.push(`/register?from=prescan&prescanRunId=${params.id}`)}
                         className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all">
-                        🔓 Create Free Account & Unlock All →
+                        Create Free Account & See All →
                       </button>
                       <p className="text-white/10 text-[9px] mt-1.5">No credit card required</p>
                     </div>
@@ -335,7 +344,7 @@ export default function PrescanResultsPage() {
               {/* Blurred details hint */}
               <div className="mt-4 pt-3 border-t border-white/[0.04] text-center">
                 <p className="text-white/15 text-[10px]">
-                  📅 Deadlines, forms, agencies & action steps — all in the full diagnostic
+                  Deadlines, forms, agencies & action steps — all in the full diagnostic
                 </p>
               </div>
             </div>
@@ -380,11 +389,11 @@ export default function PrescanResultsPage() {
               <h3 className="text-white/50 text-xs font-bold mb-3 text-center">Full AI Diagnostic Includes</h3>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { icon: "🔍", en: "All findings with details", fr: "Toutes les découvertes" },
-                  { icon: "💰", en: "Exact dollar impacts", fr: "Impacts financiers exacts" },
-                  { icon: "📋", en: "90-day action plan", fr: "Plan d'action 90 jours" },
-                  { icon: "⚠️", en: "Risk matrix", fr: "Matrice de risque" },
-                  { icon: "📊", en: "Industry benchmarks", fr: "Repères de l'industrie" },
+                  { icon: "search", en: "All findings with details", fr: "Toutes les découvertes" },
+                  { icon: "dollar", en: "Exact dollar impacts", fr: "Impacts financiers exacts" },
+                  { icon: "plan", en: "90-day action plan", fr: "Plan d'action 90 jours" },
+                  { icon: "risk", en: "Risk matrix", fr: "Matrice de risque" },
+                  { icon: "benchmark", en: "Industry benchmarks", fr: "Repères de l'industrie" },
                   { icon: "🏛️", en: "All matching programs", fr: "Tous les programmes" },
                   { icon: "📄", en: "PDF report", fr: "Rapport PDF" },
                   { icon: "📐", en: "AI-powered analysis", fr: "Analyse par IA" },

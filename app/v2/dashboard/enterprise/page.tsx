@@ -1409,7 +1409,7 @@ export default function EnterpriseDashboard() {
               {/* Preview items — blurred */}
               <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.04)" }}>
                 {[
-                  { icon: "📋", label: t("CPA / Board Briefing Memo", "Mémo Briefing CPA"), sub: t("RDTOH strategy, tax exposure, talking points for your accountant", "Stratégie IMRTD, exposition fiscale, points pour votre comptable") },
+                  { icon: "briefing", label: t("CPA / Board Briefing Memo", "Mémo Briefing CPA"), sub: t("RDTOH strategy, tax exposure, talking points for your accountant", "Stratégie IMRTD, exposition fiscale, points pour votre comptable") },
                   { icon: "seq", label: t("Priority Action Sequence", "Séquence d'actions prioritaires"), sub: t("Step-by-step recovery plan ranked by ROI and effort", "Plan de récupération étape par étape classé par ROI") },
                   { icon: "bench", label: t("Peer Benchmark Comparisons", "Comparaisons aux pairs sectoriels"), sub: t("How your margins, payroll ratio, and EBITDA compare to top quartile", "Comment vos marges, masse salariale et BAIIA se comparent aux meilleurs") },
                 ].map((item, i) => (

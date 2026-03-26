@@ -375,8 +375,8 @@ export default function SoloDashboard() {
               <div className="grid grid-cols-2 gap-3 mb-4">
                 {[
                   { icon: "rep", title: t("Full leak report", "Rapport complet"), sub: t("All leaks with exact $ amounts", "Toutes les fuites avec montants exacts") },
-                  { icon: "🎯", title: t("Health Score", "Score de santé"), sub: t("Your 0–100 financial grade", "Votre note financière 0–100") },
-                  { icon: "✅", title: t("90-day fix plan", "Plan 90 jours"), sub: t("Step-by-step actions to recover money", "Étapes pour récupérer votre argent") },
+                  { icon: "score", title: t("Health Score", "Score de santé"), sub: t("Your 0–100 financial grade", "Votre note financière 0–100") },
+                  { icon: "plan", title: t("90-day fix plan", "Plan 90 jours"), sub: t("Step-by-step actions to recover money", "Étapes pour récupérer votre argent") },
                   { icon: "🏛️", title: t("Gov. programs", "Programmes gouv."), sub: t("Grants & credits you qualify for", "Subventions et crédits admissibles") },
                 ].map(u => (
                   <div key={u.title} className="flex items-start gap-2.5 p-3 bg-bg-section rounded-xl">

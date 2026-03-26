@@ -79,10 +79,10 @@ export default function EnterprisePage() {
   ];
 
   const LEAKS = [
-    { icon: "📋", title: t("Tax Structure","Structure fiscale"), money: t("up to $80K/yr","jusqu'à 80\u202fK$/an") },
+    { icon: "audit_tax", title: t("Tax Structure","Structure fiscale"), money: t("up to $80K/yr","jusqu'à 80\u202fK$/an") },
     { icon: "🤝", title: t("Vendor Contracts","Contrats fournisseurs"), money: t("up to $60K/yr","jusqu'à 60\u202fK$/an") },
     { icon: "👥", title: t("Payroll & HR","Paie & RH"), money: t("up to $45K/yr","jusqu'à 45\u202fK$/an") },
-    { icon: "🏦", title: t("Banking & Treasury","Banque & Trésorerie"), money: t("up to $40K/yr","jusqu'à 40\u202fK$/an") },
+    { icon: "audit_bank", title: t("Banking & Treasury","Banque & Trésorerie"), money: t("up to $40K/yr","jusqu'à 40\u202fK$/an") },
     { icon: "🧾", title: t("SR&ED & Grants","SR&ED & Subventions"), money: t("up to $80K/yr","jusqu'à 80\u202fK$/an") },
     { icon: "🛡️", title: t("Insurance","Assurance"), money: t("up to $35K/yr","jusqu'à 35\u202fK$/an") },
   ];
@@ -320,8 +320,8 @@ export default function EnterprisePage() {
             {/* Trust row */}
             <div className="flex items-center justify-center gap-6 mt-5 flex-wrap">
               {[
-                t("🔒 NDA on day 1","🔒 NDA dès le jour 1"),
-                t("🇨🇦 Canadian data servers","🇨🇦 Serveurs canadiens"),
+                t("NDA on day 1","NDA dès le jour 1"),
+                t("Canadian data servers","Serveurs canadiens"),
                 t("No upfront fees","Aucun frais initial"),
               ].map(item => (
                 <span key={item} className="text-[11px] text-[#8E8C85] font-medium">{item}</span>

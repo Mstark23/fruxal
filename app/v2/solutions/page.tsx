@@ -1,4 +1,18 @@
 "use client";
+
+const CATEGORY_SVG: Record<string, JSX.Element> = {
+  payment_processing: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>,
+  accounting:         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+  payroll:            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
+  tax:                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/></svg>,
+  cash_flow:          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>,
+  insurance:          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  marketing:          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>,
+  operations:         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>,
+  inventory:          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>,
+  hr:                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>,
+};
+
 // =============================================================================
 // app/v2/solutions/page.tsx
 // Browse solutions matched to this business — filter by category, free/paid, CA
@@ -32,9 +46,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
-  payment_processing: "💳", accounting: "📊", payroll: "👥",
-  tax: "🧾", cash_flow: "💰", insurance: "🛡️",
-  marketing: "📣", operations: "⚙️", inventory: "📦", hr: "👥",
+  payment_processing: "", accounting: "", payroll: "",
+  tax: "", cash_flow: "", insurance: "",
+  marketing: "", operations: "", inventory: "", hr: "",
 };
 
 function trackClick(sol: Solution, source: string, businessId: string, taskId?: string) {
@@ -59,7 +73,7 @@ function SolutionCard({
 }) {
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
-  const icon = CATEGORY_ICONS[category] ?? "🔧";
+  const icon = "";
 
   return (
     <div className="bg-white rounded-xl border border-border-light overflow-hidden hover:shadow-sm transition"
@@ -126,7 +140,7 @@ function SolutionCard({
               {adding ? "Adding…" : "Add to tasks"}
             </button>
           ) : (
-            <span className="text-[10px] text-positive font-semibold px-3">✅ Added</span>
+            <span className="text-[10px] text-positive font-semibold px-3">Added</span>
           )}
         </div>
       </div>
@@ -227,7 +241,7 @@ export default function SolutionsPage() {
           <button key={g.category}
             onClick={() => setActiveCategory(activeCategory === g.category ? null : g.category)}
             className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition ${activeCategory === g.category ? "bg-brand text-white" : "bg-bg-section text-ink-muted hover:text-ink"}`}>
-            {CATEGORY_ICONS[g.category] ?? "🔧"} {CATEGORY_LABELS[g.category] ?? g.category}
+            <>{CATEGORY_SVG[g.category] ? <span className="mr-1.5 inline-flex items-center opacity-60">{CATEGORY_SVG[g.category]}</span> : null}{CATEGORY_LABELS[g.category] ?? g.category}</>
           </button>
         ))}
         <div className="flex items-center gap-2 ml-auto">
@@ -245,7 +259,7 @@ export default function SolutionsPage() {
       {/* Solution cards */}
       {displayGroups.length === 0 ? (
         <div className="text-center py-10">
-          <p className="text-2xl mb-2">🔍</p>
+          <svg className="w-6 h-6 mx-auto mb-2 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <p className="text-[13px] font-bold text-ink mb-1">No solutions match your filters.</p>
           <p className="text-[11px] text-ink-faint">Try removing a filter or run your diagnostic to generate matched solutions.</p>
         </div>
@@ -253,7 +267,7 @@ export default function SolutionsPage() {
         displayGroups.map(g => (
           <div key={g.category}>
             <h2 className="text-[11px] font-bold text-ink-faint uppercase tracking-wider mb-2">
-              {CATEGORY_ICONS[g.category] ?? "🔧"} {CATEGORY_LABELS[g.category] ?? g.category}
+              <>{CATEGORY_SVG[g.category] ? <span className="mr-1.5 inline-flex items-center opacity-60">{CATEGORY_SVG[g.category]}</span> : null}{CATEGORY_LABELS[g.category] ?? g.category}</>
             </h2>
             <div className="space-y-3">
               {g.solutions.map(s => (

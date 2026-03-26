@@ -75,8 +75,8 @@ const RISK_COLORS: Record<string, { text: string; bg: string }> = {
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
-  tax: "💰", payroll: "👥", compliance: "📋", registration: "📝",
-  permits: "🪪", contract: "📄", insurance: "🛡️", operations: "⚙️",
+  tax: "", payroll: "", compliance: "", registration: "",
+  permits: "", contract: "", insurance: "", operations: "",
   government_program: "🏛️",
 };
 
@@ -169,7 +169,7 @@ export default function OnboardingTour() {
           {step === 0 && (
             <div className="text-center">
               <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-2xl mx-auto mb-5">
-                🔍
+                
               </div>
               <h1 className="text-white/80 text-xl font-bold mb-2">
                 Here's what we found for your {provinceName} business
@@ -224,7 +224,7 @@ export default function OnboardingTour() {
           {step === 1 && (
             <div>
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-lg">📋</div>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4841D" strokeWidth="2" strokeLinecap="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></div>
                 <div>
                   <h2 className="text-white/70 text-base font-bold">Your Legal Obligations</h2>
                   <p className="text-white/20 text-[10px]">{data.obligations.total} obligations apply · {data.obligations.critical} critical</p>
@@ -409,7 +409,7 @@ export default function OnboardingTour() {
 
               {/* Summary cards */}
               <div className="grid grid-cols-3 gap-2 mb-6">
-                <MiniSummary icon="📋" value={data.obligations.total} label="Obligations" color="amber" />
+                <MiniSummary icon="calendar" value={data.obligations.total} label="Obligations" color="amber" />
                 <MiniSummary icon="💸" value={`$${Math.round(data.leaks.range_max / 1000)}K`} label="Leak Exposure" color="red" />
                 <MiniSummary icon="🏛️" value={data.programs.total} label="Programs" color="emerald" />
               </div>
@@ -419,8 +419,8 @@ export default function OnboardingTour() {
                 <p className="text-white/30 text-[10px] font-bold uppercase tracking-wider mb-2">What's Next</p>
                 <div className="space-y-2">
                   <NextStep icon="🔬" label="Run Full AI Diagnostic" desc="Deep analysis with action plan & PDF report" primary />
-                  <NextStep icon="📅" label="Review Your Deadlines" desc="See upcoming obligations on your calendar" />
-                  <NextStep icon="💡" label="Fix Your First Leak" desc="Start with the highest-impact finding" />
+                  <NextStep icon="calendar" label="Review Your Deadlines" desc="See upcoming obligations on your calendar" />
+                  <NextStep icon="search" label="Fix Your First Leak" desc="Start with the highest-impact finding" />
                 </div>
               </div>
             </div>
