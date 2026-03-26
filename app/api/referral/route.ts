@@ -38,7 +38,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       code: ref?.code || "",
-      link: `${process.env.NEXTAUTH_URL || "https://fruxal.com"}/register?ref=${ref?.code}`,
+      referralUrl: `\${process.env.NEXTAUTH_URL || "https://fruxal.ca"}?ref=\${ref?.code || ""}`,
+      program: "For every business you refer that recovers money with Fruxal, you earn $500 when their engagement closes.",
+      link: `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/register?ref=${ref?.code}`,
       signups: ref?.signups ?? 0,
       conversions: ref?.conversions ?? 0,
       earned: ref?.earned ?? 0,

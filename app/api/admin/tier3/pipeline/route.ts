@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { scoreLeadQuality, scoreToPriority } from "@/lib/lead-score";
 import crypto from "crypto";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
@@ -161,6 +162,25 @@ export async function GET(req: NextRequest) {
           userId: p.user_id,
         } as any);
       }
+    }
+
+    // Compute lead score for every entry
+    for (const entry of entries as any[]) {
+      const rev = typeof entry.revenueBracket === "number" ? entry.revenueBracket : 0;
+      const { score, reasons } = scoreLeadQuality({
+        annualRevenue:  rev,
+        estimatedLeak:  entry.estimatedHigh || (rev * 0.05),
+        province:       entry.province,
+        hasAccountant:  null,
+        lastTaxReview:  null,
+        doesRd:         null,
+        employeeCount:  null,
+        industry:       entry.industry,
+        daysInPipeline: entry.daysInStage || 0,
+      });
+      entry.leadScore    = score;
+      entry.leadPriority = scoreToPriority(score);
+      entry.scoreReasons = reasons;
     }
 
     if (stage !== "all") entries = entries.filter((e: any) => e.stage === stage);

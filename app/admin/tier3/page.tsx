@@ -15,6 +15,11 @@ interface PipelineEntry {
 interface Stats { totalPipelineValue:number; activeEngagements:number; feesCollectedThisMonth:number; conversionRate:number; byStage:Record<string,{count:number;value:number}> }
 
 const STAGES = ["lead","contacted","called","diagnostic_sent","agreement_out","signed","in_engagement","fee_collected","lost"];
+const PRIORITY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
+  hot:  { bg: "rgba(179,64,64,0.1)",   text: "#B34040", label: "HOT"  },
+  warm: { bg: "rgba(196,132,29,0.1)",  text: "#C4841D", label: "WARM" },
+  cold: { bg: "rgba(142,140,133,0.1)", text: "#8E8C85", label: "COLD" },
+};
 const STAGE_LABELS: Record<string,string> = {
   lead:"New Lead", contacted:"Contacted", called:"Called", diagnostic_sent:"Diagnostic Sent",
   agreement_out:"Agreement Out", signed:"Signed", in_engagement:"In Engagement",
@@ -35,6 +40,7 @@ export default function AdminTier3Page() {
   const [stats, setStats]     = useState<Stats|null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView]       = useState<"kanban"|"table">("kanban");
+  const [sortByScore, setSortByScore] = useState(false);
   const [search, setSearch]   = useState("");
   const [selected, setSelected] = useState<PipelineEntry|null>(null);
   const [saving, setSaving]   = useState(false);

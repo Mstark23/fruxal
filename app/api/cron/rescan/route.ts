@@ -33,8 +33,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Rescan cron triggered (V3 engine not yet wired for auto-rescan)",
+message: "Rescan cron: auto-rescan not enabled (manual only). See /api/v2/prescan for user-triggered rescans.",
       businesses_with_prescans: count ?? 0,
+      note: "To enable: call /api/v2/prescan/save per user with their latest prescan_runs data.",
       scanned: 0,
     });
   } catch (error: any) {
