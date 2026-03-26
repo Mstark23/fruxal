@@ -22,6 +22,8 @@ export async function POST(
     const userId = (session.user as any).id;
     const { slug } = params;
 
+
+
     const body = await req.json();
     const { action, savings } = body;
 
@@ -30,6 +32,27 @@ export async function POST(
         { success: false, error: "Invalid action. Use fix, progress, dismiss, or reopen" },
         { status: 400 }
       );
+    }
+
+    // Block self-serve fix/progress if user has an assigned rep
+    if (action === "fix" || action === "progress") {
+      try {
+        const { data: pipe } = await supabaseAdmin
+          .from("tier3_pipeline")
+          .select("id")
+          .eq("user_id", userId)
+          .in("stage", ["contacted","called","diagnostic_sent","agreement_out",
+                         "signed","in_engagement","recovery_tracking","engaged","active"])
+          .limit(1)
+          .maybeSingle();
+        if (pipe?.id) {
+          return NextResponse.json({
+            success: false,
+            error: "rep_handling",
+            message: "Your Fruxal rep is handling this fix. Savings will be confirmed once recovered.",
+          }, { status: 403 });
+        }
+      } catch { /* non-fatal — allow action if check fails */ }
     }
 
     const statusMap: Record<string, string> = {

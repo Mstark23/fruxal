@@ -1,3 +1,10 @@
+// =============================================================================
+// GET /api/rep/pipeline — Rep's full client list
+// =============================================================================
+// Supports both T3 (via diagnostic_id) and T1/T2 (via pipeline_id + user_id).
+// Primary key for clients is now pipeline_id, not diagnostic_id.
+// =============================================================================
+
 import { NextRequest, NextResponse } from "next/server";
 import { requireRep } from "@/lib/rep-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -9,37 +16,85 @@ export async function GET(req: NextRequest) {
   try {
     const repId = auth.repId!;
 
+    // All assignments for this rep — both T3 and T1/T2
     const { data: assignments } = await supabaseAdmin
       .from("tier3_rep_assignments")
-      .select("diagnostic_id, assigned_at")
+      .select("id, pipeline_id, diagnostic_id, assigned_at")
       .eq("rep_id", repId)
       .order("assigned_at", { ascending: false });
 
     if (!assignments?.length) return NextResponse.json({ success: true, clients: [] });
 
-    const diagIds = assignments.map((a:any) => a.diagnostic_id).filter(Boolean);
+    const pipeIds  = assignments.map((a:any) => a.pipeline_id).filter(Boolean);
+    const diagIds  = assignments.map((a:any) => a.diagnostic_id).filter(Boolean);
 
-    const [diagnostics, pipelines, engagements] = await Promise.all([
-      supabaseAdmin.from("tier3_diagnostics").select("id, company_name, industry, province, revenue_bracket, result").in("id", diagIds).then(r => r.data || []),
-      supabaseAdmin.from("tier3_pipeline").select("diagnostic_id, stage, follow_up_date, contact_name, contact_email").in("diagnostic_id", diagIds).then(r => r.data || []),
-      supabaseAdmin.from("tier3_engagements").select("diagnostic_id, status, fee_percentage").in("diagnostic_id", diagIds).then(r => r.data || []),
+    const [pipelines, diagnostics, engagements] = await Promise.all([
+      // Pipeline entries carry user_id, stage, company info for T1/T2
+      pipeIds.length
+        ? supabaseAdmin.from("tier3_pipeline")
+            .select("id, diagnostic_id, user_id, stage, follow_up_date, contact_name, contact_email, company_name, industry, province, annual_revenue")
+            .in("id", pipeIds)
+            .then(r => r.data || [])
+        : Promise.resolve([] as any[]),
+      // T3 diagnostics for richer data
+      diagIds.length
+        ? supabaseAdmin.from("tier3_diagnostics")
+            .select("id, company_name, industry, province, revenue_bracket, result")
+            .in("id", diagIds)
+            .then(r => r.data || [])
+        : Promise.resolve([] as any[]),
+      diagIds.length
+        ? supabaseAdmin.from("tier3_engagements")
+            .select("diagnostic_id, status, fee_percentage")
+            .in("diagnostic_id", diagIds)
+            .then(r => r.data || [])
+        : Promise.resolve([] as any[]),
     ]);
 
-    const pm: Record<string,any> = {}; for (const p of pipelines)   pm[p.diagnostic_id] = p;
-    const em: Record<string,any> = {}; for (const e of engagements) em[e.diagnostic_id] = e;
-    const dm: Record<string,any> = {}; for (const d of diagnostics) dm[d.id] = d;
+    // Maps
+    const pm: Record<string,any>  = {}; for (const p of pipelines)   pm[p.id]            = p;
+    const dm: Record<string,any>  = {}; for (const d of diagnostics) dm[d.id]             = d;
+    const em: Record<string,any>  = {}; for (const e of engagements) em[e.diagnostic_id]  = e;
+
+    // Enrich: for T1/T2 users, pull business_profile to get leak totals
+    const userIds = pipelines.map((p:any) => p.user_id).filter(Boolean);
+    const profileMap: Record<string,any> = {};
+    if (userIds.length) {
+      const { data: profiles } = await supabaseAdmin
+        .from("business_profiles")
+        .select("user_id, business_name, industry, province, annual_revenue")
+        .in("user_id", userIds);
+      for (const p of profiles || []) profileMap[p.user_id] = p;
+    }
 
     const clients = assignments.map((a:any) => {
-      const diag   = dm[a.diagnostic_id] || {};
-      const result = diag.result || {};
+      const pipe    = pm[a.pipeline_id] || null;
+      const diag    = dm[a.diagnostic_id] || {};
+      const result  = diag.result || {};
+      const profile = pipe?.user_id ? (profileMap[pipe.user_id] || {}) : {};
+
+      // Prefer T3 diagnostic data when available, fallback to pipeline/profile
+      const companyName = diag.company_name || pipe?.company_name || profile.business_name || "Unknown";
+      const industry    = diag.industry    || pipe?.industry    || profile.industry    || null;
+      const province    = diag.province    || pipe?.province    || profile.province    || null;
+
       return {
-        diagnosticId:  a.diagnostic_id,
+        diagnosticId:  a.diagnostic_id || null,
+        pipelineId:    a.pipeline_id   || null,
+        userId:        pipe?.user_id   || null,
         assignedAt:    a.assigned_at,
-        companyName:   diag.company_name || "Unknown",
-        industry:      diag.industry,
-        province:      diag.province,
-        pipeline:      pm[a.diagnostic_id] || null,
-        engagement:    em[a.diagnostic_id] || null,
+        companyName,
+        industry,
+        province,
+        pipeline:      pipe ? {
+          id:            pipe.id,
+          stage:         pipe.stage,
+          followUpDate:  pipe.follow_up_date,
+          contactName:   pipe.contact_name  || profile.business_name || null,
+          contactEmail:  pipe.contact_email || null,
+          notes:         (pipe as any).notes || null,
+        } : null,
+        engagement:    a.diagnostic_id ? (em[a.diagnostic_id] || null) : null,
         annualLeak:    result.totals?.annual_leaks ?? 0,
         findingsCount: (result.findings || []).length,
       };

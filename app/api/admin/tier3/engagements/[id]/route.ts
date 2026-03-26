@@ -133,6 +133,56 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         confidence_note: confidenceNote || null,
       });
 
+      // Propagate rep-confirmed saving to customer's detected_leaks
+      // so the customer dashboard "Money Recovered" KPI updates correctly
+      try {
+        const { data: eng } = await supabaseAdmin
+          .from("tier3_engagements")
+          .select("business_id")
+          .eq("id", id)
+          .single();
+
+        if (eng?.business_id && leakName) {
+          // Match by name (best effort — leakId may be null for T1/T2 users)
+          await supabaseAdmin
+            .from("detected_leaks")
+            .update({
+              status:         "fixed",
+              savings_amount: Number(confirmedAmount),
+              fixed_at:       new Date().toISOString(),
+            })
+            .eq("business_id", eng.business_id)
+            .ilike("title", `%${leakName.split(" ").slice(0, 3).join(" ")}%`)
+            .neq("status", "fixed"); // don't overwrite already-fixed
+
+          // Also update user_progress.total_recovered
+          const { data: biz } = await supabaseAdmin
+            .from("businesses")
+            .select("owner_user_id")
+            .eq("id", eng.business_id)
+            .single();
+
+          if (biz?.owner_user_id) {
+            const { data: prog } = await supabaseAdmin
+              .from("user_progress")
+              .select("total_recovered")
+              .eq("user_id", biz.owner_user_id)
+              .maybeSingle();
+
+            const current = prog?.total_recovered ?? 0;
+            await supabaseAdmin
+              .from("user_progress")
+              .upsert({
+                user_id:         biz.owner_user_id,
+                total_recovered: current + Number(confirmedAmount),
+                updated_at:      new Date().toISOString(),
+              }, { onConflict: "user_id" });
+          }
+        }
+      } catch (propErr: any) {
+        console.warn("[Engagement] Savings propagation failed (non-fatal):", propErr.message);
+      }
+
       const totals = await getTotals(id);
       return NextResponse.json({ success: true, ...totals });
     }

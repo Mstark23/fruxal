@@ -350,6 +350,17 @@ export async function GET(req: NextRequest) {
     } catch { programsAvailable = 7; }
 
     // Health score — use prescan BHS as base when available, adjust live
+    // Pull rep-confirmed recovery total from user_progress (set by rep confirmation flow)
+    let repConfirmedRecovered = 0;
+    try {
+      const { data: prog } = await supabaseAdmin
+        .from("user_progress")
+        .select("total_recovered")
+        .eq("user_id", userId)
+        .maybeSingle();
+      repConfirmedRecovered = prog?.total_recovered ?? 0;
+    } catch { /* non-fatal */ }
+
     const struct = profile.business_structure || "";
     let score = 72;
     try {
@@ -425,7 +436,10 @@ export async function GET(req: NextRequest) {
           total: allLeaks.length,
           detected: detected.length,
           fixed: fixed.length,
-          total_savings: fixed.reduce((s, l) => s + (l.savings_amount ?? 0), 0),
+          total_savings: Math.max(
+            fixed.reduce((s, l) => s + (l.savings_amount ?? 0), 0),
+            repConfirmedRecovered
+          ),
           potential_savings: detected.reduce((s, l) => s + (l.impact_max ?? 0), 0),
           top_unfixed: topUnfixed,
         },
