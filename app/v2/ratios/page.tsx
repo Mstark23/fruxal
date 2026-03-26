@@ -284,7 +284,7 @@ export default function RatiosPage() {
                 {bankFailing === 0 && current?.dscr !== null ? (
                   <p className="text-[10px] font-semibold text-positive mt-1">✅ Bank qualifying — all key thresholds met</p>
                 ) : bankFailing > 0 ? (
-                  <p className="text-[10px] font-semibold text-negative mt-1">⚠️ {bankFailing} ratio{bankFailing > 1 ? "s" : ""} below bank threshold</p>
+                  <p className="text-[10px] font-semibold text-negative mt-1">{`! ${bankFailing} ratio${bankFailing > 1 ? "s" : ""} below bank threshold`}</p>
                 ) : null}
               </div>
               {completeness < 80 && (

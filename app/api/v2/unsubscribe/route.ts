@@ -36,12 +36,12 @@ export async function GET(req: NextRequest) {
 </head>
 <body>
   <div class="card">
-    <div class="logo">💧 Fruxal</div>
+    <div class="logo">Fruxal</div>
     <div class="sub">Business Intelligence</div>
-    <div class="icon">${isError ? "⚠️" : "✅"}</div>
+    <div class="icon">${isError ? "!" : "✓"}</div>
     <h1>${isError ? "Something went wrong" : "You've been unsubscribed"}</h1>
     <p>${message}</p>
-    <a href="${process.env.NEXTAUTH_URL || "https://fruxal.com"}/v2/settings">Manage all preferences →</a>
+    <a href="${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/settings">Manage all preferences →</a>
   </div>
 </body>
 </html>`.trim();

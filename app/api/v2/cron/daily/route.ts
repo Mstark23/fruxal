@@ -252,7 +252,7 @@ function buildEmailHtml(email: any): string {
     </div>
 
     <!-- CTA -->
-    <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.vercel.app"}${d.dashboard_url || "/v2/obligations"}"
+    <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.ca"}${d.dashboard_url || "/v2/obligations"}"
        style="display:block;text-align:center;padding:14px;background:#10b981;color:#fff;font-weight:700;font-size:14px;border-radius:10px;text-decoration:none;margin-top:20px;">
       ${d.tier === "overdue" ? (isFr ? "Corriger maintenant →" : "Fix Now →") : (isFr ? "Voir l'obligation →" : "View Obligation →")}
     </a>
@@ -261,7 +261,7 @@ function buildEmailHtml(email: any): string {
   <!-- Footer -->
   <div style="text-align:center;color:rgba(255,255,255,0.15);font-size:10px;line-height:1.6;">
     <p>Fruxal · ${isFr ? "Intelligence financière pour PME" : "Financial Intelligence for SMBs"}</p>
-    <p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.vercel.app"}/settings/notifications" style="color:rgba(255,255,255,0.25);text-decoration:underline;">${isFr ? "Gérer les notifications" : "Manage notifications"}</a></p>
+    <p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.ca"}/settings/notifications" style="color:rgba(255,255,255,0.25);text-decoration:underline;">${isFr ? "Gérer les notifications" : "Manage notifications"}</a></p>
   </div>
 
 </div>
@@ -317,7 +317,7 @@ function buildWeeklyDigestHtml(d: any, isFr: boolean): string {
 
   ${overdueItems.length > 0 ? `
   <div style="background:#12161e;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin-bottom:16px;">
-    <h3 style="color:#ef4444;font-size:13px;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px;">${isFr ? "⚠️ En retard" : "⚠️ Overdue"}</h3>
+    <h3 style="color:#ef4444;font-size:13px;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px;">${isFr ? "En retard" : "Overdue"}</h3>
     ${overdueItems.map((item: any) => `
     <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
       <div style="color:rgba(255,255,255,0.8);font-size:13px;">${isFr ? (item.title_fr || item.title) : item.title}</div>
@@ -325,14 +325,14 @@ function buildWeeklyDigestHtml(d: any, isFr: boolean): string {
     </div>`).join("")}
   </div>` : ""}
 
-  <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.vercel.app"}/v2/obligations"
+  <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.ca"}/v2/obligations"
      style="display:block;text-align:center;padding:14px;background:#10b981;color:#fff;font-weight:700;font-size:14px;border-radius:10px;text-decoration:none;">
     ${isFr ? "Voir toutes mes obligations →" : "View All Obligations →"}
   </a>
 
   <div style="text-align:center;color:rgba(255,255,255,0.15);font-size:10px;margin-top:24px;">
     <p>Fruxal</p>
-    <p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.vercel.app"}/settings/notifications" style="color:rgba(255,255,255,0.25);text-decoration:underline;">${isFr ? "Se désabonner" : "Unsubscribe"}</a></p>
+    <p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.ca"}/settings/notifications" style="color:rgba(255,255,255,0.25);text-decoration:underline;">${isFr ? "Se désabonner" : "Unsubscribe"}</a></p>
   </div>
 
 </div>

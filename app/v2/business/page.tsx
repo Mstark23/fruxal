@@ -163,21 +163,21 @@ export default function BusinessDashboard() {
         {/* KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5" style={fade(0.04)}>
           <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
+            <div className="text-[11px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
             <div className="flex items-end gap-1.5"><span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: score >= 60 ? "#1B3A2D" : "#C4841D" }}>{score}</span><span className="text-xs text-ink-faint mb-1">/100</span></div>
             <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: score + "%", background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
           </button>
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
+            <div className="text-[11px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
             <div className="text-[10px] text-ink-faint mt-1.5">{leaks.length} {t("leaks detected", "fuites détectées")}</div>
           </button>
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Recovered", "Récupéré")}</div>
+            <div className="text-[11px] font-semibold text-ink-faint uppercase tracking-wider mb-3">{t("Recovered", "Récupéré")}</div>
             <div className="flex items-start justify-between"><div><div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${recovered.toLocaleString()}</div><div className="text-[10px] text-ink-faint mt-1.5">{leaksFixed} {t("fixed", "corrigés")}</div></div><div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div></div>
           </div>
           <button onClick={() => router.push("/v2/obligations")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[9px] font-semibold text-ink-faint uppercase tracking-wider mb-3">OBLIGATIONS</div>
+            <div className="text-[11px] font-semibold text-ink-faint uppercase tracking-wider mb-3">OBLIGATIONS</div>
             <div className="flex items-end gap-2"><span className="font-serif text-[36px] font-bold leading-none tracking-tight">{obligationsTotal}</span>{overdue > 0 && <span className="text-[10px] font-bold text-negative mb-1 px-1.5 py-0.5 rounded" style={{ background: "rgba(179,64,64,0.05)" }}>{overdue} {t("late", "retard")}</span>}</div>
           </button>
         </div>
@@ -196,7 +196,7 @@ export default function BusinessDashboard() {
                     <div key={i} className="flex items-center gap-2 mb-2"><span className="text-[9px] font-bold text-white bg-negative px-1.5 py-0.5 rounded">#1</span><div className="text-[12px] font-semibold text-ink">{isFR ? (l.title_fr || l.title) : l.title}</div></div>
                     <div className="text-[10px] text-ink-faint mb-2">{l.category}</div>
                     {l.action && <div className="p-2 rounded-lg text-[10px] text-ink-secondary mb-2" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.06)" }}><span className="font-semibold text-brand">{t("Fix: ", "Correction : ")}</span>{isFR ? (l.action_fr || l.action) : l.action}</div>}
-                    {l.affiliates && l.affiliates.length > 0 && <div className="flex gap-1.5 flex-wrap">{l.affiliates.slice(0, 3).map((a, ai) => <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-semibold text-brand border border-brand/20 px-2 py-0.5 rounded-full hover:bg-brand/5 transition">🔗 {a.name}</a>)}</div>}
+                    {l.affiliates && l.affiliates.length > 0 && <div className="flex gap-1.5 flex-wrap">{l.affiliates.slice(0, 3).map((a, ai) => <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-semibold text-brand border border-brand/20 px-2 py-0.5 rounded-full hover:bg-brand/5 transition">{a.name}</a>)}</div>}
                     <div key={`aff-${i}`} className="mt-2 text-right font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}/{t("yr", "an")}</div>
                   </div>
                 ))}
@@ -214,7 +214,7 @@ export default function BusinessDashboard() {
                   <div key={i} onClick={() => router.push("/v2/leaks")} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 hover:bg-surface-hover cursor-pointer group" style={{ background: l.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
                     <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
                     <div className="flex-1 min-w-0"><div className="text-[12px] font-semibold text-ink truncate group-hover:text-brand">{isFR ? (l.title_fr || l.title) : l.title}</div><span className="text-[9px] text-ink-faint">{l.category}</span></div>
-                    <div className="text-right shrink-0"><div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div><div className="text-[7px] text-ink-faint">/{t("yr", "an")}</div></div>
+                    <div className="text-right shrink-0"><div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div><div className="text-[10px] text-ink-faint">/{t("yr", "an")}</div></div>
                   </div>
                 ))}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center"><span className="text-[10px] font-semibold text-ink-muted">Total</span><span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span></div>
@@ -231,7 +231,7 @@ export default function BusinessDashboard() {
                 <div key={i} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
                   <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: `2px solid ${a.status === "in_progress" ? "#C4841D" : "#E8E6E1"}` }}>{a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[9px] font-bold text-ink-faint">{i + 1}</span>}</div>
                   <div className="flex-1 min-w-0"><div className="text-[12px] font-semibold text-ink truncate">{a.leak_title}</div>{a.fix_description && <div className="text-[9px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}</div>
-                  <div className="text-right shrink-0"><div className="font-serif text-[13px] font-bold text-positive">+${a.estimated_value.toLocaleString()}</div><span className="text-[7px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "À faire")}</span></div>
+                  <div className="text-right shrink-0"><div className="font-serif text-[13px] font-bold text-positive">+${a.estimated_value.toLocaleString()}</div><span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "À faire")}</span></div>
                 </div>
               ))}
             </div>
@@ -240,7 +240,7 @@ export default function BusinessDashboard() {
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
                   <span className="text-[10px] font-bold text-ink-faint uppercase tracking-wider">{t("Costs vs Industry", "Coûts vs industrie")}</span>
-                  <div className="flex items-center gap-2"><div className="flex items-center gap-1"><div className="w-[6px] h-[6px] rounded-[1px]" style={{ background: "#2D7A50" }} /><span className="text-[8px] text-ink-faint">{t("You", "Vous")}</span></div><div className="flex items-center gap-1"><div className="w-[6px] h-[6px] rounded-[1px]" style={{ background: "#E0DED9" }} /><span className="text-[8px] text-ink-faint">{t("Ref.", "Réf.")}</span></div></div>
+                  <div className="flex items-center gap-2"><div className="flex items-center gap-1"><div className="w-[6px] h-[6px] rounded-[1px]" style={{ background: "#2D7A50" }} /><span className="text-[10px] text-ink-faint">{t("You", "Vous")}</span></div><div className="flex items-center gap-1"><div className="w-[6px] h-[6px] rounded-[1px]" style={{ background: "#E0DED9" }} /><span className="text-[10px] text-ink-faint">{t("Ref.", "Réf.")}</span></div></div>
                 </div>
                 <div className="px-4 py-2">
                   {costBreakdown.map((c, i) => {
@@ -287,8 +287,8 @@ export default function BusinessDashboard() {
             <button onClick={() => router.push("/v2/chat")} className="w-full bg-white rounded-xl border border-brand/15 p-4 text-left hover:shadow-[0_4px_16px_rgba(27,58,45,0.08)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-brand/5 border border-brand/10 flex items-center justify-center shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.7" strokeLinecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg></div>
-                <div><div className="text-[12px] font-semibold text-ink">{t("Ask Fruxal AI", "Demander à Fruxal IA")}</div><div className="text-[9px] text-ink-faint">{!isPaid ? t("Upgrade to unlock", "Mettre à niveau") : t("Get answers about your finances", "Posez vos questions")}</div></div>
-                {!isPaid && <div className="ml-auto"><LockIcon /></div>}
+                <div><div className="text-[12px] font-semibold text-ink">{t("Ask Fruxal AI", "Demander à Fruxal IA")}</div><div className="text-[9px] text-ink-faint">{!isPaid ? t("Get answers about your finances", "Posez vos questions") : t("Get answers about your finances", "Posez vos questions")}</div></div>
+                
               </div>
             </button>
           </div>

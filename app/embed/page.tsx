@@ -21,7 +21,7 @@ export default function EmbedWidget() {
     setStep("result");
   };
 
-  const base = typeof window !== "undefined" ? window.location.origin : "https://fruxal.com";
+  const base = typeof window !== "undefined" ? window.location.origin : "https://fruxal.ca";
 
   return (
     <div className="max-w-sm mx-auto p-4" style={{ fontFamily: "system-ui, sans-serif" }}>
@@ -33,7 +33,7 @@ export default function EmbedWidget() {
           </div>
           <select value={industry} onChange={e => setIndustry(e.target.value)} className="w-full px-3 py-3 bg-white/10 border border-white/10 rounded-xl text-sm text-white outline-none mb-3">
             <option value="" className="text-black">Pick your industry</option>
-            <optgroup label="🧑‍💻 Solo Entrepreneur">
+            <optgroup label="Solo Entrepreneur">
               {ALL_INDUSTRIES.filter(i => i.tier === "solo-entrepreneur").map(i =>
                 <option key={i.id} value={i.id} className="text-black">{i.icon} {i.name}</option>
               )}
@@ -43,7 +43,7 @@ export default function EmbedWidget() {
                 <option key={i.id} value={i.id} className="text-black">{i.icon} {i.name}</option>
               )}
             </optgroup>
-            <optgroup label="🏢 Growth Business">
+            <optgroup label="Growth Business">
               {ALL_INDUSTRIES.filter(i => i.tier === "growth-business").map(i =>
                 <option key={i.id} value={i.id} className="text-black">{i.icon} {i.name}</option>
               )}
@@ -59,7 +59,7 @@ export default function EmbedWidget() {
 
       {step === "scan" && (
         <div className="bg-[#0a0e17] text-white rounded-2xl p-6 text-center">
-          <div className="text-3xl mb-3 animate-pulse">🔍</div>
+          <svg className="w-8 h-8 mx-auto mb-3 text-ink-muted animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <div className="text-sm font-bold">Scanning {getDisplayName(industry)}...</div>
           <div className="text-xs text-gray-400 mt-1">Analyzing 900+ data points</div>
         </div>

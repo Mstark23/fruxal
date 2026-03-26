@@ -53,29 +53,29 @@ const PROVINCES = [
 ];
 
 const INDUSTRIES = [
-  { value: "restaurant", label: "Restaurant / Food", fr: "Restaurant / Alimentation", icon: "🍽️" },
-  { value: "construction", label: "Construction", fr: "Construction", icon: "🔨" },
-  { value: "retail", label: "Retail", fr: "Commerce de détail", icon: "🏪" },
-  { value: "ecommerce", label: "E-Commerce", fr: "Commerce en ligne", icon: "🛒" },
-  { value: "consulting", label: "Consulting", fr: "Consultation", icon: "💼" },
+  { value: "restaurant", label: "Restaurant / Food", fr: "Restaurant / Alimentation" },
+  { value: "construction", label: "Construction", fr: "Construction" },
+  { value: "retail", label: "Retail", fr: "Commerce de détail" },
+  { value: "ecommerce", label: "E-Commerce", fr: "Commerce en ligne" },
+  { value: "consulting", label: "Consulting", fr: "Consultation" },
   { value: "software_development", label: "Tech / SaaS", fr: "Tech / SaaS" },
-  { value: "healthcare", label: "Healthcare", fr: "Santé", icon: "🏥" },
-  { value: "salon", label: "Beauty / Salon", fr: "Beauté / Salon", icon: "💇" },
-  { value: "trucking", label: "Transport", fr: "Transport", icon: "🚛" },
+  { value: "healthcare", label: "Healthcare", fr: "Santé" },
+  { value: "salon", label: "Beauty / Salon", fr: "Beauté / Salon" },
+  { value: "trucking", label: "Transport", fr: "Transport" },
   { value: "real_estate", label: "Real Estate", fr: "Immobilier" },
   { value: "accounting", label: "Accounting", fr: "Comptabilité" },
-  { value: "legal", label: "Legal", fr: "Services juridiques", icon: "⚖️" },
-  { value: "fitness", label: "Fitness", fr: "Conditionnement physique", icon: "💪" },
-  { value: "cleaning", label: "Cleaning", fr: "Nettoyage", icon: "🧹" },
-  { value: "photography", label: "Photo / Video", fr: "Photo / Vidéo", icon: "📸" },
-  { value: "rideshare", label: "Rideshare / Delivery", fr: "Transport / Livraison", icon: "🚗" },
-  { value: "other", label: "Other", fr: "Autre", icon: "📦" },
+  { value: "legal", label: "Legal", fr: "Services juridiques" },
+  { value: "fitness", label: "Fitness", fr: "Conditionnement physique" },
+  { value: "cleaning", label: "Cleaning", fr: "Nettoyage" },
+  { value: "photography", label: "Photo / Video", fr: "Photo / Vidéo" },
+  { value: "rideshare", label: "Rideshare / Delivery", fr: "Transport / Livraison" },
+  { value: "other", label: "Other", fr: "Autre" },
 ];
 
 const STRUCTURES = [
   { value: "sole_proprietor", label: "Sole Proprietor / Self-employed", fr: "Travailleur autonome / Propriétaire unique" },
   { value: "corporation", label: "Incorporated (Inc. / Ltd.)", fr: "Incorporé (Inc. / Ltée)" },
-  { value: "partnership", label: "Partnership", fr: "Société de personnes", icon: "🤝" },
+  { value: "partnership", label: "Partnership", fr: "Société de personnes" },
 ];
 
 function getRevenueRanges(isFR: boolean) { return [
@@ -88,9 +88,9 @@ function getRevenueRanges(isFR: boolean) { return [
 
 const EMPLOYEE_RANGES = [
   { value: 0, label: "Just me", fr: "Juste moi" },
-  { value: 3, label: "1-5 employees", fr: "1-5 employés", icon: "👥" },
-  { value: 12, label: "6-20 employees", fr: "6-20 employés", icon: "👥👥" },
-  { value: 35, label: "20-50 employees", fr: "20-50 employés", icon: "👥👥👥" },
+  { value: 3, label: "1-5 employees", fr: "1-5 employés" },
+  { value: 12, label: "6-20 employees", fr: "6-20 employés" },
+  { value: 35, label: "20-50 employees", fr: "20-50 employés" },
   { value: 75, label: "50+ employees", fr: "50+ employés" },
 ];
 
@@ -206,7 +206,7 @@ export default function PrescanPage() {
                   <div className="grid grid-cols-2 gap-2">
                     {INDUSTRIES.map(i => (
                       <OptionButton selected={answers.industry === i.value}
-                        onClick={() => set("industry", i.value)} label={isFR && i.fr ? i.fr : i.label} icon={i.icon} />
+                        onClick={() => set("industry", i.value)} label={isFR && i.fr ? i.fr : i.label} icon="" />
                     ))}
                   </div>
                 </div>
@@ -221,7 +221,7 @@ export default function PrescanPage() {
               <div className="space-y-2">
                 {STRUCTURES.map(s => (
                   <OptionButton selected={answers.structure === s.value}
-                    onClick={() => set("structure", s.value)} label={s.label} icon={s.icon} wide />
+                    onClick={() => set("structure", s.value)} label={s.label} icon="" wide />
                 ))}
               </div>
               <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-3">
@@ -256,7 +256,7 @@ export default function PrescanPage() {
                 {EMPLOYEE_RANGES.map(e => (
                   <OptionButton key={e.value} selected={answers.employee_count === e.value}
                     onClick={() => { set("employee_count", e.value); if (e.value > 0) set("has_payroll", true); }}
-                    label={e.label} icon={e.icon} wide />
+                    label={e.label} icon="" wide />
                 ))}
               </div>
             </div>
@@ -297,13 +297,13 @@ export default function PrescanPage() {
                   <div className="space-y-2">
                     {[
                       { value: "this_year", label: "This year" },
-                      { value: "1_2_years", label: "1–2 years ago", icon: "🟡" },
-                      { value: "3_plus_years", label: "3+ years ago", icon: "🔴" },
+                      { value: "1_2_years", label: "1–2 years ago" },
+                      { value: "3_plus_years", label: "3+ years ago" },
                       { value: "never", label: "Never / Not sure", icon: "🔴" },
                     ].map(opt => (
                       <OptionButton key={opt.value} selected={answers.tax_last_reviewed === opt.value}
                         onClick={() => set("tax_last_reviewed", opt.value)}
-                        label={opt.label} icon={opt.icon} wide />
+                        label={opt.label} icon="" wide />
                     ))}
                   </div>
                 </div>

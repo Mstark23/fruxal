@@ -872,7 +872,7 @@ export default function DiagnosticIntakePage() {
                           ))}
                       </div>
                       {docState.data.notes && (
-                        <p className="text-[9px] text-amber-600 mt-2">⚠ {docState.data.notes}</p>
+                        <p className="text-[9px] text-amber-600 mt-2">{docState.data.notes}</p>
                       )}
                     </div>
                   )}
@@ -966,7 +966,7 @@ export default function DiagnosticIntakePage() {
               className="w-full py-4 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-60 shadow-lg shadow-brand/20">
               {saving
                 ? (isFr ? "Lancement en cours..." : "Launching analysis...")
-                : (isFr ? "🚀 Lancer le diagnostic IA" : "🚀 Launch AI Diagnostic")}
+                : (isFr ? "Lancer le diagnostic →" : "Launch Diagnostic →")}
             </button>
             <p className="text-center text-[10px] text-ink-faint">
               {t("Analysis takes 60–120 seconds", "L'analyse prend 60–120 secondes")}
