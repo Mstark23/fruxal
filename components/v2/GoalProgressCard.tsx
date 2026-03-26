@@ -319,7 +319,7 @@ export function GoalProgressCard({ businessId, tier = "solo", lang = "en" }: Goa
           </div>
         ) : (
           <div className="p-4">
-            <p className="text-[12px] font-bold text-ink mb-3">🎯 {t("Create a 90-day goal", "Créer un objectif de 90 jours")}</p>
+            <p className="text-[12px] font-bold text-ink mb-3 flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>{t("Create a 90-day goal", "Créer un objectif de 90 jours")}</p>
             <GoalForm businessId={businessId} tier={tier} suggestion={suggestion}
               onSaved={() => { setShowForm(false); load(); }}
               onDismiss={() => setShowForm(false)} />

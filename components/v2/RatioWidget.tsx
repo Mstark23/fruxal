@@ -58,7 +58,7 @@ export function RatioWidget({ businessId, tier, industrySlug = "generic", lang =
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: "rgba(27,58,45,0.05)", border: "1px solid rgba(27,58,45,0.12)" }}>
-            <span className="text-sm">📊</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
           </div>
           <div>
             <p className="text-[12px] font-semibold text-ink">{t("Financial Ratios", "Ratios financiers")}</p>
