@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { sendEmail, emailTemplate } from "@/services/email/service";
 import { sendSavingConfirmed } from "@/services/email/service";
 import crypto from "crypto";
 
@@ -216,6 +217,47 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 "Your Fruxal rep",
               ).catch(() => {});
             }
+          }
+        }
+      } catch { /* non-fatal */ }
+
+      // Milestone check: if total crosses $5K, $10K, $25K, $50K — send extra celebration
+      let _milestoneUserId: string | null = null;
+      try { const { data: _eng2 } = await supabaseAdmin.from("tier3_engagements").select("business_id").eq("id", id).single(); const { data: _biz } = _eng2?.business_id ? await supabaseAdmin.from("businesses").select("owner_user_id").eq("id", _eng2.business_id).single() : { data: null }; _milestoneUserId = (_biz as any)?.owner_user_id || null; } catch {}
+      try {
+        const MILESTONES = [5000, 10000, 25000, 50000, 100000];
+        const { data: updatedProg } = await supabaseAdmin
+          .from("user_progress")
+          .select("total_recovered")
+          .eq("user_id", _milestoneUserId || "")
+          .maybeSingle();
+
+        const newTotal = updatedProg?.total_recovered ?? 0;
+        const prevTotal = newTotal - Number(confirmedAmount);
+
+        for (const milestone of MILESTONES) {
+          if (prevTotal < milestone && newTotal >= milestone) {
+            const authUser2 = await supabaseAdmin.auth.admin
+              .getUserById(_milestoneUserId || "").catch(() => ({ data: { user: null } })) as any;
+            const email2 = authUser2?.data?.user?.email;
+            if (email2) {
+              const appUrl2 = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+              sendEmail({
+                to: email2,
+                subject: `Milestone: $${milestone.toLocaleString()} recovered`,
+                html: emailTemplate(
+                  `$${milestone.toLocaleString()} recovered`,
+                  `<p style="color:#3d3d4e;margin:0 0 16px">Your Fruxal engagement just crossed a major milestone:</p>
+                  <div style="background:#F0FBF5;border-radius:12px;padding:24px;text-align:center;margin:0 0 20px">
+                    <p style="margin:0;font-size:36px;font-weight:900;color:#2D7A50">$${milestone.toLocaleString()}</p>
+                    <p style="margin:4px 0 0;font-size:13px;color:#6b7280">confirmed recovered</p>
+                  </div>
+                  <p style="color:#3d3d4e;margin:0 0 24px">Your rep continues working through the remaining items. View your full recovery timeline on your dashboard.</p>`,
+                  "View My Recovery →", `${appUrl2}/v2/recovery`
+                ),
+              }).catch(() => {});
+            }
+            break; // Only one milestone email per confirmation
           }
         }
       } catch { /* non-fatal */ }

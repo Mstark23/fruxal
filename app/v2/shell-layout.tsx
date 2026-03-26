@@ -20,6 +20,7 @@ const NAV_STANDARD = [
   { path: "/v2/programs",    icon: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label: "Programs" },
   { path: "/v2/obligations", icon: '<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label: "Obligations" },
   { path: "/v2/collect",    icon: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label: "Documents" },
+  { path: "/v2/recovery",  icon: '<path d="M12 22V12m0 0l-4 4m4-4l4 4M3 7l1.5 5h13L19 7M3 7h18"/>', label: "Recovery" },
   { path: "/v2/chat",        icon: '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label: "Advisor" },
   { path: "/v2/referral",   icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>', label: "Refer & Earn" },
 ];

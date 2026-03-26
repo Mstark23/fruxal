@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
     // Auto-assign HOT leads (score >= 60) to best available rep
     try {
       const { scoreLeadQuality } = await import("@/lib/lead-score");
+          const { pickBestRep } = await import("@/lib/rep-picker");
       const annualRev = revenue ? revenue * 12 : 0;
       const { score } = scoreLeadQuality({
         annualRevenue: annualRev,
@@ -229,11 +230,8 @@ export async function POST(req: NextRequest) {
           .from("tier3_pipeline").select("id").eq("user_id", userId).maybeSingle();
 
         if (!existingPipe) {
-          const { data: reps } = await supabase
-            .from("tier3_reps").select("id, province").eq("status", "active")
-            .order("created_at", { ascending: true });
           const prov = (prescanResult as any)?.input_snapshot?.province || (prescanResult as any)?.province || null;
-          const rep = (reps || []).find((r: any) => r.province === prov) || reps?.[0];
+          const rep = await pickBestRep(prov);
           if (rep) {
             const baseUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
             fetch(baseUrl + "/api/admin/assign-rep", {

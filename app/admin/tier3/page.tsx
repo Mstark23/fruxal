@@ -224,7 +224,7 @@ export default function AdminTier3Page() {
                 <span className="text-xs font-bold" style={{color:valueColor(e.estimatedHigh)}}>{fmt(e.estimatedLow)}–{fmt(e.estimatedHigh)}</span>
                 <span className="text-xs text-[#1A1A18] font-medium text-center">{e.highConfidenceCount}</span>
                 <span className="text-[10px] px-2 py-0.5 rounded font-bold" style={{background:"rgba(27,58,45,0.06)",color:"#1B3A2D"}}>{STAGE_LABELS[e.stage]}</span>
-                <span className="text-xs text-[#B5B3AD]">{e.daysInStage}d</span>
+                <span className="text-xs text-[#B5B3AD]">{e.daysInStage}d</span>{(e.stage === "agreement_out" || e.stage === "diagnostic_sent") && e.daysInStage > 7 && <span className="text-[9px] font-black px-1.5 py-0.5 rounded ml-1" style={{background:"rgba(179,64,64,0.12)",color:"#B34040"}}>STALLED</span>}
               </div>
             ))}
           </div>

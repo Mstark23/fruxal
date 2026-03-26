@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { scoreLeadQuality, scoreToPriority } from "@/lib/lead-score";
+import { pickBestRep } from "@/lib/rep-picker";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
 
@@ -335,14 +336,7 @@ export async function POST(request: NextRequest) {
 
           if (score >= 60) {
             // Find best rep for this province
-            const { data: reps } = await sb
-              .from("tier3_reps")
-              .select("id, province")
-              .eq("status", "active")
-              .order("created_at", { ascending: true });
-
-            const prov = run?.province;
-            const rep  = (reps || []).find((r: any) => r.province === prov) || reps?.[0];
+            const rep = await pickBestRep(run?.province || null);
 
             if (rep) {
               const baseUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";

@@ -35,6 +35,10 @@
     {
       "path": "/api/v2/cron/rep-followup",
       "schedule": "0 14 * * 3"
+    },
+    {
+      "path": "/api/v2/cron/agreement-reminder",
+      "schedule": "0 15 * * 5"
     }
   ],
   "headers": [
