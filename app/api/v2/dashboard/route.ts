@@ -369,6 +369,44 @@ export async function GET(req: NextRequest) {
     // ═══════════════════════════════════════════════════════════
     // 4. RESPONSE
     // ═══════════════════════════════════════════════════════════
+
+    // Fetch assigned rep (non-fatal)
+    // Lookup path: user_id → tier3_pipeline(user_id) → pipeline_id
+    //              → tier3_rep_assignments(pipeline_id) → rep_id → tier3_reps
+    let assigned_rep: { name: string; calendly_url: string | null; contingency_rate: number; pipeline_stage: string | null } | null = null;
+    try {
+      // Step 1: find the user's active pipeline entry
+      const { data: pipeline } = await supabaseAdmin
+        .from("tier3_pipeline")
+        .select("id, stage")
+        .eq("user_id", userId)
+        .in("stage", ["contacted", "called", "diagnostic_sent", "agreement_out",
+                       "signed", "in_engagement", "recovery_tracking", "engaged",
+                       "onboarding", "active", "closed_won"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (pipeline?.id) {
+        // Step 2: find rep assignment for this pipeline entry
+        const { data: assignment } = await supabaseAdmin
+          .from("tier3_rep_assignments")
+          .select("rep_id, call_booked_at, tier3_reps(name, calendly_url, contingency_rate)")
+          .eq("pipeline_id", pipeline.id)
+          .maybeSingle();
+
+        if (assignment?.rep_id) {
+          const rep = (assignment as any).tier3_reps;
+          assigned_rep = {
+            name: rep?.name || "Your Fruxal Rep",
+            calendly_url: rep?.calendly_url || null,
+            contingency_rate: rep?.contingency_rate ?? 12,
+            pipeline_stage: pipeline.stage || null,
+          };
+        }
+      }
+    } catch { /* non-fatal — rep assignment is optional */ }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -393,6 +431,7 @@ export async function GET(req: NextRequest) {
         },
         obligations,
         programs: { available: programsAvailable },
+        assigned_rep,
       },
     });
 
