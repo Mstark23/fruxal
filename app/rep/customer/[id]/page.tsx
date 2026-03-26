@@ -48,6 +48,7 @@ export default function RepCustomerPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [repInfo, setRepInfo] = useState<any>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -73,6 +74,11 @@ export default function RepCustomerPage() {
   }
 
   const load = useCallback(() => {
+    fetch("/api/rep/me", { credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.rep) setRepInfo(d.rep); })
+      .catch(() => {});
+
     fetch(`/api/rep/customer/${diagId}`, { credentials: "include" })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
@@ -88,6 +94,41 @@ export default function RepCustomerPage() {
   }, [diagId]);
 
   useEffect(() => { load(); }, [load]);
+
+  const sendBookingLink = async () => {
+    if (!repInfo?.calendly_url || !client.pipeline?.contactEmail) return;
+    setSaving(true);
+    try {
+      await fetch(`/api/rep/customer/${diagId}/note`, {
+        credentials: "include", method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: `Booking link sent: ${repInfo.calendly_url}` }),
+      });
+      // Open email client with pre-filled booking invite
+      const subject = encodeURIComponent(`Book your Fruxal recovery call — ${client.companyName}`);
+      const body = encodeURIComponent(
+        `Hi ${client.pipeline.contactName || "there"},
+
+` +
+        `I've been reviewing your Fruxal diagnostic results and I'd like to connect to walk through the findings.
+
+` +
+        `Use this link to book a time that works for you:
+${repInfo.calendly_url}
+
+` +
+        `The call takes about 20 minutes. I'll walk you through exactly what we found and what recovery looks like.
+
+` +
+        `No cost unless we recover money — our fee is ${repInfo?.commission_rate || 12}% of confirmed savings.
+
+` +
+        `Looking forward to connecting,
+${repInfo?.name || 'Your Fruxal rep'}`
+      );
+      window.open(`mailto:${client.pipeline.contactEmail}?subject=${subject}&body=${body}`);
+    } finally { setSaving(false); }
+  };
 
   const advanceStage = async (next: string) => {
     setSaving(true);
@@ -216,6 +257,22 @@ export default function RepCustomerPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Rep action buttons */}
+          <div className="flex gap-2 mt-3 flex-wrap">
+            {repInfo?.calendly_url && client.pipeline?.contactEmail && (
+              <button onClick={sendBookingLink} disabled={saving}
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#1B3A2D] text-[#1B3A2D] hover:bg-[#F0FBF5] transition-colors disabled:opacity-40">
+                Send Booking Link →
+              </button>
+            )}
+            {client.engagement?.id && (
+              <a href={`/api/rep/customer/${diagId}/agreement`} target="_blank" rel="noopener"
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F] hover:bg-[#F0EFEB] transition-colors">
+                Download Agreement PDF
+              </a>
+            )}
           </div>
 
           <div className="flex gap-1 mt-4 border-b border-[#E5E3DD] -mb-px">

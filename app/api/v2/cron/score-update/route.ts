@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { sendEmail, emailTemplate } from "@/services/email/service";
 import { computeLiveScore, persistScore } from "@/app/api/v2/score/route";
 import { calculateLiveScore, type ScoreInputs } from "@/lib/ai/score-calculator";
 
@@ -94,7 +95,33 @@ export async function GET(req: NextRequest) {
         );
 
         processed++;
-        if (result.currentScore < prevScore) scoreDecreases++;
+        if (result.currentScore < prevScore) {
+          scoreDecreases++;
+          // Email user about score drop (non-fatal, non-blocking)
+          const drop = prevScore - result.currentScore;
+          if (drop >= 3) {
+            const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+            try {
+              const authUser = await supabaseAdmin.auth.admin.getUserById(userId).catch(() => ({ data: { user: null } })) as any;
+              const email = authUser?.data?.user?.email;
+              if (email) {
+                const body = `
+                  <p style="color:#3d3d4e;margin:0 0 16px">Your Fruxal financial health score just dropped by ${drop} points.</p>
+                  <div style="background:#FEF3F2;border:1px solid #fecaca;border-radius:12px;padding:16px;margin:0 0 16px">
+                    <p style="margin:0 0 4px;font-size:12px;color:#6b7280;text-transform:uppercase">Reason</p>
+                    <p style="margin:0;font-size:14px;color:#B34040;font-weight:600">Overdue: ${overdueTitles}</p>
+                  </div>
+                  <p style="color:#3d3d4e;margin:0 0 24px">Overdue obligations increase your penalty exposure and drag your score. Completing them restores your score immediately.</p>
+                `;
+                sendEmail({
+                  to: email,
+                  subject: `Your health score dropped ${drop} points — action needed`,
+                  html: emailTemplate("Score alert", body, "View My Obligations →", `${appUrl}/v2/obligations`),
+                }).catch(() => {});
+              }
+            } catch { /* non-fatal */ }
+          }
+        }
       } catch (err: any) {
         console.error(`[ScoreCron] Error for user ${userId}:`, err.message);
       }

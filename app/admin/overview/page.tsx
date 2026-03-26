@@ -22,6 +22,7 @@ interface OverviewData {
   users:    { total:number; paid:number; free:number; newThisWeek:number; newThisMonth:number; activeToday:number };
   tier3:    { totalDiagnostics:number; pipelineValue:number; byStatus:Record<string,number>; feesThisMonth:number };
   contingency?: { assigned:number; in_engagement:number; savings_confirmed:number; commissions_pending:number };
+  intelligence?: { patternsDiscovered:number; patternsAbsorbed:number; lastRun:string|null; topIndustries:string[] };
   system:   { lastUpdated:string };
 }
 
@@ -209,6 +210,29 @@ export default function AdminOverviewPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+            {d.intelligence && (
+              <div className="bg-white border border-[#EEECE8] rounded-xl p-4 mt-4">
+                <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-3">Intelligence Engine</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { l: "Patterns Discovered", v: fmtNum(d.intelligence.patternsDiscovered), sub: "this week" },
+                    { l: "Patterns Absorbed",   v: fmtNum(d.intelligence.patternsAbsorbed),   sub: "now free code" },
+                  ].map(k => (
+                    <div key={k.l} className="bg-[#F8F7F5] rounded-lg px-3 py-2">
+                      <p className="text-[9px] font-bold text-[#B5B3AD] uppercase">{k.l}</p>
+                      <p className="text-[14px] font-bold text-[#1A1A18]">{k.v}</p>
+                      <p className="text-[9px] text-[#B5B3AD]">{k.sub}</p>
+                    </div>
+                  ))}
+                </div>
+                {d.intelligence.lastRun && (
+                  <p className="text-[9px] text-[#B5B3AD] mt-2">
+                    Last run: {new Date(d.intelligence.lastRun).toLocaleDateString("en-CA", { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" })}
+                    {d.intelligence.topIndustries.length > 0 && ` · ${d.intelligence.topIndustries.join(", ")}`}
+                  </p>
+                )}
               </div>
             )}
             {Object.entries(d.tier3.byStatus || {}).map(([stage, count]) => (

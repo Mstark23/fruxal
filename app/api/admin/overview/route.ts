@@ -204,6 +204,27 @@ export async function GET(req: NextRequest) {
   // Users
   const usersFree = Math.max(0, usersTotal - usersPaid);
 
+  // Intelligence cron last run summary
+  let intelligenceStats = { patternsDiscovered: 0, patternsAbsorbed: 0, lastRun: null as string | null, topIndustries: [] as string[] };
+  try {
+    const { data: intLog } = await supabaseAdmin
+      .from("cron_logs")
+      .select("result_json, ran_at")
+      .eq("cron_name", "intelligence")
+      .order("ran_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (intLog?.result_json) {
+      const r = intLog.result_json as any;
+      intelligenceStats = {
+        patternsDiscovered: r.patternsDiscovered ?? 0,
+        patternsAbsorbed:   r.patternsAbsorbed   ?? 0,
+        lastRun:            intLog.ran_at,
+        topIndustries:      (r.industriesCovered || []).slice(0, 5),
+      };
+    }
+  } catch { /* table may not exist — non-fatal */ }
+
   // Contingency funnel metrics
   let contingencyStats = { assigned: 0, in_engagement: 0, savings_confirmed: 0, commissions_pending: 0 };
   try {

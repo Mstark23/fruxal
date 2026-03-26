@@ -16,6 +16,7 @@
 // Cost: ~$5-15 per run for 100 businesses (Sonnet 4.5 batch pricing)
 // =============================================================================
 import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { tier2_WeeklyBatchAnalysis, autoValidatePatterns } from "@/services/intelligence/engine";
 import { recalculateBenchmarks } from "@/services/intelligence/market-learning";
 
@@ -55,7 +56,20 @@ export async function POST(req: NextRequest) {
     process.env.NODE_ENV !== "production" && console.log(`   → Absorbed ${absorbed} patterns (now run as free code)`);
 
     const duration = Math.round((Date.now() - startTime) / 1000);
-    process.env.NODE_ENV !== "production" && console.log(`🧠 Intelligence cycle complete in ${duration}s`);
+    process.env.NODE_ENV !== "production" && console.log(`Intelligence cycle complete in ${duration}s`);
+
+    // Store run result for admin visibility
+    supabaseAdmin.from("cron_logs").upsert({
+      cron_name: "intelligence",
+      ran_at: new Date().toISOString(),
+      result_json: {
+        benchmarksUpdated: benchResult.updated,
+        industriesCovered: benchResult.industries,
+        patternsDiscovered: patterns.length,
+        patternsAbsorbed: absorbed,
+        duration: `${duration}s`,
+      },
+    }, { onConflict: "cron_name" }).then(() => {}, () => {}); // non-fatal, fire-and-forget
 
     return NextResponse.json({
       success: true,
