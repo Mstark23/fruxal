@@ -475,7 +475,7 @@ export default function BusinessDashboard() {
                   <div key={i} onClick={() => isPaid && router.push("/v2/leaks")} className={`px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 transition-colors ${isPaid ? "hover:bg-surface-hover cursor-pointer group" : ""}`}>
                     <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
                     <div key={i} className="flex-1 min-w-0">
-                      <div className={`text-[12px] font-semibold text-ink truncate ${isPaid ? "group-hover:text-brand transition-colors" : ""}`}>{isFR ? (l.title_fr || l.title) : l.title}</div>
+                      <div className="text-[12px] font-semibold text-ink truncate">{isFR ? (l.title_fr || l.title) : l.title}</div>
                       <span className="text-[11px] text-ink-faint">{l.category}</span>
                     </div>
                     <div className="text-right shrink-0">

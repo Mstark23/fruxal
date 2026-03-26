@@ -69,6 +69,7 @@ export default function SoloDashboard() {
   const [taskSavingsAvail, setTaskSavingsAvail] = useState(0);
   const [taskSavingsRecov, setTaskSavingsRecov] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [assignedRep, setAssignedRep] = useState<{ name: string; calendly_url: string | null; contingency_rate: number; pipeline_stage: string | null } | null>(null);
 
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
   const isFR = lang === "fr";
@@ -117,6 +118,7 @@ export default function SoloDashboard() {
       setProgramsAvailable(d.programs?.available ?? 0);
       setLeaksFixed(d.leaks?.fixed ?? 0);
       setTotalSavings(d.leaks?.total_savings ?? 0);
+      if (d.assigned_rep) setAssignedRep(d.assigned_rep);
       if (!prescanLoaded && d.leaks?.top_unfixed?.length > 0) {
         setScore(d.health_score || 50);
         setTotalLeak(d.total_leak_estimate ?? 0);
@@ -319,8 +321,8 @@ export default function SoloDashboard() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-semibold text-ink">{t("You're seeing estimates — your real numbers are waiting", "Vous voyez des estimations — vos vrais chiffres vous attendent")}</p>
-              <p className="text-[10px] text-ink-faint mt-0.5">{t("The full diagnostic finds exact dollar amounts, a 90-day fix plan, and government programs matched to your business.", "Le diagnostic complet trouve des montants exacts, un plan de correction 90 jours et des programmes gouvernementaux adaptés.")}</p>
+              <p className="text-[12px] font-semibold text-ink">{t("You're seeing estimates — your real numbers are deeper", "Vous voyez des estimations — vos vrais chiffres sont plus précis")}</p>
+              <p className="text-[10px] text-ink-faint mt-0.5">{t("The full diagnostic finds exact dollar amounts, tells you what to fix first, and matches you with government programs.", "Le diagnostic complet trouve les montants exacts, vous dit quoi corriger en premier et vous connecte aux programmes gouvernementaux.")}</p>
             </div>
             <button onClick={() => router.push("/v2/diagnostic")}
               className="shrink-0 h-8 px-4 text-[11px] font-bold text-white rounded-lg transition hover:opacity-90"
@@ -339,11 +341,112 @@ export default function SoloDashboard() {
           </button>
         )}
 
+        {/* ═══ REP BOOKING BANNER ═══ */}
+        {assignedRep && assignedRep.pipeline_stage !== "completed" && assignedRep.pipeline_stage !== "in_engagement" && assignedRep.pipeline_stage !== "recovery_tracking" && (
+          <div className="w-full rounded-2xl mb-5 overflow-hidden" style={{ background: "linear-gradient(135deg, #0F2419 0%, #1B3A2D 60%, #1F4A36 100%)", border: "1px solid rgba(45,122,80,0.25)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s" }}>
+            <div className="px-5 pt-5 pb-4">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-widest">
+                      {t("Recovery Expert Assigned", "Expert en récupération assigné")}
+                    </span>
+                  </div>
+                  <h3 className="text-[17px] font-bold text-white leading-snug">
+                    {t("We found your leaks.", "Nous avons trouvé vos fuites.")}
+                    <br />
+                    {t("We'll fix them for you.", "Nous allons les corriger pour vous.")}
+                  </h3>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 text-[15px] font-bold text-emerald-300">
+                  {assignedRep.name.charAt(0).toUpperCase()}
+                </div>
+              </div>
+
+              {/* How it works */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {[
+                  { n: "1", text: t("Book a free call with your rep", "Réservez un appel gratuit") },
+                  { n: "2", text: t("We handle all the work & CRA calls", "On s'occupe de tout") },
+                  { n: "3", text: t(`You keep ${100 - (assignedRep.contingency_rate ?? 12)}% of what we recover`, `Vous gardez ${100 - (assignedRep.contingency_rate ?? 12)}% de ce qu'on récupère`) },
+                ].map(s => (
+                  <div key={s.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="text-[10px] font-black text-emerald-400 mb-1">STEP {s.n}</div>
+                    <div className="text-[11px] text-white/70 leading-tight">{s.text}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Leak estimate + contingency math */}
+              {totalLeak > 0 && (
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl mb-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div>
+                    <div className="text-[10px] text-white/30 uppercase tracking-wider">{t("Your estimated annual leak", "Fuite annuelle estimée")}</div>
+                    <div className="text-[18px] font-black text-red-400">${totalLeak.toLocaleString()}/yr</div>
+                  </div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  <div className="text-right">
+                    <div className="text-[10px] text-white/30 uppercase tracking-wider">{t("You keep", "Vous gardez")}</div>
+                    <div className="text-[18px] font-black text-emerald-400">${Math.round(totalLeak * (1 - (assignedRep.contingency_rate ?? 12) / 100)).toLocaleString()}/yr</div>
+                  </div>
+                </div>
+              )}
+
+              {/* CTA */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                {assignedRep.calendly_url ? (
+                  <a
+                    href={assignedRep.calendly_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-3 rounded-xl text-center text-[13px] font-bold text-[#0F2419] transition-all hover:opacity-90 hover:-translate-y-px"
+                    style={{ background: "linear-gradient(135deg, #34d399, #10b981)" }}
+                  >
+                    {t(`Book a Free Call with ${assignedRep.name} →`, `Réserver un appel gratuit avec ${assignedRep.name} →`)}
+                  </a>
+                ) : (
+                  <button
+                    className="flex-1 py-3 rounded-xl text-center text-[13px] font-bold text-white/40 cursor-not-allowed"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    disabled
+                  >
+                    {t("Your rep will reach out shortly", "Votre rep vous contactera sous peu")}
+                  </button>
+                )}
+                <div className="flex items-center justify-center gap-1 text-[10px] text-white/20 sm:w-auto">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  {t(`No cost until you recover. We take ${assignedRep.contingency_rate ?? 12}%.`, `Aucun frais avant récupération. On prend ${assignedRep.contingency_rate ?? 12}%.`)}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ ACTIVE ENGAGEMENT BANNER (rep is working on it) ═══ */}
+        {assignedRep && (assignedRep.pipeline_stage === "in_engagement" || assignedRep.pipeline_stage === "recovery_tracking") && (
+          <div className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl mb-4" style={{ background: "rgba(27,58,45,0.06)", border: "1px solid rgba(27,58,45,0.15)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: "all 0.45s cubic-bezier(0.16,1,0.3,1) 0.04s" }}>
+            <div className="w-8 h-8 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center shrink-0 text-[12px] font-bold text-brand">
+              {assignedRep.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-semibold text-ink">{t(`${assignedRep.name} is working on your recovery`, `${assignedRep.name} travaille sur votre récupération`)}</p>
+              <p className="text-[10px] text-ink-faint mt-0.5">{t("We'll notify you as amounts are confirmed and recovered.", "Nous vous informerons au fur et à mesure des récupérations.")}</p>
+            </div>
+            {assignedRep.calendly_url && (
+              <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                className="shrink-0 h-8 px-3 text-[11px] font-bold text-brand border border-brand/20 rounded-lg hover:bg-brand/5 transition">
+                {t("Check in →", "Suivi →")}
+              </a>
+            )}
+          </div>
+        )}
 
         {/* KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5" style={fadeDelay(0.04)}>
           <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all group" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Business Health", "Santé entreprise")}</div>
             {score > 0 ? (
               <>
                 <div className="flex items-end gap-1.5">
@@ -361,7 +464,7 @@ export default function SoloDashboard() {
           </button>
 
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Still Leaking", "Encore en fuite")}</div>
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
             <div className="text-[11px] text-ink-muted mt-1.5">
               {displayLeaks.length} {t("leaks still costing you", "fuites encore actives")}
@@ -370,7 +473,7 @@ export default function SoloDashboard() {
           </button>
 
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Recovered", "Recupere")}</div>
+            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Money Recovered", "Argent récupéré")}</div>
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
@@ -480,112 +583,94 @@ export default function SoloDashboard() {
             )}
           </div>
 
-          {/* COL 2: ACTION + RECOVERY + NORTH STAR + 90-DAY + STRENGTHS */}
+          {/* COL 2: REP STATUS + RECOVERY PROGRESS */}
           <div className="flex flex-col gap-3">
 
-            {tonightAction && (
+            {/* Rep working status */}
+            {assignedRep && (assignedRep.pipeline_stage === "in_engagement" || assignedRep.pipeline_stage === "recovery_tracking") ? (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex items-center gap-2">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Do This Tonight", "A faire ce soir")}</span>
-                  <span className="text-[11px] text-ink-faint ml-auto">{tonightAction.time_required}</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Recovery in Progress", "Récupération en cours")}</span>
                 </div>
-                <div className="px-4 py-3">
-                  <p className="text-[13px] font-semibold text-ink mb-3">{tonightAction.title}</p>
-                  <ol className="space-y-2">
-                    {(tonightAction.steps || []).map((step, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-[11px] text-ink-secondary">
-                        <span className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{i + 1}</span>
-                        {step}
-                      </li>
-                    ))}
-                  </ol>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-light">
-                    <span className="text-[10px] text-ink-faint italic">{tonightAction.why_tonight}</span>
-                    {(tonightAction.estimated_value ?? 0) > 0 && (
-                      <span className="text-[11px] font-bold text-positive">~${(tonightAction.estimated_value ?? 0).toLocaleString()}</span>
-                    )}
-                  </div>
+                <div className="px-4 py-4">
+                  <p className="text-[13px] font-semibold text-ink mb-1">
+                    {t(`${assignedRep.name} is working on your file`, `${assignedRep.name} travaille sur votre dossier`)}
+                  </p>
+                  <p className="text-[11px] text-ink-muted mb-4">
+                    {t("Our accountant is handling the CRA calls, vendor negotiations, and grant applications. You'll be notified as amounts are confirmed.", "Notre comptable s'occupe des appels à l'ARC, des négociations fournisseurs et des demandes de subventions. Vous serez notifié au fur et à mesure des confirmations.")}
+                  </p>
+                  {recovered > 0 && (
+                    <div className="p-3 rounded-xl mb-3" style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
+                      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">{t("Recovered So Far", "Récupéré jusqu'à présent")}</p>
+                      <p className="font-serif text-[24px] font-bold text-positive">${recovered.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {assignedRep.calendly_url && (
+                    <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl text-[12px] font-semibold text-brand border border-brand/20 hover:bg-brand/5 transition">
+                      {t("Check In with Your Rep →", "Faire le point avec votre rep →")}
+                    </a>
+                  )}
                 </div>
               </div>
-            )}
-
-            <div className="bg-white rounded-xl border border-border-light overflow-hidden flex-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="px-4 py-3 border-b border-border-light">
-                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Recovery Plan", "Plan de recuperation")}</span>
-              </div>
-              {allActions.length === 0 ? (
-                <div className="px-4 py-6 text-center">
-                  <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-                  </div>
-                  <p className="text-[12px] font-semibold text-ink mb-1">{t("No tasks started yet — pick the leak with the highest dollar amount", "Aucune tâche commencée — choisissez la fuite avec le montant le plus élevé")}</p>
-                  <p className="text-[11px] text-ink-muted mb-2">{t("Run your diagnostic to get your personalized fix plan.", "Lancez votre diagnostic pour obtenir votre plan de correction personnalisé.")}</p>
-                  <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
+            ) : (
+              /* Not yet engaged — show what happens next */
+              <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div className="px-4 py-3 border-b border-border-light">
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("What Happens Next", "Ce qui se passe ensuite")}</span>
                 </div>
-              ) : allActions.slice(0, 4).map((a, i) => (
-                <div key={i} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
-                  <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: "2px solid " + (a.status === "in_progress" ? "#C4841D" : "#E8E6E1") }}>
-                    {a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[11px] font-bold text-ink-faint">{i + 1}</span>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-semibold text-ink truncate">{a.leak_title}</div>
-                    {a.fix_description && <div className="text-[11px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-serif text-[13px] font-bold text-positive">+${(a.estimated_value ?? 0).toLocaleString()}</div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "A faire")}</span>
-                  </div>
-                </div>
-              ))}
-              {completedActions.length > 0 && (
-                <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
-                  <span className="text-[11px] text-ink-muted">{completedActions.length} {t("completed", "terminees")}</span>
-                  <span className="text-[10px] font-bold text-positive">+${(recovered ?? 0).toLocaleString()}</span>
-                </div>
-              )}
-            </div>
-
-            {northStar && (
-              <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">{t("Your North Star", "Votre etoile polaire")}</p>
-                {northStar.metric && <p className="text-[13px] font-semibold text-ink mb-2">{northStar.metric}</p>}
-                {(northStar.current_value || northStar.target_value) && (
-                  <div className="flex items-center gap-2 text-[11px] mb-2">
-                    {northStar.current_value && <span className="text-ink-faint">{northStar.current_value}</span>}
-                    {northStar.current_value && northStar.target_value && <span className="text-ink-faint/40">→</span>}
-                    {northStar.target_value && <span className="font-semibold text-positive">{northStar.target_value}</span>}
-                  </div>
-                )}
-                {northStar.how_to_track_it && <p className="text-[10px] text-ink-faint">{northStar.how_to_track_it}</p>}
-              </div>
-            )}
-
-            {ninetyDay && (
-              <div className="rounded-xl p-4" style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
-                <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(45,122,80,0.7)" }}>{t("90-Day Goal", "Objectif 90 jours")}</p>
-                {ninetyDay.success_statement && <p className="text-[11px] text-ink-secondary leading-relaxed mb-2">{ninetyDay.success_statement}</p>}
-                <div className="space-y-1">
-                  {(ninetyDay.key_milestones || []).slice(0, 4).map((m: string, i: number) => (
-                    <div key={i} className="flex items-start gap-2 text-[10px] text-ink-faint">
-                      <span className="text-positive mt-0.5">+</span>{m}
+                <div className="px-4 py-4 space-y-3">
+                  {[
+                    { n: "1", en: "Book a free call with your assigned rep", fr: "Réservez un appel gratuit avec votre rep" },
+                    { n: "2", en: "We review your full diagnostic together", fr: "Nous examinons votre diagnostic ensemble" },
+                    { n: "3", en: "Our accountant contacts CRA & vendors", fr: "Notre comptable contacte l'ARC et les fournisseurs" },
+                    { n: "4", en: "We invoice 12% of what we actually recover", fr: "Nous facturons 12% de ce que nous récupérons" },
+                  ].map(s => (
+                    <div key={s.n} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.07)" }}>
+                        <span className="text-[9px] font-bold text-brand">{s.n}</span>
+                      </div>
+                      <span className="text-[12px] text-ink-secondary leading-tight">{isFR ? s.fr : s.en}</span>
                     </div>
                   ))}
                 </div>
+                {assignedRep?.calendly_url && (
+                  <div className="px-4 pb-4">
+                    <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 w-full py-3 rounded-xl text-[13px] font-bold text-white transition hover:opacity-90"
+                      style={{ background: "linear-gradient(135deg, #1B3A2D, #2D7A50)" }}>
+                      {t(`Book a Call with ${assignedRep.name} →`, `Réserver un appel avec ${assignedRep.name} →`)}
+                    </a>
+                    <p className="text-center text-[10px] text-ink-faint mt-2">{t("No cost until we recover. We take 12%.", "Aucun frais avant récupération. On prend 12%.")}</p>
+                  </div>
+                )}
               </div>
             )}
 
-            {strengths.length > 0 && (
-              <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <div className="px-4 py-3 border-b border-border-light">
-                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("What You Are Doing Well", "Ce que vous faites bien")}</span>
-                </div>
-                {strengths.slice(0, 2).map((s, i) => (
-                  <div key={i} className="px-4 py-2.5 border-b border-border-light last:border-0">
-                    {s.title && <p className="text-[11px] font-semibold text-positive mb-0.5">+ {s.title}</p>}
-                    {s.description && <p className="text-[10px] text-ink-faint">{s.description}</p>}
+            {/* Recovery scoreboard */}
+            {recovered > 0 && (
+              <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("Recovery Scoreboard", "Tableau de récupération")}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[12px]">
+                    <span className="text-ink-secondary">{t("Total identified", "Total identifié")}</span>
+                    <span className="font-semibold text-negative">${(totalLeak ?? 0).toLocaleString()}/yr</span>
                   </div>
-                ))}
+                  <div className="flex justify-between text-[12px]">
+                    <span className="text-ink-secondary">{t("Recovered so far", "Récupéré jusqu'ici")}</span>
+                    <span className="font-semibold text-positive">+${recovered.toLocaleString()}</span>
+                  </div>
+                  <div className="h-px bg-border-light" />
+                  <div className="flex justify-between text-[12px]">
+                    <span className="text-ink-secondary">{t("Still available", "Encore disponible")}</span>
+                    <span className="font-semibold text-ink">${Math.max(0, (totalLeak ?? 0) - recovered).toLocaleString()}/yr</span>
+                  </div>
+                </div>
+                <div className="mt-3 h-[4px] bg-bg-section rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-positive transition-all duration-1000" style={{ width: recovPct + "%" }} />
+                </div>
+                <p className="text-[10px] text-ink-faint mt-1.5 text-right">{recovPct}% {t("recovered", "récupéré")}</p>
               </div>
             )}
 
@@ -729,9 +814,9 @@ export default function SoloDashboard() {
                 <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 </div>
-                <p className="text-[12px] font-semibold text-ink mb-1">{t("Your action plan is waiting", "Votre plan d'action vous attend")}</p>
-                <p className="text-[11px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
-                <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
+                <p className="text-[12px] font-semibold text-ink mb-1">{t("Your action plan is waiting to be built", "Votre plan d'action attend d'être généré")}</p>
+                <p className="text-[11px] text-ink-muted mb-2">{t("The diagnostic creates a prioritized 90-day plan — what to fix first, why, and how much it gets you back.", "Le diagnostic crée un plan de 90 jours priorisé — quoi corriger en premier, pourquoi, et combien ça vous rapporte.")}</p>
+                <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run My Full Diagnostic →", "Lancer mon diagnostic →")}</button>
               </div>
             )}
           </div>

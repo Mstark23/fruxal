@@ -28,9 +28,9 @@ const SOLUTION_LABELS: Record<string, { icon: string; label: string; fr: string 
 
 const STATUS_TABS = [
   { value: "all",         label: "All",         fr: "Tous" },
-  { value: "detected",    label: "Still Costing You", fr: "Encore actif" },
-  { value: "in_progress", label: "You're On It",      fr: "En cours" },
-  { value: "fixed",       label: "Fixed ✓",            fr: "Corrigé ✓" },
+  { value: "detected",    label: "Still Costing You",  fr: "Encore actif" },
+  { value: "in_progress", label: "You're On It",        fr: "En cours" },
+  { value: "fixed",       label: "Fixed ✓",             fr: "Corrigé ✓" },
 ];
 
 interface Leak {
@@ -155,11 +155,11 @@ export default function LeaksPage() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-brand-soft border border-brand/10 rounded-xl px-3 py-2.5 text-center">
             <p className="text-brand text-lg font-black">${(totalSavings ?? 0).toLocaleString()}</p>
-            <p className="text-brand/20 text-[10px] uppercase tracking-wider">Saved / Year</p>
+            <p className="text-brand/20 text-[8px] uppercase tracking-wider">Saved / Year</p>
           </div>
           <div className="bg-red-500/[0.03] border border-negative/10 rounded-xl px-3 py-2.5 text-center">
             <p className="text-negative/60 text-lg font-black">${(potentialSavings ?? 0).toLocaleString()}</p>
-            <p className="text-negative/20 text-[10px] uppercase tracking-wider">Still Leaking</p>
+            <p className="text-negative/20 text-[8px] uppercase tracking-wider">Still Leaking</p>
           </div>
         </div>
 
@@ -219,7 +219,7 @@ export default function LeaksPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-2xl mb-2">filter === "fixed" ? "—" : "—"</p>
-            <p className="text-ink-faint text-sm">{filter === "fixed" ? "No fixed leaks yet. Start plugging!" : "No leaks found."}</p>
+            <p className="text-ink-faint text-sm">{filter === "fixed" ? "No leaks fixed yet — pick the highest-dollar one and start there." : "No leaks found."}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -241,8 +241,8 @@ export default function LeaksPage() {
                     className="w-full text-left px-4 py-3 flex items-start gap-3">
                     <div key={i} className="flex-1 min-w-0">
                       <div key={i} className="flex items-center gap-1.5 mb-1">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${sc.bg} ${sc.text}`}>{leak.severity}</span>
-                        <span className="text-ink-faint text-[10px]">{sol.label}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase ${sc.bg} ${sc.text}`}>{leak.severity}</span>
+                        <span className="text-ink-faint text-[8px]">{sol.icon} {sol.label}</span>
                       </div>
                       <p className={`text-xs font-medium ${isFixed ? "text-ink-faint line-through" : "text-ink-muted"}`}>{leak.title}</p>
                     </div>
@@ -252,7 +252,7 @@ export default function LeaksPage() {
                       ) : (
                         <p className="text-negative/50 text-xs font-bold">${(leak.impact_max ?? 0).toLocaleString()}<span className="text-[9px]">/yr</span></p>
                       )}
-                      <span className="text-ink-faint text-[8px]">{isExpanded ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
+                      <span className="text-ink-faint text-[8px]">{isExpanded ? "▲" : "▼"}</span>
                     </div>
                   </button>
 
@@ -271,43 +271,22 @@ export default function LeaksPage() {
                       </div>
 
                       {leak.solution_steps && leak.solution_steps.length > 0 && (
-                        <div key={i} className="mb-3">
-                          <p className="text-ink-faint text-[9px] font-bold uppercase tracking-wider mb-1.5">How to Fix</p>
-                          <div key={i} className="space-y-1">
-                            {leak.solution_steps.map((step: string, si: number) => (
-                              <div key={si} className="flex gap-2">
-                                <span className="text-brand/30 text-[9px] font-bold mt-0.5">{si + 1}.</span>
-                                <span className="text-ink-faint text-[10px]">{step}</span>
-                              </div>
-                            ))}
-                          </div>
+                        <div key={i} className="mb-3 p-3 rounded-xl" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.08)" }}>
+                          <p className="text-[10px] font-bold text-brand/60 uppercase tracking-wider mb-1">Your rep is handling this</p>
+                          <p className="text-[11px] text-ink-secondary">Our team will address this as part of your recovery engagement.</p>
                         </div>
                       )}
 
-                      {/* Actions */}
+                      {/* No self-serve actions — rep handles all fixes */}
                       {!isFixed && leak.status !== "dismissed" && (
-                        <div key={i} className="flex gap-2">
-                          <button onClick={() => handleAction(leak.slug, "fix")}
-                            className="flex-1 py-2 rounded-lg bg-brand-soft text-brand/60 text-[10px] font-bold hover:bg-brand-soft transition-colors">
-                            ✓ I Fixed This
-                          </button>
-                          {leak.status !== "in_progress" && (
-                            <button onClick={() => handleAction(leak.slug, "progress")}
-                              className="px-3 py-2 rounded-lg bg-amber-500/10 text-amber-400/40 text-[10px] font-bold hover:bg-amber-500/15 transition-colors">
-                              Working On It
-                            </button>
-                          )}
-                          <button onClick={() => handleAction(leak.slug, "dismiss")}
-                            className="px-3 py-2 rounded-lg bg-bg-section text-ink-faint text-[10px] hover:text-ink-faint transition-colors">
-                            ✕
-                          </button>
+                        <div className="flex items-center gap-2 py-2 px-3 rounded-lg" style={{ background: "rgba(27,58,45,0.03)", border: "1px solid rgba(27,58,45,0.06)" }}>
+                          <div className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse shrink-0" />
+                          <span className="text-[11px] text-ink-secondary">Your Fruxal rep will fix this for you — no action needed on your end.</span>
                         </div>
                       )}
                       {isFixed && (
-                        <div key={i} className="flex items-center gap-2">
-                          <span className="text-brand/30 text-[10px]">✓ Fixed · Saving ${(leak.savings_amount ?? 0).toLocaleString()}/yr</span>
-                          <button onClick={() => handleAction(leak.slug, "reset")}
-                            className="text-ink-faint text-[9px] hover:text-ink-faint transition-colors">Undo</button>
+                        <div className="flex items-center gap-2">
+                          <span className="text-brand/30 text-[10px]">✓ Recovered · ${(leak.savings_amount ?? 0).toLocaleString()}/yr</span>
                         </div>
                       )}
                     </div>

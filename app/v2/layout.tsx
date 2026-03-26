@@ -19,7 +19,6 @@ const NAV_STANDARD = [
   { path:"/v2/diagnostic",          icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
   { path:"/v2/benchmarks",          icon:'<path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/>', label:"Benchmarks" },
   { path:"/v2/programs",    icon:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label:"Programs" },
-  { path:"/v2/solutions", icon:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>', label:"Solutions" },
   { path:"/v2/chat",        icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"Advisor" },
   { path:"/v2/faq", icon:'<circle cx="12" cy="12" r="10"/><path d="M9 10a3 3 0 016 0c0 1.5-1.5 2.5-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>', label:"FAQ" },
 ];
@@ -44,7 +43,7 @@ const NAV_ENTERPRISE = [
 // solo/business users from being permanently locked into enterprise mode.
 const ENTERPRISE_PATHS = ["/v2/dashboard/enterprise"];
 // Routes where enterprise nav stays active (user is navigating around while enterprise)
-const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history", "/v2/solutions", "/v2/faq", "/v2/quickstart", "/v2/benchmarks"];
+const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history", "/v2/faq", "/v2/quickstart", "/v2/benchmarks"];
 
 export default function V2Layout({children}:{children:React.ReactNode}) {
   const router   = useRouter();
@@ -127,8 +126,8 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
   const MOBILE_NAV_PATHS = isEnterprise
     ? [navRoot, "/v2/diagnostic/intake", "/v2/obligations", "/v2/chat", "/v2/programs"]
     : isBusiness
-    ? [navRoot, "/v2/diagnostic/intake", "/v2/chat", "/v2/leaks", "/v2/solutions"]
-    : [navRoot, "/v2/diagnostic/intake", "/v2/chat", "/v2/leaks", "/v2/solutions"];
+    ? [navRoot, "/v2/diagnostic/intake", "/v2/chat", "/v2/leaks", "/v2/programs"]
+    : [navRoot, "/v2/diagnostic/intake", "/v2/chat", "/v2/leaks", "/v2/programs"];
   const MOBILE_NAV = NAV.filter(item => MOBILE_NAV_PATHS.includes(item.path));
 
 
@@ -146,7 +145,7 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
           style={active ? {} : { border: "1px solid rgba(27,58,45,0.2)" }}>
           <span className={active ? "text-white" : "text-brand"}><I d={item.icon} s={16}/></span>
           <span className="text-[12px] font-semibold">{item.label}</span>
-          {!active && <span className="ml-auto text-[8px] font-bold uppercase tracking-wide" style={{ color: "rgba(27,58,45,0.45)" }}>T2 ↑</span>}
+          
         </button>
       );
     }

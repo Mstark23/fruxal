@@ -97,20 +97,8 @@ export default function DiagnosticReportPage() {
 
 
   // Fetch matched solutions for all finding categories (batch)
-  useEffect(() => {
-    if (!report?.findings?.length) return;
-    const bid = (report as any).businessId ?? "";
-    if (!bid) return;
-    const cats = [...new Set(report.findings.map((f: any) => f.category).filter(Boolean))].slice(0, 10) as string[];
-    fetch("/api/v2/solutions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ businessId: bid, categories: cats }),
-    })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.solutions) setFindingSolutions(d.solutions); })
-      .catch(() => {});
-  }, [report?.findings?.length]);
+  // Solutions are rep-only — not fetched for customer view
+  useEffect(() => {}, []);
 
   // Poll for comparison banner (max 15 polls × 2s = 30s)
   useEffect(() => {
@@ -595,35 +583,7 @@ export default function DiagnosticReportPage() {
                         {isFr ? (f.recommendation_fr || f.recommendation) : f.recommendation}
                       </p>
                     </div>
-                    {/* Matched solutions for this finding */}
-                    {findingSolutions[f.category]?.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-border-light">
-                        <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">
-                          isFr ? "Solutions pour ce constat" : "Solutions for this finding"
-                        </p>
-                        <div className="space-y-1">
-                          {findingSolutions[f.category].slice(0, 2).map((s: any, si: number) => (
-                            <div key={si} className="flex items-center justify-between gap-2">
-                              <span className="text-[11px] text-ink-muted truncate">
-                                → {s.name}{s.savings_estimate ? ` — ${s.savings_estimate}` : ""}
-                              </span>
-                              <button
-                                className="text-[11px] font-bold text-brand shrink-0 hover:underline"
-                                onClick={() => {
-                                  fetch("/api/v2/solutions/click", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ solutionId: s.id, solutionName: s.name, url: s.url, source: "diagnostic" }),
-                                  }).catch(() => {});
-                                  window.open(s.url, "_blank", "noopener noreferrer");
-                                }}>
-                                {isFr ? "En savoir plus →" : "Learn more →"}
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {/* Solutions are handled by your rep — not shown here */}
                   </div>
                 );
               })}

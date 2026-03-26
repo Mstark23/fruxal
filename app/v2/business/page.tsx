@@ -196,7 +196,7 @@ export default function BusinessDashboard() {
                     <div key={i} className="flex items-center gap-2 mb-2"><span className="text-[9px] font-bold text-white bg-negative px-1.5 py-0.5 rounded">#1</span><div className="text-[12px] font-semibold text-ink">{isFR ? (l.title_fr || l.title) : l.title}</div></div>
                     <div className="text-[10px] text-ink-faint mb-2">{l.category}</div>
                     {l.action && <div className="p-2 rounded-lg text-[10px] text-ink-secondary mb-2" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.06)" }}><span className="font-semibold text-brand">{t("Fix: ", "Correction : ")}</span>{isFR ? (l.action_fr || l.action) : l.action}</div>}
-                    {l.affiliates && l.affiliates.length > 0 && <div className="flex gap-1.5 flex-wrap">{l.affiliates.slice(0, 3).map((a, ai) => <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-semibold text-brand border border-brand/20 px-2 py-0.5 rounded-full hover:bg-brand/5 transition">{a.name}</a>)}</div>}
+                    <p className="text-[10px] text-ink-faint mt-1">{t("Your rep is handling this", "Votre rep s\'en occupe")}</p>
                     <div key={`aff-${i}`} className="mt-2 text-right font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}/{t("yr", "an")}</div>
                   </div>
                 ))}

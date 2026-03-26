@@ -336,6 +336,37 @@ export default function RepCustomerPage() {
                       {f.recommendation && (
                         <p className="text-[10px] text-[#56554F] mt-1.5 italic">{f.recommendation}</p>
                       )}
+
+                      {/* Solution steps — rep-only */}
+                      {f.action_items && f.action_items.length > 0 && (
+                        <div className="mt-3 p-3 rounded-xl" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.10)" }}>
+                          <p className="text-[9px] font-bold text-[#2D7A50] uppercase tracking-wider mb-2">Fix Steps</p>
+                          <div className="space-y-1.5">
+                            {f.action_items.map((step: string, si: number) => (
+                              <div key={si} className="flex gap-2">
+                                <span className="text-[9px] font-bold text-[#2D7A50] mt-0.5 shrink-0">{si + 1}.</span>
+                                <span className="text-[11px] text-[#56554F] leading-snug">{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Affiliate / tool recommendations */}
+                      {f.affiliates && f.affiliates.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-[9px] font-bold text-[#8E8C85] uppercase tracking-wider mb-1.5">Recommended Tools</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {f.affiliates.map((a: any, ai: number) => (
+                              <a key={ai} href={a.url} target="_blank" rel="noopener noreferrer"
+                                className="text-[10px] font-semibold px-2.5 py-1 rounded-full border transition hover:opacity-80"
+                                style={{ color: "#1B3A2D", borderColor: "rgba(27,58,45,0.2)", background: "rgba(27,58,45,0.04)" }}>
+                                {a.name}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
