@@ -138,7 +138,7 @@ export default function PrescanResultsPage() {
       <div className="min-h-screen bg-[#0a0e14] flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-3 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/30 text-sm animate-pulse">Analyzing your business...</p>
+          <p className="text-white/30 text-sm animate-pulse">Running your scan against 4,200+ leak patterns across Canadian businesses in your industry…</p>
         </div>
       </div>
     );
@@ -156,7 +156,7 @@ export default function PrescanResultsPage() {
           <div className="flex justify-end mb-2"><LangToggle lang={lang} setLang={setLang} variant="light" /></div>
           <p className="text-white/15 text-[10px] uppercase tracking-widest mb-1">Free Business Scan Results</p>
           <h1 className="text-white/70 text-lg font-bold">
-            Your {result.input_snapshot.province} {result.input_snapshot.industry.replace(/_/g, " ")} Business
+            Here's what we found in your {result.input_snapshot.province} {result.input_snapshot.industry.replace(/_/g, " ")} business.
           </h1>
         </header>
 
@@ -182,19 +182,26 @@ export default function PrescanResultsPage() {
             </div>
 
             <p className="text-white/30 text-xs text-center max-w-xs">
-              {s.health_score < 40 ? t("Your business has significant financial leaks that need attention.", "Votre entreprise a des fuites financières importantes qui nécessitent une attention.") :
-               s.health_score < 70 ? t("We found several opportunities to save money and reduce risk.", "Nous avons trouvé plusieurs opportunités d'économiser et de réduire les risques.") :
-               t("Your business looks good, but there are still optimization opportunities.", "Votre entreprise se porte bien, mais il y a encore des opportunités d'optimisation.")}
+              {s.health_score < 40 ? t(
+                "Your business is in the red zone. You're likely losing a meaningful percentage of your revenue to leaks that aren't obvious from the inside. This is fixable — but the longer you wait, the more it costs.",
+                "Votre entreprise est dans la zone rouge. Vous perdez probablement une part significative de vos revenus en fuites non visibles. C'est corrigeable — mais chaque mois qui passe aggrave la situation."
+              ) : s.health_score < 70 ? t(
+                "Your business is in reasonable shape, but there are gaps costing you more than you'd expect. Most of them are fixable without a complete overhaul — just a few targeted decisions.",
+                "Votre entreprise se porte raisonnablement bien, mais des lacunes vous coûtent plus que prévu. La plupart sont corrigeables sans refonte complète — quelques décisions ciblées suffisent."
+              ) : t(
+                "Your foundations are solid. But 'good' isn't the same as 'optimized' — and what the full scan shows suggests there's still real money being left on the table.",
+                "Vos bases sont solides. Mais 'bien' n'est pas la même chose qu''optimisé' — et ce que le scan complet révèle indique qu'il reste de l'argent sur la table."
+              )}
             </p>
           </div>
 
           {/* ═══ THE NUMBER — Emotional punch ═══ */}
           <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-5 text-center mb-6">
-            <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1">Estimated Annual Leak</p>
+            <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1">You're likely losing this much every year.</p>
             <p className="text-3xl font-black text-red-400">
               ${(s.leak_range_min ?? 0).toLocaleString()} — ${(s.leak_range_max ?? 0).toLocaleString()}
             </p>
-            <p className="text-white/15 text-[10px] mt-1">per year in potential savings, missed credits & penalty exposure</p>
+            <p className="text-white/15 text-[10px] mt-1">Based on your revenue, industry, province, and patterns across thousands of Canadian businesses.</p>
           </div>
         </div>
 
@@ -283,14 +290,14 @@ export default function PrescanResultsPage() {
                     {/* CTA overlay */}
                     <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 text-center">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-[10px] font-bold text-red-400 mb-2">
-                        {totalHidden} more leaks — ${(hiddenValue ?? 0).toLocaleString()}/yr
+                        {totalHidden} more findings hidden
                       </div>
                       <p className="text-white/25 text-[10px] mb-3">
                         Create a free account to unlock all findings, action plan & full PDF report
                       </p>
                       <button onClick={() => router.push(`/register?from=prescan&prescanRunId=${params.id}`)}
                         className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all">
-                        Create Free Account & See All →
+                        See My Full Results — Free →
                       </button>
                       <p className="text-white/10 text-[9px] mt-1.5">No credit card required</p>
                     </div>
@@ -386,7 +393,7 @@ export default function PrescanResultsPage() {
           <div style={{ animation: "fadeUp 0.5s ease-out" }}>
             {/* What you get */}
             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 mb-4">
-              <h3 className="text-white/50 text-xs font-bold mb-3 text-center">Full AI Diagnostic Includes</h3>
+              <h3 className="text-white/50 text-xs font-bold mb-3 text-center">Your Full Diagnostic Includes</h3>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { icon: "search", en: "All findings with details", fr: "Toutes les découvertes" },
@@ -408,10 +415,10 @@ export default function PrescanResultsPage() {
             {/* CTA button */}
             <button onClick={() => router.push(`/register?from=prescan&prescanRunId=${params.id}`)}
               className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-base shadow-xl shadow-emerald-500/20 transition-all active:scale-[0.98]">
-              Create Free Account & Unlock Full Report →
+              See My Full Results — Free →
             </button>
             <p className="text-center text-white/10 text-[9px] mt-2">
-              Free account · No credit card · Takes 30 seconds
+              No credit card · Takes 30 seconds · PDF included
             </p>
 
             {/* Social proof */}

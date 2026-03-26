@@ -17,7 +17,7 @@ const SECTIONS = [
     icon: "leak",
     items: [
       { q: "What is a 'leak'?", a: "A leak is any area where your business spends more than the industry benchmark. For example, if restaurants typically pay 2.5% for credit card processing and you're paying 3.2%, that gap is a leak. We calculate the annual dollar impact of each gap." },
-      { q: "What do the severity levels mean?", a: "Critical: Large leaks (usually >$10K/yr) that need immediate attention. High: Moderate leaks ($2K–$10K/yr) worth addressing soon. Low: Smaller leaks (<$2K/yr) to fix when you have time." },
+      { q: "What do the severity levels mean?", a: "Fix Now: Large leaks (usually >$10K/yr) — these are costing you money today. Fix Soon: Moderate leaks ($2K–$10K/yr) — these will get worse if you wait. Plan It: Smaller leaks (<$2K/yr) — real savings when you get to them." },
       { q: "What is the Health Score?", a: "A 0-100 score that measures how efficiently your business operates vs. industry standards. 80+ is excellent, 50-80 is average, below 50 means significant optimization opportunity." },
     ],
   },

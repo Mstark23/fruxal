@@ -192,7 +192,7 @@ export default function PrescanPage() {
           {/* ═══ STEP 0: Province + Industry ═══ */}
           {step === 0 && (
             <div className="space-y-6">
-              <Question q="Where's your business located?" qfr="Où est située votre entreprise?" isFR={isFR} />
+              <Question q="Where are you based? (Province affects which grants and credits apply to you.)" qfr="Où êtes-vous établi(e)? (La province détermine les subventions et crédits disponibles.)" isFR={isFR} />
               <div className="grid grid-cols-2 gap-2">
                 {PROVINCES.map(p => (
                   <OptionButton key={p.value} selected={answers.province === p.value}
@@ -202,7 +202,7 @@ export default function PrescanPage() {
 
               {answers.province && (
                 <div style={{ animation: "fadeUp 0.3s ease-out" }}>
-                  <Question q="What's your industry?" qfr="Quelle est votre industrie?" isFR={isFR} />
+                  <Question q="What kind of business do you run? (Your industry changes which leaks to look for first.)" qfr="Quel type d'entreprise exploitez-vous? (Votre secteur détermine les fuites prioritaires.)" isFR={isFR} />
                   <div className="grid grid-cols-2 gap-2">
                     {INDUSTRIES.map(i => (
                       <OptionButton selected={answers.industry === i.value}
@@ -217,7 +217,7 @@ export default function PrescanPage() {
           {/* ═══ STEP 1: Structure ═══ */}
           {step === 1 && (
             <div className="space-y-6">
-              <Question q="How is your business set up?" qfr="Comment est structurée votre entreprise?" isFR={isFR} />
+              <Question q="How is your business set up legally? (This affects which tax strategies are available to you.)" qfr="Comment votre entreprise est-elle structurée juridiquement? (Cela détermine les stratégies fiscales disponibles.)" isFR={isFR} />
               <div className="space-y-2">
                 {STRUCTURES.map(s => (
                   <OptionButton selected={answers.structure === s.value}
@@ -238,7 +238,7 @@ export default function PrescanPage() {
           {/* ═══ STEP 2: Revenue ═══ */}
           {step === 2 && (
             <div className="space-y-6">
-              <Question q="What's your approximate monthly revenue?" qfr="Quel est votre revenu mensuel approximatif?" isFR={isFR} />
+              <Question q="Roughly how much does your business bring in per month? (We use this to calculate the dollar impact of each leak.)" qfr="Combien votre entreprise génère-t-elle par mois environ? (Nous l'utilisons pour calculer l'impact en dollars de chaque fuite.)" isFR={isFR} />
               <div className="space-y-2">
                 {getRevenueRanges(isFR).map(r => (
                   <OptionButton key={r.value} selected={answers.monthly_revenue === r.value}
@@ -251,7 +251,7 @@ export default function PrescanPage() {
           {/* ═══ STEP 3: Employees ═══ */}
           {step === 3 && (
             <div className="space-y-6">
-              <Question q="How many people work in your business?" qfr="Combien de personnes travaillent dans votre entreprise?" isFR={isFR} />
+              <Question q="How many people work in your business? (Payroll is one of the top sources of both savings and compliance risk.)" qfr="Combien de personnes travaillent dans votre entreprise? (La paie est l'une des principales sources d'économies et de risque.)" isFR={isFR} />
               <div className="space-y-2">
                 {EMPLOYEE_RANGES.map(e => (
                   <OptionButton key={e.value} selected={answers.employee_count === e.value}
@@ -265,7 +265,7 @@ export default function PrescanPage() {
           {/* ═══ STEP 4: Killer flags ═══ */}
           {step === 4 && (
             <div className="space-y-6">
-              <Question q="Quick flags — check what applies:" qfr="Cochez ce qui s'applique:" isFR={isFR} />
+              <Question q="Check what applies — these flags directly change your results:" qfr="Cochez ce qui s'applique — ces indicateurs modifient directement vos résultats :" isFR={isFR} />
               <div className="space-y-2">
                 <FlagToggle on={answers.has_accountant} onClick={() => set("has_accountant", !answers.has_accountant)} label="I have an accountant or bookkeeper"  />
                 <FlagToggle on={answers.handles_data} onClick={() => set("handles_data", !answers.handles_data)} label="I collect customer data (emails, payments)" icon="" />
@@ -288,12 +288,12 @@ export default function PrescanPage() {
           {/* ═══ STEP 5: Smart follow-up ═══ */}
           {step === 5 && (
             <div className="space-y-6">
-              <Question q="Last few questions — these directly affect your results:" qfr="Quelques dernières questions:" isFR={isFR} />
+              <Question q="Last few — these often reveal the biggest gaps:" qfr="Dernières questions — elles révèlent souvent les plus grands écarts :" isFR={isFR} />
               <div className="space-y-4">
 
                 {/* Tax reviewed */}
                 <div>
-                  <p className="text-white/50 text-[11px] font-medium mb-2">When did you last review your tax setup with a professional?</p>
+                  <p className="text-white/50 text-[11px] font-medium mb-2">When did you last have a professional look at your full tax setup — not just file your return, but actually review your structure and strategy? (This single question often reveals the largest gap.)</p>
                   <div className="space-y-2">
                     {[
                       { value: "this_year", label: "This year" },
@@ -312,7 +312,7 @@ export default function PrescanPage() {
                 <FlagToggle
                   on={answers.vendor_contracts_stale}
                   onClick={() => set("vendor_contracts_stale", !answers.vendor_contracts_stale)}
-                  label="My supplier/vendor contracts haven't been renegotiated in 2+ years"
+                  label="My supplier/vendor contracts haven't been renegotiated in the last 2 years (most businesses save 8–15% when they do)"
                   icon="pdf"
                 />
 
@@ -337,7 +337,7 @@ export default function PrescanPage() {
 
               <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl px-4 py-3 mt-2">
                 <p className="text-xs text-emerald-400/70 font-medium">
-                  {t("Scanning", "Analyse des") + " " + (isFR ? PROVINCES.find(p => p.value === answers.province)?.fr || PROVINCES.find(p => p.value === answers.province)?.label : PROVINCES.find(p => p.value === answers.province)?.label) + " " + t("regulations,", "réglementations,") + " " + (answers.monthly_revenue >= 10000 ? "mid-market" : "small business") + " tax rules, and government programs for " + (INDUSTRIES.find(i => i.value === answers.industry)?.label?.toLowerCase()) + " businesses."}
+                  {"Scanning " + (isFR ? PROVINCES.find(p => p.value === answers.province)?.fr || PROVINCES.find(p => p.value === answers.province)?.label : PROVINCES.find(p => p.value === answers.province)?.label) + " " + (isFR ? "réglementations," : "regulations,") + " " + (answers.monthly_revenue >= 10000 ? "mid-market" : "small business") + " tax rules, and government programs for " + (INDUSTRIES.find(i => i.value === answers.industry)?.label?.toLowerCase()) + " businesses."}
                 </p>
               </div>
             </div>

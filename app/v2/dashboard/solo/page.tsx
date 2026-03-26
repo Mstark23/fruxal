@@ -319,13 +319,13 @@ export default function SoloDashboard() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-semibold text-ink">{t("You're seeing prescan estimates", "Vous voyez des estimations du prescan")}</p>
-              <p className="text-[10px] text-ink-faint mt-0.5">{t("Run your diagnostic to get exact amounts, fix steps, tonight's action, and government programs matched to you.", "Lancez votre diagnostic pour obtenir des montants exacts, étapes de correction et programmes gouvernementaux.")}</p>
+              <p className="text-[12px] font-semibold text-ink">{t("You're seeing estimates — your real numbers are waiting", "Vous voyez des estimations — vos vrais chiffres vous attendent")}</p>
+              <p className="text-[10px] text-ink-faint mt-0.5">{t("The full diagnostic finds exact dollar amounts, a 90-day fix plan, and government programs matched to your business.", "Le diagnostic complet trouve des montants exacts, un plan de correction 90 jours et des programmes gouvernementaux adaptés.")}</p>
             </div>
             <button onClick={() => router.push("/v2/diagnostic")}
               className="shrink-0 h-8 px-4 text-[11px] font-bold text-white rounded-lg transition hover:opacity-90"
               style={{ background: "#1B3A2D" }}>
-              {t("Run Diagnostic →", "Lancer le diagnostic →")}
+              {t("Run My Full Diagnostic →", "Lancer mon diagnostic →")}
             </button>
           </div>
         )}
@@ -364,7 +364,7 @@ export default function SoloDashboard() {
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
             <div className="text-[11px] text-ink-muted mt-1.5">
-              {displayLeaks.length} {t("leaks detected", "fuites detectees")}
+              {displayLeaks.length} {t("leaks still costing you", "fuites encore actives")}
 
             </div>
           </button>
@@ -519,7 +519,7 @@ export default function SoloDashboard() {
                   <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
                   </div>
-                  <p className="text-[12px] font-semibold text-ink mb-1">{t("No tasks yet", "Aucune tâche")}</p>
+                  <p className="text-[12px] font-semibold text-ink mb-1">{t("No tasks started yet — pick the leak with the highest dollar amount", "Aucune tâche commencée — choisissez la fuite avec le montant le plus élevé")}</p>
                   <p className="text-[11px] text-ink-muted mb-2">{t("Run your diagnostic to get your personalized fix plan.", "Lancez votre diagnostic pour obtenir votre plan de correction personnalisé.")}</p>
                   <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
                 </div>
@@ -729,7 +729,7 @@ export default function SoloDashboard() {
                 <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 </div>
-                <p className="text-[12px] font-semibold text-ink mb-1">{t("Action plan not generated yet", "Plan d'action pas encore généré")}</p>
+                <p className="text-[12px] font-semibold text-ink mb-1">{t("Your action plan is waiting", "Votre plan d'action vous attend")}</p>
                 <p className="text-[11px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
                 <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
               </div>

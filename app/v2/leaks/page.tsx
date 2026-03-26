@@ -28,9 +28,9 @@ const SOLUTION_LABELS: Record<string, { icon: string; label: string; fr: string 
 
 const STATUS_TABS = [
   { value: "all",         label: "All",         fr: "Tous" },
-  { value: "detected",    label: "Unfixed",      fr: "Non corrigés" },
-  { value: "in_progress", label: "In Progress",  fr: "En cours" },
-  { value: "fixed",       label: "Fixed",        fr: "Corrigés" },
+  { value: "detected",    label: "Still Costing You", fr: "Encore actif" },
+  { value: "in_progress", label: "You're On It",      fr: "En cours" },
+  { value: "fixed",       label: "Fixed ✓",            fr: "Corrigé ✓" },
 ];
 
 interface Leak {
@@ -155,11 +155,11 @@ export default function LeaksPage() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-brand-soft border border-brand/10 rounded-xl px-3 py-2.5 text-center">
             <p className="text-brand text-lg font-black">${(totalSavings ?? 0).toLocaleString()}</p>
-            <p className="text-brand/20 text-[8px] uppercase tracking-wider">Saved / Year</p>
+            <p className="text-brand/20 text-[10px] uppercase tracking-wider">Saved / Year</p>
           </div>
           <div className="bg-red-500/[0.03] border border-negative/10 rounded-xl px-3 py-2.5 text-center">
             <p className="text-negative/60 text-lg font-black">${(potentialSavings ?? 0).toLocaleString()}</p>
-            <p className="text-negative/20 text-[8px] uppercase tracking-wider">Still Leaking</p>
+            <p className="text-negative/20 text-[10px] uppercase tracking-wider">Still Leaking</p>
           </div>
         </div>
 
@@ -241,8 +241,8 @@ export default function LeaksPage() {
                     className="w-full text-left px-4 py-3 flex items-start gap-3">
                     <div key={i} className="flex-1 min-w-0">
                       <div key={i} className="flex items-center gap-1.5 mb-1">
-                        <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase ${sc.bg} ${sc.text}`}>{leak.severity}</span>
-                        <span className="text-ink-faint text-[8px]">{sol.icon} {sol.label}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${sc.bg} ${sc.text}`}>{leak.severity}</span>
+                        <span className="text-ink-faint text-[10px]">{sol.label}</span>
                       </div>
                       <p className={`text-xs font-medium ${isFixed ? "text-ink-faint line-through" : "text-ink-muted"}`}>{leak.title}</p>
                     </div>
@@ -252,7 +252,7 @@ export default function LeaksPage() {
                       ) : (
                         <p className="text-negative/50 text-xs font-bold">${(leak.impact_max ?? 0).toLocaleString()}<span className="text-[9px]">/yr</span></p>
                       )}
-                      <span className="text-ink-faint text-[8px]">{isExpanded ? "▲" : "▼"}</span>
+                      <span className="text-ink-faint text-[8px]">{isExpanded ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
                     </div>
                   </button>
 

@@ -243,7 +243,7 @@ export default function DiagnosticReportPage() {
     : (report.findings ?? []);
 
   const TABS: { key: Tab; label: string; labelFr: string; count?: number }[] = [
-    { key: "findings", label: "Findings", labelFr: "Constats", count: (report.findings ?? []).length },
+    { key: "findings", label: "Leaks Found", labelFr: "Fuites détectées", count: (report.findings ?? []).length },
     { key: "plan", label: t("Action Plan", "Plan d'action"), labelFr: "Plan d'action", count: ((report.action_plan as any)?.optimal_sequence ?? []).length },
     { key: "risk", label: t("Risk Matrix", "Matrice de risque"), labelFr: "Risques", count: (report.risk_matrix ?? []).length },
     { key: "benchmarks", label: t("Benchmarks", "Repères"), labelFr: "Comparaisons" },
@@ -304,10 +304,10 @@ export default function DiagnosticReportPage() {
         {/* 4 Score bars */}
         <div className="grid grid-cols-4 gap-2 mb-6" style={{ animation: "fadeUp 0.35s ease-out" }}>
           {([
-            { key: "compliance", label: isFr ? "Conformité" : "Compliance", color: "#3b82f6" },
-            { key: "efficiency", label: isFr ? "Efficacité" : "Efficiency", color: "#10b981" },
-            { key: "optimization", label: isFr ? "Optimisation" : "Optimization", color: "#8b5cf6" },
-            { key: "growth", label: isFr ? "Croissance" : "Growth", color: "#f59e0b" },
+            { key: "compliance", label: isFr ? "Risque conformité" : "Compliance Risk", color: "#3b82f6" },
+            { key: "efficiency", label: isFr ? "Santé financière" : "Financial Health", color: "#10b981" },
+            { key: "optimization", label: isFr ? "Optimisation tarifs" : "Pricing Health", color: "#8b5cf6" },
+            { key: "growth", label: isFr ? "Prêt à croître" : "Growth Readiness", color: "#f59e0b" },
           ] as const).map(s => (
             <div key={s.key} className="bg-white/[0.06] border border-white/[0.14] rounded-xl px-3 py-2">
               <div className="flex items-center justify-between mb-1">
@@ -323,7 +323,7 @@ export default function DiagnosticReportPage() {
 
         {/* Executive Summary */}
         <div className="bg-white/[0.06] border border-white/[0.14] rounded-xl p-5 mb-6" style={{ animation: "fadeUp 0.4s ease-out" }}>
-          <h2 className="text-sm font-semibold text-ink-secondary mb-3">{isFr ? "Résumé exécutif" : "Executive Summary"}</h2>
+          <h2 className="text-sm font-semibold text-ink-secondary mb-3">{isFr ? "Votre situation en clair" : "Here's your situation, clearly"}</h2>
           <p className="text-xs text-ink-secondary leading-relaxed whitespace-pre-wrap">
             {isFr ? (report.executive_summary_fr || report.executive_summary) : report.executive_summary}
           </p>
@@ -358,7 +358,12 @@ export default function DiagnosticReportPage() {
                     className={`text-[10px] px-2.5 py-1 rounded-md transition-all ${
                       filterSeverity === sev ? `${st.bg} ${st.text}` : "bg-white/[0.06] text-ink/85"
                     }`}>
-                    {sev} ({count})
+                    {{
+                      critical: isFr ? `Urgent (${count})` : `Fix Now (${count})`,
+                      high: isFr ? `Bientôt (${count})` : `Fix Soon (${count})`,
+                      medium: isFr ? `Planifier (${count})` : `Plan It (${count})`,
+                      low: isFr ? `Bon à savoir (${count})` : `Good to Know (${count})`,
+                    }[sev]}
                   </button>
                 );
               })}

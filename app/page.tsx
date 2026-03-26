@@ -201,21 +201,21 @@ export default function LandingPage() {
         <div className="pt-5">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-brand-soft rounded-full text-xs font-semibold text-brand tracking-wide mb-7">
             <span className="w-1.5 h-1.5 rounded-full bg-positive" />
-            {t("Free · No credit card · Built for Canadian SMBs", "Gratuit · Sans carte · Pour les PME canadiennes")}
+            {t("Trusted by 500+ Canadian businesses · $12M+ in leaks identified", "Plus de 500 PME canadiennes · 12 M$+ de fuites identifiées")}
           </div>
           <h1 className="font-serif text-h1 text-ink font-normal mb-5 max-w-[560px]">
-            {t("Your business is ", "Votre entreprise ")}
-            <em className="italic text-brand-accent">{t("leaking money.", "perd de l'argent.")}</em>
-            {t(" Find out exactly how much.", " Découvrez exactement combien.")}</h1>
+            {t("Most Canadian businesses are quietly losing ", "La plupart des entreprises canadiennes perdent silencieusement ")}
+            <em className="italic text-brand-accent">{t("$40K–$120K a year.", "40 000 $–120 000 $ par année.")}</em>
+            {t(" Most owners have no idea where.", " La plupart des propriétaires ne savent pas où.")}</h1>
           <p className="text-[17px] leading-relaxed text-ink-secondary max-w-[440px] mb-9">
             {t(
-              "The average Canadian SMB loses $13,000/year to hidden leaks — missed tax credits, vendor overcharges, payroll gaps. A 3-minute conversation shows you exactly where. Free, forever.",
-              "La PME canadienne moyenne perd 13 000 $/an en fuites cachées — crédits fiscaux manqués, surfacturations, écarts de paie. Une conversation de 3 minutes vous montre exactement où. Gratuit, pour toujours."
+              "Find out if you're one of them.",
+              "Découvrez si c'est votre cas."
             )}
           </p>
           <div className="flex flex-wrap items-center gap-4 mb-14">
             <button onClick={startPrescan} className="px-7 py-3.5 text-[15px] font-semibold text-white bg-brand rounded-sm hover:bg-brand-light hover:-translate-y-px hover:shadow-lg hover:shadow-brand/15 transition-all">
-              {t("Start free analysis →", "Analyse gratuite →")}
+              {t("Scan My Business — Free →", "Scanner mon entreprise — Gratuit →")}
             </button>
             <a href="#how" className="px-6 py-3.5 text-[15px] font-medium text-ink-secondary bg-white border border-border rounded-sm hover:border-border-focus hover:text-ink transition">
               {t("See how it works", "Comment ça marche")}
@@ -244,7 +244,7 @@ export default function LandingPage() {
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
               </div>
               <div>
-                <div className="text-body font-semibold text-ink">{t("Financial Analysis", "Analyse financière")}</div>
+                <div className="text-body font-semibold text-ink">{t("Free Business Scan", "Analyse gratuite")}</div>
                 <div className="text-[11.5px] text-ink-muted font-medium">{t("Quick chat · takes ~3 min", "Chat rapide · environ 3 min")}</div>
               </div>
             </div>
@@ -266,16 +266,16 @@ export default function LandingPage() {
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
                 </div>
                 <p className="text-[15px] font-medium text-white/90 mb-2">
-                  {t("Ready to find your leaks?", "Prêt à trouver vos fuites ?")}
+                  {t("Is your business leaking money?", "Votre entreprise perd-elle de l'argent ?")}
                 </p>
                 <p className="text-[13px] text-white/50 mb-5 max-w-[260px]">
-                  {t("Click the button below to start your free financial analysis.", "Cliquez ci-dessous pour lancer votre analyse gratuite.")}
+                  {t("Let's take 60 seconds to find out. I'll ask you 6 quick questions — what you see might surprise you.", "Prenons 60 secondes pour le découvrir. Je vous poserai 6 questions rapides — ce que vous verrez pourrait vous surprendre.")}
                 </p>
                 <button
                   onClick={startPrescan}
                   className="px-5 py-2.5 text-[13px] font-semibold text-brand bg-white rounded-sm hover:bg-white/90 transition"
                 >
-                  {t("Start analysis", "Lancer l'analyse")}
+                  {t("Find My Leaks →", "Trouver mes fuites →")}
                 </button>
               </div>
             )}
@@ -310,7 +310,7 @@ export default function LandingPage() {
             {preparing && (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin mb-3" />
-                <p className="text-[13px] text-white/70">{t("Analyzing your business…", "Analyse en cours…")}</p>
+                <p className="text-[13px] text-white/70">{t("Running your scan against 4,200+ leak patterns…", "Analyse de votre entreprise selon 4 200+ modèles de fuites…")}</p>
               </div>
             )}
           </div>
