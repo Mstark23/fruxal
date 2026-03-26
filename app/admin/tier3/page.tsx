@@ -39,6 +39,7 @@ export default function AdminTier3Page() {
   const [selected, setSelected] = useState<PipelineEntry|null>(null);
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
+  const [reps, setReps]       = useState<{id:string;name:string}[]>([]);
   const debounce              = useRef<NodeJS.Timeout|null>(null);
 
   const load = useCallback(async (q = search) => {
@@ -52,6 +53,20 @@ export default function AdminTier3Page() {
   }, [search]);
 
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    fetch("/api/admin/tier3/reps").then(r => r.json()).then(d => {
+      if (d.reps) setReps((d.reps as any[]).filter(r => r.status === "active").map(r => ({ id:r.id, name:r.name })));
+    }).catch(() => {});
+  }, []);
+
+  const assignRep = async (pipelineId: string, userId: string, repId: string) => {
+    if (!repId || !pipelineId) return;
+    await fetch("/api/admin/assign-rep", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, repId }),
+    });
+    load();
+  };
 
   const onSearch = (v:string) => {
     setSearch(v);

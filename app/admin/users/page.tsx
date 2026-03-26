@@ -36,6 +36,9 @@ export default function AdminUsersPage() {
   const [page, setPage]             = useState(1);
   const [selected, setSelected]     = useState<User|null>(null);
   const [note, setNote]             = useState("");
+  const [reps, setReps]             = useState<{id:string;name:string;email:string}[]>([]);
+  const [assigningRep, setAssigningRep] = useState(false);
+  const [selectedRepId, setSelectedRepId] = useState("");
   const debounce                    = useRef<NodeJS.Timeout|null>(null);
 
   const load = useCallback(async (q?: string) => {
@@ -61,6 +64,21 @@ export default function AdminUsersPage() {
   const patchUser = async (id: string, body: object) => {
     await fetch(`/api/admin/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     load();
+  };
+
+  const assignRep = async (userId: string, repId: string) => {
+    if (!repId) return;
+    setAssigningRep(true);
+    try {
+      const res = await fetch("/api/admin/assign-rep", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, repId }),
+      });
+      const j = await res.json();
+      if (j.success) setSelectedRepId("");
+      else alert("Error: " + (j.error || "Failed"));
+    } catch { alert("Failed"); }
+    setAssigningRep(false);
   };
 
   return (
@@ -230,6 +248,24 @@ export default function AdminUsersPage() {
                   </button>
                 )}
               </div>
+
+              {reps.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-2">Assign Recovery Rep</p>
+                  <div className="flex gap-2">
+                    <select value={selectedRepId} onChange={e => setSelectedRepId(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-white border border-[#E8E6E1] rounded-lg text-sm text-[#1A1A18] focus:outline-none focus:ring-1 focus:ring-[#1B3A2D]">
+                      <option value="">Select rep…</option>
+                      {reps.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    </select>
+                    <button onClick={() => assignRep(selected.id, selectedRepId)} disabled={!selectedRepId || assigningRep}
+                      className="px-4 py-2 bg-[#1B3A2D] text-white text-xs font-semibold rounded-lg hover:bg-[#2A5A44] transition disabled:opacity-40">
+                      {assigningRep ? "…" : "Assign"}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-[#B5B3AD] mt-1.5">Creates pipeline entry + notifies rep & client by email.</p>
+                </div>
+              )}
 
               <div>
                 <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-2">Admin Note</p>

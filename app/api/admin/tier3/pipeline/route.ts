@@ -115,6 +115,54 @@ export async function GET(req: NextRequest) {
       } as any);
     }
 
+    // Also include T1/T2 pipeline entries (created by prescan save or direct rep assignment)
+    // These have user_id but no diagnostic_id and no company_name (anonymous prescan leads)
+    const t1t2Leads = pipelineRows.filter((p: any) => !p.diagnostic_id && !p.company_name && p.user_id);
+    if (t1t2Leads.length > 0) {
+      const userIds = t1t2Leads.map((p: any) => p.user_id).filter(Boolean);
+      const { data: t1t2Profiles } = await supabaseAdmin
+        .from("business_profiles")
+        .select("user_id, business_name, industry, province, annual_revenue")
+        .in("user_id", userIds);
+      const pm2: Record<string,any> = {};
+      for (const prof of t1t2Profiles || []) pm2[prof.user_id] = prof;
+
+      for (const p of t1t2Leads) {
+        const prof = pm2[p.user_id] || {};
+        const pipeUpdated = p.updated_at || p.created_at;
+        const daysInStage = Math.max(0, Math.floor((Date.now() - new Date(pipeUpdated).getTime()) / 86400000));
+        const rev = prof.annual_revenue || 0;
+        const estLeak = Math.round(rev * 0.05); // ~5% revenue estimate
+
+        // Skip if already in entries (avoid duplicates from previous loops)
+        if (entries.find((e: any) => e.pipelineId === p.id)) continue;
+
+        entries.push({
+          pipelineId: p.id,
+          diagnosticId: null,
+          companyName: prof.business_name || `User ${p.user_id?.slice(0,8)}`,
+          industry: prof.industry || null,
+          province: prof.province || null,
+          revenueBracket: rev ? `$${Math.round(rev/1000)}K/yr` : null,
+          estimatedLow: estLeak * 0.7,
+          estimatedHigh: estLeak * 1.3,
+          highConfidenceCount: 0,
+          stage: p.stage || "lead",
+          notes: p.notes || null,
+          followUpDate: p.follow_up_date || null,
+          lostReason: p.lost_reason || null,
+          daysInStage,
+          createdAt: p.created_at,
+          updatedAt: pipeUpdated,
+          agreementStatus: null,
+          agreementContact: null,
+          contactEmail: p.contact_email || null,
+          source: "prescan",
+          userId: p.user_id,
+        } as any);
+      }
+    }
+
     if (stage !== "all") entries = entries.filter((e: any) => e.stage === stage);
     if (search) { const s = search.toLowerCase(); entries = entries.filter((e: any) => e.companyName.toLowerCase().includes(s)); }
 
