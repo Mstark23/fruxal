@@ -212,7 +212,10 @@ export async function POST(req: NextRequest) {
       const { score } = scoreLeadQuality({
         annualRevenue: annualRev,
         estimatedLeak: totalLeak,
-        province:      (req as any)._parsedBody?.province || (prescanResult as any)?.province || null,
+        province:      (prescanResult as any)?.input_snapshot?.province
+              || (prescanResult as any)?.province
+              || (prescanResult as any)?.summary?.province
+              || null,
         hasAccountant: (prescanResult as any)?.has_accountant ?? null,
         lastTaxReview: (prescanResult as any)?.last_tax_review || null,
         doesRd:        (prescanResult as any)?.does_rd ?? null,
@@ -229,7 +232,7 @@ export async function POST(req: NextRequest) {
           const { data: reps } = await supabase
             .from("tier3_reps").select("id, province").eq("status", "active")
             .order("created_at", { ascending: true });
-          const prov = (prescanResult as any)?.province;
+          const prov = (prescanResult as any)?.input_snapshot?.province || (prescanResult as any)?.province || null;
           const rep = (reps || []).find((r: any) => r.province === prov) || reps?.[0];
           if (rep) {
             const baseUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";

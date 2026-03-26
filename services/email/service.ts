@@ -367,8 +367,8 @@ interface WelcomeEmailArgs {
 }
 
 export async function sendWelcomeEmail({
-  to, name, industry, province, qualifiedPlan, teaserLeaks, lang = "en",
-}: WelcomeEmailArgs): Promise<boolean> {
+  to, name, industry, province, qualifiedPlan, teaserLeaks, lang = "en", hasRep = false,
+}: WelcomeEmailArgs & { hasRep?: boolean }): Promise<boolean> {
   const appUrl  = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const isFR    = lang === "fr" || (province === "QC" && lang !== "en");
   const greeting = name ? (isFR ? `Bonjour ${name}` : `Hi ${name}`) : (isFR ? "Bonjour" : "Hi there");
@@ -395,17 +395,29 @@ export async function sendWelcomeEmail({
     ? `${greeting},<br><br>Votre compte Fruxal est prêt. Voici ce que vous devez faire maintenant :`
     : `${greeting},<br><br>Your Fruxal account is ready. Here's what to do now:`;
 
-  const steps = isFR
-    ? [
-        { n: "1", text: "Lancez votre diagnostic complet", sub: "Obtenez votre score santé, tous vos constats et votre plan d'action personnalisé", href: `${appUrl}/v2/diagnostic` },
-        { n: "2", text: "Complétez votre première tâche", sub: "Chaque tâche complétée récupère de l'argent dans votre entreprise", href: `${appUrl}/v2/diagnostic` },
-        { n: "3", text: "Fixez un objectif de 90 jours", sub: "Engagez-vous sur un montant à récupérer ce trimestre", href: `${appUrl}/v2/dashboard` },
-      ]
-    : [
-        { n: "1", text: "Run your full diagnostic", sub: "Get your health score, all findings, and a personalized 90-day action plan", href: `${appUrl}/v2/diagnostic` },
-        { n: "2", text: "Complete your first task", sub: "Every task you complete recovers real money back into your business", href: `${appUrl}/v2/diagnostic` },
-        { n: "3", text: "Set a 90-day goal", sub: "Commit to a savings target for this quarter", href: `${appUrl}/v2/dashboard` },
-      ];
+  const steps = hasRep
+    ? (isFR
+      ? [
+          { n: "1", text: "Un expert en récupération vous a été assigné", sub: "Vous recevrez bientôt un appel de votre rep Fruxal — soyez disponible.", href: `${appUrl}/v2/dashboard` },
+          { n: "2", text: "Préparez vos documents", sub: "Contrats fournisseurs, relevés bancaires récents, déclarations T2 — votre rep vous guidera.", href: `${appUrl}/v2/collect` },
+          { n: "3", text: "Aucun frais jusqu'à récupération", sub: "On prend 12% de ce qu'on récupère. Vous gardez 88%.", href: `${appUrl}/v2/dashboard` },
+        ]
+      : [
+          { n: "1", text: "A recovery expert is being assigned to you", sub: "Your Fruxal rep will reach out soon — be available for a short call.", href: `${appUrl}/v2/dashboard` },
+          { n: "2", text: "Prepare your documents", sub: "Vendor contracts, recent bank statements, T2 returns — your rep will guide you on exactly what's needed.", href: `${appUrl}/v2/collect` },
+          { n: "3", text: "No cost until money is recovered", sub: "We take 12% of what we recover. You keep 88%. Nothing until then.", href: `${appUrl}/v2/dashboard` },
+        ])
+    : (isFR
+      ? [
+          { n: "1", text: "Lancez votre diagnostic complet", sub: "Obtenez votre score santé, tous vos constats et votre plan d'action personnalisé", href: `${appUrl}/v2/diagnostic` },
+          { n: "2", text: "Voyez vos fuites par ordre de priorité", sub: "Commencez par celle avec le montant le plus élevé", href: `${appUrl}/v2/leaks` },
+          { n: "3", text: "Vos résultats pourraient déclencher une assignation", sub: "Certains profils sont éligibles à un expert en récupération dédié — gratuit.", href: `${appUrl}/v2/dashboard` },
+        ]
+      : [
+          { n: "1", text: "Run your full diagnostic", sub: "Get your health score, all findings, and a personalized 90-day action plan", href: `${appUrl}/v2/diagnostic` },
+          { n: "2", text: "See your leaks by priority", sub: "Start with the highest dollar amount — that's your biggest win", href: `${appUrl}/v2/leaks` },
+          { n: "3", text: "Your results may qualify you for a rep", sub: "High-value cases get a dedicated recovery expert assigned — free, no upfront cost", href: `${appUrl}/v2/dashboard` },
+        ]);
 
   const stepsHtml = steps.map(s =>
     `<div style="display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;">

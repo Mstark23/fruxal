@@ -6,6 +6,7 @@ import { sendWelcomeEmail } from "@/services/email/service";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { scoreLeadQuality, scoreToPriority } from "@/lib/lead-score";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
 
@@ -298,12 +299,91 @@ export async function POST(request: NextRequest) {
       process.env.NODE_ENV !== "production" && console.log(`✅ Prescan bridge complete: user=${userId}, biz=${businessId}, prescan=${prescanRunId}`);
     }
 
+    // Auto-assign HOT leads at registration (non-blocking)
+    // We have province/industry/revenue from prescan_runs at this point
+    if (prescanRunId && userId) {
+      (async () => {
+        try {
+          const { data: run } = await sb
+            .from("prescan_runs")
+            .select("province, industry_slug, annual_revenue, employee_count")
+            .eq("id", prescanRunId)
+            .maybeSingle();
+
+          const prescanResults = await sb
+            .from("prescan_results")
+            .select("summary")
+            .eq("prescan_run_id", prescanRunId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          const leakTotal = (prescanResults?.data as any)?.summary?.leak_range_max ?? 0;
+          const rev       = run?.annual_revenue ?? 0;
+
+          const { score } = scoreLeadQuality({
+            annualRevenue:  rev,
+            estimatedLeak:  leakTotal,
+            province:       run?.province       || null,
+            hasAccountant:  null,
+            lastTaxReview:  null,
+            doesRd:         null,
+            employeeCount:  run?.employee_count ?? null,
+            industry:       run?.industry_slug  || null,
+            daysInPipeline: 0,
+          });
+
+          if (score >= 60) {
+            // Find best rep for this province
+            const { data: reps } = await sb
+              .from("tier3_reps")
+              .select("id, province")
+              .eq("status", "active")
+              .order("created_at", { ascending: true });
+
+            const prov = run?.province;
+            const rep  = (reps || []).find((r: any) => r.province === prov) || reps?.[0];
+
+            if (rep) {
+              const baseUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+              await fetch(baseUrl + "/api/admin/assign-rep", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + process.env.CRON_SECRET,
+                },
+                body: JSON.stringify({
+                  userId,
+                  repId: rep.id,
+                  notes: `Auto-assigned at registration. Lead score: ${score}. Prescan: ${prescanRunId}.`,
+                }),
+              }).catch(() => {});
+            }
+          }
+        } catch { /* non-fatal — never block registration */ }
+      })();
+    }
+
     // Send welcome email (non-blocking)
+    // hasRep hint: if businessId exists and plan is solo (T1/T2), check score
+    let expectRep = false;
+    if (prescanRunId && businessId) {
+      try {
+        const { data: scoreRun } = await sb
+          .from("prescan_runs")
+          .select("annual_revenue, employee_count")
+          .eq("id", prescanRunId)
+          .maybeSingle();
+        const rev = scoreRun?.annual_revenue ?? 0;
+        if (rev >= 100_000 || (scoreRun?.employee_count ?? 0) >= 3) expectRep = true;
+      } catch { /* non-fatal */ }
+    }
     sendWelcomeEmail({
       to:           email,
       name:         name || undefined,
       qualifiedPlan,
       teaserLeaks:  [],
+      hasRep:       expectRep,
     }).catch((err: any) => console.warn("[Register] Welcome email failed:", err.message));
 
     return NextResponse.json(
