@@ -67,6 +67,7 @@ export default function RepDashboard() {
 
   const activeCount   = clients.filter(c => c.engagement).length;
   const followUpCount = clients.filter(c => c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)).length;
+  const isNewRep = clients.length === 0 && !loading;
 
   if (loading) return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">

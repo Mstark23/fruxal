@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
+import { supabaseAdmin as _sb } from "@/lib/supabase-admin";
 import { sendEmail, emailTemplate } from "@/services/email/service";
 import { notifyAdmin } from "@/lib/admin-notify";
 

@@ -22,5 +22,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...corePages, ...grantPages];
+  // Additional pages
+  const extraPages: MetadataRoute.Sitemap = [
+    { url: `${base}/pricing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
+    { url: `${base}/forgot-password`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+  ];
+
+  return [...corePages, ...grantPages, ...extraPages];
 }
