@@ -20,18 +20,10 @@
 
 
 import { useState, useEffect, useRef } from "react";
-import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
-import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "@/components/v2/LiveScoreRing";
-import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
-import { RatioWidget } from "@/components/v2/RatioWidget";
-import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
-import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
+
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { JourneyWidget } from "@/components/v2/JourneyWidget";
-import { RescanWidget, RescanNudge } from "@/components/v2/RescanWidget";
-import { GoalProgressCard } from "@/components/v2/GoalProgressCard";
-import { TaskList, Task } from "@/components/v2/TaskCard";
+
 
 const fade = (delay = 0) => ({
   animation: `fadeUp 0.4s ease ${delay}s both`,
@@ -49,9 +41,9 @@ export default function EnterpriseDashboard() {
   const [lang, setLang] = useState<"en" | "fr">("en");
   const [loading, setLoading] = useState(true);
   const [reportId,   setReportId]   = useState<string | null>(null);
-  const [diagTasks, setDiagTasks] = useState<Task[]>([]);
-  const [taskSavingsAvail, setTaskSavingsAvail] = useState(0);
-  const [taskSavingsRecov, setTaskSavingsRecov] = useState(0);
+
+
+
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [rerunning,  setRerunning]  = useState(false);
   const [mounted,    setMounted]    = useState(false);
@@ -1409,8 +1401,8 @@ export default function EnterpriseDashboard() {
               {/* Preview items — blurred */}
               <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.04)" }}>
                 {[
-                  { icon: "briefing", label: t("CPA / Board Briefing Memo", "Mémo Briefing CPA"), sub: t("RDTOH strategy, tax exposure, talking points for your accountant", "Stratégie IMRTD, exposition fiscale, points pour votre comptable") },
-                  { icon: "seq", label: t("Priority Action Sequence", "Séquence d'actions prioritaires"), sub: t("Step-by-step recovery plan ranked by ROI and effort", "Plan de récupération étape par étape classé par ROI") },
+                  { icon: "📋", label: t("Accountant Briefing & Recovery Plan", "Briefing comptable et plan de récupération"), sub: t("What our team will action — RDTOH, CDA, tax exposure, vendor renegotiations", "Ce que notre équipe mettra en œuvre — IMRTD, CDC, exposition fiscale, renégociations") },
+                  { icon: "⚙️", label: t("Recovery Execution Plan", "Plan d'exécution de la récupération"), sub: t("Our accountant's step-by-step recovery sequence — ranked by ROI", "La séquence de récupération de notre comptable — classée par ROI") },
                   { icon: "bench", label: t("Peer Benchmark Comparisons", "Comparaisons aux pairs sectoriels"), sub: t("How your margins, payroll ratio, and EBITDA compare to top quartile", "Comment vos marges, masse salariale et BAIIA se comparent aux meilleurs") },
                 ].map((item, i) => (
                   <div key={i} className="px-5 py-3 flex items-center gap-4" style={{ filter: "blur(0.5px)", opacity: 0.55 }}>
@@ -1427,8 +1419,8 @@ export default function EnterpriseDashboard() {
               <div className="px-5 py-4 flex flex-col sm:flex-row items-center gap-3"
                 style={{ background: "#FAFAF8", borderTop: "1px solid rgba(0,0,0,0.05)" }}>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold text-ink">{t("We find it. We recover it. You pay nothing upfront.", "Nous trouvons. Nous récupérons. Vous ne payez rien d'avance.")}</p>
-                  <p className="text-[10px] text-ink-faint mt-0.5">{t("12% contingency on confirmed savings — booked only after you approve each finding.", "12% à la performance sur les économies confirmées — facturé uniquement après approbation.")}</p>
+                  <p className="text-[12px] font-semibold text-ink">{t("We execute your recovery. You pay 12% of confirmed savings.", "Nous exécutons votre récupération. Vous payez 12% des économies confirmées.")}</p>
+                  <p className="text-[10px] text-ink-faint mt-0.5">{t("No upfront cost. Our accountant handles CRA, vendors, and grant applications.", "Sans frais initiaux. Notre comptable gère l'ARC, les fournisseurs et les subventions.")}</p>
                 </div>
                 <a href={callHref} target="_blank" rel="noopener noreferrer"
                   className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-[12px] font-bold text-white rounded-lg transition hover:opacity-90"

@@ -6,17 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
-import { TaskList, Task } from "@/components/v2/TaskCard";
-import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
-import { MetricTooltip } from "@/components/v2/Tooltip";
-import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "@/components/v2/LiveScoreRing";
-import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
-import { RatioWidget } from "@/components/v2/RatioWidget";
-import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
-import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
-import { GoalProgressCard } from "@/components/v2/GoalProgressCard";
-import { RescanWidget, RescanNudge } from "@/components/v2/RescanWidget";
-import { JourneyWidget } from "@/components/v2/JourneyWidget";
+
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, circ = 2 * Math.PI * r;
@@ -30,7 +20,6 @@ interface Leak { slug: string; title: string; title_fr?: string; severity: strin
 interface Deadline { title: string; days_until: number; penalty_max?: number }
 interface ActionStats { total_recovered: number; actions_completed: number; quickbooks_connected: boolean; bank_connected: boolean }
 interface ActionItem { id: string; leak_title: string; fix_description: string; estimated_value: number; status: string }
-interface TonightAction { title: string; steps: string[]; time_required: string; estimated_value: number; why_tonight: string }
 const SEV_DOT: Record<string, string> = { critical: "#B34040", high: "#C4841D", medium: "#8E8C85", low: "#C5C2BB" };
 
 export default function SoloDashboard() {
@@ -59,15 +48,7 @@ export default function SoloDashboard() {
   const [thisWeekActions, setThisWeekActions] = useState<ActionItem[]>([]);
   const [completedActions, setCompletedActions] = useState<ActionItem[]>([]);
   const [diagPrograms, setDiagPrograms] = useState<Array<{ slug: string; name: string; name_fr?: string; value: number }>>([]);
-  const [tonightAction, setTonightAction] = useState<TonightAction | null>(null);
-  const [northStar, setNorthStar] = useState<any>(null);
-  const [ninetyDay, setNinetyDay] = useState<any>(null);
-  const [strengths, setStrengths] = useState<any[]>([]);
   const [diagFindings, setDiagFindings] = useState<any[]>([]);
-  const [diagTasks, setDiagTasks] = useState<Task[]>([]);
-  const [dashboardBusinessId, setDashboardBusinessId] = useState<string>("");
-  const [taskSavingsAvail, setTaskSavingsAvail] = useState(0);
-  const [taskSavingsRecov, setTaskSavingsRecov] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [assignedRep, setAssignedRep] = useState<{ name: string; calendly_url: string | null; contingency_rate: number; pipeline_stage: string | null } | null>(null);
 
@@ -146,13 +127,7 @@ export default function SoloDashboard() {
       if (diagScore > 0) setScore(diagScore);
       const diagLeak = (r.total_annual_leaks || r.totals?.annual_leaks) ?? 0;
       if (diagLeak > 0) setTotalLeak(diagLeak);
-      // Handle both {tonight_action:...} object and flat array format
-      if (r.action_plan) {
-        if (!Array.isArray(r.action_plan)) setTonightAction(r.action_plan.tonight_action || null);
-      }
-      setNorthStar(r.north_star_metric || null);
-      setNinetyDay(r.ninety_day_success || null);
-      setStrengths(r.strengths || []);
+
       if (r.findings?.length > 0) {
         setDiagFindings(r.findings);
         const slugs: string[] = [];
@@ -170,20 +145,7 @@ export default function SoloDashboard() {
       }
       } catch { /* non-fatal */ }
     };
-    const taskP = (async () => {
-      try {
-        const dash = await fetch("/api/v2/dashboard").then(r => r.ok ? r.json() : null).catch(() => null);
-        const bid = dash?.data?.businessId;
-        if (!bid) return;
-        const data = await fetch(`/api/v2/tasks?businessId=${bid}`).then(r => r.ok ? r.json() : null).catch(() => null);
-        if (data?.tasks) {
-          setDiagTasks(data.tasks);
-          setTaskSavingsAvail(data.total_savings_available || 0);
-          setTaskSavingsRecov(data.total_savings_recovered || 0);
-          setDashboardBusinessId(bid);
-        }
-      } catch { /* non-fatal */ }
-    })();
+
 
     const actP = user?.id ? fetch("/api/v2/actions").then(r => r.json()).then(json => {
       if (json.stats) setActionStats(json.stats);
@@ -257,21 +219,18 @@ export default function SoloDashboard() {
           </svg>
         </div>
         <h2 className="text-[20px] font-bold text-ink mb-2">
-          {t("Run your first diagnostic", "Lancez votre premier diagnostic")}
+          {t("Start with a free 3-minute scan", "Commencez par un scan de 3 minutes")}
         </h2>
         <p className="text-[14px] text-ink-muted mb-2">
-          {t("Get your financial health score, every detected leak with dollar amounts, and a step-by-step fix plan — in 5 minutes.", "Obtenez votre score de santé financière, chaque fuite détectée avec les montants, et un plan de correction — en 5 minutes.")}
+          {t("See your estimated leaks in dollar amounts. Then we assign a recovery expert who handles everything — no upfront cost.", "Voyez vos fuites estimées en dollars. Ensuite, nous assignons un expert qui s'occupe de tout — sans frais initiaux.")}
         </p>
         <p className="text-[12px] text-ink-faint mb-6">
-          {t("Takes about 5 minutes · No accountant needed", "Environ 5 minutes · Sans comptable")}
+          {t("3 minutes · No accountant needed · We do the fixing", "3 minutes · Sans comptable · Nous nous chargeons des corrections")}
         </p>
-        <button onClick={() => router.push("/v2/diagnostic")}
-          className="px-7 py-3 text-[14px] font-bold text-white bg-brand rounded-xl hover:bg-brand/90 transition">
-          {t("Run my diagnostic →", "Lancer mon diagnostic →")}
-        </button>
-        <p className="text-[11px] text-ink-faint mt-4">
-          {t("Complete the prescan on the home page first, then come back.", "Faites d'abord le préscan sur la page d'accueil, puis revenez.")}
-        </p>
+        <a href="/"
+          className="inline-block px-7 py-3 text-[14px] font-bold text-white bg-brand rounded-xl hover:bg-brand/90 transition">
+          {t("Start my free scan →", "Commencer mon scan gratuit →")}
+        </a>
       </div>
     </div>
   );
@@ -300,37 +259,7 @@ export default function SoloDashboard() {
           <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
         </div>
 
-        {/* ANALYZING BANNER */}
-        {isAnalyzing && (
-          <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
-            style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)", ...fadeDelay(0.01) }}>
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-            <div className="flex-1">
-              <p className="text-[12px] font-semibold text-white">{t("Diagnostic in progress…", "Diagnostic en cours…")}</p>
-              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("This takes 30–60 seconds. Page will refresh automatically.", "Cela prend 30 à 60 secondes. La page se rafraîchira automatiquement.")}</p>
-            </div>
-          </div>
-        )}
 
-        {/* PAID NO-DIAGNOSTIC NUDGE — paid user has prescan data but hasn't run a diagnostic */}
-        {diagFindings.length === 0 && allLeaks.length > 0 && (
-          <div className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl mb-4"
-            style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.12)", ...fadeDelay(0.02) }}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: "rgba(27,58,45,0.08)" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-semibold text-ink">{t("You're seeing estimates — your real numbers are deeper", "Vous voyez des estimations — vos vrais chiffres sont plus précis")}</p>
-              <p className="text-[10px] text-ink-faint mt-0.5">{t("The full diagnostic finds exact dollar amounts, tells you what to fix first, and matches you with government programs.", "Le diagnostic complet trouve les montants exacts, vous dit quoi corriger en premier et vous connecte aux programmes gouvernementaux.")}</p>
-            </div>
-            <button onClick={() => router.push("/v2/diagnostic")}
-              className="shrink-0 h-8 px-4 text-[11px] font-bold text-white rounded-lg transition hover:opacity-90"
-              style={{ background: "#1B3A2D" }}>
-              {t("Run My Full Diagnostic →", "Lancer mon diagnostic →")}
-            </button>
-          </div>
-        )}
 
         {/* OVERDUE ALERT */}
         {overdue > 0 && (
@@ -445,7 +374,7 @@ export default function SoloDashboard() {
 
         {/* KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5" style={fadeDelay(0.04)}>
-          <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all group" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Business Health", "Santé entreprise")}</div>
             {score > 0 ? (
               <>
@@ -458,10 +387,10 @@ export default function SoloDashboard() {
             ) : (
               <>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
-                <div className="text-[11px] text-ink-muted mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{t("Pending analysis", "Analyse en cours")}</div>
               </>
             )}
-          </button>
+          </div>
 
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Still Leaking", "Encore en fuite")}</div>
@@ -757,70 +686,7 @@ export default function SoloDashboard() {
         </div>
 
 
-        {/* ── RATIO WIDGET ────────────────────────────────────────────── */}
-        {dashboardBusinessId && (
-          <div className="mb-3">
-            <RatioWidget businessId={dashboardBusinessId} tier="solo" lang={lang} />
-          </div>
-        )}
 
-        {/* ── RESCAN NUDGE ─────────────────────────────────────────────── */}
-        {dashboardBusinessId && (
-          <RescanNudge businessId={dashboardBusinessId} tier="solo" lang={lang} />
-        )}
-        {/* ── SINCE LAST SCAN ──────────────────────────────────────────── */}
-        {dashboardBusinessId && (
-          <div className="mb-3">
-            <RescanWidget businessId={dashboardBusinessId} tier="solo" lang={lang} />
-          </div>
-        )}
-        {/* ── JOURNEY WIDGET ─────────────────────────────────────────────── */}
-        {dashboardBusinessId && (
-          <div className="mb-3">
-            <JourneyWidget businessId={dashboardBusinessId} tier={"solo"} lang={lang} />
-          </div>
-        )}
-        {/* ── GOAL PROGRESS ────────────────────────────────────────────── */}
-        {dashboardBusinessId && (
-          <div className="mb-3">
-            <GoalProgressCard businessId={dashboardBusinessId} tier="solo" lang={lang} />
-          </div>
-        )}
-        {/* ── BREAK-EVEN WIDGET ───────────────────────────────────────── */}
-        {dashboardBusinessId && (
-          <div className="mb-3">
-            <BreakEvenWidget businessId={dashboardBusinessId} tier="solo" lang={lang} />
-          </div>
-        )}
-        {/* Monthly Brief and Journey Timeline — reserved for future build */}
-        {/* ── ACTION PLAN (Tasks) ─────────────────────────────────────── */}
-        {(diagTasks.length > 0 || diagFindings.length > 0) && (
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
-                {t("Action Plan", "Plan d'action")}
-              </span>
-            </div>
-            {diagTasks.length > 0 ? (
-              <TaskList
-                tasks={diagTasks}
-                totalAvailable={taskSavingsAvail}
-                totalRecovered={taskSavingsRecov}
-                businessId={dashboardBusinessId}
-                lang={lang}
-              />
-            ) : (
-              <div className="px-4 py-5 rounded-xl text-center" style={{ border: "1px dashed #E8E6E1" }}>
-                <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                </div>
-                <p className="text-[12px] font-semibold text-ink mb-1">{t("Your action plan is waiting to be built", "Votre plan d'action attend d'être généré")}</p>
-                <p className="text-[11px] text-ink-muted mb-2">{t("The diagnostic creates a prioritized 90-day plan — what to fix first, why, and how much it gets you back.", "Le diagnostic crée un plan de 90 jours priorisé — quoi corriger en premier, pourquoi, et combien ça vous rapporte.")}</p>
-                <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run My Full Diagnostic →", "Lancer mon diagnostic →")}</button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

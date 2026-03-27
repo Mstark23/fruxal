@@ -6,21 +6,11 @@
 // =============================================================================
 
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
-import { TaskList, Task } from "@/components/v2/TaskCard";
-import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
-import { MetricTooltip } from "@/components/v2/Tooltip";
-import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "@/components/v2/LiveScoreRing";
-import { BreakEvenWidget } from "@/components/v2/BreakEvenWidget";
-import { RatioWidget } from "@/components/v2/RatioWidget";
-import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
-import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
-import { GoalProgressCard } from "@/components/v2/GoalProgressCard";
-import { RescanWidget, RescanNudge } from "@/components/v2/RescanWidget";
-import { JourneyWidget } from "@/components/v2/JourneyWidget";
+
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
   const r = (size - sw) / 2, c = 2 * Math.PI * r;
@@ -35,7 +25,6 @@ interface Leak { slug: string; title: string; title_fr?: string; severity: strin
 
 interface Deadline { title: string; days_until: number; penalty_max?: number }
 interface ActionStats { total_recovered: number; actions_completed: number }
-interface ActionItem { id: string; leak_title: string; fix_description: string; estimated_value: number; status: string }
 const SEV_DOT: Record<string, string> = { critical: "#B34040", high: "#C4841D", medium: "#8E8C85", low: "#C5C2BB" };
 
 export default function BusinessDashboard() {
@@ -59,25 +48,18 @@ export default function BusinessDashboard() {
   const [leaksFixed, setLeaksFixed] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
   const [actionStats, setActionStats] = useState<ActionStats | null>(null);
-  const [inProgressActions, setInProgressActions] = useState<ActionItem[]>([]);
-  const [thisWeekActions, setThisWeekActions] = useState<ActionItem[]>([]);
-  const [completedActions, setCompletedActions] = useState<ActionItem[]>([]);
 
   // — diagnostic additions —
   const [reportId, setReportId] = useState<string | null>(null);
-  const [dashboardBusinessId, setDashboardBusinessId] = useState<string>("");
-  const [diagTasks, setDiagTasks] = useState<Task[]>([]);
-  const [taskSavingsAvail, setTaskSavingsAvail] = useState(0);
-  const [taskSavingsRecov, setTaskSavingsRecov] = useState(0);
   const [bankabilityScore, setBankabilityScore] = useState(0);
   const [diagFindings, setDiagFindings] = useState<any[]>([]);
   const [briefing, setBriefing] = useState<any>(null);
   const [diagBenchmarks, setDiagBenchmarks] = useState<any[]>([]);
-  const [planSequence, setPlanSequence] = useState<any[]>([]);
 
   // T2 is free — affiliates are the revenue, not subscriptions
   const [isPaid, setIsPaid] = useState(true); // always true
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [assignedRep, setAssignedRep] = useState<{ name: string; calendly_url: string | null; contingency_rate: number; pipeline_stage: string | null } | null>(null);
   const upgradeUrl = "/enterprise"; // upsell to enterprise (T3) only
   const upgradePrice = "";
 
@@ -111,6 +93,7 @@ export default function BusinessDashboard() {
       setProgramsAvailable(d.programs?.available ?? 0);
       setLeaksFixed(d.leaks?.fixed ?? 0);
       setTotalSavings(d.leaks?.total_savings ?? 0);
+      if (d.assigned_rep) setAssignedRep(d.assigned_rep);
       if (d.leaks?.top_unfixed?.length > 0) {
         setScore(d.health_score || 50);
         setTotalLeak(d.total_leak_estimate ?? 0);
@@ -145,40 +128,17 @@ export default function BusinessDashboard() {
         if (r.findings?.length > 0) setDiagFindings(r.findings);
         setBriefing(r.accountant_briefing || r.cpa_briefing || null);
         setDiagBenchmarks((r.benchmark_comparisons || []).slice(0, 5));
-        if (r.action_plan) {
-          if (!Array.isArray(r.action_plan) && r.action_plan.optimal_sequence) {
-            setPlanSequence(r.action_plan.optimal_sequence.slice(0, 4));
-          } else if (Array.isArray(r.action_plan)) {
-            setPlanSequence(r.action_plan.slice(0, 4).map((a: any, i: number) => ({
-              step: a.priority || i + 1,
-              action: a.title || a.action || "",
-              value: (a.estimated_savings || a.value) ?? 0,
-            })));
-          }
-        }
+
       } catch { /* non-fatal */ }
     };
 
     const diagP = loadDiag();
 
-    const taskP = (async () => {
-      try {
-        const dash = await fetch("/api/v2/dashboard").then(r => r.ok ? r.json() : null).catch(() => null);
-        const bid = dash?.data?.businessId;
-        if (!bid) return;
-        const data = await fetch(`/api/v2/tasks?businessId=${bid}`).then(r => r.ok ? r.json() : null).catch(() => null);
-        if (data?.tasks) {
-          setDiagTasks(data.tasks);
-          setTaskSavingsAvail(data.total_savings_available || 0);
-          setTaskSavingsRecov(data.total_savings_recovered || 0);
-          setDashboardBusinessId(bid);
-        }
-      } catch { /* non-fatal */ }
-    })();
+
 
     const actP = user?.id ? fetch("/api/v2/actions").then(r => r.json()).then(json => {
       if (json.stats) setActionStats(json.stats);
-      if (json.actions) { setThisWeekActions(json.actions.this_week || []); setInProgressActions(json.actions.in_progress || []); setCompletedActions(json.actions.completed || []); }
+
     }).catch(() => {}) : Promise.resolve();
 
     Promise.all([v2P, diagP, actP]).finally(() => {
@@ -205,7 +165,6 @@ export default function BusinessDashboard() {
   const streak = (progress as any)?.streak;
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon après-midi") : t("Good evening", "Bonsoir"); })();
   const fade = (d = 0) => ({ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: `all 0.45s cubic-bezier(0.16,1,0.3,1) ${d}s` } as React.CSSProperties);
-  const allActions = [...inProgressActions, ...thisWeekActions];
   const displayLeaks = diagFindings.length > 0 ? diagFindings.slice(0, 6) : leaks.slice(0, 6);
 
   if (loading || authLoading) return (
@@ -312,9 +271,95 @@ export default function BusinessDashboard() {
           </button>
         )}
 
+        {/* ═══ REP BOOKING BANNER ═══ */}
+        {assignedRep && assignedRep.pipeline_stage !== "completed" && assignedRep.pipeline_stage !== "in_engagement" && assignedRep.pipeline_stage !== "recovery_tracking" && (
+          <div className="w-full rounded-2xl mb-5 overflow-hidden" style={{ background: "linear-gradient(135deg, #0F2419 0%, #1B3A2D 60%, #1F4A36 100%)", border: "1px solid rgba(45,122,80,0.25)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s" }}>
+            <div className="px-5 pt-5 pb-4">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-widest">
+                      {t("Recovery Expert Assigned", "Expert en récupération assigné")}
+                    </span>
+                  </div>
+                  <h3 className="text-[17px] font-bold text-white leading-snug">
+                    {t("We found your leaks.", "Nous avons trouvé vos fuites.")}
+                    <br />
+                    {t("We'll fix them for you.", "Nous allons les corriger pour vous.")}
+                  </h3>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 text-[15px] font-bold text-emerald-300">
+                  {assignedRep.name.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {[
+                  { n: "1", text: t("Book a free call with your rep", "Réservez un appel gratuit") },
+                  { n: "2", text: t("We handle all the work & CRA calls", "On s'occupe de tout") },
+                  { n: "3", text: t(`You keep ${100 - (assignedRep.contingency_rate ?? 12)}% of what we recover`, `Vous gardez ${100 - (assignedRep.contingency_rate ?? 12)}% de ce qu'on récupère`) },
+                ].map(step => (
+                  <div key={step.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="text-[10px] font-black text-emerald-400 mb-1">STEP {step.n}</div>
+                    <div className="text-[11px] text-white/70 leading-tight">{step.text}</div>
+                  </div>
+                ))}
+              </div>
+              {totalLeak > 0 && (
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl mb-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div>
+                    <div className="text-[10px] text-white/30 uppercase tracking-wider">{t("Your annual leak", "Fuite annuelle")}</div>
+                    <div className="text-[18px] font-black text-red-400">${totalLeak.toLocaleString()}/yr</div>
+                  </div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  <div className="text-right">
+                    <div className="text-[10px] text-white/30 uppercase tracking-wider">{t("You keep", "Vous gardez")}</div>
+                    <div className="text-[18px] font-black text-emerald-400">${Math.round(totalLeak * (1 - (assignedRep.contingency_rate ?? 12) / 100)).toLocaleString()}/yr</div>
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-2">
+                {assignedRep.calendly_url ? (
+                  <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                    className="flex-1 py-3 rounded-xl text-center text-[13px] font-bold text-[#0F2419] transition-all hover:opacity-90 hover:-translate-y-px"
+                    style={{ background: "linear-gradient(135deg, #34d399, #10b981)" }}>
+                    {t(`Book a Free Call with ${assignedRep.name} →`, `Réserver un appel gratuit avec ${assignedRep.name} →`)}
+                  </a>
+                ) : (
+                  <button className="flex-1 py-3 rounded-xl text-center text-[13px] font-bold text-white/40 cursor-not-allowed"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} disabled>
+                    {t("Your rep will reach out shortly", "Votre rep vous contactera sous peu")}
+                  </button>
+                )}
+                <div className="flex items-center justify-center gap-1 text-[10px] text-white/20 sm:w-auto">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  {t(`No cost until you recover. We take ${assignedRep.contingency_rate ?? 12}%.`, `Aucun frais avant récupération. On prend ${assignedRep.contingency_rate ?? 12}%.`)}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ ACTIVE ENGAGEMENT BANNER ═══ */}
+        {assignedRep && (assignedRep.pipeline_stage === "in_engagement" || assignedRep.pipeline_stage === "recovery_tracking") && (
+          <div className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl mb-4" style={{ background: "rgba(27,58,45,0.06)", border: "1px solid rgba(27,58,45,0.15)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: "all 0.45s cubic-bezier(0.16,1,0.3,1) 0.04s" }}>
+            <div className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-semibold text-ink">{t(`${assignedRep.name} is working on your recovery`, `${assignedRep.name} travaille sur votre récupération`)}</p>
+              <p className="text-[10px] text-ink-faint mt-0.5">{t("We'll notify you as amounts are confirmed and recovered.", "Nous vous informerons au fur et à mesure des récupérations.")}</p>
+            </div>
+            {assignedRep.calendly_url && (
+              <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                className="shrink-0 h-8 px-3 text-[11px] font-bold text-brand border border-brand/20 rounded-lg hover:bg-brand/5 transition">
+                {t("Check in →", "Suivi →")}
+              </a>
+            )}
+          </div>
+        )}
+
         {/* KPI CARDS — 5 on business (adds Bankability) */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5" style={fade(0.04)}>
-          <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
             {score > 0 ? (
               <>
@@ -323,17 +368,14 @@ export default function BusinessDashboard() {
                   <span className="text-xs text-ink-muted mb-1">/100</span>
                 </div>
                 <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${score}%`, background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
-                {isPaid && dashboardBusinessId && (
-                  <ScoreRingAddons businessId={dashboardBusinessId} lang={lang} />
-                )}
               </>
             ) : (
               <>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
-                <div className="text-[11px] text-ink-muted mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{t("Pending analysis", "Analyse en attente")}</div>
               </>
             )}
-          </button>
+          </div>
 
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>
@@ -384,12 +426,7 @@ export default function BusinessDashboard() {
 
         {/* MAIN 3-COL */}
 
-        {/* ── RECOVERY COUNTER ────────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <div className="mb-4" style={fade(0.07)}>
-            <RecoveryCounter businessId={dashboardBusinessId} mode="hero" lang={lang} />
-          </div>
-        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_280px] gap-3" style={fade(0.1)}>
 
           {/* COL 1: LEAKS — with diagnostic math blocks */}
@@ -500,53 +537,148 @@ export default function BusinessDashboard() {
             )}
           </div>
 
-          {/* COL 2: RECOVERY PLAN + CPA BRIEFING + BENCHMARKS */}
+          {/* COL 2: REP STATUS + CPA BRIEFING + BENCHMARKS */}
           <div className="flex flex-col gap-3">
 
-            {/* Recovery Plan */}
-            <div className="bg-white rounded-xl border border-border-light overflow-hidden flex-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="px-4 py-3 border-b border-border-light">
-                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Recovery Plan", "Plan de récupération")}</span>
+            {/* Stage-aware rep section */}
+            {assignedRep && (assignedRep.pipeline_stage === "in_engagement" || assignedRep.pipeline_stage === "recovery_tracking") ? (
+              <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div className="px-4 py-3 border-b border-border-light flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Recovery in Progress", "Récupération en cours")}</span>
+                </div>
+                <div className="px-4 py-4">
+                  <p className="text-[13px] font-semibold text-ink mb-1">{t(`${assignedRep.name} is working on your file`, `${assignedRep.name} travaille sur votre dossier`)}</p>
+                  <p className="text-[11px] text-ink-muted mb-4">{t("Our accountant is handling the CRA calls, vendor negotiations, and grant applications. You'll be notified as amounts are confirmed.", "Notre comptable s'occupe des appels à l'ARC, des négociations fournisseurs et des demandes de subventions. Vous serez notifié.")}</p>
+                  {recovered > 0 && (
+                    <div className="p-3 rounded-xl mb-3" style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
+                      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">{t("Recovered So Far", "Récupéré jusqu'à présent")}</p>
+                      <p className="font-serif text-[24px] font-bold text-positive">${recovered.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {assignedRep.calendly_url && (
+                    <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl text-[12px] font-semibold text-brand border border-brand/20 hover:bg-brand/5 transition">
+                      {t("Check In with Your Rep →", "Faire le point avec votre rep →")}
+                    </a>
+                  )}
+                </div>
               </div>
-              {!isPaid ? (
-                <div className="px-4 py-8 text-center">
-                  <LockIcon />
-                  <p className="text-[11px] text-ink-muted mt-2 mb-3">{t("Your personalized fix plan unlocks with Business.", "Votre plan de correction se débloque avec Business.")}</p>
-                  <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-brand border border-brand/20 px-3 py-1.5 rounded-lg hover:bg-brand/5 transition">
-                    {t("Scale up →", "Passer →")}
-                  </button>
+            ) : assignedRep && assignedRep.pipeline_stage === "call_booked" ? (
+              <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div className="px-4 py-3 border-b border-border-light flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-positive" />
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Call Confirmed", "Appel confirmé")}</span>
                 </div>
-              ) : allActions.length === 0 ? (
-                <div className="px-4 py-6 text-center text-[11px] text-ink-muted">{t("Actions appear after your first diagnostic.", "Les actions apparaissent après votre diagnostic.")}</div>
-              ) : allActions.slice(0, 4).map((a, i) => (
-                <div key={a.id} className="px-4 py-3 flex items-center gap-3 border-b border-border-light last:border-0">
-                  <div key={i} className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0" style={{ border: `2px solid ${a.status === "in_progress" ? "#C4841D" : "#E8E6E1"}` }}>
-                    {a.status === "in_progress" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#C4841D" }} /> : <span className="text-[11px] font-bold text-ink-faint">{i + 1}</span>}
+                <div className="px-4 py-4">
+                  <p className="text-[13px] font-semibold text-ink mb-3">{t(`Your call with ${assignedRep.name} is booked.`, `Votre appel avec ${assignedRep.name} est réservé.`)}</p>
+                  <p className="text-[11px] text-ink-muted mb-3">{t("To make the most of your call, have these ready:", "Pour tirer le meilleur parti de votre appel, préparez :")}</p>
+                  <div className="space-y-2">
+                    {[
+                      t("Last 2 years of financial statements", "2 dernières années d'états financiers"),
+                      t("Recent bank & credit card statements", "Relevés bancaires et cartes de crédit récents"),
+                      t("List of your main recurring expenses", "Liste de vos principales dépenses récurrentes"),
+                      t("Any CRA correspondence", "Toute correspondance avec l'ARC"),
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.07)" }}>
+                          <span className="text-[9px] font-bold text-brand">{i + 1}</span>
+                        </div>
+                        <span className="text-[11px] text-ink-secondary leading-tight">{item}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-semibold text-ink truncate">{a.leak_title}</div>
-                    {a.fix_description && <div className="text-[11px] text-ink-faint truncate mt-0.5">{a.fix_description}</div>}
+                  {assignedRep.calendly_url && (
+                    <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 w-full py-2.5 mt-4 rounded-xl text-[12px] font-semibold text-brand border border-brand/20 hover:bg-brand/5 transition">
+                      {t("Manage Booking →", "Gérer la réservation →")}
+                    </a>
+                  )}
+                </div>
+              </div>
+            ) : assignedRep ? (
+              <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div className="px-4 py-3 border-b border-border-light">
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Your Next Step", "Votre prochaine étape")}</span>
+                </div>
+                <div className="px-4 py-4 space-y-3">
+                  {[
+                    { n: "1", en: "Book a free call with your assigned rep", fr: "Réservez un appel gratuit avec votre rep" },
+                    { n: "2", en: "We review your full diagnostic together", fr: "Nous examinons votre diagnostic ensemble" },
+                    { n: "3", en: "Our accountant contacts CRA & vendors", fr: "Notre comptable contacte l'ARC et les fournisseurs" },
+                    { n: "4", en: "We invoice 12% of what we actually recover", fr: "Nous facturons 12% de ce que nous récupérons" },
+                  ].map(step => (
+                    <div key={step.n} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.07)" }}>
+                        <span className="text-[9px] font-bold text-brand">{step.n}</span>
+                      </div>
+                      <span className="text-[12px] text-ink-secondary leading-tight">{isFR ? step.fr : step.en}</span>
+                    </div>
+                  ))}
+                </div>
+                {assignedRep.calendly_url && (
+                  <div className="px-4 pb-4">
+                    <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 w-full py-3 rounded-xl text-[13px] font-bold text-white transition hover:opacity-90"
+                      style={{ background: "linear-gradient(135deg, #1B3A2D, #2D7A50)" }}>
+                      {t(`Book a Call with ${assignedRep.name} →`, `Réserver un appel avec ${assignedRep.name} →`)}
+                    </a>
+                    <p className="text-center text-[10px] text-ink-faint mt-2">{t("No cost until we recover. We take 12%.", "Aucun frais avant récupération. On prend 12%.")}</p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-serif text-[13px] font-bold text-positive">+${(a.estimated_value ?? 0).toLocaleString()}</div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: a.status === "in_progress" ? "#C4841D" : "#8E8C85", background: a.status === "in_progress" ? "rgba(196,132,29,0.06)" : "#F0EFEB" }}>{a.status === "in_progress" ? t("Active", "En cours") : t("To do", "À faire")}</span>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div className="px-4 py-3 border-b border-border-light">
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("What Happens Next", "Ce qui se passe ensuite")}</span>
+                </div>
+                <div className="px-4 py-4 space-y-3">
+                  {[
+                    { n: "1", en: "A recovery expert is being assigned to your file", fr: "Un expert en récupération est assigné à votre dossier" },
+                    { n: "2", en: "They'll book a free call to review your leaks", fr: "Ils réserveront un appel gratuit pour examiner vos fuites" },
+                    { n: "3", en: "Our accountant contacts CRA, vendors & grant programs", fr: "Notre comptable contacte l'ARC, les fournisseurs et les programmes de subventions" },
+                    { n: "4", en: "We invoice 12% of confirmed savings — nothing upfront", fr: "Nous facturons 12% des économies confirmées — rien d'avance" },
+                  ].map(step => (
+                    <div key={step.n} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.07)" }}>
+                        <span className="text-[9px] font-bold text-brand">{step.n}</span>
+                      </div>
+                      <span className="text-[12px] text-ink-secondary leading-tight">{isFR ? step.fr : step.en}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="px-4 pb-4">
+                  <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.10)" }}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
+                    <p className="text-[11px] text-ink-secondary">{t("A Fruxal advisor will be in touch within 1 business day.", "Un conseiller Fruxal vous contactera dans un jour ouvrable.")}</p>
                   </div>
                 </div>
-              ))}
-              {completedActions.length > 0 && (
-                <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
-                  <span className="text-[11px] text-ink-muted">{completedActions.length} {t("completed", "terminées")}</span>
-                  <span className="text-[10px] font-bold text-positive">+${(recovered ?? 0).toLocaleString()}</span>
+              </div>
+            )}
+
+            {/* Recovery scoreboard */}
+            {recovered > 0 && (
+              <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("Recovery Scoreboard", "Tableau de récupération")}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[12px]"><span className="text-ink-secondary">{t("Total identified", "Total identifié")}</span><span className="font-semibold text-negative">${(totalLeak ?? 0).toLocaleString()}/yr</span></div>
+                  <div className="flex justify-between text-[12px]"><span className="text-ink-secondary">{t("Recovered so far", "Récupéré jusqu'ici")}</span><span className="font-semibold text-positive">+${recovered.toLocaleString()}</span></div>
+                  <div className="h-px bg-border-light" />
+                  <div className="flex justify-between text-[12px]"><span className="text-ink-secondary">{t("Still available", "Encore disponible")}</span><span className="font-semibold text-ink">${Math.max(0, (totalLeak ?? 0) - recovered).toLocaleString()}/yr</span></div>
                 </div>
-              )}
-            </div>
+                <div className="mt-3 h-[4px] bg-bg-section rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-positive transition-all duration-1000" style={{ width: recovPct + "%" }} />
+                </div>
+                <p className="text-[10px] text-ink-faint mt-1.5 text-right">{recovPct}% {t("recovered", "récupéré")}</p>
+              </div>
+            )}
 
             {/* ── DIAGNOSTIC ADDITION: CPA Briefing (paid only) ── */}
             {isPaid && briefing && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex items-center justify-between">
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Accountant Briefing", "Briefing comptable")}</span>
-                  <span className="text-[11px] text-ink-faint">{t("Share with CPA", "Partagez avec votre comptable")}</span>
+                  <span className="text-[11px] text-ink-faint">{t("What our team will handle", "Ce que notre équipe prendra en charge")}</span>
                 </div>
                 <div className="px-4 py-3">
                   {/* intro / summary — AI uses 'intro', old schema used 'summary' */}
@@ -597,50 +729,10 @@ export default function BusinessDashboard() {
               </div>
             )}
 
-            {/* ── DIAGNOSTIC ADDITION: Priority sequence (paid only) ── */}
-            {isPaid && planSequence.length > 0 && (
-              <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <div className="px-4 py-3 border-b border-border-light">
-                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("What To Do First", "Quoi faire en premier")}</span>
-                </div>
-                {planSequence.slice(0, 4).map((s: any, i: number) => (
-                  <div key={i} className="px-4 py-2.5 flex items-start gap-3 border-b border-border-light last:border-0">
-                    <span className="w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.08)", color: "#1B3A2D" }}>{s.step ?? i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-medium text-ink-secondary">{isFR ? (s.action_fr || s.action || "") : (s.action || "")}</p>
-                      {s.unlocks?.length > 0 && <p className="text-[11px] text-ink-faint mt-0.5">{t("Unlocks:", "Débloque:")} {s.unlocks.join(", ")}</p>}
-                      {(s.why_first || s.description) && <p className="text-[11px] text-ink-faint mt-0.5 italic">{isFR ? (s.why_first_fr || s.why_first || s.description) : (s.why_first || s.description)}</p>}
-                    </div>
-                    {(s.value ?? s.estimated_savings ?? 0) > 0 && (
-                      <span className="text-[10px] font-bold text-positive shrink-0">${(s.value ?? s.estimated_savings ?? 0).toLocaleString()}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
 
-            {/* ── DIAGNOSTIC benchmarks OR existing cost breakdown (paid only) + upgrade CTA ── */}
-            {!isPaid ? (
-              <div className="bg-white rounded-xl border border-border-light p-5 text-center"
-                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3"
-                  style={{ background: "rgba(27,58,45,0.06)" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                </div>
-                <p className="text-[12px] font-bold text-ink mb-1">
-                  {t("CPA Briefing · Priority Sequence · Benchmarks", "Briefing CPA · Séquence · Benchmarks")}
-                </p>
-                <p className="text-[11px] text-ink-muted mb-4">
-                  {t("Full calculation math, accountant talking points, and peer comparisons included.", "Math de calcul, points pour comptable et comparaisons aux pairs inclus.")}
-                </p>
-                <button onClick={() => router.push(upgradeUrl)}
-                  className="text-[11px] font-bold text-white px-5 py-2.5 rounded-lg transition hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
-                  {t("Scale up with Enterprise →", "Passer à l'entreprise →")}
-                </button>
-                <p className="text-[11px] text-ink-muted mt-2">{t("Cancel anytime", "Annulez en tout temps")}</p>
-              </div>
-            ) : diagBenchmarks.length > 0 && (
+
+            {/* ── DIAGNOSTIC benchmarks ── */}
+            {isPaid && diagBenchmarks.length > 0 && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Costs vs Industry", "Coûts vs industrie")}</span>
@@ -663,7 +755,7 @@ export default function BusinessDashboard() {
             )}
           </div>
 
-          {/* COL 3: SIDEBAR (identical to original) */}
+          {/* COL 3: SIDEBAR */}
           <div className="flex flex-col gap-3">
             <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="px-4 py-2.5 border-b border-border-light flex justify-between items-center">
@@ -703,18 +795,6 @@ export default function BusinessDashboard() {
               </div>
             </div>
 
-            <a href={process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/fruxal/advisor"} target="_blank" rel="noopener noreferrer" className="w-full bg-white rounded-xl border border-brand/15 p-4 text-left hover:shadow-[0_4px_16px_rgba(27,58,45,0.08)] transition-all block" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-brand/5 border border-brand/10 flex items-center justify-center shrink-0">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.7" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.06 1.18 2 2 0 012.03 0h3a2 2 0 012 1.72c.128.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.572 2.81.7A2 2 0 0122 16.92z"/></svg>
-                </div>
-                <div>
-                  <div className="text-[12px] font-semibold text-ink">{t("Book advisor call", "Réserver un appel")}</div>
-                  <div className="text-[11px] text-ink-faint">{isPaid ? t("Monthly 30-min included", "Session 30 min mensuelle incluse") : t("Free 30-min strategy call", "Appel stratégie gratuit de 30 min")}</div>
-                </div>
-              </div>
-            </a>
-
             <button onClick={() => router.push("/v2/chat")} className="w-full bg-white rounded-xl border border-brand/15 p-4 text-left hover:shadow-[0_4px_16px_rgba(27,58,45,0.08)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-brand/5 border border-brand/10 flex items-center justify-center shrink-0">
@@ -730,79 +810,7 @@ export default function BusinessDashboard() {
         </div>
 
 
-        {/* ── RATIO WIDGET ────────────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <div className="mb-3" style={fade(0.13)}>
-            <RatioWidget businessId={dashboardBusinessId} tier="business" lang={lang} />
-          </div>
-        )}
 
-        {/* ── RESCAN NUDGE ─────────────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <RescanNudge businessId={dashboardBusinessId} tier="business" lang={lang} />
-        )}
-        {/* ── SINCE LAST SCAN ──────────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <div className="mb-3">
-            <RescanWidget businessId={dashboardBusinessId} tier="business" lang={lang} />
-          </div>
-        )}
-        {/* ── JOURNEY WIDGET ─────────────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <div className="mb-3">
-            <JourneyWidget businessId={dashboardBusinessId} tier={"business"} lang={lang} />
-          </div>
-        )}
-        {/* ── GOAL PROGRESS ────────────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <div className="mb-3" style={fade(0.08)}>
-            <GoalProgressCard businessId={dashboardBusinessId} tier="business" lang={lang} />
-          </div>
-        )}
-        {/* ── BREAK-EVEN WIDGET ───────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <div className="mb-3" style={fade(0.12)}>
-            <BreakEvenWidget businessId={dashboardBusinessId} tier="business" lang={lang} />
-          </div>
-        )}
-        {/* ── MONTHLY BRIEF ──────────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <div className="mb-3" style={fade(0.14)}>
-          </div>
-        )}
-        {/* ── JOURNEY TIMELINE ───────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
-          <div className="mb-3" style={fade(0.15)}>
-          </div>
-        )}
-        {/* ── ACTION PLAN (Tasks) ─────────────────────────────────────── */}
-        {isPaid && (diagTasks.length > 0 || diagFindings.length > 0) && (
-          <div className="mt-4" style={fade(0.15)}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
-                {t("Action Plan", "Plan d'action")}
-              </span>
-            </div>
-            {diagTasks.length > 0 ? (
-              <TaskList
-                tasks={diagTasks}
-                totalAvailable={taskSavingsAvail}
-                totalRecovered={taskSavingsRecov}
-                businessId={dashboardBusinessId}
-                lang={lang}
-              />
-            ) : (
-              <div className="px-4 py-5 rounded-xl text-center" style={{ border: "1px dashed #E8E6E1" }}>
-                <div className="w-8 h-8 rounded-lg bg-brand/8 flex items-center justify-center mx-auto mb-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                </div>
-                <p className="text-[12px] font-semibold text-ink mb-1">{t("Action plan not generated yet", "Plan d'action pas encore généré")}</p>
-                <p className="text-[11px] text-ink-muted mb-2">{t("Complete your diagnostic to get your personalized 90-day plan.", "Complétez votre diagnostic pour obtenir votre plan de 90 jours.")}</p>
-                <button onClick={() => router.push("/v2/diagnostic")} className="text-[10px] font-bold text-brand hover:underline">{t("Run diagnostic →", "Lancer le diagnostic →")}</button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
