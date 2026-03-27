@@ -9,6 +9,7 @@
 //     frameborder="0" scrolling="no" style="border-radius:16px"></iframe>
 // =============================================================================
 "use client";
+export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { ALL_INDUSTRIES, getDisplayName, getLeakRate } from "@/lib/industries";
 
