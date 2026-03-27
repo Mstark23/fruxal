@@ -104,6 +104,9 @@ export default function PrescanResultsPage() {
   const [result, setResult] = useState<PrescanResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [revealPhase, setRevealPhase] = useState(0); // 0=loading, 1=score, 2=leaks, 3=obligations, 4=programs, 5=cta
+  const [captureEmail, setCaptureEmail] = useState(false);
+  const [captureEmailVal, setCaptureEmailVal] = useState("");
+  const [captureLoading, setCaptureLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -138,7 +141,7 @@ export default function PrescanResultsPage() {
       <div className="min-h-screen bg-[#0a0e14] flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-3 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/30 text-sm animate-pulse">Running your scan against 4,200+ leak patterns across Canadian businesses in your industry…</p>
+          <p className="text-white/30 text-sm animate-pulse">Running your scan against 4,200+ leak patterns…</p>
         </div>
       </div>
     );
@@ -154,9 +157,9 @@ export default function PrescanResultsPage() {
         {/* ═══ HEADER ═══ */}
         <header className="pt-6 pb-4 text-center">
           <div className="flex justify-end mb-2"><LangToggle lang={lang} setLang={setLang} variant="light" /></div>
-          <p className="text-white/15 text-[10px] uppercase tracking-widest mb-1">Free Business Scan Results</p>
+          <p className="text-white/15 text-[10px] uppercase tracking-widest mb-1">Your Free Scan Results</p>
           <h1 className="text-white/70 text-lg font-bold">
-            Here's what we found in your {result.input_snapshot.province} {result.input_snapshot.industry.replace(/_/g, " ")} business.
+            Here's what we found in your {result.input_snapshot.province} {result.input_snapshot.industry.replace(/_/g, " ")} business
           </h1>
         </header>
 
@@ -184,24 +187,24 @@ export default function PrescanResultsPage() {
             <p className="text-white/30 text-xs text-center max-w-xs">
               {s.health_score < 40 ? t(
                 "Your business is in the red zone. You're likely losing a meaningful percentage of your revenue to leaks that aren't obvious from the inside. This is fixable — but the longer you wait, the more it costs.",
-                "Votre entreprise est dans la zone rouge. Vous perdez probablement une part significative de vos revenus en fuites non visibles. C'est corrigeable — mais chaque mois qui passe aggrave la situation."
+                "Votre entreprise est dans la zone rouge. Vous perdez probablement une part significative de vos revenus à cause de fuites non visibles. C'est réparable — mais plus vous attendez, plus ça coûte."
               ) : s.health_score < 70 ? t(
                 "Your business is in reasonable shape, but there are gaps costing you more than you'd expect. Most of them are fixable without a complete overhaul — just a few targeted decisions.",
                 "Votre entreprise se porte raisonnablement bien, mais des lacunes vous coûtent plus que prévu. La plupart sont corrigeables sans refonte complète — quelques décisions ciblées suffisent."
               ) : t(
-                "Your foundations are solid. But 'good' isn't the same as 'optimized' — and what the full scan shows suggests there's still real money being left on the table.",
-                "Vos bases sont solides. Mais 'bien' n'est pas la même chose qu''optimisé' — et ce que le scan complet révèle indique qu'il reste de l'argent sur la table."
+                "Your foundations are solid. But 'good' isn't the same as 'optimized' — and what we found shows there's still real money being left on the table.",
+                "Vos bases sont solides. Mais 'bien' n'est pas la même chose qu''optimisé' — et ce que nous avons trouvé montre qu'il y a encore de l'argent laissé sur la table."
               )}
             </p>
           </div>
 
           {/* ═══ THE NUMBER — Emotional punch ═══ */}
           <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-5 text-center mb-6">
-            <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1">You're likely losing this much every year.</p>
+            <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1">You're likely losing this much every year</p>
             <p className="text-3xl font-black text-red-400">
               ${(s.leak_range_min ?? 0).toLocaleString()} — ${(s.leak_range_max ?? 0).toLocaleString()}
             </p>
-            <p className="text-white/15 text-[10px] mt-1">Based on your revenue, industry, province, and patterns across thousands of Canadian businesses.</p>
+            <p className="text-white/15 text-[10px] mt-1">Based on your revenue, industry, province, and patterns across thousands of Canadian businesses — not a generic estimate.</p>
           </div>
         </div>
 
@@ -258,9 +261,9 @@ export default function PrescanResultsPage() {
                           ${(leak.impact_min ?? 0).toLocaleString()} — ${(leak.impact_max ?? 0).toLocaleString()}/yr
                         </span>
                         <span className="text-white/10 text-[9px]">
-                          {leak.solution_type === "free_fix" ? t("Free fix", "Gratuit") :
+                          {leak.solution_type === "free_fix" ? t("🆓 Free fix", "🆓 Gratuit") :
                            leak.solution_type === "government_program" ? t("Gov program", "Programme gouvernemental") :
-                           leak.solution_type === "professional" ? t("Professional", "Professionnel") : t("Solution available", "Solution disponible")}
+                           leak.solution_type === "professional" ? t("Professional", "Professionnel") : t("🔗 Solution available", "🔗 Solution disponible")}
                         </span>
                       </div>
                     </div>
@@ -290,16 +293,16 @@ export default function PrescanResultsPage() {
                     {/* CTA overlay */}
                     <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 text-center">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-[10px] font-bold text-red-400 mb-2">
-                        {totalHidden} more findings hidden
+                        {totalHidden} more findings — ${(hiddenValue ?? 0).toLocaleString()}/yr still hidden
                       </div>
                       <p className="text-white/25 text-[10px] mb-3">
-                        Create a free account to unlock all findings, action plan & full PDF report
+                        We'll fix these for you — no cost upfront. We only take 12% of what we actually recover.
                       </p>
                       <button onClick={() => router.push(`/register?from=prescan&prescanRunId=${params.id}`)}
                         className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all">
-                        See My Full Results — Free →
+                        Get a Free Recovery Call →
                       </button>
-                      <p className="text-white/10 text-[9px] mt-1.5">No credit card required</p>
+                      <p className="text-white/10 text-[9px] mt-1.5">No cost until we recover. We take 12% of what we get back.</p>
                     </div>
                   </div>
                 )}
@@ -388,37 +391,90 @@ export default function PrescanResultsPage() {
           </div>
         )}
 
-        {/* ═══ THE CTA — Sticky conversion block ═══ */}
+        {/* ═══ THE CTA — Contingency recovery pitch ═══ */}
         {revealPhase >= 5 && (
           <div style={{ animation: "fadeUp 0.5s ease-out" }}>
-            {/* What you get */}
-            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 mb-4">
-              <h3 className="text-white/50 text-xs font-bold mb-3 text-center">Your Full Diagnostic Includes</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { icon: "search", en: "All findings with details", fr: "Toutes les découvertes" },
-                  { icon: "dollar", en: "Exact dollar impacts", fr: "Impacts financiers exacts" },
-                  { icon: "plan", en: "90-day action plan", fr: "Plan d'action 90 jours" },
-                  { icon: "risk", en: "Risk matrix", fr: "Matrice de risque" },
-                  { icon: "benchmark", en: "Industry benchmarks", fr: "Repères de l'industrie" },
-                  { icon: "programs", en: "All matching programs", fr: "Tous les programmes" },
-                  { icon: "pdf", en: "PDF report", fr: "Rapport PDF" },
-                  { icon: "ai", en: "AI-powered analysis", fr: "Analyse par IA" },
-                ].map((f, i) => (
-                  <div key={i} className="flex items-center gap-2 text-[10px] text-white/25">
-                    <span>{f.icon}</span><span>{isFR ? f.fr : f.en}</span>
-                  </div>
-                ))}
+
+            {/* How it works */}
+            <div className="rounded-2xl overflow-hidden mb-4" style={{ background: "linear-gradient(135deg, #0F2419 0%, #1B3A2D 100%)", border: "1px solid rgba(45,122,80,0.2)" }}>
+              <div className="px-5 pt-5 pb-2">
+                <p className="text-[10px] font-bold text-emerald-400/70 uppercase tracking-widest mb-2">{isFR ? "Comment ça marche" : "How it works"}</p>
+                <h3 className="text-white text-[16px] font-bold mb-4 leading-snug">
+                  {isFR ? "Nous faisons tout le travail. Vous gardez 88%." : "We do all the work. You keep 88%."}
+                </h3>
+                <div className="space-y-2 mb-4">
+                  {[
+                    { n: "1", en: "We assign you a recovery expert", fr: "On vous assigne un expert en récupération" },
+                    { n: "2", en: "Our accountant calls CRA and handles the claims", fr: "Notre comptable appelle l'ARC et gère les réclamations" },
+                    { n: "3", en: "You pay nothing until money is recovered", fr: "Vous ne payez rien avant récupération" },
+                    { n: "4", en: "We take 12% of what we get back. You keep the rest.", fr: "On prend 12% de ce qu'on récupère. Vous gardez le reste." },
+                  ].map(s => (
+                    <div key={s.n} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[9px] font-black text-emerald-400">{s.n}</span>
+                      </div>
+                      <span className="text-[12px] text-white/60 leading-tight">{isFR ? s.fr : s.en}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {/* Math block */}
+              {s.leak_range_min > 0 && (
+                <div className="mx-4 mb-4 px-4 py-3 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[9px] text-white/25 uppercase tracking-wider mb-0.5">{isFR ? "Fuite estimée" : "Estimated leak"}</p>
+                      <p className="text-[16px] font-black text-red-400">${(s.leak_range_min ?? 0).toLocaleString()}/yr</p>
+                    </div>
+                    <div className="text-white/10 text-lg">→</div>
+                    <div className="text-right">
+                      <p className="text-[9px] text-white/25 uppercase tracking-wider mb-0.5">{isFR ? "Vous récupérez" : "You could recover"}</p>
+                      <p className="text-[16px] font-black text-emerald-400">${Math.round((s.leak_range_min ?? 0) * 0.88).toLocaleString()}/yr</p>
+                    </div>
+                  </div>
+                  <p className="text-[9px] text-white/15 text-center mt-2">{isFR ? "après notre commission de 12%" : "after our 12% contingency fee"}</p>
+                </div>
+              )}
             </div>
 
             {/* CTA button */}
+            {/* Quick email capture for anonymous users */}
+            {!captureEmail && (
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-3">
+                <p className="text-white/50 text-[11px] text-center mb-2">
+                  {isFR ? "Envoyez-vous ce rapport par courriel" : "Email yourself this report"}
+                </p>
+                <div className="flex gap-2">
+                  <input type="email" placeholder="your@email.com" value={captureEmailVal}
+                    onChange={e => setCaptureEmailVal(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/15 text-white text-[12px] placeholder-white/30 focus:outline-none focus:border-white/30"
+                  />
+                  <button onClick={async () => {
+                    if (!captureEmailVal.includes("@")) return;
+                    setCaptureLoading(true);
+                    try {
+                      await fetch("/api/v2/prescan/email-capture", {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: captureEmailVal, prescanResultId: params.id }),
+                      });
+                      setCaptureEmail(true);
+                    } finally { setCaptureLoading(false); }
+                  }} disabled={captureLoading || !captureEmailVal.includes("@")}
+                    className="px-3 py-2 rounded-lg bg-emerald-500/80 text-white text-[11px] font-semibold disabled:opacity-40">
+                    {captureLoading ? "…" : (isFR ? "Envoyer" : "Send")}
+                  </button>
+                </div>
+                {captureEmail && <p className="text-emerald-400 text-[11px] text-center mt-2">✓ {isFR ? "Envoyé!" : "Sent!"}</p>}
+              </div>
+            )}
             <button onClick={() => router.push(`/register?from=prescan&prescanRunId=${params.id}`)}
-              className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-base shadow-xl shadow-emerald-500/20 transition-all active:scale-[0.98]">
-              See My Full Results — Free →
+              className="w-full py-4 rounded-2xl text-[#0F2419] font-bold text-base shadow-xl transition-all active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, #34d399, #10b981)" }}>
+              {isFR ? "Obtenir un appel de récupération gratuit →" : "Book a Free Recovery Call →"}
             </button>
-            <p className="text-center text-white/10 text-[9px] mt-2">
-              No credit card · Takes 30 seconds · PDF included
+            <p className="text-center text-white/15 text-[9px] mt-2">
+              {isFR ? "Gratuit · Aucun frais avant récupération · On s'occupe de tout" : "Free · No cost until we recover · We handle everything"}
             </p>
 
             {/* Social proof */}

@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email: rawEmail, password, name, prescanRunId } = await request.json();
+    const { email: rawEmail, password, name, prescanRunId, referralCode } = await request.json();
 
     if (!rawEmail || !password) {
       return NextResponse.json({ error: "Email and password required" }, { status: 400 });
@@ -356,6 +356,15 @@ export async function POST(request: NextRequest) {
           }
         } catch { /* non-fatal — never block registration */ }
       })();
+    }
+
+    // Track referral if code provided
+    if (referralCode && userId) {
+      fetch((process.env.NEXTAUTH_URL || "https://fruxal.ca") + "/api/referral", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referralCode, newUserId: userId }),
+      }).catch(() => {});
     }
 
     // Send welcome email (non-blocking)
