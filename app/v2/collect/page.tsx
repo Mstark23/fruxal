@@ -33,9 +33,17 @@ export default function CollectPage() {
     Promise.all([
       fetch("/api/me").then(r => r.json()),
       fetch("/api/v2/data-collect").then(r => r.json()),
-    ]).then(([me, data]) => {
+      fetch("/api/v2/rep-document-requests").then(r => r.ok ? r.json() : { requests: [] }).catch(() => ({ requests: [] })),
+    ]).then(([me, data, repData]) => {
       setUserId(me.user?.id);
-      setItems((data.items || []).map((i: any) => ({ ...i, status: "pending" })));
+      // Merge rep-requested documents into items list
+      const repRequests = (repData?.requests || []).map((r: any) => ({
+        id: "rep_" + r.id, title: r.label, description: r.notes || "Requested by your recovery rep",
+        data_type: "upload", priority: 0, status: r.status === "received" ? "done" : "pending",
+        _repRequested: true, _engDocId: r.id,
+      }));
+      const mergedItems = [...repRequests, ...(data.items || []).map((i: any) => ({ ...i, status: "pending" }))];
+      setItems(mergedItems);
       setCompletedCount(data.completedCount ?? 0);
       setLoading(false);
     }).catch(() => {

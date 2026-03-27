@@ -18,6 +18,7 @@ const NAV_STANDARD = [
   { path: "/v2/leaks",       icon: '<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label: "My Leaks" },
   { path: "/v2/diagnostic",  icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label: "Run Diagnostic", cta: true },
   { path: "/v2/programs",    icon: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label: "Programs" },
+  { path: "/v2/benchmarks", icon: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>', label: "Benchmarks" },
   { path: "/v2/obligations", icon: '<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label: "Obligations" },
   { path: "/v2/collect",    icon: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label: "Documents" },
   { path: "/v2/recovery",  icon: '<path d="M12 22V12m0 0l-4 4m4-4l4 4M3 7l1.5 5h13L19 7M3 7h18"/>', label: "Recovery" },

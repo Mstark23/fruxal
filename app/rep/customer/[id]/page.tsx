@@ -29,7 +29,7 @@ const STAGE_NEXT: Record<string, { label: string; next: string }[]> = {
   completed:         [],
 };
 
-type Tab = "overview" | "findings" | "documents" | "savings" | "outreach";
+type Tab = "overview" | "findings" | "documents" | "savings" | "outreach" | "messages";
 
 export default function RepCustomerPage() {
   const router = useRouter();
@@ -48,6 +48,14 @@ export default function RepCustomerPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [showDocReq, setShowDocReq] = useState(false);
+  const [docReqType, setDocReqType] = useState("");
+  const [docReqLabel, setDocReqLabel] = useState("");
+  const [docReqNotes, setDocReqNotes] = useState("");
+  const [docReqSending, setDocReqSending] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [msgText, setMsgText] = useState("");
+  const [msgSending, setMsgSending] = useState(false);
   const [repInfo, setRepInfo] = useState<any>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
@@ -77,6 +85,11 @@ export default function RepCustomerPage() {
     fetch("/api/rep/me", { credentials: "include" })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.rep) setRepInfo(d.rep); })
+      .catch(() => {});
+
+    fetch(`/api/rep/customer/${diagId}/messages`, { credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.messages) setMessages(d.messages); })
       .catch(() => {});
 
     fetch(`/api/rep/customer/${diagId}`, { credentials: "include" })
@@ -161,6 +174,40 @@ ${repInfo?.name || 'Your Fruxal rep'}`
     load();
   };
 
+  const sendMessage = async () => {
+    if (!msgText.trim()) return;
+    setMsgSending(true);
+    try {
+      const r = await fetch(`/api/rep/customer/${diagId}/messages`, {
+        credentials: "include", method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: msgText, authorName: repInfo?.name || "Rep" }),
+      });
+      const j = await r.json();
+      if (j.success) {
+        setMessages(prev => [...prev, j.message]);
+        setMsgText("");
+      }
+    } finally { setMsgSending(false); }
+  };
+
+  const requestDocument = async () => {
+    if (!docReqType || !docReqLabel) return;
+    setDocReqSending(true);
+    try {
+      const r = await fetch(`/api/rep/customer/${diagId}/request-document`, {
+        credentials: "include", method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentType: docReqType, label: docReqLabel, notes: docReqNotes }),
+      });
+      const j = await r.json();
+      if (j.success) {
+        setShowDocReq(false); setDocReqType(""); setDocReqLabel(""); setDocReqNotes("");
+        load();
+      }
+    } finally { setDocReqSending(false); }
+  };
+
   const addFinding = async () => {
     if (!newFinding.leakName || !newFinding.confirmedAmount) return;
     setSaving(true);
@@ -212,6 +259,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
     { key:"documents", label:`Documents (${client.documents?.length ?? 0})`   },
     { key:"savings",   label:`Savings (${client.confirmedFindings?.length ?? 0})` },
     { key:"outreach",  label:"Outreach"  },
+    { key:"messages",  label:"Messages"  },
   ];
 
   return (
@@ -445,7 +493,38 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                   <p className="text-[11px] text-[#56554F]">
                     <span className="font-semibold text-[#2D7A50]">{client.engagement.docsReceived}</span> of {client.engagement.docsTotal} received
                   </p>
+                  <button onClick={() => setShowDocReq(s => !s)}
+                    className="text-[11px] font-semibold text-[#1B3A2D] hover:underline">
+                    + Request Document
+                  </button>
                 </div>
+
+                {showDocReq && (
+                  <div className="bg-[#F9F8F6] border border-[#E5E3DD] rounded-xl p-4 mb-3 space-y-2">
+                    <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">Request a Document from Client</p>
+                    <input placeholder="Document type (e.g. t2_returns)" value={docReqType}
+                      onChange={e => setDocReqType(e.target.value)}
+                      className="w-full text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-[#1B3A2D]" />
+                    <input placeholder="Display name (e.g. T2 Corporate Returns – Last 3 Years)" value={docReqLabel}
+                      onChange={e => setDocReqLabel(e.target.value)}
+                      className="w-full text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-[#1B3A2D]" />
+                    <input placeholder="Notes for client (optional)" value={docReqNotes}
+                      onChange={e => setDocReqNotes(e.target.value)}
+                      className="w-full text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-[#1B3A2D]" />
+                    <div className="flex gap-2">
+                      <button onClick={requestDocument} disabled={docReqSending || !docReqType || !docReqLabel}
+                        className="text-[11px] font-semibold px-4 py-1.5 rounded-lg text-white disabled:opacity-40 transition"
+                        style={{ background: "#1B3A2D" }}>
+                        {docReqSending ? "Sending…" : "Send Request"}
+                      </button>
+                      <button onClick={() => setShowDocReq(false)}
+                        className="text-[11px] font-semibold px-4 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F]">
+                        Cancel
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-[#B5B3AD]">Client receives an email with upload link.</p>
+                  </div>
+                )}
                 {(client.documents || []).map((doc: any) => {
                   const isOk = doc.status === "received" || doc.status === "reviewed";
                   return (
@@ -461,8 +540,8 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                         {doc.notes && <p className="text-[9px] text-[#B5B3AD] italic">{doc.notes}</p>}
                       </div>
                       <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                        style={{ background:isOk?"rgba(45,122,80,0.08)":"rgba(142,140,133,0.08)", color:isOk?"#2D7A50":"#8E8C85" }}>
-                        {isOk ? "Received" : "Pending"}
+                        style={{ background: doc.status==="requested"?"rgba(196,132,29,0.08)": isOk?"rgba(45,122,80,0.08)":"rgba(142,140,133,0.08)", color: doc.status==="requested"?"#C4841D": isOk?"#2D7A50":"#8E8C85" }}>
+                        {doc.status === "requested" ? "Requested" : isOk ? "Received" : "Pending"}
                       </span>
                     </div>
                   );
