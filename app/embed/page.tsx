@@ -1,40 +1,58 @@
-// =============================================================================
-// /embed — Embeddable partner widget
-// Designed for accountants, bookkeepers, and financial advisors to embed
-// on their own websites. When a client scans, they land on fruxal.ca
-// with their industry pre-selected.
-//
-// Embed code for partners:
-//   <iframe src="https://fruxal.ca/embed" width="360" height="480"
-//     frameborder="0" scrolling="no" style="border-radius:16px"></iframe>
-// =============================================================================
 "use client";
 export const dynamic = "force-dynamic";
-import { useState } from "react";
-import { ALL_INDUSTRIES, getDisplayName, getLeakRate } from "@/lib/industries";
+
+import { useState, useEffect } from "react";
+import { getLeakRate } from "@/lib/industries";
+
+// Static list — no dynamic import needed, no .replace() called server-side
+const INDUSTRIES: { id: string; name: string }[] = [
+  { id: "restaurant",      name: "Restaurant / Food Service" },
+  { id: "construction",    name: "Construction" },
+  { id: "retail",          name: "Retail" },
+  { id: "healthcare",      name: "Healthcare" },
+  { id: "consulting",      name: "Consulting / Professional Services" },
+  { id: "ecommerce",       name: "E-Commerce" },
+  { id: "real-estate",     name: "Real Estate" },
+  { id: "accounting",      name: "Accounting / Bookkeeping" },
+  { id: "law-firm",        name: "Legal Services" },
+  { id: "dental",          name: "Dental Practice" },
+  { id: "trucking",        name: "Trucking / Logistics" },
+  { id: "personal-trainer",name: "Personal Training / Fitness" },
+  { id: "saas",            name: "SaaS / Software" },
+  { id: "agency",          name: "Marketing Agency" },
+  { id: "hair-salon",      name: "Hair Salon / Beauty" },
+  { id: "landscaping",     name: "Landscaping / Lawn Care" },
+  { id: "auto-repair",     name: "Auto Repair / Garage" },
+  { id: "cleaning",        name: "Cleaning Services" },
+  { id: "photography",     name: "Photography / Video" },
+  { id: "daycare",         name: "Daycare / Childcare" },
+];
 
 export default function EmbedWidget() {
-  const [step, setStep]       = useState<"pick"|"scan"|"result">("pick");
+  const [step, setStep]     = useState<"pick"|"scan"|"result">("pick");
   const [industry, setIndustry] = useState("");
   const [revenue, setRevenue]   = useState("");
   const [result, setResult]     = useState<any>(null);
 
   const quickScan = async () => {
     setStep("scan");
-    const rev        = parseFloat(revenue) || 500000;
-    const leakPct    = getLeakRate(industry) * 100;
-    const jitter     = leakPct + (Math.random() * 4 - 2);
-    const total      = Math.round(rev * jitter / 100);
-    const score      = Math.round(100 - jitter * 4);
+    const rev     = parseFloat(revenue) || 500000;
+    const leakPct = (getLeakRate(industry) || 0.08) * 100;
+    const jitter  = leakPct + (Math.random() * 4 - 2);
+    const total   = Math.round(rev * jitter / 100);
+    const score   = Math.round(100 - jitter * 4);
     await new Promise(r => setTimeout(r, 1800));
     setResult({ total, score, leakPct: jitter.toFixed(1), leakCount: Math.floor(3 + Math.random() * 5) });
     setStep("result");
   };
 
-  // Link to landing page with industry pre-filled — the prescan chat will skip that question
-  const fullScanUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/?industry=${encodeURIComponent(industry)}&utm_source=partner_embed&utm_medium=widget`
-    : `https://fruxal.ca/?industry=${encodeURIComponent(industry)}&utm_source=partner_embed&utm_medium=widget`;
+  const base = typeof window !== "undefined"
+    ? window.location.origin
+    : "https://fruxal.ca";
+
+  const fullScanUrl = `${base}/?industry=${encodeURIComponent(industry)}&utm_source=partner_embed&utm_medium=widget`;
+
+  const selectedName = INDUSTRIES.find(i => i.id === industry)?.name || industry;
 
   return (
     <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center",
@@ -63,8 +81,8 @@ export default function EmbedWidget() {
                 border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, fontSize:13,
                 color: industry ? "white" : "rgba(255,255,255,0.4)", marginBottom:10, outline:"none" }}>
               <option value="" style={{ color:"#333" }}>Select your industry</option>
-              {ALL_INDUSTRIES.slice(0, 40).map((ind: any) => (
-                <option key={ind} value={ind} style={{ color:"#333" }}>{getDisplayName(ind)}</option>
+              {INDUSTRIES.map(ind => (
+                <option key={ind.id} value={ind.id} style={{ color:"#333" }}>{ind.name}</option>
               ))}
             </select>
             <input type="number" value={revenue} onChange={e => setRevenue(e.target.value)}
@@ -89,7 +107,7 @@ export default function EmbedWidget() {
               animation:"spin 0.8s linear infinite", margin:"0 auto 16px" }} />
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
             <div style={{ color:"rgba(255,255,255,0.7)", fontSize:13, fontWeight:600 }}>
-              Scanning {getDisplayName(industry)}…
+              Scanning {selectedName}…
             </div>
             <div style={{ color:"rgba(255,255,255,0.3)", fontSize:11, marginTop:6 }}>
               Comparing against 4,273+ Canadian benchmarks
@@ -111,8 +129,7 @@ export default function EmbedWidget() {
             <div style={{ padding:"16px 20px 20px" }}>
               <div style={{ display:"flex", gap:10, marginBottom:16 }}>
                 {[
-                  { label:"Health Score", val: result.score + "/100",
-                    color: result.score >= 60 ? "#2D7A50" : "#B34040" },
+                  { label:"Health Score", val: result.score + "/100", color: result.score >= 60 ? "#2D7A50" : "#B34040" },
                   { label:"Revenue Leaking", val: result.leakPct + "%", color:"#B34040" },
                 ].map(k => (
                   <div key={k.label} style={{ flex:1, background:"rgba(255,255,255,0.04)",
@@ -128,7 +145,7 @@ export default function EmbedWidget() {
                   textDecoration:"none", textAlign:"center", boxSizing:"border-box" }}>
                 See full report — free →
               </a>
-              <button onClick={() => { setStep("pick"); setResult(null); }}
+              <button onClick={() => { setStep("pick"); setResult(null); setIndustry(""); }}
                 style={{ width:"100%", padding:"8px", background:"none", border:"none",
                   color:"rgba(255,255,255,0.3)", fontSize:11, cursor:"pointer", marginTop:6 }}>
                 Scan another business
