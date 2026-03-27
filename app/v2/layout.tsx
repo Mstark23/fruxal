@@ -12,29 +12,25 @@ function I({d,s=20}:{d:string;s?:number}){
 // ── Nav definitions ───────────────────────────────────────────────────────────
 const NAV_STANDARD = [
   { path:"/v2/dashboard",   icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
-  { path:"/v2/quickstart", icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>', label:"Quick Start", qs:true },
-  { path:"/v2/history", icon:'<path d=\"M3 3v5h5\"/><path d=\"M3.05 13A9 9 0 106 5.3L3 8\"/><path d=\"M12 7v5l4 2\"/>', label:"My Journey" },
+  { path:"/v2/leaks",       icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"My Leaks" },
+  { path:"/v2/recovery",    icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>', label:"Recovery" },
   { path:"/v2/obligations", icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
-  { path:"/v2/leaks",       icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"Leaks" },
-  { path:"/v2/diagnostic",          icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
-  { path:"/v2/benchmarks",          icon:'<path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/>', label:"Benchmarks" },
   { path:"/v2/programs",    icon:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label:"Programs" },
+  { path:"/v2/collect",     icon:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label:"Documents" },
   { path:"/v2/chat",        icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"Advisor" },
-  { path:"/v2/faq", icon:'<circle cx="12" cy="12" r="10"/><path d="M9 10a3 3 0 016 0c0 1.5-1.5 2.5-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>', label:"FAQ" },
+  { path:"/v2/referral",    icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>', label:"Refer & Earn" },
 ];
 
 // Enterprise nav — Leaks replaced by Run Intake (T2/financials upload CTA)
 const NAV_ENTERPRISE = [
   { path:"/v2/dashboard/enterprise", icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
-  { path:"/v2/quickstart", icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>', label:"Quick Start", qs:true },
-  { path:"/v2/history", icon:'<path d=\"M3 3v5h5\"/><path d=\"M3.05 13A9 9 0 106 5.3L3 8\"/><path d=\"M12 7v5l4 2\"/>', label:"My Journey" },
-  { path:"/v2/diagnostic/intake",    icon:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label:"Run Intake", cta:true },
+  { path:"/v2/leaks",                icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"My Leaks" },
+  { path:"/v2/recovery",             icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>', label:"Recovery" },
   { path:"/v2/obligations",          icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
-  { path:"/v2/diagnostic",            icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Diagnostic" },
-  { path:"/v2/benchmarks",            icon:'<path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/>', label:"Benchmarks" },
   { path:"/v2/programs",             icon:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label:"Programs" },
+  { path:"/v2/collect",              icon:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label:"Documents" },
   { path:"/v2/chat",                 icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', label:"Advisor" },
-  { path:"/v2/faq", icon:'<circle cx="12" cy="12" r="10"/><path d="M9 10a3 3 0 016 0c0 1.5-1.5 2.5-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>', label:"FAQ" },
+  { path:"/v2/referral",             icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>', label:"Refer & Earn" },
 ];
 
 // Routes that always force enterprise nav regardless of pathname
@@ -43,7 +39,7 @@ const NAV_ENTERPRISE = [
 // solo/business users from being permanently locked into enterprise mode.
 const ENTERPRISE_PATHS = ["/v2/dashboard/enterprise"];
 // Routes where enterprise nav stays active (user is navigating around while enterprise)
-const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/diagnostic", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/integrations", "/v2/history", "/v2/faq", "/v2/quickstart", "/v2/benchmarks"];
+const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/collect", "/v2/recovery", "/v2/referral"];
 
 export default function V2Layout({children}:{children:React.ReactNode}) {
   const router   = useRouter();
@@ -182,7 +178,7 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
           </div>
           <div>
             <p className="font-serif text-[15px] font-semibold text-ink tracking-tight leading-none">Fruxal</p>
-            <p className="text-[10px] text-ink-faint mt-0.5">Business Intelligence</p>
+            <p className="text-[10px] text-ink-faint mt-0.5">Financial Recovery</p>
           </div>
         </div>
 

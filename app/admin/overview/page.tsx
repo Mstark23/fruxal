@@ -41,7 +41,12 @@ export default function AdminOverviewPage() {
   const load = useCallback(async () => {
     try {
       const r = await fetch("/api/admin/overview", { cache: "no-store" });
-      if (!r.ok) throw new Error("Unauthorized or server error");
+      if (!r.ok) {
+        if (r.status === 401 || r.status === 403) {
+          throw new Error("Access denied. Add your email to the ADMIN_EMAILS environment variable in Vercel.");
+        }
+        throw new Error("Server error (" + r.status + ") — check Vercel logs.");
+      }
       const j = await r.json();
       if (j.success) setData(j.data);
       else setError(j.error || "Failed to load");
