@@ -9,6 +9,7 @@ import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import crypto from "crypto";
 import { sendEmail, emailTemplate } from "@/services/email/service";
+import { notifyAdmin } from "@/lib/admin-notify";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
 
@@ -161,6 +162,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
 
+    // Notify admin when engagement starts
+    if (body.stage === "in_engagement") {
+      notifyAdmin({
+        type: "engagement_started",
+        company: pipe?.company_name || undefined,
+        link: `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/admin/tier3`,
+      }).catch(() => {});
+    }
     // ── Auto-create engagement when stage moves to "in_engagement" ────────
     if (body.stage === "in_engagement" && pipe) {
       try {

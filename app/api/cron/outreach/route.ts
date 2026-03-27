@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { notifyAdmin } from "@/lib/admin-notify";
 import { processOutreachSequences } from "@/services/outreach/sequences";
 
 export const maxDuration = 300; // Vercel function timeout (seconds)
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest) {
     const result = await processOutreachSequences();
     return NextResponse.json({ success: true, ...result });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    notifyAdmin({ type: "cron_failed", cronName: "outreach", error: (error as any).message }).catch(() => {});
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }

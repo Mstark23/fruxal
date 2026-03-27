@@ -49,6 +49,11 @@ export default function AdminTier3Page() {
   const [reps, setReps]       = useState<{id:string;name:string}[]>([]);
   const debounce              = useRef<NodeJS.Timeout|null>(null);
 
+  const FUNNEL_STAGES = [
+    "lead","contacted","called","diagnostic_sent",
+    "agreement_out","signed","in_engagement","fee_collected"
+  ];
+
   const load = useCallback(async (q = search) => {
     setLoading(true);
     try {

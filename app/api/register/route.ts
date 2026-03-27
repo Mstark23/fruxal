@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { scoreLeadQuality, scoreToPriority } from "@/lib/lead-score";
+import { notifyAdmin } from "@/lib/admin-notify";
 import { pickBestRep } from "@/lib/rep-picker";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email: rawEmail, password, name, prescanRunId, referralCode } = await request.json();
+    const { email: rawEmail, password, name, prescanRunId, referralCode, utm_source, utm_medium, utm_campaign } = await request.json();
 
     if (!rawEmail || !password) {
       return NextResponse.json({ error: "Email and password required" }, { status: 400 });
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     const userId = crypto.randomUUID();
     const { data: user, error } = await sb
       .from("users")
-      .insert({ id: userId, email, name: name || null, password_hash: hashedPassword })
+      .insert({ id: userId, email, name: name || null, password_hash: hashedPassword, utm_source: utm_source || null, utm_medium: utm_medium || null, utm_campaign: utm_campaign || null })
       .select("id")
       .single();
 
@@ -340,7 +341,15 @@ export async function POST(request: NextRequest) {
 
             if (rep) {
               const baseUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
-              await fetch(baseUrl + "/api/admin/assign-rep", {
+              notifyAdmin({
+              type: "hot_lead_assigned",
+              company: email,
+              province: run?.province || undefined,
+              industry: run?.industry_slug || undefined,
+              score,
+              link: `${baseUrl}/admin/tier3`,
+            }).catch(() => {});
+            await fetch(baseUrl + "/api/admin/assign-rep", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",

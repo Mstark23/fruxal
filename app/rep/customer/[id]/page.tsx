@@ -53,6 +53,8 @@ export default function RepCustomerPage() {
   const [docReqLabel, setDocReqLabel] = useState("");
   const [docReqNotes, setDocReqNotes] = useState("");
   const [docReqSending, setDocReqSending] = useState(false);
+  const [callPrep, setCallPrep] = useState<any>(null);
+  const [callPrepLoading, setCallPrepLoading] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [msgText, setMsgText] = useState("");
   const [msgSending, setMsgSending] = useState(false);
@@ -191,6 +193,18 @@ ${repInfo?.name || 'Your Fruxal rep'}`
     } finally { setMsgSending(false); }
   };
 
+  const generateCallPrep = async () => {
+    setCallPrepLoading(true);
+    try {
+      const r = await fetch(`/api/rep/customer/${diagId}/call-prep`, {
+        credentials: "include", method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const j = await r.json();
+      if (j.success) setCallPrep(j.callPrep);
+    } finally { setCallPrepLoading(false); }
+  };
+
   const requestDocument = async () => {
     if (!docReqType || !docReqLabel) return;
     setDocReqSending(true);
@@ -315,6 +329,10 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                 Send Booking Link →
               </button>
             )}
+            <button onClick={generateCallPrep} disabled={callPrepLoading}
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F] hover:bg-[#F0EFEB] transition-colors disabled:opacity-40">
+              {callPrepLoading ? "Generating…" : "📞 Call Script"}
+            </button>
             {client.engagement?.id && (
               <a href={`/api/rep/customer/${diagId}/agreement`} target="_blank" rel="noopener"
                 className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F] hover:bg-[#F0EFEB] transition-colors">

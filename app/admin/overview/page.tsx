@@ -18,6 +18,7 @@ function timeAgo(iso: string) {
 
 interface OverviewData {
   revenue: { thisMonth:number; lastMonth:number; tier1MRR:number; tier3FeesEarned:number; tier3FeePending:number; affiliateCommissions:number };
+  sourceBreakdown?: Array<{ source: string; count: number }>;
   prescan:  { today:number; last7Days:number; last30Days:number; allTime:number; conversionRate:number; topIndustries:Array<{industry:string;count:number}>; topProvinces:Array<{province:string;count:number}> };
   users:    { total:number; paid:number; free:number; newThisWeek:number; newThisMonth:number; activeToday:number };
   tier3:    { totalDiagnostics:number; pipelineValue:number; byStatus:Record<string,number>; feesThisMonth:number };
@@ -156,6 +157,29 @@ export default function AdminOverviewPage() {
             ))}
           </div>
         </div>
+
+        {/* Source Attribution */}
+        {d.sourceBreakdown && d.sourceBreakdown.length > 0 && (
+          <div className="bg-white rounded-xl border border-[#EEECE8] p-5 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-4">Registration Sources (30 days)</p>
+            <div className="space-y-2">
+              {d.sourceBreakdown.map((s: any) => {
+                const max = d.sourceBreakdown![0]?.count || 1;
+                const pct = Math.round((s.count / max) * 100);
+                return (
+                  <div key={s.source} className="flex items-center gap-3">
+                    <span className="text-[11px] text-[#56554F] w-28 shrink-0 capitalize">{s.source}</span>
+                    <div className="flex-1 h-2 bg-[#F0EFEB] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#1B3A2D] rounded-full" style={{ width: pct + "%" }} />
+                    </div>
+                    <span className="text-[11px] font-semibold text-[#1A1A18] w-6 shrink-0">{s.count}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-[9px] text-[#B5B3AD] mt-3">Captured from utm_source param at registration. Add ?utm_source=facebook to your ad links.</p>
+          </div>
+        )}
 
         {/* Users + Tier 3 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">

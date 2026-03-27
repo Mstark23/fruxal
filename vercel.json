@@ -39,6 +39,10 @@
     {
       "path": "/api/v2/cron/agreement-reminder",
       "schedule": "0 15 * * 5"
+    },
+    {
+      "path": "/api/v2/cron/prescan-followup",
+      "schedule": "0 16 * * *"
     }
   ],
   "headers": [

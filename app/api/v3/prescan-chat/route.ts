@@ -27,6 +27,16 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
+// UTM extraction helper
+function extractUTM(body: any) {
+  return {
+    utm_source:   body?.utm_source   || null,
+    utm_medium:   body?.utm_medium   || null,
+    utm_campaign: body?.utm_campaign || null,
+    utm_content:  body?.utm_content  || null,
+  };
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -496,10 +506,10 @@ function parseTags(text: string): PrescanTags {
   ];
   
   for (const tagName of numberTags) {
-    const regex = new RegExp(`<${tagName} value="([\\d,.]+)"\\s*\\/>`, 'g');
+    const regex = new RegExp(`<${tagName} value="([\\d,. ]+)"\\s*\\/>`, 'g'); // allow spaces (French: 100 000)
     const tagMatch = regex.exec(text);
     if (tagMatch) {
-      (tags as any)[tagName] = parseInt(tagMatch[1].replace(/[,$\s]/g, ''), 10);
+      (tags as any)[tagName] = parseInt(tagMatch[1].replace(/[,$\s\u00a0]/g, ''), 10); // strip $, commas, spaces, NBSP
     }
   }
   

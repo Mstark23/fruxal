@@ -204,6 +204,25 @@ export async function GET(req: NextRequest) {
   // Users
   const usersFree = Math.max(0, usersTotal - usersPaid);
 
+  // UTM source breakdown (last 30 days)
+  let sourceBreakdown: Array<{ source: string; count: number }> = [];
+  try {
+    const { data: utmData } = await supabaseAdmin
+      .from("users")
+      .select("utm_source")
+      .gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString())
+      .not("utm_source", "is", null);
+    const counts: Record<string, number> = {};
+    for (const u of utmData || []) {
+      const s = u.utm_source || "direct";
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    sourceBreakdown = Object.entries(counts)
+      .map(([source, count]) => ({ source, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  } catch { /* non-fatal */ }
+
   // Intelligence cron last run summary
   let intelligenceStats = { patternsDiscovered: 0, patternsAbsorbed: 0, lastRun: null as string | null, topIndustries: [] as string[] };
   try {

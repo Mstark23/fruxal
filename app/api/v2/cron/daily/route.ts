@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { notifyAdmin } from "@/lib/admin-notify";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -117,6 +118,12 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("[Cron:Daily] Fatal error:", err);
+    notifyAdmin({
+      type: "cron_failed",
+      cronName: "daily",
+      error: err.message,
+      link: `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/admin/overview`,
+    }).catch(() => {});
     return NextResponse.json(
       { success: false, error: err.message, partial_results: results },
       { status: 500 }
