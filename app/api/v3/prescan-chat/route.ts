@@ -67,16 +67,20 @@ setInterval(() => {
 }, 300_000);
 
 /* ─── Language instruction prepended to system prompt ─── */
-function buildSystemPrompt(lang: string): string {
+function buildSystemPrompt(lang: string, prefilledIndustry = ""): string {
+  const industryHint = prefilledIndustry
+    ? `\nPRE-FILLED CONTEXT: The user arrived from a partner widget with industry "${prefilledIndustry}" already selected. You already know their business type — DO NOT ask Topic 1 (Business Type). Start directly with Topic 2 (Province). Internally tag: <collected data_key="business_type" value="${prefilledIndustry}" />\n`
+    : "";
+
   if (lang === "fr") {
     return `CRITICAL LANGUAGE INSTRUCTION: You MUST speak French from your very first message. Every word the user sees must be in French — professional, clear Quebec French. Always use "vous", never "tu". Data tags (<collected>, <set_*>, <run_analysis />) stay in English (machine-readable). Everything else: French only. Never call yourself a financial advisor — you are Fruxal.
 
 Your first message MUST be in French. Example opening: "Bonjour ! Je suis Fruxal, votre assistant diagnostic. Je vais vous poser quelques questions rapides pour comprendre votre entreprise et identifier où vous perdez probablement de l'argent. Commençons — quel type d'entreprise avez-vous ?"
 
-${PRESCAN_SYSTEM_PROMPT}`;
+${industryHint}${PRESCAN_SYSTEM_PROMPT}`;
   }
 
-  return PRESCAN_SYSTEM_PROMPT;
+  return industryHint + PRESCAN_SYSTEM_PROMPT;
 }
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { sessionId, message, history, lang } = body;
+    const { sessionId, message, history, lang, prefilledIndustry } = body;
     
     if (!message) {
       return NextResponse.json(
@@ -115,7 +119,7 @@ export async function POST(request: NextRequest) {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1500, // Increased: final summary + tags + run_analysis needs room
-      system: buildSystemPrompt(lang || "en"),
+      system: buildSystemPrompt(lang || "en", prefilledIndustry || ""),
       messages,
     });
     

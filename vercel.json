@@ -47,6 +47,10 @@
     {
       "path": "/api/v2/cron/renewal-outreach",
       "schedule": "0 14 1 * *"
+    },
+    {
+      "path": "/api/v2/cron/call-prep-email",
+      "schedule": "0 15 * * *"
     }
   ],
   "headers": [

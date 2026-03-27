@@ -96,15 +96,51 @@ export async function POST(req: NextRequest) {
     // ─── STEP 3: Check for Monday → weekly digest ───────────────────
     const today = new Date();
     if (today.getDay() === 1) {
-      // Monday
-      process.env.NODE_ENV !== "production" && console.log("[Cron:Daily] Monday — generating weekly digests...");
-      const { data: digestCount, error: digestErr } = await supabaseAdmin.rpc(
-        "generate_weekly_digest"
-      );
-      if (digestErr) {
+      // Monday — build weekly digests in JS (no Supabase RPC dependency)
+      try {
+        const { data: usersWithPrefs } = await supabaseAdmin
+          .from("notification_preferences")
+          .select("user_id, email_weekly")
+          .eq("email_weekly", true);
+
+        let digested = 0;
+        for (const pref of usersWithPrefs || []) {
+          try {
+            // Get business data for this user
+            const { data: biz } = await supabaseAdmin
+              .from("businesses")
+              .select("id, name")
+              .eq("owner_user_id", pref.user_id)
+              .maybeSingle();
+            if (!biz) continue;
+
+            const { data: authUser } = await supabaseAdmin.auth.admin
+              .getUserById(pref.user_id).catch(() => ({ data: { user: null } })) as any;
+            const email = authUser?.data?.user?.email;
+            if (!email) continue;
+
+            const { data: leaks } = await supabaseAdmin
+              .from("detected_leaks")
+              .select("status, annual_impact_max")
+              .eq("business_id", biz.id);
+
+            const openLeaks  = (leaks || []).filter(l => l.status !== "fixed").length;
+            const totalLeak  = (leaks || []).filter(l => l.status !== "fixed")
+              .reduce((s, l) => s + (l.annual_impact_max || 0), 0);
+            const fixedThisWeek = (leaks || []).filter(l => {
+              return l.status === "fixed";
+            }).length;
+
+            if (openLeaks === 0) continue; // No leaks to report
+
+            const { sendWeeklyDigest } = await import("@/services/email/service");
+            const ok = await sendWeeklyDigest(email, biz.name || "Your Business", openLeaks, totalLeak, fixedThisWeek);
+            if (ok) digested++;
+          } catch { /* per-user errors are non-fatal */ }
+        }
+        results.weekly_digest = { sent: digested };
+      } catch (digestErr: any) {
         results.weekly_digest = { error: digestErr.message };
-      } else {
-        results.weekly_digest = { queued: digestCount };
       }
     }
 

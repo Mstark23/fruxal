@@ -473,6 +473,42 @@ export default function PrescanResultsPage() {
               style={{ background: "linear-gradient(135deg, #34d399, #10b981)" }}>
               {isFR ? "Obtenir un appel de récupération gratuit →" : "Book a Free Recovery Call →"}
             </button>
+            {/* Social sharing */}
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <p className="text-[10px] text-white/20">{isFR ? "Partagez vos résultats" : "Share your results"}</p>
+              {(() => {
+                const scanUrl = typeof window !== "undefined" ? window.location.href : "";
+                const totalLeakAmt = s?.leak_range_min ?? 0;
+                const twitterText = encodeURIComponent(
+                  `My business may be losing $${totalLeakAmt.toLocaleString()}/year. I found out with a free scan from @fruxalca → ${scanUrl}`
+                );
+                const liText = encodeURIComponent(
+                  `Just ran a free financial diagnostic on my business — found $${totalLeakAmt.toLocaleString()}/year in potential leaks I wasn't aware of. Free 3-min scan: ${scanUrl}`
+                );
+                return (
+                  <>
+                    <a href={`https://twitter.com/intent/tweet?text=${twitterText}`}
+                      target="_blank" rel="noopener"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-full transition"
+                      style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.4)" }}>
+                      𝕏 Share
+                    </a>
+                    <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(scanUrl)}&summary=${liText}`}
+                      target="_blank" rel="noopener"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-full transition"
+                      style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.4)" }}>
+                      in Share
+                    </a>
+                    <button onClick={() => { navigator.clipboard?.writeText(scanUrl); }}
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-full transition"
+                      style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.4)" }}>
+                      Copy link
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+
             <p className="text-center text-white/15 text-[9px] mt-2">
               {isFR ? "Gratuit · Aucun frais avant récupération · On s'occupe de tout" : "Free · No cost until we recover · We handle everything"}
             </p>
