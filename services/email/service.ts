@@ -40,14 +40,13 @@ export function emailTemplate(title: string, body: string, ctaText: string, ctaU
 <body style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
 <div style="max-width:560px;margin:0 auto;padding:40px 20px">
   <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
-    <div style="font-size:20px;font-weight:900;margin-bottom:4px">💧 Fruxal</div>
-    <div style="font-size:12px;color:#888;margin-bottom:24px">Business Intelligence</div>
-    <div style="font-size:18px;font-weight:800;color:#1a1a2e;margin-bottom:12px">${title}</div>
-    <div style="font-size:14px;color:#555;line-height:1.6;margin-bottom:24px">${body}</div>
-    <a href="${ctaUrl}" style="display:inline-block;background:#00c853;color:#000;font-weight:800;font-size:14px;padding:12px 24px;border-radius:12px;text-decoration:none">${ctaText}</a>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px"><div style="width:26px;height:26px;border-radius:6px;background:#1B3A2D;display:flex;align-items:center;justify-content:center"><span style="color:white;font-weight:900;font-size:12px">F</span></div><span style="font-size:15px;font-weight:800;color:#1A1A18">Fruxal</span></div>
+    <div style="font-size:18px;font-weight:800;color:#1A1A18;margin-bottom:14px;line-height:1.3">${title}</div>
+    <div style="font-size:14px;color:#56554F;line-height:1.7;margin-bottom:28px">${body}</div>
+    <a href="${ctaUrl}" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:13px;padding:12px 24px;border-radius:8px;text-decoration:none">${ctaText}</a>
   </div>
-  <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">
-    Fruxal · <a href="${ctaUrl}" style="color:#aaa">fruxal.ca</a>
+  <div style="text-align:center;margin-top:20px;font-size:11px;color:#B5B3AD">
+    Fruxal &nbsp;·&nbsp; <a href="https://fruxal.ca" style="color:#B5B3AD;text-decoration:none">fruxal.ca</a>
   </div>
 </div></body></html>`;
 }

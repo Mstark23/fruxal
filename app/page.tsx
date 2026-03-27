@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -36,6 +37,8 @@ export default function LandingPage() {
   const [chatStarted, setChatStarted] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [result, setResult] = useState<{ analysis: any; prescanRunId: string } | null>(null);
+  const searchParams = useSearchParams();
+  const prefilledIndustry = searchParams?.get("industry") || "";
   const chatBodyRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -96,7 +99,7 @@ export default function LandingPage() {
       const res = await fetch("/api/v3/prescan-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: null, message: isFR ? "Bonjour, je suis prêt à commencer." : "Hi, I'm ready to start.", history: [], lang }),
+        body: JSON.stringify({ sessionId: null, message: isFR ? "Bonjour, je suis prêt à commencer." : "Hi, I'm ready to start.", history: [], lang, prefilledIndustry: prefilledIndustry || undefined }),
       });
       const data: PrescanChatResponse = await res.json();
       setSessionId(data.sessionId);
@@ -179,6 +182,7 @@ export default function LandingPage() {
           <a href="#how" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("How it works", "Comment ça marche")}</a>
           <a href="/pricing" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Pricing", "Tarification")}</a>
           <a href="/faq" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("FAQ", "FAQ")}</a>
+          <a href="/partners" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Partners", "Partenaires")}</a>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-border-light rounded-[7px] p-[3px] gap-[2px]">

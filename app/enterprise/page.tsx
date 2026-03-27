@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from "react";
 
-const CALENDLY = "https://calendly.com/admin-fruxal/30min";
+const CALENDLY = process.env.NEXT_PUBLIC_ENTERPRISE_CALENDLY_URL || "https://calendly.com/admin-fruxal/30min";
 
 const PROVINCES = [
   "Alberta","British Columbia","Manitoba","New Brunswick",
