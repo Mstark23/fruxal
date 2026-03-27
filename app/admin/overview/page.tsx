@@ -19,6 +19,7 @@ function timeAgo(iso: string) {
 interface OverviewData {
   revenue: { thisMonth:number; lastMonth:number; tier1MRR:number; tier3FeesEarned:number; tier3FeePending:number; affiliateCommissions:number };
   sourceBreakdown?: Array<{ source: string; count: number }>;
+  activation?: { rate: number; usersWithDiagnostic: number };
   prescan:  { today:number; last7Days:number; last30Days:number; allTime:number; conversionRate:number; topIndustries:Array<{industry:string;count:number}>; topProvinces:Array<{province:string;count:number}> };
   users:    { total:number; paid:number; free:number; newThisWeek:number; newThisMonth:number; activeToday:number };
   tier3:    { totalDiagnostics:number; pipelineValue:number; byStatus:Record<string,number>; feesThisMonth:number };
@@ -102,6 +103,7 @@ export default function AdminOverviewPage() {
             { label: "MRR (Tier 1)",          value: fmt(d.revenue.tier1MRR),           sub: `${fmtNum(d.users.paid)} paid subscribers`, green: true },
             { label: "Tier 3 Fees Earned",    value: fmt(d.revenue.tier3FeesEarned),    sub: `${fmt(d.revenue.tier3FeePending)} pending`, green: false },
             { label: "Affiliate Commissions", value: fmt(d.revenue.affiliateCommissions),sub: "total earned", green: false },
+            { label: "Activation Rate",          value: (d.activation?.rate ?? 0) + "%",         sub: `${d.activation?.usersWithDiagnostic ?? 0} users ran diagnostic`, green: (d.activation?.rate ?? 0) >= 40 },
           ].map(c => (
             <div key={c.label} className="bg-white rounded-xl border border-[#EEECE8] p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-3">{c.label}</p>

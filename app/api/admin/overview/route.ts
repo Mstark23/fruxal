@@ -204,6 +204,22 @@ export async function GET(req: NextRequest) {
   // Users
   const usersFree = Math.max(0, usersTotal - usersPaid);
 
+  // Activation rate: registered users who ran at least one diagnostic
+  let activationRate = 0;
+  let usersWithDiagnostic = 0;
+  try {
+    const [{ count: totalUsers }, { count: withDiag }] = await Promise.all([
+      supabaseAdmin.from("users").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("diagnostic_reports")
+        .select("user_id", { count: "exact", head: true })
+        .not("user_id", "is", null),
+    ]);
+    usersWithDiagnostic = withDiag ?? 0;
+    activationRate = totalUsers && totalUsers > 0
+      ? Math.round((usersWithDiagnostic / totalUsers) * 100)
+      : 0;
+  } catch { /* non-fatal */ }
+
   // UTM source breakdown (last 30 days)
   let sourceBreakdown: Array<{ source: string; count: number }> = [];
   try {

@@ -183,6 +183,7 @@ export default function LandingPage() {
           <a href="/pricing" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Pricing", "Tarification")}</a>
           <a href="/faq" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("FAQ", "FAQ")}</a>
           <a href="/partners" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Partners", "Partenaires")}</a>
+          <a href="/roi" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("ROI Calculator", "Calculateur ROI")}</a>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-border-light rounded-[7px] p-[3px] gap-[2px]">

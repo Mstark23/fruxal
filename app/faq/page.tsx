@@ -117,15 +117,15 @@ const SECTIONS = [
     items: [
       {
         q: "What does Fruxal cost?",
-        a: "The prescan is always free. Fruxal has three tiers: Solo (under $150K/year revenue) — completely free, full diagnostic included. Business ($150K–$1M/year) — also completely free, full mid-market diagnostic with benchmarks and AI advisor. Enterprise ($1M+/year) — performance-based only, 12% of confirmed savings recovered. No subscription, no upfront cost.",
+        a: "The prescan, health score, obligations tracker, AI advisor, and government programs directory are free forever — no credit card, no subscription. The recovery service is performance-based: we charge 12% of confirmed savings we find and recover for you. You pay nothing until money is in your account. If we find nothing, you pay nothing.",
       },
       {
-        q: "What's the difference between the three tiers?",
-        a: "Solo: Prescan results, basic diagnostic, core task list, recovery counter. Best for freelancers and micro-businesses. Business: Everything in Solo plus full AI diagnostics, month-over-month comparisons, 90-day goals, AI advisor chat, financial ratios, break-even engine, monthly brief, and solutions library. Enterprise: Everything in Business plus document verification (T2, GST/HST, T4, bank statements), 7 diagnostic score dimensions, a dedicated advisor rep, SR&ED and grant identification, and multiple active goals simultaneously.",
+        q: "What's included for free vs. paid?",
+        a: "Free forever: prescan, financial health score, full leak report, AI advisor chat, obligations tracker, deadlines and compliance alerts, government programs directory, industry benchmarks, and monthly brief. The recovery service (assigned rep, CRA correspondence, grant applications, vendor renegotiation) operates on 12% contingency — no cost unless we recover money.",
       },
       {
-        q: "Why is Solo and Business free?",
-        a: "The prescan and initial diagnostic are always free regardless of tier. The Business tier features (AI advisor, monthly brief, goals, rescan comparisons) activate when you upgrade. Contact us if you'd like to discuss a trial arrangement for your specific situation.",
+        q: "Why is it free?",
+        a: "All the diagnostic tools are free because they help businesses understand their situation — and some of those businesses qualify for our recovery service. When we recover money for a business at 12% contingency, that's how we sustain the free tools. Our interests are perfectly aligned with yours: we only make money when you do.",
       },
     ],
   },
@@ -134,11 +134,11 @@ const SECTIONS = [
     items: [
       {
         q: "How does billing work?",
-        a: "Solo and Business are completely free — no subscription, no credit card. Enterprise is performance-based: we charge 12% of confirmed savings we recover for you. There is no upfront cost for any tier. All amounts are in Canadian dollars.",
+        a: "All tools are free, no credit card required. If you qualify for a recovery engagement, you sign an agreement confirming the 12% contingency fee. When your rep confirms a saving — for example, a $15,000 SR&ED refund — you receive the money first, then we invoice our 12% fee ($1,800 in this example). You never pay before recovery. All amounts are in Canadian dollars.",
       },
       {
-        q: "Can I cancel my subscription at any time?",
-        a: "Yes. You can cancel your Business subscription at any time from your account settings. When you cancel, your subscription remains active until the end of your current billing period — you won't be charged again after that. Your data, history, and completed task records are retained for 90 days after cancellation in case you want to reactivate. Enterprise engagements have separate terms outlined in your service agreement.",
+        q: "Can I end an engagement early?",
+        a: "Yes. Recovery engagements run for 12 months and can be ended by either party. If you end early, you owe the 12% fee only on savings confirmed to that point — nothing for future work we haven't done. Your free tool access continues regardless.",
       },
       {
         q: "What happens to my data if I cancel?",

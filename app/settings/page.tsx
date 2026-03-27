@@ -347,7 +347,7 @@ export default function SettingsPage() {
               <div>
                 <div className="text-sm font-bold">Current Plan</div>
                 <div className="text-xs text-gray-400 mt-0.5">
-                  {plan === "free" ? "Free — 3 leaks visible" : plan === "pro" ? "Pro — $49/mo" : "Team — $99/mo"}
+                  {plan === "free" ? "Free" : plan === "pro" ? "Recovery Engagement" : "Active"}
                 </div>
               </div>
               <span className={`text-xs font-bold px-3 py-1 rounded-full ${plan === "free" ? "bg-gray-100 text-gray-400" : "bg-green-50 text-green-600"}`}>
@@ -355,16 +355,15 @@ export default function SettingsPage() {
               </span>
             </div>
             {plan === "free" ? (
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-100">
-                <div className="text-sm font-bold text-indigo-900 mb-1">Upgrade to see all leaks</div>
-                <div className="text-xs text-gray-500 mb-3">Pro unlocks all leaks, AI insights, reports, and unlimited scans.</div>
-                <button onClick={async () => {
-                  const res = await fetch("/api/billing", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ businessId: ctx.business?.id, userId: ctx.user?.id, plan: "pro" }) });
-                  const { url } = await res.json();
-                  if (url) window.location.href = url;
-                }} className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl text-sm hover:scale-105 transition-all">
-                  Upgrade to Pro — $49/mo →
-                </button>
+              <div className="bg-[#F0FBF5] rounded-xl p-4 border border-[#1B3A2D]/10">
+                <div className="text-sm font-bold text-[#1B3A2D] mb-1">Recovery service — 12% contingency</div>
+                <div className="text-xs text-gray-500 mb-3">
+                  All tools are free. If your diagnostic qualifies you for a recovery engagement,
+                  a rep is assigned at no upfront cost. We take 12% of confirmed savings only.
+                </div>
+                <a href="/" className="inline-block px-4 py-2 bg-[#1B3A2D] text-white font-bold rounded-lg text-sm hover:opacity-90 transition">
+                  Run a free scan →
+                </a>
               </div>
             ) : (
               <button onClick={async () => {
