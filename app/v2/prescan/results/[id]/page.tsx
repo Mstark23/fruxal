@@ -260,11 +260,9 @@ export default function PrescanResultsPage() {
                         <span className="text-red-400/70 text-xs font-bold">
                           ${(leak.impact_min ?? 0).toLocaleString()} — ${(leak.impact_max ?? 0).toLocaleString()}/yr
                         </span>
-                        <span className="text-white/10 text-[9px]">
-                          {leak.solution_type === "free_fix" ? t("🆓 Free fix", "🆓 Gratuit") :
-                           leak.solution_type === "government_program" ? t("Gov program", "Programme gouvernemental") :
-                           leak.solution_type === "professional" ? t("Professional", "Professionnel") : t("🔗 Solution available", "🔗 Solution disponible")}
-                        </span>
+                        {leak.solution_type === "government_program" && (
+                          <span className="text-white/20 text-[9px]">{t("Gov program", "Programme gouvernemental")}</span>
+                        )}
                       </div>
                     </div>
                   );
