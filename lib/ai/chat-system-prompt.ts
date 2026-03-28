@@ -109,8 +109,8 @@ function buildSoloPrompt(ctx: BusinessContext): string {
     : "No open tasks yet.";
 
   const recoveryBlock = ctx.recovery.recovered > 0
-    ? `${ctx.recovery.tasks_completed} fixes completed · ${fmt(ctx.recovery.recovered)}/mo recovered`
-    : "No fixes completed yet.";
+    ? `${ctx.recovery.tasks_completed} recoveries confirmed · ${fmt(ctx.recovery.recovered)}/mo recovered by rep`
+    : "No recoveries confirmed yet.";
 
   const deadlineBlock = ctx.upcoming_deadlines.length
     ? ctx.upcoming_deadlines.slice(0, 2).map(d =>
@@ -135,7 +135,7 @@ ${r ? `Health score: ${r.score}/100 (as of ${formatDate(r.completed_at)})` : "No
 Top issues:
 ${findingsBlock}
 
-FIXES IN PROGRESS:
+RECOVERY STATUS:
 ${recoveryBlock}${ctx.recovery.available > 0 ? `\n${fmt(ctx.recovery.available)}/mo still available to capture.` : ""}
 
 OPEN FINDINGS (your rep is handling these):
@@ -227,7 +227,7 @@ function buildBusinessPrompt(ctx: BusinessContext): string {
 
   const completedBlock = ctx.completed_tasks.length
     ? ctx.completed_tasks.map(t =>
-        `- ${t.title} (${fmt(t.savings_monthly)}/mo, completed ${formatDate(t.completed_at)})`
+        `- ${t.title} (${fmt(t.savings_monthly)}/mo, confirmed ${formatDate(t.completed_at)})`
       ).join("\n")
     : "None yet.";
 
@@ -257,7 +257,7 @@ ${topTask ? `Rep is currently working on: "${topTask.title}" (~${fmt(topTask.sav
 OPEN FINDINGS (rep is handling):
 ${tasksBlock}
 
-COMPLETED FIXES:
+CONFIRMED RECOVERIES:
 ${completedBlock}
 
 UPCOMING OBLIGATIONS:
@@ -367,9 +367,9 @@ ${findingsBlock}
 FINANCIAL PERFORMANCE:
 Recovered to date: ${fmt(ctx.recovery.recovered)}/month (${fmt(ctx.recovery.recovered * 12)}/year annualized)
 Available to capture: ${fmt(ctx.recovery.available)}/month
-Tasks completed: ${ctx.recovery.tasks_completed} | Open: ${ctx.open_tasks.length}
+Recoveries confirmed: ${ctx.recovery.tasks_completed} | Open findings: ${ctx.open_tasks.length}
 
-OPEN ACTION ITEMS:
+OPEN FINDINGS (rep is handling):
 ${tasksBlock}
 
 OBLIGATIONS IN NEXT 60 DAYS:

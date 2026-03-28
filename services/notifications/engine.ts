@@ -67,72 +67,72 @@ export function generateNotification(
       return {
         ...base, type, priority: "critical", channel: "both",
         title: `We found $${(data.totalLeaking ?? 0).toLocaleString()} leaking from your business`,
-        body: `${data.urgentCount} urgent leaks need attention. Open your dashboard to see exactly where the money is going.`,
-        cta: "See Your Leaks", ctaUrl: "/dashboard",
+        body: `${data.urgentCount} urgent leaks identified. Run your full intake so your rep can start recovering this money.`,
+        cta: "See Your Leaks", ctaUrl: "/v2/leaks",
       };
     case "nudge":
       const daily = Math.round((data.totalLeaking ?? 0) / 365);
       return {
         ...base, type, priority: "nudge", channel: "email",
         title: `Your $${(data.totalLeaking ?? 0).toLocaleString()} is still leaking`,
-        body: `Every day you wait costs $${daily}. The average user fixes their first leak in 48 hours.`,
-        cta: "Fix Your First Leak", ctaUrl: "/dashboard?tab=fixlist",
+        body: `Every day costs $${daily}. Run your intake so your rep can start recovering it — no cost until money is confirmed.`,
+        cta: "Run My Intake", ctaUrl: "/v2/diagnostic/intake",
       };
     case "conversion":
       return {
         ...base, type, priority: "nudge", channel: "email",
-        title: `${data.leakCount ? data.leakCount - 3 : 11} more leaks you have not seen yet`,
-        body: `$99/mo to save $${(data.totalLeaking ?? 0).toLocaleString()}/yr. That math speaks for itself.`,
-        cta: "Unlock Everything", ctaUrl: "/dashboard?upgrade=true",
+        title: `${data.leakCount ? data.leakCount - 3 : 11} more leaks in your full diagnostic`,
+        body: `Your intake is free. Run it so your rep has the full picture — we only charge 12% of what we actually recover.`,
+        cta: "Run My Intake", ctaUrl: "/v2/diagnostic/intake",
       };
     case "weekly":
       return {
         ...base, type, priority: "routine", channel: "push",
-        title: `Weekly check-in: ${data.fixListCount ?? 0} items on your fix list`,
-        body: `Your biggest open leak is worth addressing this week.`,
-        cta: "Open Fix List", ctaUrl: "/dashboard?tab=fixlist",
+        title: `Weekly update: $${(data.totalLeaking ?? 0).toLocaleString()} still identified`,
+        body: `Your rep is working your file. Check your recovery status for updates.`,
+        cta: "View Recovery", ctaUrl: "/v2/recovery",
       };
     case "monthly_scan":
       return {
         ...base, type, priority: "routine", channel: "both",
         title: `Monthly scan complete: ${data.newLeaks ?? 0} new, ${data.improvedLeaks ?? 0} improved`,
-        body: `Health score: ${data.healthScore ?? 0}. Total saved: $${(data.totalSaved ?? 0).toLocaleString()}.`,
-        cta: "See Full Report", ctaUrl: "/dashboard?tab=trends",
+        body: `Health score: ${data.healthScore ?? 0}. Confirmed recovered: $${(data.totalSaved ?? 0).toLocaleString()}.`,
+        cta: "View My Recovery", ctaUrl: "/v2/recovery",
       };
     case "leak_worsened":
       return {
         ...base, type, priority: "alert", channel: "push",
         title: `${data.worsenedMetric || "A metric"} just got worse`,
-        body: `Was ${data.worsenedFrom}, now ${data.worsenedTo}. Time to address this.`,
-        cta: "Fix This Now", ctaUrl: "/dashboard?tab=fixlist",
+        body: `Was ${data.worsenedFrom}, now ${data.worsenedTo}. Your rep has been flagged.`,
+        cta: "View Leaks", ctaUrl: "/v2/leaks",
       };
     case "leak_fixed":
       return {
         ...base, type, priority: "celebration", channel: "push",
-        title: `${data.fixedMetric || "A leak"} just hit your target!`,
-        body: `That fix saved $${(data.fixedSavings ?? 0).toLocaleString()}/yr.`,
-        cta: "See Your Progress", ctaUrl: "/dashboard?tab=trends",
+        title: `$${(data.fixedSavings ?? 0).toLocaleString()}/yr confirmed recovered`,
+        body: `${data.fixedMetric || "A recovery"} was confirmed by your rep. Check your recovery timeline.`,
+        cta: "View Recovery", ctaUrl: "/v2/recovery",
       };
     case "team_fix":
       return {
         ...base, type, priority: "celebration", channel: "push",
-        title: `${data.teamMember || "A team member"} fixed a leak`,
-        body: `Estimated savings: $${(data.fixedSavings ?? 0).toLocaleString()}/yr.`,
-        cta: "View Team Progress", ctaUrl: "/dashboard?tab=team",
+        title: `Your rep confirmed a recovery`,
+        body: `$${(data.fixedSavings ?? 0).toLocaleString()}/yr confirmed. Check your recovery timeline.`,
+        cta: "View Recovery", ctaUrl: "/v2/recovery",
       };
     case "quarterly":
       return {
         ...base, type, priority: "report", channel: "email",
-        title: `Quarterly report: $${(data.totalSaved ?? 0).toLocaleString()} recovered`,
-        body: `${data.roi ?? 0}x your subscription cost.`,
-        cta: "Download Full Report", ctaUrl: "/dashboard?tab=reports",
+        title: `Quarterly update: $${(data.totalSaved ?? 0).toLocaleString()} recovered`,
+        body: `Your rep has recovered ${data.roi ?? 0}x their fee in confirmed savings.`,
+        cta: "View My Recovery", ctaUrl: "/v2/recovery",
       };
     case "annual":
       return {
         ...base, type, priority: "report", channel: "email",
         title: `Your Year in Review: $${(data.totalSaved ?? 0).toLocaleString()} recovered`,
-        body: `${data.roi ?? 0}x ROI. From leaking to leading.`,
-        cta: "See Your Year", ctaUrl: "/dashboard?tab=reports",
+        body: `${data.roi ?? 0}x the fee in confirmed savings. Here's what your rep recovered this year.`,
+        cta: "View Recovery Timeline", ctaUrl: "/v2/recovery",
       };
   }
 }
