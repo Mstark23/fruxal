@@ -243,7 +243,8 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        await sb.rpc("auto_detect_flags", { p_business_id: businessId });
+        // auto_detect_flags RPC removed — flag detection happens via prescan engine
+        // await sb.rpc("auto_detect_flags", { p_business_id: businessId });
       } catch { /* non-fatal */ }
 
       try {

@@ -18,8 +18,6 @@ function LockIcon() {
 
 interface Leak { slug: string; title: string; title_fr?: string; severity: string; category: string; description: string; description_fr?: string; impact_min: number; impact_max: number; confidence: number | null; proof?: string; action?: string; action_fr?: string; affiliates?: Array<{ name: string; url: string }> }
 interface Deadline { title: string; days_until: number; penalty_max?: number }
-interface ActionStats { total_recovered: number; actions_completed: number; quickbooks_connected: boolean; bank_connected: boolean }
-interface ActionItem { id: string; leak_title: string; fix_description: string; estimated_value: number; status: string }
 const SEV_DOT: Record<string, string> = { critical: "#B34040", high: "#C4841D", medium: "#8E8C85", low: "#C5C2BB" };
 
 export default function SoloDashboard() {
@@ -43,10 +41,6 @@ export default function SoloDashboard() {
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [leaksFixed, setLeaksFixed] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
-  const [actionStats, setActionStats] = useState<ActionStats | null>(null);
-  const [inProgressActions, setInProgressActions] = useState<ActionItem[]>([]);
-  const [thisWeekActions, setThisWeekActions] = useState<ActionItem[]>([]);
-  const [completedActions, setCompletedActions] = useState<ActionItem[]>([]);
   const [diagPrograms, setDiagPrograms] = useState<Array<{ slug: string; name: string; name_fr?: string; value: number }>>([]);
   const [diagFindings, setDiagFindings] = useState<any[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -127,7 +121,7 @@ export default function SoloDashboard() {
       if (diagScore > 0) setScore(diagScore);
       const diagLeak = (r.total_annual_leaks || r.totals?.annual_leaks) ?? 0;
       if (diagLeak > 0) setTotalLeak(diagLeak);
-
+      // action_plan not used in contingency model
       if (r.findings?.length > 0) {
         setDiagFindings(r.findings);
         const slugs: string[] = [];
@@ -145,16 +139,9 @@ export default function SoloDashboard() {
       }
       } catch { /* non-fatal */ }
     };
-
-
-    const actP = user?.id ? fetch("/api/v2/actions").then(r => r.json()).then(json => {
-      if (json.stats) setActionStats(json.stats);
-      if (json.actions) { setThisWeekActions(json.actions.this_week || []); setInProgressActions(json.actions.in_progress || []); setCompletedActions(json.actions.completed || []); }
-    }).catch(() => {}) : Promise.resolve();
-
     const diagP = loadDiag();
 
-    Promise.all([v2P, diagP, actP]).finally(() => {
+    Promise.all([v2P, diagP]).finally(() => {
       setLoading(false);
       requestAnimationFrame(() => setMounted(true));
       // Only poll when actually analyzing
@@ -174,7 +161,7 @@ export default function SoloDashboard() {
     return () => { if (analyzePoll) clearInterval(analyzePoll); };
   }, [user?.id]);
 
-  const recovered = (actionStats?.total_recovered || totalSavings) ?? 0;
+  const recovered = (totalSavings) ?? 0;
   const recovPct = totalLeak > 0 ? Math.min(100, Math.round((recovered / totalLeak) * 100)) : 0;
   const streak = (progress as any)?.streak;
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon apres-midi") : t("Good evening", "Bonsoir"); })();
@@ -184,7 +171,6 @@ export default function SoloDashboard() {
     return { opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: "all 0.45s cubic-bezier(0.16,1,0.3,1) " + d + "s" };
   }
 
-  const allActions = [...inProgressActions, ...thisWeekActions];
   // Gap 2+6 fix: compute allLeaks inside render using current isFR — not stale at mount time
   const allLeaks = (() => {
     if (diagFindings.length > 0) {
@@ -219,18 +205,21 @@ export default function SoloDashboard() {
           </svg>
         </div>
         <h2 className="text-[20px] font-bold text-ink mb-2">
-          {t("Start with a free 3-minute scan", "Commencez par un scan de 3 minutes")}
+          {t("Run your first diagnostic", "Lancez votre premier diagnostic")}
         </h2>
         <p className="text-[14px] text-ink-muted mb-2">
-          {t("See your estimated leaks in dollar amounts. Then we assign a recovery expert who handles everything — no upfront cost.", "Voyez vos fuites estimées en dollars. Ensuite, nous assignons un expert qui s'occupe de tout — sans frais initiaux.")}
+          {t("Get your financial health score, every detected leak with dollar amounts, and a step-by-step fix plan — in 5 minutes.", "Obtenez votre score de santé financière, chaque fuite détectée avec les montants, et un plan de correction — en 5 minutes.")}
         </p>
         <p className="text-[12px] text-ink-faint mb-6">
-          {t("3 minutes · No accountant needed · We do the fixing", "3 minutes · Sans comptable · Nous nous chargeons des corrections")}
+          {t("Takes about 5 minutes · No accountant needed", "Environ 5 minutes · Sans comptable")}
         </p>
-        <a href="/"
-          className="inline-block px-7 py-3 text-[14px] font-bold text-white bg-brand rounded-xl hover:bg-brand/90 transition">
-          {t("Start my free scan →", "Commencer mon scan gratuit →")}
-        </a>
+        <button onClick={() => router.push("/v2/diagnostic")}
+          className="px-7 py-3 text-[14px] font-bold text-white bg-brand rounded-xl hover:bg-brand/90 transition">
+          {t("Run my diagnostic →", "Lancer mon diagnostic →")}
+        </button>
+        <p className="text-[11px] text-ink-faint mt-4">
+          {t("Complete the prescan on the home page first, then come back.", "Faites d'abord le préscan sur la page d'accueil, puis revenez.")}
+        </p>
       </div>
     </div>
   );
@@ -259,7 +248,73 @@ export default function SoloDashboard() {
           <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
         </div>
 
+        {/* ANALYZING BANNER */}
+        {isAnalyzing && (
+          <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+            style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)", ...fadeDelay(0.01) }}>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+            <div className="flex-1">
+              <p className="text-[12px] font-semibold text-white">{t("Diagnostic in progress…", "Diagnostic en cours…")}</p>
+              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("This takes 30–60 seconds. Page will refresh automatically.", "Cela prend 30 à 60 secondes. La page se rafraîchira automatiquement.")}</p>
+            </div>
+          </div>
+        )}
 
+        {/* ═══ INTAKE GATE — dominant when no real diagnostic yet ═══ */}
+        {!isAnalyzing && diagFindings.length === 0 && allLeaks.length > 0 && (
+          <div className="w-full rounded-2xl mb-5 overflow-hidden" style={{ background: "linear-gradient(135deg, #0F2419 0%, #1B3A2D 60%, #1F4A36 100%)", border: "1px solid rgba(45,122,80,0.25)", ...fadeDelay(0.02) }}>
+            <div className="px-5 pt-5 pb-4">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-[10px] font-bold text-amber-400/80 uppercase tracking-widest">
+                      {t("Estimates Only — Real Numbers Waiting", "Estimations seulement — vrais chiffres disponibles")}
+                    </span>
+                  </div>
+                  <h3 className="text-[17px] font-bold text-white leading-snug">
+                    {t("Your leaks are real.", "Vos fuites sont réelles.")}
+                    <br />
+                    {t("Run the intake to confirm exact amounts.", "Lancez l'analyse pour confirmer les montants exacts.")}
+                  </h3>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {[
+                  { n: "1", text: t("Complete the 5-min intake form", "Remplissez le formulaire de 5 min") },
+                  { n: "2", text: t("Get exact dollar amounts per leak", "Obtenez les montants exacts par fuite") },
+                  { n: "3", text: t("Your rep gets the full picture to recover it", "Votre rep récupère le tout pour vous") },
+                ].map(s => (
+                  <div key={s.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="text-[10px] font-black text-amber-400 mb-1">STEP {s.n}</div>
+                    <div className="text-[11px] text-white/70 leading-tight">{s.text}</div>
+                  </div>
+                ))}
+              </div>
+              {totalLeak > 0 && (
+                <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl mb-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                  <p className="text-[12px] text-white/60 flex-1">
+                    {t("Estimated leak based on prescan:", "Fuite estimée selon le préscan :")}
+                    <span className="text-red-400 font-black ml-1.5">${totalLeak.toLocaleString()}/yr</span>
+                    <span className="text-white/30 text-[11px] ml-1.5">{t("— confirm with intake", "— confirmer avec l'analyse")}</span>
+                  </p>
+                </div>
+              )}
+              <button onClick={() => router.push("/v2/diagnostic")}
+                className="w-full py-3 rounded-xl text-center text-[13px] font-bold transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#0F2419" }}>
+                {t("Run My Full Intake Now →", "Lancer mon analyse complète →")}
+              </button>
+              <p className="text-center text-[10px] text-white/20 mt-2">
+                {t("Takes ~5 min · Your rep is waiting for these numbers", "~5 min · Votre rep attend ces chiffres")}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* OVERDUE ALERT */}
         {overdue > 0 && (
@@ -270,8 +325,8 @@ export default function SoloDashboard() {
           </button>
         )}
 
-        {/* ═══ REP BOOKING BANNER ═══ */}
-        {assignedRep && assignedRep.pipeline_stage !== "completed" && assignedRep.pipeline_stage !== "in_engagement" && assignedRep.pipeline_stage !== "recovery_tracking" && (
+        {/* ═══ REP BOOKING BANNER — only after intake done ═══ */}
+        {diagFindings.length > 0 && assignedRep && assignedRep.pipeline_stage !== "completed" && assignedRep.pipeline_stage !== "in_engagement" && assignedRep.pipeline_stage !== "recovery_tracking" && (
           <div className="w-full rounded-2xl mb-5 overflow-hidden" style={{ background: "linear-gradient(135deg, #0F2419 0%, #1B3A2D 60%, #1F4A36 100%)", border: "1px solid rgba(45,122,80,0.25)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s" }}>
             <div className="px-5 pt-5 pb-4">
               {/* Header */}
@@ -374,7 +429,7 @@ export default function SoloDashboard() {
 
         {/* KPI CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5" style={fadeDelay(0.04)}>
-          <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all group" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Business Health", "Santé entreprise")}</div>
             {score > 0 ? (
               <>
@@ -387,10 +442,10 @@ export default function SoloDashboard() {
             ) : (
               <>
                 <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
-                <div className="text-[11px] text-ink-muted mt-1.5">{t("Pending analysis", "Analyse en cours")}</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
               </>
             )}
-          </div>
+          </button>
 
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Still Leaking", "Encore en fuite")}</div>
@@ -684,8 +739,6 @@ export default function SoloDashboard() {
             </button>
           </div>
         </div>
-
-
 
       </div>
     </div>
