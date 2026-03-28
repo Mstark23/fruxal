@@ -97,7 +97,7 @@ export async function verifyFixes(businessId: string, newLeaks: any[]): Promise<
         ? `Your fix saved $${(r.previousAmount ?? 0).toLocaleString()}/yr (${r.improvement}% improvement)`
         : `Despite marking as fixed, this leak is still at $${(r.newAmount ?? 0).toLocaleString()}/yr. We've reopened it.`,
       cta: r.verified ? "See progress" : "Review leak",
-      ctaUrl: r.verified ? "/dashboard?tab=trends" : "/dashboard?tab=leaks",
+      ctaUrl: r.verified ? "/v2/recovery" : "/v2/leaks",
       channel: "push", createdAt: new Date().toISOString(),
     }).then(null, () => {});
   }

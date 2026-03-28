@@ -320,9 +320,7 @@ export default function OnboardingTour() {
                           ${(leak.impact_min ?? 0).toLocaleString()} — ${(leak.impact_max ?? 0).toLocaleString()}/yr
                         </span>
                         <span className="text-white/10 text-[9px]">
-                          {leak.solution_type === "free_fix" ? "Free fix" :
-                           leak.solution_type === "government_program" ? "Gov program" :
-                           leak.solution_type === "professional" ? "Professional" : "Solution"}
+                          {leak.solution_type === "government_program" ? "Gov program" : ""}
                         </span>
                       </div>
                     </div>

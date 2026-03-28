@@ -322,7 +322,7 @@ export default function SettingsPage() {
             {[
               { key: "email", label: "Email notifications", desc: "Get notified about leaks and fixes via email" },
               { key: "push", label: "Push notifications", desc: "Browser push notifications for urgent leaks" },
-              { key: "weekly", label: "Weekly digest", desc: "Monday summary of your fix list and progress" },
+              { key: "weekly", label: "Weekly digest", desc: "Monday update on your recovery status and new findings" },
               { key: "leakAlerts", label: "Leak alerts", desc: "Instant alert when a metric worsens" },
             ].map(n => (
               <div key={n.key} className="flex items-center justify-between py-2">

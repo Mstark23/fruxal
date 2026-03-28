@@ -7,44 +7,44 @@ const SECTIONS = [
     title: "Getting Started",
     icon: "start",
     items: [
-      { q: "How do I run my first scan?", a: "Click 'Find My Leaks' on the homepage, pick your industry, answer 5 simple questions about your business (revenue, costs, rates), and we'll analyze 303 data points against real industry benchmarks. Takes about 30 seconds." },
-      { q: "What data do I need?", a: "For the quick scan: just approximate annual revenue and a few cost percentages. For better accuracy, you can connect QuickBooks, upload a CSV, or link your bank. The more data you provide, the more precise the leak detection." },
-      { q: "How accurate are the results?", a: "We use real benchmarks from NRA, CFMA, MGMA, and other standards bodies. Results are directionally accurate — typically within 10-20% of actual values. Connecting QuickBooks or uploading real data improves accuracy to 90%+." },
+      { q: "How do I get started?", a: "Run the free prescan on the homepage — it takes about 2 minutes. You'll see your top leaks with estimated dollar amounts. Then create a free account, run your full intake, and a recovery expert gets assigned to your file." },
+      { q: "What data do I need?", a: "For the prescan: just approximate annual revenue, your industry, and province. For the full intake (about 5 minutes): revenue, payroll, margins, and a few other financials. No accounting software required to start." },
+      { q: "How accurate are the results?", a: "The prescan gives estimates based on industry benchmarks — typically within 10–20% of actual figures. The full intake produces more precise numbers. Enterprise users who upload T2 returns or financial statements get verified figures." },
     ],
   },
   {
     title: "Understanding Your Leaks",
     icon: "leak",
     items: [
-      { q: "What is a 'leak'?", a: "A leak is any area where your business spends more than the industry benchmark. For example, if restaurants typically pay 2.5% for credit card processing and you're paying 3.2%, that gap is a leak. We calculate the annual dollar impact of each gap." },
-      { q: "What do the severity levels mean?", a: "Fix Now: Large leaks (usually >$10K/yr) — these are costing you money today. Fix Soon: Moderate leaks ($2K–$10K/yr) — these will get worse if you wait. Plan It: Smaller leaks (<$2K/yr) — real savings when you get to them." },
-      { q: "What is the Health Score?", a: "A 0-100 score that measures how efficiently your business operates vs. industry standards. 80+ is excellent, 50-80 is average, below 50 means significant optimization opportunity." },
+      { q: "What is a 'leak'?", a: "A leak is any area where your business spends more than the industry benchmark for your type of business and province. For example, if restaurants typically pay 2.5% for payment processing and you're paying 3.2%, that 0.7% gap is a leak. We calculate the annual dollar impact of each one." },
+      { q: "What do the severity levels mean?", a: "Urgent: Large leaks (usually >$10K/yr) — priority for your rep. High: Moderate leaks ($2K–$10K/yr) — next in the queue. Medium: Smaller leaks (<$2K/yr) — recovered after the bigger items. Your rep prioritizes by dollar impact." },
+      { q: "What is the Health Score?", a: "A 0–100 score measuring how efficiently your business operates vs. industry standards. 70+ is well-run with targeted opportunities. 50–70 is moderate with real money to recover. Below 50 means significant leaks — typically the cases where our rep recovers the most." },
     ],
   },
   {
-    title: "Fixing Leaks",
+    title: "How Recovery Works",
     icon: "fix",
     items: [
-      { q: "How do I fix a leak?", a: "Click 'Fix' on any leak to see recommended actions and vetted partner services. Some fixes are simple (renegotiate a rate), others connect you with a specialist (switch payment processors, get new insurance quotes)." },
-      { q: "Who are the affiliate partners?", a: "We maintain a database of 200+ vetted service providers across categories like payment processing, insurance, payroll, marketing, and more. Each partner is matched to specific leak types they can solve." },
-      { q: "Do I pay anything to fix a leak?", a: "Using Fruxal is completely free — all leaks visible, full diagnostic included. The partner services we recommend have their own pricing, which is always shown upfront. Fruxal earns a small referral fee from partners only when you choose to use them. We never charge you hidden fees." },
+      { q: "What happens after my intake?", a: "A Fruxal recovery expert reviews your findings and reaches out to book a call. On the call, you confirm priorities and sign a recovery agreement. Our accountant then handles everything — CRA correspondence, vendor renegotiations, grant applications. You don't need to do anything." },
+      { q: "How does Fruxal get paid?", a: "We take 12% of confirmed savings we actually recover for you. Nothing until money is in your account. If we recover nothing, you pay nothing. All amounts are in Canadian dollars." },
+      { q: "What does my rep actually handle?", a: "CRA calls and correspondence, vendor renegotiations, government grant applications, SR&ED claims, insurance reviews, payroll compliance corrections. Anything required to recover the money identified in your diagnostic." },
     ],
   },
   {
     title: "Account & Billing",
     icon: "billing",
     items: [
-      { q: "What's included in the free plan?", a: "1 scan, 3 leaks visible with full details, health score, basic insights. Enough to see the value before upgrading." },
-      { q: "What's included in the free plan?", a: "Everything — full diagnostic with all leaks visible, dollar amounts, fix recommendations, AI advisor, government programs matched, benchmarks, obligations tracking, and monthly re-scans. Solo and Business are both completely free." },
-      { q: "Is there really no catch?", a: "No catch. Solo and Business are free forever. We earn a small referral fee from partner services only when you choose to use them to fix a leak. If you fix nothing, we earn nothing. Our incentives are completely aligned with yours." },
+      { q: "What's free?", a: "Everything diagnostic: prescan, health score, full leak report with dollar amounts, AI advisor chat, obligations tracker, government programs directory, industry benchmarks, and monthly brief. All free, no credit card required." },
+      { q: "How does billing work?", a: "When your rep confirms a recovery — for example a $15,000 SR&ED refund — you receive the money first, then we invoice 12% ($1,800 in this example). No upfront cost, no subscription, no retainer." },
+      { q: "Can I end an engagement early?", a: "Yes. Recovery engagements run for 12 months and can be ended by either party. You owe the 12% fee only on savings confirmed to that point. Your free tool access continues regardless." },
     ],
   },
   {
-    title: "Intelligence Engine",
+    title: "AI Advisor",
     icon: "intel",
     items: [
-      { q: "What is the Intelligence Engine?", a: "A 3-tier AI system. Tier 1 (free): automatic pattern detection that runs on every scan. Tier 2 (weekly): batch analysis across all businesses to find market-wide trends. Tier 3 (on-demand): deep AI analysis of your specific business using Claude." },
-      { q: "How does the AI chat work?", a: "The chat button in the dashboard opens a conversation with Claude AI that has access to all your leak data. Ask questions like 'What should I fix first?' or 'Why is my labor cost high?' and get personalized advice." },
+      { q: "What can the AI advisor do?", a: "The AI advisor has full context about your business — diagnostic findings, recovery status, obligations, health score, and financial ratios. Ask it questions like 'What does this leak mean?', 'How was this amount calculated?', or 'What documents does my rep need?' For execution questions, it will direct you to your rep." },
+      { q: "Is the AI advisor a replacement for my rep?", a: "No. The advisor helps you understand your situation — explaining findings, amounts, and obligations. Your rep and accountant handle all execution: CRA calls, vendor negotiations, grant applications. The advisor is a knowledgeable first layer, not a substitute for the recovery service." },
     ],
   },
 ];
@@ -59,52 +59,48 @@ export default function HelpPage() {
     : SECTIONS;
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa]">
+    <div className="min-h-screen bg-bg">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-black text-[#1a1a2e]">Help Center</h1>
-          <button onClick={() => router.push("/dashboard")} className="text-sm text-gray-400 hover:text-gray-600">← Dashboard</button>
+          <h1 className="text-xl font-bold text-ink">Help Center</h1>
+          <button onClick={() => router.push("/v2/dashboard")} className="text-sm text-ink-faint hover:text-ink">← Dashboard</button>
         </div>
 
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search help articles..."
-          className="w-full px-4 py-3 bg-white border rounded-xl text-sm mb-6 outline-none focus:ring-2 focus:ring-blue-200"
+          placeholder="Search help articles…"
+          className="w-full px-4 py-3 bg-white border border-border-light rounded-xl text-sm mb-6 outline-none focus:border-brand transition"
         />
 
         <div className="space-y-6">
           {filtered.map(section => (
             <div key={section.title}>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">{section.icon}</span>
-                <h2 className="text-sm font-bold text-[#1a1a2e]">{section.title}</h2>
-              </div>
+              <h2 className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-3 pb-2 border-b border-border-light">{section.title}</h2>
               <div className="space-y-1">
-                {section.items.map(item => {
-                  const key = `${section.title}-${item.q}`;
-                  return (
-                    <div key={key} className="bg-white rounded-xl border overflow-hidden">
-                      <button onClick={() => setOpenItem(openItem === key ? null : key)} className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 transition-all">
-                        <span className="text-sm font-medium pr-4">{item.q}</span>
-                        <span className="text-gray-400 shrink-0">{openItem === key ? "−" : "+"}</span>
-                      </button>
-                      {openItem === key && (
-                        <div className="px-3 pb-3 text-xs text-gray-500 leading-relaxed">{item.a}</div>
-                      )}
-                    </div>
-                  );
-                })}
+                {section.items.map(item => (
+                  <div key={item.q} className="bg-white border border-border-light rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setOpenItem(openItem === item.q ? null : item.q)}
+                      className="w-full text-left px-4 py-3 flex items-center justify-between gap-3">
+                      <span className="text-[13px] font-medium text-ink">{item.q}</span>
+                      <svg className={`w-4 h-4 text-ink-faint shrink-0 transition-transform ${openItem === item.q ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    {openItem === item.q && (
+                      <div className="px-4 pb-4 text-[13px] text-ink-secondary leading-relaxed border-t border-border-light pt-3">
+                        {item.a}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-8 bg-white rounded-2xl p-6 border text-center">
-          <svg className="w-6 h-6 mx-auto mb-2 text-brand-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          <div className="text-sm font-bold mb-1">Still need help?</div>
-          <div className="text-xs text-gray-400 mb-3">Use the AI chat in your dashboard or email us.</div>
-          <a href="mailto:support@fruxal.com" className="text-xs text-blue-500 hover:underline">support@fruxal.com</a>
+        <div className="mt-8 p-4 bg-white border border-border-light rounded-xl text-center">
+          <p className="text-[13px] text-ink mb-1">Still have questions?</p>
+          <a href="mailto:support@fruxal.com" className="text-[13px] text-brand font-semibold hover:underline">support@fruxal.com</a>
         </div>
       </div>
     </div>
