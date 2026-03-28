@@ -2,8 +2,7 @@
 // app/rep/customer/[id]/page.tsx — Rep Client Detail View
 // =============================================================================
 "use client";
-
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 const fmtM = (n: number) =>
@@ -29,7 +28,7 @@ const STAGE_NEXT: Record<string, { label: string; next: string }[]> = {
   completed:         [],
 };
 
-type Tab = "overview" | "findings" | "documents" | "savings" | "outreach" | "messages";
+type Tab = "overview" | "findings" | "documents" | "savings" | "debrief" | "outreach" | "messages";
 
 export default function RepCustomerPage() {
   const router = useRouter();
@@ -58,6 +57,12 @@ export default function RepCustomerPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [msgText, setMsgText] = useState("");
   const [msgSending, setMsgSending] = useState(false);
+  const [debriefOutcome, setDebriefOutcome] = useState<"ready_to_sign"|"needs_time"|"not_interested"|"">("");
+  const [debriefConcerns, setDebriefConcerns] = useState("");
+  const [debriefNotes, setDebriefNotes] = useState("");
+  const [debriefFindings, setDebriefFindings] = useState<string[]>([]);
+  const [debriefSubmitting, setDebriefSubmitting] = useState(false);
+  const [debriefDone, setDebriefDone] = useState(false);
   const [repInfo, setRepInfo] = useState<any>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
