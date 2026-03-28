@@ -62,10 +62,17 @@ export default function AdminTier3DetailPage() {
     {error && <div className="text-red-400 p-4">{error}</div>}
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <button onClick={() => router.back()}
-          className="mb-4 px-3 py-1.5 bg-white border border-[#E8E6E1] text-[#56554F] text-sm font-medium rounded-lg hover:bg-[#F8F7F5] transition">
-          ← Pipeline
-        </button>
+        <div className="flex items-center gap-2 mb-4">
+          <button onClick={() => router.back()}
+            className="px-3 py-1.5 bg-white border border-[#E8E6E1] text-[#56554F] text-sm font-medium rounded-lg hover:bg-[#F8F7F5] transition">
+            ← Pipeline
+          </button>
+          <button onClick={() => router.push(`/admin/tier3/${id}/execution`)}
+            className="px-3 py-1.5 bg-white border border-[#1B3A2D]/20 text-[#1B3A2D] text-sm font-bold rounded-lg hover:bg-[#1B3A2D]/5 transition flex items-center gap-1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            Execution Playbook
+          </button>
+        </div>
 
         <div className="flex items-center gap-3 mb-2">
           <h1 className="font-serif text-2xl font-bold text-[#1A1A18]">{entry.companyName}</h1>

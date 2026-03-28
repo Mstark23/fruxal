@@ -466,7 +466,23 @@ export async function POST(req: NextRequest) {
     await supabaseAdmin.from("detected_leaks").insert(leakRows); } catch { /* non-fatal */ }
     }
 
-    // ── 9. Generate task cards in background (non-blocking) ──────────────
+    // ── 9. Generate execution playbooks in background (non-blocking) ────────
+    // Separate Claude call — generates step-by-step accountant playbook per finding.
+    // Stored in execution_playbooks table. Rep portal reads from there.
+    if (aiResult?.findings?.length) {
+      fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v2/diagnostic/generate-playbooks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.CRON_SECRET || ""}`,
+        },
+        body: JSON.stringify({ reportId, businessId, language }),
+      }).catch((e: any) =>
+        console.warn("[Diagnostic] Playbook generation failed (non-blocking):", e?.message)
+      );
+    }
+
+    // ── 9orig. Generate task cards in background (non-blocking) ──────────────
     // Fire-and-forget: task generation never blocks the diagnostic response.
     // Uses a separate Claude call — failure is logged but never surfaces to user.
     if (aiResult?.findings?.length) {
