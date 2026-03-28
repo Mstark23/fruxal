@@ -121,6 +121,14 @@ export default function AccountantDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-4 text-right">
+            <button
+              onClick={async () => {
+                await fetch("/api/accountant/auth/logout", { method: "POST" });
+                window.location.href = "/accountant/login";
+              }}
+              className="text-[11px] font-medium text-[#8E8C85] hover:text-[#1A1A18] transition">
+              Sign out
+            </button>
             <div>
               <div className="text-[16px] font-bold text-[#1A1A18]">{summary.queue || 0}</div>
               <div className="text-[10px] text-[#8E8C85]">In queue</div>

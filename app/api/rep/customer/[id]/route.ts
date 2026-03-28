@@ -51,6 +51,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           .order("annual_impact_max", { ascending: false });
 
         const findings = (leakRows || []).map((l: any) => ({
+          id:          l.id || l.slug || l.leak_type_code,
           title:       l.title || l.leak_type_code,
           title_fr:    l.title_fr || l.title,
           severity:    l.severity || "medium",
@@ -133,7 +134,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           status:        diag.status,
           scores:        result.scores || {},
           totals:        result.totals || {},
-          findings:      (result.findings || []).sort((a: any, b: any) => (b.impact_max ?? 0) - (a.impact_max ?? 0)),
+          findings:      (result.findings || []).map((f: any) => ({ ...f, id: f.id || f.slug || f.category })).sort((a: any, b: any) => (b.impact_max ?? 0) - (a.impact_max ?? 0)),
           execSummary:   result.executive_summary || "",
           outreachEmail: result.outreach_email || null,
         },

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   try {
     const { data: playbooks } = await supabaseAdmin
       .from("execution_playbooks")
-      .select("*, tier3_pipeline!inner(company_name, contact_name, contact_email, stage, report_id, tier3_reps(name, email))")
+      .select("*, tier3_pipeline(company_name, contact_name, contact_email, stage, report_id, tier3_reps(name, email))")
       .eq("assigned_to", a.id)
       .neq("status", "closed")
       .order("quick_win", { ascending: false })
