@@ -105,6 +105,58 @@ export async function PATCH(req: NextRequest) {
     }
 
     await supabaseAdmin.from("execution_playbooks").update(update).eq("id", playbook_id);
+
+    // When a finding is confirmed → check total confirmed + notify
+    if (status === "confirmed" && confirmed_amount !== undefined) {
+      try {
+        // Get this playbook's pipeline_id
+        const { data: pb } = await supabaseAdmin
+          .from("execution_playbooks")
+          .select("pipeline_id, diagnostic_report_id")
+          .eq("id", playbook_id)
+          .single();
+
+        if (pb?.pipeline_id) {
+          // Sum all confirmed amounts for this pipeline
+          const { data: allPbs } = await supabaseAdmin
+            .from("execution_playbooks")
+            .select("status, confirmed_amount, amount_recoverable")
+            .eq("pipeline_id", pb.pipeline_id);
+
+          const totalConfirmed = (allPbs || [])
+            .filter((p: any) => p.status === "confirmed")
+            .reduce((s: number, p: any) => s + (p.confirmed_amount || p.amount_recoverable || 0), 0);
+
+          const allDone = (allPbs || []).every((p: any) =>
+            ["confirmed", "closed"].includes(p.status)
+          );
+
+          // Update pipeline with confirmed savings total
+          await supabaseAdmin.from("tier3_pipeline").update({
+            confirmed_savings: totalConfirmed,
+            updated_at: new Date().toISOString(),
+            ...(allDone ? { stage: "fee_collected" } : {}),
+          }).eq("id", pb.pipeline_id);
+
+          // Notify admin if all done
+          if (allDone) {
+            const { notifyAdmin } = await import("@/lib/admin-notify");
+            const { data: pipe } = await supabaseAdmin
+              .from("tier3_pipeline")
+              .select("company_name")
+              .eq("id", pb.pipeline_id)
+              .single();
+            await notifyAdmin({
+              type:    "fee_collected",
+              company: pipe?.company_name || "Client",
+              amount:  totalConfirmed,
+              extra:   `Fruxal fee: $${Math.round(totalConfirmed * 0.12).toLocaleString()}`,
+            }).catch(() => {});
+          }
+        }
+      } catch { /* non-fatal */ }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

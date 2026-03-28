@@ -362,7 +362,9 @@ export default function DiagnosticIntakePage() {
       if (!runJson.success) throw new Error(runJson.error);
 
       clearTimeout(clientTimeout);
-      router.push(`/v2/diagnostic/${runJson.reportId}`);
+      // Redirect to dashboard — the rep reviews the report with the client on their call.
+      // The dashboard will show the green rep booking banner now that diagFindings exist.
+      router.push("/v2/dashboard");
     } catch (e: any) {
       clearTimeout(clientTimeout);
       const msg = e?.name === "AbortError"

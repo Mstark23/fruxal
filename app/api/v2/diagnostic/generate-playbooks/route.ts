@@ -67,6 +67,17 @@ export async function POST(req: NextRequest) {
       owner_name:     profile?.owner_name      || undefined,
     };
 
+    // ── Fetch pipeline_id for this report ───────────────────────────────
+    let pipelineId: string | null = null;
+    try {
+      const { data: pipe } = await supabaseAdmin
+        .from("tier3_pipeline")
+        .select("id")
+        .eq("report_id", reportId)
+        .maybeSingle();
+      pipelineId = pipe?.id || null;
+    } catch { /* non-fatal */ }
+
     // ── Skip if playbooks already generated for this report ──────────────
     const { count: existing } = await supabaseAdmin
       .from("execution_playbooks")

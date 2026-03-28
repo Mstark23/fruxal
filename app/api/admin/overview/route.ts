@@ -330,6 +330,25 @@ export async function GET(req: NextRequest) {
   // RESPONSE
   // ═══════════════════════════════════════════════════════════════════════════
 
+  // ── Accountant / execution stats ──────────────────────────────────────
+  const execPlaybooks: any[] = await safeQuery(async () => {
+    const { data } = await supabaseAdmin
+      .from("execution_playbooks")
+      .select("status, amount_recoverable, confirmed_amount, quick_win, assigned_to");
+    return data || [];
+  }, [] as any[]);
+  const accountantCount: number = await safeQuery(async () => {
+    const { count } = await supabaseAdmin.from("accountants").select("id", { count: "exact", head: true }).eq("status", "active");
+    return count || 0;
+  }, 0);
+  const execUnassigned     = execPlaybooks.filter((p: any) => !p.assigned_to).length;
+  const execQueued         = execPlaybooks.filter((p: any) => p.status === "queued").length;
+  const execInProgress     = execPlaybooks.filter((p: any) => p.status === "in_progress").length;
+  const execConfirmed      = execPlaybooks.filter((p: any) => p.status === "confirmed");
+  const execConfirmedValue = execConfirmed.reduce((sum: number, p: any) => sum + (p.confirmed_amount || p.amount_recoverable || 0), 0);
+  const execTotalValue     = execPlaybooks.reduce((sum: number, p: any) => sum + (p.amount_recoverable || 0), 0);
+  const execQuickWins      = execPlaybooks.filter((p: any) => p.quick_win && p.status === "queued").length;
+
   const result = {
     revenue: {
       thisMonth: thisMonthRevenue,
@@ -366,6 +385,18 @@ export async function GET(req: NextRequest) {
         ...agByStatus,
       },
       feesThisMonth: tier3FeesThisMonth,
+    },
+    execution: {
+      total_playbooks:   execPlaybooks.length,
+      unassigned:        execUnassigned,
+      queued:            execQueued,
+      in_progress:       execInProgress,
+      confirmed_count:   execConfirmed.length,
+      confirmed_value:   execConfirmedValue,
+      total_value:       execTotalValue,
+      quick_wins:        execQuickWins,
+      active_accountants: accountantCount,
+      fruxal_fee:        Math.round(execConfirmedValue * 0.12),
     },
     system: {
       lastUpdated: now,

@@ -77,6 +77,7 @@ export default function AdminOverviewPage() {
   );
 
   const d = data!;
+  const exec = d.execution;
   const convPct = Math.min(100, Math.round(d.prescan.conversionRate ?? 0));
 
   return (
@@ -278,6 +279,48 @@ export default function AdminOverviewPage() {
             </div>
           </div>
         </div>
+
+        {/* Execution / Accountant Stats */}
+        {exec && (
+          <div className="bg-white border border-[#EEECE8] rounded-xl p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[11px] font-bold text-[#8E8C85] uppercase tracking-wider">Execution Pipeline</p>
+              <a href="/admin/accountants" className="text-[11px] font-semibold text-[#1B3A2D] hover:underline">Manage →</a>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              {[
+                { label: "Unassigned",   val: exec.unassigned,      warn: exec.unassigned > 0,  color: exec.unassigned > 0 ? "#B34040" : "#1A1A18" },
+                { label: "In Queue",     val: exec.queued,           color: "#C4841D" },
+                { label: "In Progress",  val: exec.in_progress,      color: "#0369a1" },
+                { label: "Confirmed",    val: exec.confirmed_count,  color: "#2D7A50" },
+              ].map(kpi => (
+                <div key={kpi.label} className="text-center px-3 py-3 rounded-xl" style={{ background: "rgba(27,58,45,0.04)" }}>
+                  <div className="text-[22px] font-bold" style={{ color: kpi.color }}>{kpi.val}</div>
+                  <div className="text-[10px] text-[#8E8C85] mt-0.5 uppercase tracking-wider">{kpi.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-3 pt-3 border-t border-[#F0EFEB]">
+              <div>
+                <p className="text-[10px] text-[#8E8C85] uppercase tracking-wider mb-0.5">Total Identified</p>
+                <p className="text-[15px] font-bold text-[#B34040]">{fmt(exec.total_value)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#8E8C85] uppercase tracking-wider mb-0.5">Confirmed Savings</p>
+                <p className="text-[15px] font-bold text-[#2D7A50]">{fmt(exec.confirmed_value)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#8E8C85] uppercase tracking-wider mb-0.5">Fruxal Fee (12%)</p>
+                <p className="text-[15px] font-bold text-[#1B3A2D]">{fmt(exec.fruxal_fee)}</p>
+              </div>
+            </div>
+            {exec.quick_wins > 0 && (
+              <p className="text-[11px] mt-3" style={{ color: "#2D7A50" }}>
+                ⚡ {exec.quick_wins} quick win{exec.quick_wins !== 1 ? "s" : ""} unactioned — assign to accountant
+              </p>
+            )}
+          </div>
+        )}
 
         {/* System Status */}
         <div className="bg-white border border-[#EEECE8] rounded-xl px-5 py-3 flex items-center gap-2" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>

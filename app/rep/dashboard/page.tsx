@@ -10,6 +10,8 @@ const STAGE_LABEL: Record<string, { label: string; color: string; bg: string }> 
   contacted:         { label:"Contacted",       color:"#0369a1", bg:"rgba(3,105,161,0.07)"  },
   diagnostic_sent:   { label:"Diagnostic Sent", color:"#7C3AED", bg:"rgba(124,58,237,0.07)" },
   call_booked:       { label:"Call Booked",     color:"#C4841D", bg:"rgba(196,132,29,0.08)" },
+  agreement_out:     { label:"Agreement Sent",  color:"#7C3AED", bg:"rgba(124,58,237,0.07)" },
+  signed:            { label:"Signed ✓",        color:"#1B3A2D", bg:"rgba(27,58,45,0.08)"   },
   engaged:           { label:"Engaged",         color:"#1B3A2D", bg:"rgba(27,58,45,0.08)"   },
   in_engagement:     { label:"Active",          color:"#2D7A50", bg:"rgba(45,122,80,0.08)"  },
   recovery_tracking: { label:"Recovery",        color:"#3D7A5E", bg:"rgba(61,122,94,0.08)"  },

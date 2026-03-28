@@ -277,6 +277,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
     { key:"findings",  label:`Findings (${(client.diagnostic?.findings||[]).length})` },
     { key:"documents", label:`Documents (${client.documents?.length ?? 0})`   },
     { key:"savings",   label:`Savings (${client.confirmedFindings?.length ?? 0})` },
+    { key:"debrief",   label:"Post-Call Debrief" },
     { key:"outreach",  label:"Outreach"  },
     { key:"messages",  label:"Messages"  },
   ];

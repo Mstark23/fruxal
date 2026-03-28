@@ -29,6 +29,20 @@ export default function AdminAccountantsPage() {
   const [newProvince, setNewProvince] = useState("");
   const [addSaving,   setAddSaving]   = useState(false);
   const [addDone,     setAddDone]     = useState(false);
+  const [sendingLink, setSendingLink] = useState<string | null>(null);
+  const [linkSent,    setLinkSent]    = useState<string | null>(null);
+
+  async function sendLink(accountantId: string) {
+    setSendingLink(accountantId);
+    await fetch("/api/admin/accountants/send-link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accountant_id: accountantId }),
+    });
+    setLinkSent(accountantId);
+    setSendingLink(null);
+    setTimeout(() => setLinkSent(null), 3000);
+  }
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/accountants/workload").then(r => r.json()).catch(() => ({}));
@@ -189,11 +203,21 @@ export default function AdminAccountantsPage() {
                       }}>
                       {filterAcct === a.id ? "Clear filter" : "View queue"}
                     </button>
-                    {selected.length > 0 && (
+                    {selected.length > 0 ? (
                       <button onClick={() => assign(a.id)} disabled={assigning}
                         className="flex-1 h-7 text-[11px] font-bold text-white rounded-lg disabled:opacity-50 transition"
                         style={{ background: "#1B3A2D" }}>
                         Assign {selected.length} →
+                      </button>
+                    ) : (
+                      <button onClick={() => sendLink(a.id)} disabled={sendingLink === a.id}
+                        className="flex-1 h-7 text-[11px] font-medium rounded-lg border transition"
+                        style={{
+                          color: linkSent === a.id ? "#2D7A50" : "#56554F",
+                          borderColor: linkSent === a.id ? "rgba(45,122,80,0.3)" : "#E8E6E1",
+                          background: "white",
+                        }}>
+                        {linkSent === a.id ? "✓ Link sent" : sendingLink === a.id ? "Sending…" : "Send login link"}
                       </button>
                     )}
                   </div>

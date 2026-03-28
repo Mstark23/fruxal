@@ -120,6 +120,38 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       .eq("id", playbook_id);
 
     if (error) throw error;
+
+    // Propagate confirmed savings to pipeline
+    if (update.status === "confirmed") {
+      try {
+        // Get pipeline_id from this playbook
+        const { data: pb } = await supabaseAdmin
+          .from("execution_playbooks")
+          .select("pipeline_id")
+          .eq("id", playbook_id)
+          .single();
+
+        if (pb?.pipeline_id) {
+          const { data: allPbs } = await supabaseAdmin
+            .from("execution_playbooks")
+            .select("status, confirmed_amount, amount_recoverable")
+            .eq("pipeline_id", pb.pipeline_id);
+
+          const totalConfirmed = (allPbs || [])
+            .filter((p: any) => p.status === "confirmed")
+            .reduce((s: number, p: any) => s + (p.confirmed_amount || p.amount_recoverable || 0), 0);
+
+          const allDone = (allPbs || []).every((p: any) => ["confirmed", "closed"].includes(p.status));
+
+          await supabaseAdmin.from("tier3_pipeline").update({
+            confirmed_savings: totalConfirmed,
+            updated_at: new Date().toISOString(),
+            ...(allDone ? { stage: "fee_collected" } : {}),
+          }).eq("id", pb.pipeline_id);
+        }
+      } catch { /* non-fatal */ }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("[execution PATCH]", err);

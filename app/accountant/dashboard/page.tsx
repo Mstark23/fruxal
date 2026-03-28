@@ -39,6 +39,9 @@ export default function AccountantDashboard() {
   const [confirmAmounts, setConfirmAmounts] = useState<Record<string, string>>({});
   const [notes,      setNotes]      = useState<Record<string, string>>({});
   const [copied,     setCopied]     = useState<string | null>(null);
+  const [docReq,     setDocReq]     = useState<{ pbId: string; label: string; notes: string } | null>(null);
+  const [docSending, setDocSending] = useState(false);
+  const [docSent,    setDocSent]    = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const [me, queue] = await Promise.all([
@@ -68,6 +71,20 @@ export default function AccountantDashboard() {
       setCopied(id);
       setTimeout(() => setCopied(null), 2500);
     });
+  }
+
+  async function sendDocRequest() {
+    if (!docReq) return;
+    setDocSending(true);
+    await fetch("/api/accountant/request-document", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playbook_id: docReq.pbId, document_label: docReq.label, notes: docReq.notes }),
+    });
+    setDocSent(docReq.pbId);
+    setDocReq(null);
+    setDocSending(false);
+    setTimeout(() => setDocSent(null), 3000);
   }
 
   if (loading) return (
@@ -380,6 +397,12 @@ export default function AccountantDashboard() {
                           Save notes
                         </button>
                       )}
+                      <button
+                        onClick={() => setDocReq({ pbId: pb.id, label: "", notes: "" })}
+                        className="h-8 px-3 text-[11px] font-medium rounded-lg border border-[#E8E6E1] hover:bg-[#F8F7F5] transition"
+                        style={{ color: docSent === pb.id ? "#2D7A50" : "#56554F" }}>
+                        {docSent === pb.id ? "✓ Sent" : "Request document"}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -403,6 +426,44 @@ export default function AccountantDashboard() {
           </div>
         )}
       </div>
+
+      {/* Document request modal */}
+      {docReq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <p className="text-[14px] font-bold text-[#1A1A18] mb-1">Request a document</p>
+            <p className="text-[12px] text-[#8E8C85] mb-4">An email will be sent to the client automatically.</p>
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-[#8E8C85] mb-1">Document name *</label>
+                <input value={docReq.label}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocReq(prev => prev ? { ...prev, label: e.target.value } : null)}
+                  placeholder="e.g. T2 Corporate Return 2023"
+                  className="w-full text-[12px] border border-[#E8E6E1] rounded-lg px-3 py-2 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-[#8E8C85] mb-1">Additional notes</label>
+                <textarea value={docReq.notes}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDocReq(prev => prev ? { ...prev, notes: e.target.value } : null)}
+                  rows={2} placeholder="Any specific pages, year, format…"
+                  className="w-full text-[12px] border border-[#E8E6E1] rounded-lg px-3 py-2 resize-none focus:outline-none" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setDocReq(null)}
+                className="flex-1 h-9 text-[12px] font-medium text-[#8E8C85] border border-[#E8E6E1] rounded-lg hover:bg-[#F8F7F5] transition">
+                Cancel
+              </button>
+              <button onClick={sendDocRequest} disabled={!docReq.label || docSending}
+                className="flex-1 h-9 text-[12px] font-bold text-white rounded-lg disabled:opacity-40 transition"
+                style={{ background: "#1B3A2D" }}>
+                {docSending ? "Sending…" : "Send Request →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
