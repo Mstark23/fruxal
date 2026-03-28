@@ -63,6 +63,32 @@ export async function GET(req: NextRequest) {
             .eq("engagement_id", eng.id)
             .order("created_at", { ascending: false });
           findings = found || [];
+
+          // Also pull confirmed savings from execution_playbooks (new system)
+          if (pipeline?.id) {
+            const { data: pbConfirmed } = await supabaseAdmin
+              .from("execution_playbooks")
+              .select("finding_title, confirmed_amount, amount_recoverable, category, confirmed_at")
+              .eq("pipeline_id", pipeline.id)
+              .eq("status", "confirmed")
+              .order("confirmed_at", { ascending: false });
+
+            if (pbConfirmed?.length) {
+              // Merge into findings — avoid duplicates by title
+              const existingTitles = new Set(findings.map((f: any) => f.leak_name || f.finding_title));
+              for (const pb of pbConfirmed) {
+                if (!existingTitles.has(pb.finding_title)) {
+                  findings.push({
+                    leak_name:        pb.finding_title,
+                    category:         pb.category || "general",
+                    confirmed_amount: pb.confirmed_amount || pb.amount_recoverable || 0,
+                    confirmed_at:     pb.confirmed_at,
+                    source:           "execution_playbook",
+                  });
+                }
+              }
+            }
+          }
         }
       }
     }

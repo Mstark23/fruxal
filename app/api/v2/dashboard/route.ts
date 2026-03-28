@@ -391,8 +391,8 @@ export async function GET(req: NextRequest) {
         .from("tier3_pipeline")
         .select("id, stage")
         .eq("user_id", userId)
-        .in("stage", ["contacted", "called", "diagnostic_sent", "agreement_out",
-                       "signed", "in_engagement", "recovery_tracking", "engaged",
+        .in("stage", ["lead", "contacted", "called", "call_booked", "diagnostic_sent", "agreement_out",
+                       "signed", "in_engagement", "recovery_tracking", "fee_collected", "engaged",
                        "onboarding", "active", "closed_won"])
         .order("created_at", { ascending: false })
         .limit(1)
