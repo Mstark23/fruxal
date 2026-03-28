@@ -91,7 +91,7 @@ export async function checkAlerts(businessId: string, leaks: any[]): Promise<voi
         title: `⚠️ Alert: ${rule.metric} ${rule.operator === "gt" ? "exceeded" : "below"} ${rule.threshold}`,
         body: `${matching.length} leak(s) triggered your custom alert rule.`,
         cta: "Review",
-        ctaUrl: "/dashboard?tab=leaks",
+        ctaUrl: "/v2/leaks",
         channel: rule.notifyPush ? "push" : "email",
         createdAt: new Date().toISOString(),
       });

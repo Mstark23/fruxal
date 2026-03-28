@@ -375,7 +375,7 @@ export async function generatePrescanPDF(data: PrescanReportData): Promise<Buffe
     ] : [
       "1. Create your free account to save these results",
       "2. Connect your accounting software for a more precise diagnosis",
-      "3. Receive a personalized action plan with estimated savings",
+      "3. A recovery expert reviews your findings and contacts you",
       "4. Track your progress with a real-time health score",
     ];
 
@@ -390,7 +390,7 @@ export async function generatePrescanPDF(data: PrescanReportData): Promise<Buffe
     doc.rect(leftX, y, pageW, 44).fill(BRAND);
     doc.fontSize(12).font("Helvetica-Bold").fillColor(WHITE)
       .text(
-        t("Start your free diagnostic at fruxal.ca", "Commencez votre diagnostic gratuit sur fruxal.ca", lang),
+        t("Start your free diagnostic at fruxal.com", "Commencez votre diagnostic gratuit sur fruxal.com", lang),
         leftX + 20, y + 14, { width: pageW - 40, align: "center" }
       );
 

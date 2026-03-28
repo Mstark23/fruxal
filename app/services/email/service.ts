@@ -57,9 +57,9 @@ export async function sendScanComplete(to: string, businessName: string, totalLe
     subject: `We found $${(totalLeaking ?? 0).toLocaleString()} leaking from ${businessName}`,
     html: emailTemplate(
       `$${(totalLeaking ?? 0).toLocaleString()}/yr leaking from ${businessName}`,
-      `We found <strong>${leakCount} leaks</strong> across your business. <strong>${urgentCount} need urgent attention.</strong><br><br>Open your dashboard to see exactly where the money is going and how to fix each one.`,
+      `We found <strong>${leakCount} leaks</strong> in your business — <strong>${urgentCount} urgent</strong>. Run your full intake so your rep can start recovering this money.`,
       "See Your Leaks →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/dashboard`
+      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/dashboard`
     ),
   });
 }

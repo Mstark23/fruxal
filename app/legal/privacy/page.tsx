@@ -62,8 +62,8 @@ export default function PrivacyPage() {
 
       <H2>2. Why we collect this information</H2>
       <UL>
-        <LI><strong>To provide the diagnostic service</strong> — analyzing your financial inputs, generating findings, scores, and action plans</LI>
-        <LI><strong>To personalize recommendations</strong> — matching solutions, grants, and tasks to your specific industry, province, and business size</LI>
+        <LI><strong>To provide the diagnostic service</strong> — analyzing your financial inputs, generating findings, scores, and recovery recommendations</LI>
+        <LI><strong>To personalize your recovery</strong> — matching programs, grants, and findings to your specific industry, province, and business size</LI>
         <LI><strong>To send relevant communications</strong> — monthly briefs, deadline reminders, milestone emails, and account notifications. You can opt out of non-essential emails at any time</LI>
         <LI><strong>To process payments</strong> — creating and managing your subscription through Stripe</LI>
         <LI><strong>To improve the platform</strong> — understanding how features are used to make Fruxal better</LI>
@@ -74,7 +74,7 @@ export default function PrivacyPage() {
       <P>We share your information only with the following service providers, each operating under appropriate data agreements:</P>
       <UL>
         <LI><strong>Anthropic</strong> — Your financial inputs are processed by Anthropic&apos;s Claude API to generate diagnostic findings. Anthropic does not use your inputs to train their models. See Anthropic&apos;s privacy policy at anthropic.com.</LI>
-        <LI><strong>Stripe</strong> — Payment processing, subscription management, and billing. Stripe handles all card data. See stripe.com/privacy.</LI>
+        <LI><strong>Stripe</strong> — Payment processing and recovery fee billing. Stripe handles all card data. See stripe.com/privacy.</LI>
         <LI><strong>Resend</strong> — Transactional email delivery (diagnostic results, monthly briefs, account notifications). See resend.com/privacy.</LI>
         <LI><strong>Supabase</strong> — Database hosting for your account and diagnostic data. Supabase is SOC 2 certified. See supabase.com/privacy.</LI>
         <LI><strong>Vercel</strong> — Application hosting and anonymized web analytics. See vercel.com/legal/privacy-policy.</LI>

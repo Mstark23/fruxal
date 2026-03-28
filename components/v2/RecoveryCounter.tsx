@@ -260,7 +260,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
             {data.tasks_completed > 0 && (
               <span className="text-[11px] px-1.5 py-0.5 rounded-full font-bold"
                 style={{ background: "rgba(45,122,80,0.08)", color: "#2D7A50" }}>
-                {data.tasks_completed} {t("fix", "correctif")}{data.tasks_completed !== 1 ? (isFR ? "s" : "es") : ""}
+                {data.tasks_completed} {t("recovery", "récupération")}{data.tasks_completed !== 1 ? (isFR ? "s" : "s") : ""}
               </span>
             )}
           </div>
