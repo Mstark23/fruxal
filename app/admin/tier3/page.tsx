@@ -14,14 +14,15 @@ interface PipelineEntry {
 }
 interface Stats { totalPipelineValue:number; activeEngagements:number; feesCollectedThisMonth:number; conversionRate:number; byStage:Record<string,{count:number;value:number}> }
 
-const STAGES = ["lead","contacted","called","diagnostic_sent","agreement_out","signed","in_engagement","fee_collected","lost"];
+const STAGES = ["lead","contacted","called","call_booked","diagnostic_sent","agreement_out","signed","in_engagement","recovery_tracking","fee_collected","completed","lost"];
 const PRIORITY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   hot:  { bg: "rgba(179,64,64,0.1)",   text: "#B34040", label: "HOT"  },
   warm: { bg: "rgba(196,132,29,0.1)",  text: "#C4841D", label: "WARM" },
   cold: { bg: "rgba(142,140,133,0.1)", text: "#8E8C85", label: "COLD" },
 };
 const STAGE_LABELS: Record<string,string> = {
-  lead:"New Lead", contacted:"Contacted", called:"Called", diagnostic_sent:"Diagnostic Sent",
+  lead:"New Lead", contacted:"Contacted", called:"Called", call_booked:"Call Booked",
+  diagnostic_sent:"Diagnostic Sent",
   agreement_out:"Agreement Out", signed:"Signed", in_engagement:"In Engagement",
   fee_collected:"Fee Collected", lost:"Lost"
 };
@@ -42,6 +43,7 @@ export default function AdminTier3Page() {
   const [view, setView]       = useState<"kanban"|"table">("kanban");
   const [sortByScore, setSortByScore] = useState(false);
   const [drawerRepId, setDrawerRepId]   = useState("");
+  const [toast,     setToast]     = useState("");
   const [search, setSearch]   = useState("");
   const [selected, setSelected] = useState<PipelineEntry|null>(null);
   const [saving, setSaving]   = useState(false);
@@ -138,6 +140,13 @@ export default function AdminTier3Page() {
         </div>
 
         <AdminNav />
+        {toast && (
+          <div className="mb-3 px-4 py-2.5 rounded-xl text-[12px] font-semibold cursor-pointer"
+            style={{ background: "rgba(45,122,80,0.08)", color: "#2D7A50" }}
+            onClick={() => setToast("")}>
+            {toast}
+          </div>
+        )}
 
         {/* Stats */}
         {stats && (
@@ -365,6 +374,18 @@ export default function AdminTier3Page() {
                     <span className="text-[10px] px-2 py-0.5 rounded font-bold"
                       style={{background:"rgba(45,122,80,0.08)",color:"#2D7A50"}}>{selected.agreementStatus}</span>
                   </div>
+                )}
+                {selected.stage === "fee_collected" && !(selected as any).invoiceSent && (
+                  <button
+                    onClick={async () => {
+                      const res = await fetch(`/api/admin/tier3/pipeline/${selected.pipelineId || selected.diagnosticId}/invoice`, { method: "POST" }).then(r => r.json());
+                      if (res.success) setToast(`Invoice sent — $${res.fee_amount?.toLocaleString()}`);
+                      else alert(res.error || "Failed");
+                    }}
+                    className="w-full py-2 rounded-lg text-[12px] font-bold text-white transition hover:opacity-90"
+                    style={{ background: "#1B3A2D" }}>
+                    Send Invoice →
+                  </button>
                 )}
                 {(selected.stage === "signed" || selected.agreementStatus === "signed") && !["in_engagement","fee_collected"].includes(selected.stage) && (
                   <button

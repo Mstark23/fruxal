@@ -14,7 +14,7 @@ import { notifyAdmin } from "@/lib/admin-notify";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
 
-const STAGES = ["lead","contacted","called","diagnostic_sent","agreement_out","signed","in_engagement","fee_collected","lost"];
+const STAGES = ["lead","contacted","called","call_booked","diagnostic_sent","agreement_out","signed","in_engagement","recovery_tracking","fee_collected","completed","lost"];
 
 const DOC_MAP: Record<string, Array<{ type: string; label: string }>> = {
   tax_structure:        [{ type: "t2_returns", label: "T2 Corporate Returns (3 years)" }, { type: "shareholder_reg", label: "Shareholder Register" }, { type: "owner_comp", label: "Owner Compensation Breakdown" }],

@@ -26,6 +26,7 @@ export default function RepDashboard() {
   const [search,  setSearch]  = useState("");
   const [filter,  setFilter]  = useState("needs_action");
   const [showCalendlyEdit, setShowCalendlyEdit] = useState(false);
+  const [showCommissions, setShowCommissions] = useState(false);
   const [calendlyInput, setCalendlyInput] = useState("");
   const [savingCalendly, setSavingCalendly] = useState(false);
 
@@ -126,7 +127,7 @@ export default function RepDashboard() {
           {[
             { label:"Clients",          value:clients.length,                            sub:"assigned"    },
             { label:"Active",           value:activeCount,                               sub:"engagements" },
-            { label:"Commissions Paid", value:fmtM(rep?.stats?.commissions_paid||0),    sub:"earned"      },
+            { label:"Commissions Paid", value:fmtM(rep?.stats?.commissions_paid||0),    sub:"earned · click for details", onClick:()=>setShowCommissions(true) },
             { label:"Pending",          value:fmtM(rep?.stats?.commissions_pending ?? 0), sub:"to collect"  },
             { label:"Pipeline Value",   value:fmtM(clients.filter((c:any) => c.engagement).reduce((s:number,c:any) => s+(c.annualLeak??0)*((rep?.commission_rate||20)/100),0)), sub:"if all close" },
           ].map(s => (
@@ -276,6 +277,37 @@ export default function RepDashboard() {
           </div>
         )}
       </div>
+
+      {/* Commissions modal */}
+      {showCommissions && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#E5E3DD] flex items-center justify-between">
+              <p className="text-[14px] font-bold text-[#1A1A18]">My Commissions</p>
+              <button onClick={() => setShowCommissions(false)} className="text-[#8E8C85] hover:text-[#1A1A18]">✕</button>
+            </div>
+            <div className="px-6 py-4 space-y-2">
+              <div className="flex justify-between py-2 border-b border-[#F0EFEB]">
+                <span className="text-[12px] text-[#8E8C85]">Paid</span>
+                <span className="text-[13px] font-bold text-[#2D7A50]">{fmtM(rep?.stats?.commissions_paid || 0)}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-[#F0EFEB]">
+                <span className="text-[12px] text-[#8E8C85]">Pending</span>
+                <span className="text-[13px] font-bold text-[#C4841D]">{fmtM(rep?.stats?.commissions_pending || 0)}</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-[12px] font-semibold text-[#1A1A18]">Total earned</span>
+                <span className="text-[14px] font-bold text-[#1A1A18]">{fmtM((rep?.stats?.commissions_paid || 0) + (rep?.stats?.commissions_pending || 0))}</span>
+              </div>
+              <p className="text-[11px] text-[#8E8C85] pt-2">
+                Your rate: {rep?.commission_rate ?? 20}% of Fruxal&apos;s 12% fee.
+                E.g. $100K savings → $12K Fruxal fee → ${Math.round(120000 * (rep?.commission_rate ?? 20) / 100 / 1000)}K your commission.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

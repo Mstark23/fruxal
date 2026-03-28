@@ -49,7 +49,14 @@ export default function AccountantDashboard() {
       fetch("/api/accountant/queue").then(r => r.json()).catch(() => ({})),
     ]);
     if (me?.success)    setAccountant(me.accountant);
-    if (queue?.success) { setPlaybooks(queue.playbooks || []); setSummary(queue.summary || {}); }
+    if (queue?.success) {
+      const pbs = queue.playbooks || [];
+      setPlaybooks(pbs);
+      setSummary(queue.summary || {});
+      // Auto-expand the first quick win if none expanded yet
+      const firstQuickWin = pbs.find((p: any) => p.quick_win && p.status === "queued");
+      if (firstQuickWin) setExpanded(firstQuickWin.id);
+    }
     setLoading(false);
   }, []);
 

@@ -10,7 +10,7 @@ import crypto from "crypto";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
 
-const STAGES = ["lead","contacted","called","diagnostic_sent","agreement_out","signed","in_engagement","fee_collected","lost"];
+const STAGES = ["lead","contacted","called","call_booked","diagnostic_sent","agreement_out","signed","in_engagement","recovery_tracking","fee_collected","completed","lost"];
 
 async function safe<T>(fn: () => Promise<T>, fb: T): Promise<T> {
   try { return await fn(); } catch { return fb; }
