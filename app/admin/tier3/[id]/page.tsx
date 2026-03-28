@@ -169,6 +169,13 @@ export default function AdminTier3DetailPage() {
               <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-3">Summary</p>
               <p className="font-serif text-2xl font-bold text-[#2D7A50]">{fmt(entry.estimatedLow)} – {fmt(entry.estimatedHigh)}</p>
               <p className="text-xs text-[#B5B3AD] mt-0.5">{entry.highConfidenceCount} high-confidence leaks</p>
+              {(entry as any).confirmedSavings > 0 && (
+                <div className="mt-3 pt-3 border-t border-[#EEECE8]">
+                  <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-1">Confirmed Savings</p>
+                  <p className="font-serif text-xl font-bold text-[#2D7A50]">✓ {fmt((entry as any).confirmedSavings)}</p>
+                  <p className="text-[11px] text-[#8E8C85] mt-0.5">Fruxal fee: {fmt(Math.round((entry as any).confirmedSavings * 0.12))}</p>
+                </div>
+              )}
               <div className="flex gap-2 mt-4">
                 <button onClick={() => router.push(`/tier3/diagnostic/${entry.diagnosticId}`)}
                   className="flex-1 py-2 bg-[#1B3A2D] text-white text-sm font-semibold rounded-lg hover:bg-[#2A5A44] transition">

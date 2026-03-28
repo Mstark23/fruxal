@@ -293,8 +293,46 @@ export default function BusinessDashboard() {
           </div>
         )}
 
+        {/* ═══ RECOVERY COMPLETE BANNER ═══ */}
+        {assignedRep && (assignedRep.pipeline_stage === "fee_collected" || assignedRep.pipeline_stage === "completed") && (
+          <div className="w-full rounded-2xl mb-5 overflow-hidden" style={{ background: "linear-gradient(135deg, #0A1F12 0%, #1B3A2D 100%)", border: "1px solid rgba(45,122,80,0.3)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s" }}>
+            <div className="px-5 pt-5 pb-4">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6ee7a0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-widest">{t("Recovery Complete", "Récupération terminée")}</span>
+                  </div>
+                  <h3 className="text-[17px] font-bold text-white leading-snug">
+                    {t("Your recovery is done.", "Votre récupération est terminée.")}
+                    {recovered > 0 && <><br /><span className="text-emerald-400">{t(`$${recovered.toLocaleString()} recovered.`, `${recovered.toLocaleString()}$ récupérés.`)}</span></>}
+                  </h3>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 text-[15px] font-bold text-emerald-300">
+                  {assignedRep.name.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div>
+                  <div className="text-[10px] text-white/30 uppercase tracking-wider">{t("Total confirmed", "Total confirmé")}</div>
+                  <div className="text-[18px] font-black text-emerald-400">${recovered.toLocaleString()}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] text-white/30 uppercase tracking-wider">{t("Fruxal fee (12%)", "Honoraires Fruxal (12%)")}</div>
+                  <div className="text-[15px] font-bold text-white/60">${Math.round(recovered * 0.12).toLocaleString()}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] text-white/30 uppercase tracking-wider">{t("You kept", "Vous avez gardé")}</div>
+                  <div className="text-[18px] font-black text-white">${Math.round(recovered * 0.88).toLocaleString()}</div>
+                </div>
+              </div>
+              <p className="text-[11px] text-white/30 text-center mt-3">{t("Thank you for working with Fruxal.", "Merci de votre confiance envers Fruxal.")}</p>
+            </div>
+          </div>
+        )}
+
         {/* ═══ REP BOOKING BANNER ═══ */}
-        {assignedRep && assignedRep.pipeline_stage !== "completed" && assignedRep.pipeline_stage !== "in_engagement" && assignedRep.pipeline_stage !== "recovery_tracking" && assignedRep.pipeline_stage !== "agreement_out" && assignedRep.pipeline_stage !== "signed" && (
+        {assignedRep && assignedRep.pipeline_stage !== "completed" && assignedRep.pipeline_stage !== "in_engagement" && assignedRep.pipeline_stage !== "recovery_tracking" && assignedRep.pipeline_stage !== "agreement_out" && assignedRep.pipeline_stage !== "signed" && assignedRep.pipeline_stage !== "fee_collected" && assignedRep.pipeline_stage !== "completed" && (
           <div className="w-full rounded-2xl mb-5 overflow-hidden" style={{ background: "linear-gradient(135deg, #0F2419 0%, #1B3A2D 60%, #1F4A36 100%)", border: "1px solid rgba(45,122,80,0.25)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(8px)", transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s" }}>
             <div className="px-5 pt-5 pb-4">
               <div className="flex items-start justify-between gap-3 mb-4">

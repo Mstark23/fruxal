@@ -132,11 +132,51 @@ export async function PATCH(req: NextRequest) {
           );
 
           // Update pipeline with confirmed savings total
-          await supabaseAdmin.from("tier3_pipeline").update({
-            confirmed_savings: totalConfirmed,
-            updated_at: new Date().toISOString(),
-            ...(allDone ? { stage: "fee_collected" } : {}),
-          }).eq("id", pb.pipeline_id);
+          const { data: pipeUpdate } = await supabaseAdmin
+            .from("tier3_pipeline")
+            .update({
+              confirmed_savings: totalConfirmed,
+              updated_at: new Date().toISOString(),
+              ...(allDone ? { stage: "fee_collected" } : {}),
+            })
+            .eq("id", pb.pipeline_id)
+            .select("company_name, contact_name, contact_email, tier3_reps(name, calendly_url)")
+            .single();
+
+          // Notify client of confirmed saving (non-blocking)
+          if (pipeUpdate?.contact_email && confirmed_amount) {
+            const { sendEmail } = await import("@/services/email/service");
+            const repName = (pipeUpdate.tier3_reps as any)?.name || "Fruxal";
+            const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+            await sendEmail({
+              to: pipeUpdate.contact_email,
+              subject: `$${Number(confirmed_amount).toLocaleString()} recovered — ${pb.finding_title || "savings confirmed"}`,
+              html: `<!DOCTYPE html><html><body style="font-family:sans-serif;background:#f7f8fa;padding:40px 20px">
+<div style="max-width:480px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+  <div style="background:linear-gradient(135deg,#0A1F12,#1B3A2D);padding:24px 32px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="width:24px;height:24px;border-radius:5px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center">
+        <span style="color:white;font-weight:900;font-size:11px">F</span>
+      </div>
+      <span style="color:rgba(255,255,255,0.7);font-size:13px;font-weight:600">Fruxal</span>
+    </div>
+    <p style="margin:0;font-size:22px;font-weight:800;color:white">$${Number(confirmed_amount).toLocaleString()} confirmed ✓</p>
+    <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.6)">${pb.finding_title || "Savings confirmed"}</p>
+  </div>
+  <div style="padding:24px 32px">
+    <p style="font-size:14px;color:#3A3935;margin:0 0 16px">Hi ${pipeUpdate.contact_name || "there"},</p>
+    <p style="font-size:14px;color:#3A3935;margin:0 0 16px;line-height:1.6">
+      Great news — we've confirmed <strong>$${Number(confirmed_amount).toLocaleString()}</strong> in recovered savings for your file.
+    </p>
+    <div style="background:#FAFAF8;border:1px solid #E8E6E1;border-radius:10px;padding:16px;margin-bottom:20px">
+      <p style="margin:0 0 8px;font-size:12px;color:#8E8C85;text-transform:uppercase;letter-spacing:0.05em">Total confirmed so far</p>
+      <p style="margin:0;font-size:20px;font-weight:800;color:#2D7A50">$${totalConfirmed.toLocaleString()}</p>
+    </div>
+    <p style="font-size:13px;color:#8E8C85;margin:0">Your Fruxal team will continue working on the remaining findings. You'll receive an update as each one is confirmed.</p>
+  </div>
+</div></body></html>`,
+            }).catch(() => {});
+          }
 
           // Notify admin if all done
           if (allDone) {

@@ -21,10 +21,13 @@ const STAGE_NEXT: Record<string, { label: string; next: string }[]> = {
   lead:              [{ label:"Mark as Contacted",    next:"contacted"        }],
   contacted:         [{ label:"Send Diagnostic",      next:"diagnostic_sent"  }, { label:"Book a Call",      next:"call_booked"      }],
   diagnostic_sent:   [{ label:"Call Booked",          next:"call_booked"      }],
-  call_booked:       [{ label:"Start Engagement",     next:"in_engagement"    }],
+  call_booked:       [{ label:"Send Agreement",       next:"agreement_out"    }],
+  agreement_out:     [{ label:"Mark as Signed",       next:"signed"           }],
+  signed:            [{ label:"Start Engagement",     next:"in_engagement"    }],
   engaged:           [{ label:"Move to Engagement",   next:"in_engagement"    }],
   in_engagement:     [{ label:"Recovery Tracking",    next:"recovery_tracking"}],
-  recovery_tracking: [{ label:"Mark Completed",       next:"completed"        }],
+  recovery_tracking: [{ label:"Mark Fee Collected",   next:"fee_collected"    }],
+  fee_collected:     [{ label:"Mark Completed",       next:"completed"        }],
   completed:         [],
 };
 
@@ -106,6 +109,7 @@ export default function RepCustomerPage() {
           setClient(d.client);
           setNoteText(d.client.pipeline?.notes || "");
           setFollowUp(d.client.pipeline?.followUpDate?.split("T")[0] || "");
+          if (d.client.pipeline?.stage === "call_booked") setTab("debrief");
         } else {
           router.replace("/rep/dashboard");
         }
@@ -274,10 +278,10 @@ ${repInfo?.name || 'Your Fruxal rep'}`
 
   const TABS: { key: Tab; label: string }[] = [
     { key:"overview",  label:"Overview"  },
+    { key:"debrief",   label:"Post-Call Debrief" },
     { key:"findings",  label:`Findings (${(client.diagnostic?.findings||[]).length})` },
     { key:"documents", label:`Documents (${client.documents?.length ?? 0})`   },
     { key:"savings",   label:`Savings (${client.confirmedFindings?.length ?? 0})` },
-    { key:"debrief",   label:"Post-Call Debrief" },
     { key:"outreach",  label:"Outreach"  },
     { key:"messages",  label:"Messages"  },
   ];
