@@ -569,7 +569,7 @@ export default function LandingPage() {
             { n: "03", h: t("Smart alerts", "Alertes intelligentes"), p: t("Get notified when costs spike, margins drop, or new leaks appear.", "Soyez notifié quand les coûts augmentent ou que de nouvelles fuites apparaissent.") },
             { n: "04", h: t("Revenue monitoring", "Suivi des revenus"), p: t("Month-over-month and year-over-year trends with volatility analysis.", "Tendances mensuelles et annuelles avec analyse de la volatilité.") },
             { n: "05", h: t("Cost benchmarking", "Comparaison des coûts"), p: t("See where you stand on payroll, rent, processing, insurance — versus businesses like yours.", "Comparez vos coûts de paie, loyer, traitement et assurance à des entreprises similaires.") },
-            { n: "06", h: t("Continuous monitoring", "Surveillance continue"), p: t("Monthly re-scans detect new leaks and track resolved ones.", "Des analyses mensuelles détectent de nouvelles fuites et suivent celles résolues.") },
+            { n: "06", h: t("Continuous monitoring", "Surveillance continue"), p: t("Monthly re-scans track your situation and update your rep on any new leaks.", "Des analyses mensuelles informent votre rep des nouvelles fuites détectées.") },
           ].map(f => (
             <div key={f.n} className="bg-white p-8 hover:bg-surface-hover transition-colors">
               <div className="font-serif text-[13px] text-ink-faint mb-4">{f.n}</div>
@@ -708,8 +708,8 @@ export default function LandingPage() {
                 t("Full prescan + leak report", "Prescan complet + rapport de fuites"),
                 t("Financial Health Score", "Score de santé financière"),
                 t("All leaks with dollar amounts", "Toutes les fuites avec montants"),
-                t("90-day action plan", "Plan d’action 90 jours"),
-                t("Monthly re-scans", "Analyses mensuelles"),
+                t("Recovery expert assigned to your file", "Expert en récupération assigné"),
+                t("12% only on confirmed savings", "12% uniquement sur économies confirmées"),
                 t("Smart deadline alerts", "Alertes d’échéances intelligentes"),
                 t("Government programs matched", "Programmes gouvernementaux"),
               ].map(f => (

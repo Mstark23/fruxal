@@ -412,9 +412,9 @@ export function GoalProgressCard({ businessId, tier = "solo", lang = "en" }: Goa
                     <span className="text-positive font-semibold ml-1">(~{fmt(data.easiestTask.savings_monthly)}/mo)</span>
                   </p>
                 </div>
-                <a href="/v2/tasks"
+                <a href="/v2/recovery"
                   className="ml-2 text-[9px] font-bold text-brand shrink-0 hover:underline">
-                  {t("Start →", "Commencer →")}
+                  {t("View →", "Voir →")}
                 </a>
               </div>
             )}

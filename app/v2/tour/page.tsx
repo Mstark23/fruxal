@@ -418,9 +418,9 @@ export default function OnboardingTour() {
               <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 mb-4 text-left">
                 <p className="text-white/30 text-[10px] font-bold uppercase tracking-wider mb-2">What's Next</p>
                 <div className="space-y-2">
-                  <NextStep icon="diagnostic" label="Run Full AI Diagnostic" desc="Deep analysis with action plan & PDF report" primary />
+                  <NextStep icon="diagnostic" label="Run Your Full Intake" desc="Get exact dollar amounts — your rep needs this to start" primary />
                   <NextStep icon="calendar" label="Review Your Deadlines" desc="See upcoming obligations on your calendar" />
-                  <NextStep icon="search" label="Fix Your First Leak" desc="Start with the highest-impact finding" />
+                  <NextStep icon="search" label="See All Your Leaks" desc="Your rep will tackle the highest-value ones first" />
                 </div>
               </div>
             </div>

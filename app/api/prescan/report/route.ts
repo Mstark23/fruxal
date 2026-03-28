@@ -221,7 +221,7 @@ export async function GET(req: NextRequest) {
   <div class="gate">
     <div class="gate-badge">${hiddenCount} ${t("MORE LEAKS HIDDEN", "FUITES SUPPLÉMENTAIRES MASQUÉES")}</div>
     <h3>${t(`Unlock ${hiddenCount} more leaks worth $${(hiddenValue ?? 0).toLocaleString()}/yr`, `Débloquer ${hiddenCount} fuites supplémentaires valant $${(hiddenValue ?? 0).toLocaleString()}/an`)}</h3>
-    <p>${t("Create a free account to see every leak, get your full action plan, and access government programs you qualify for.", "Créez un compte gratuit pour voir toutes les fuites, obtenir votre plan d'action complet et accéder aux programmes gouvernementaux.")}</p>
+    <p>${t("Create a free account to see every leak, get assigned a recovery expert, and access government programs you qualify for.", "Créez un compte gratuit pour voir toutes les fuites, obtenir un expert en récupération et accéder aux programmes gouvernementaux.")}</p>
     <a href="${registerUrl}" class="cta-btn">
       ${t("Create Free Account & Unlock All →", "Créer un compte gratuit et tout débloquer →")}
     </a>

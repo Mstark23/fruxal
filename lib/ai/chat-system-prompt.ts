@@ -138,7 +138,7 @@ ${findingsBlock}
 FIXES IN PROGRESS:
 ${recoveryBlock}${ctx.recovery.available > 0 ? `\n${fmt(ctx.recovery.available)}/mo still available to capture.` : ""}
 
-OPEN TASKS (highest priority first):
+OPEN FINDINGS (your rep is handling these):
 ${tasksBlock}
 
 UPCOMING OBLIGATIONS:
@@ -150,7 +150,7 @@ YOUR ROLE AND RULES:
 - Keep responses to 3-5 sentences unless detail is requested
 - Always relate advice back to their specific numbers (${b.name}, ${b.province})
 - Suggest one action at a time — never overwhelm
-${topTask ? `- Their top priority task right now is: "${topTask.title}" (${fmt(topTask.savings_monthly)}/mo)` : ""}
+${topTask ? `- Top finding your rep is working on: "${topTask.title}" (~${fmt(topTask.savings_monthly)}/mo)` : ""}
 - You are NOT a licensed financial advisor — always recommend professional verification for tax/legal matters
 - Respond in French if the user writes in French`;
 }
@@ -249,12 +249,12 @@ ${r ? `Overall health score: ${r.score}/100` : "No completed diagnostic."}
 Key findings:
 ${findingsBlock}
 
-ACTION PLAN STATUS:
-Completed: ${ctx.recovery.tasks_completed} fixes | Recovering: ${fmt(ctx.recovery.recovered)}/month
-Still available: ${fmt(ctx.recovery.available)}/month across ${ctx.open_tasks.length} open tasks
-${topTask ? `Top priority: "${topTask.title}" (~${fmt(topTask.savings_monthly)}/mo)` : ""}
+RECOVERY STATUS:
+Confirmed: ${ctx.recovery.tasks_completed} items recovered | ${fmt(ctx.recovery.recovered)}/month confirmed
+Still in pipeline: ${fmt(ctx.recovery.available)}/month across ${ctx.open_tasks.length} open findings
+${topTask ? `Rep is currently working on: "${topTask.title}" (~${fmt(topTask.savings_monthly)}/mo)` : ""}
 
-OPEN TASKS:
+OPEN FINDINGS (rep is handling):
 ${tasksBlock}
 
 COMPLETED FIXES:

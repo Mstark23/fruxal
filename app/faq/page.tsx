@@ -11,7 +11,7 @@ const SECTIONS = [
     items: [
       {
         q: "What is Fruxal?",
-        a: "Fruxal is a Canadian financial diagnostic platform for small and mid-size businesses. It surfaces invisible revenue leaks — money leaving your business through inefficiencies, missed deductions, or overpriced services — and gives you a step-by-step plan to recover it. Think of it as a financial health check that keeps running in the background every month.",
+        a: "Fruxal is a Canadian business recovery service for small and mid-size businesses. It finds invisible revenue leaks — money leaving your business through inefficiencies, missed deductions, or overpriced services — then assigns a recovery expert who handles everything on your behalf. You only pay when money is actually recovered.",
       },
       {
         q: "Who is Fruxal built for?",
@@ -19,7 +19,7 @@ const SECTIONS = [
       },
       {
         q: "How do I get started?",
-        a: "Start with the free prescan — it takes about 2 minutes and asks 5 questions about your revenue, industry, and province. You'll immediately see your top financial leaks and an estimated dollar impact. From there, create a free account and run your first full diagnostic to get a health score, ranked findings, and a 90-day action plan.",
+        a: "Start with the free prescan — it takes about 2 minutes and asks 5 questions about your revenue, industry, and province. You'll immediately see your top financial leaks with estimated dollar amounts. From there, create a free account and run your full intake to confirm exact numbers. If your case qualifies, a recovery expert is assigned to you.",
       },
       {
         q: "Do I need accounting software or financial documents to start?",
@@ -32,11 +32,11 @@ const SECTIONS = [
     items: [
       {
         q: "What is a diagnostic and how does it work?",
-        a: "The diagnostic is a full AI-powered financial analysis of your business. You fill in an intake form (about 5 minutes) with your revenue, payroll, margins, and other financials. Fruxal's AI engine analyzes your data against 4,273+ leak detectors, industry benchmarks, and Canadian tax rules. It generates a health score out of 100, ranked findings with dollar amounts, a compliance risk matrix, government grant matches, and a prioritized action plan. The analysis runs in about 60–90 seconds.",
+        a: "The diagnostic is a full AI-powered financial analysis of your business. You fill in an intake form (about 5 minutes) with your revenue, payroll, margins, and other financials. Fruxal's AI engine analyzes your data against 4,273+ leak detectors, industry benchmarks, and Canadian tax rules. It generates a health score out of 100, ranked findings with exact dollar amounts, a compliance risk matrix, and government grant matches. The analysis runs in about 60–90 seconds. Your assigned rep reviews these results with you on a call.",
       },
       {
         q: "What is the health score?",
-        a: "Your health score (0–100) measures the overall financial efficiency of your business. Under 50: significant leaks need urgent attention. 50–69: moderate leaks, common for businesses that haven't had a formal review. 70+: well-run, with targeted opportunities. The score updates in real time as you complete fixes — completing a high-value task adds points immediately. It also decays slightly if you go more than 30 days without a rescan, creating urgency to keep your data current.",
+        a: "Your health score (0–100) measures the overall financial efficiency of your business. Under 50: significant leaks need urgent attention. 50–69: moderate leaks, common for businesses that haven't had a formal review. 70+: well-run, with targeted opportunities. The score updates as your rep confirms recoveries and as your situation changes.",
       },
       {
         q: "How accurate are the dollar estimates?",
@@ -44,24 +44,24 @@ const SECTIONS = [
       },
       {
         q: "How often should I run a diagnostic?",
-        a: "Monthly for most businesses. Fruxal compares each new diagnostic against your previous one and shows exactly what changed — your score, what you fixed, and what new issues appeared. After 28 days (60 days for solo operators, 21 days for enterprise), your dashboard will nudge you to rescan. The month-over-month comparison is one of the most valuable reports Fruxal produces.",
+        a: "Monthly for most businesses. Fruxal compares each new diagnostic against your previous one and shows exactly what changed — your score, what was recovered, and what new issues appeared. After 28 days (60 days for solo operators, 21 days for enterprise), your dashboard will nudge you to rescan. The month-over-month comparison is one of the most valuable reports Fruxal produces.",
       },
     ],
   },
   {
-    label: "Tasks & recovery",
+    label: "Recovery service",
     items: [
       {
-        q: "What are tasks and how do I use them?",
-        a: "After your diagnostic, Fruxal generates a prioritized task list — specific actions to fix each leak. Each task shows what to do, why it matters, how long it takes, how hard it is, and how much you'll recover per month. When you mark a task done, your recovery counter updates immediately, your health score rises, and your 90-day goal tracks the progress. Tasks are sorted by impact vs. effort so the highest-value, easiest fixes come first.",
+        q: "How does the recovery service work?",
+        a: "Once your intake is complete, a Fruxal recovery expert is assigned to your file. They review your diagnostic findings, book a call with you to confirm priorities, then our accountant handles everything — CRA correspondence, vendor renegotiations, grant applications, and follow-through. You don't lift a finger. We take 12% of confirmed savings. If we recover nothing, you pay nothing.",
       },
       {
         q: "What is the Recovery Counter?",
-        a: "The Recovery Counter is the running total of monthly savings you've confirmed by completing tasks — shown on every dashboard. It grows each time you mark a task done. Fruxal tracks recovery milestones ($100, $500, $1,000, $5,000/month) and sends a celebration email at each one. The counter also appears in your monthly brief so you can see your cumulative impact over time.",
+        a: "The Recovery Counter shows the running total of confirmed savings recovered on your behalf — visible on your dashboard at all times. It updates as your rep confirms amounts. Fruxal tracks recovery milestones ($100, $500, $1,000, $5,000/month) and sends a notification at each one. The counter also appears in your monthly brief.",
       },
       {
-        q: "What are 90-day goals?",
-        a: "After each diagnostic, Fruxal's AI suggests a specific, measurable 90-day goal — for example 'Recover $680/month by June 30.' You can accept it, adjust the amount or date, or set your own. The goal pins to your dashboard with a progress bar that updates as you complete tasks. If you're falling behind pace, Fruxal shows you the single easiest fix that would get you back on track. Goal completion triggers a celebration and an immediate suggestion for your next challenge.",
+        q: "What does my rep actually do?",
+        a: "Your rep manages your entire recovery engagement. They contact CRA on your behalf, negotiate with vendors, apply for government grants, and track every dollar recovered. You'll receive updates as amounts are confirmed. For questions or check-ins, you can book a call directly through your rep's calendar link on your dashboard.",
       },
     ],
   },
@@ -70,11 +70,11 @@ const SECTIONS = [
     items: [
       {
         q: "What can the AI advisor do?",
-        a: "The AI advisor is a financial chat assistant with full context about your business — diagnostic findings, open tasks, completed fixes, recovery total, health score, active goal, obligations, break-even position, and financial ratios. It can answer questions like 'am I on track for my goal?', 'which fix should I do next?', 'how do I fix my payment processing fees?' — and it responds with specific tool names and dollar amounts, not generic advice. It is not a replacement for a CPA; it's a knowledgeable first layer that helps you understand your situation and take action.",
+        a: "The AI advisor is a financial chat assistant with full context about your business — diagnostic findings, recovery status, confirmed savings, health score, obligations, and financial ratios. It can answer questions like 'what does this leak mean?', 'how was this amount calculated?', 'what documents does my rep need?' — and it responds with specific details, not generic advice. For 'how to fix' questions, it will direct you to your rep, who handles execution. It is not a replacement for a CPA; it's a knowledgeable first layer that helps you understand your situation.",
       },
       {
         q: "What is the monthly brief?",
-        a: "Once a month, Fruxal emails you a personalized brief written by AI specifically for your business. It covers what you recovered last month, your goal progress, upcoming tax or compliance deadlines, your top open task, and a specific tool recommendation by name. Quebec businesses receive bilingual content. You can unsubscribe from the brief at any time without affecting your account.",
+        a: "Once a month, Fruxal emails you a personalized brief written by AI specifically for your business. It covers what was recovered last month, upcoming tax or compliance deadlines, your rep's current focus, and government programs relevant to your situation. Quebec businesses receive bilingual content. You can unsubscribe from the brief at any time without affecting your account.",
       },
     ],
   },
@@ -83,7 +83,7 @@ const SECTIONS = [
     items: [
       {
         q: "How does Fruxal recommend tools and services?",
-        a: "Fruxal matches each finding or task to the most relevant tool or service from a database of 33,000+ solutions, filtered by your industry, province, and business size. For example, a payment processing leak for a Quebec restaurant would surface Helcim (Canadian processor, 1–2% savings) and Moneris (French support). You can also browse the full solutions library at /v2/solutions, filtered by category, free/paid, and Canadian-only.",
+        a: "Fruxal matches each finding to the most relevant tool or service from a database of 33,000+ solutions, filtered by your industry, province, and business size. For example, a payment processing leak for a Quebec restaurant would surface Helcim (Canadian processor, 1–2% savings) and Moneris (French support). Your rep uses these matches when executing your recovery.",
       },
       {
         q: "Does Fruxal have affiliate relationships with recommended solutions?",
@@ -108,7 +108,7 @@ const SECTIONS = [
       },
       {
         q: "Can Fruxal help me apply for grants?",
-        a: "Fruxal identifies and explains which programs you likely qualify for, but does not submit applications on your behalf. For programs like SR&ED, CDAP, or provincial grants, you'll typically need to apply through the relevant government portal or work with a qualified consultant. Fruxal's role is to make sure you know these opportunities exist and understand what's required — most businesses miss programs they easily qualify for simply because they didn't know to look.",
+        a: "Yes — grant applications are part of the recovery service. If your diagnostic identifies a program you qualify for, your rep and accountant handle the application process. For businesses not yet in a recovery engagement, Fruxal identifies and explains which programs you likely qualify for so you understand what's available.",
       },
     ],
   },
@@ -130,7 +130,7 @@ const SECTIONS = [
     ],
   },
   {
-    label: "Billing & cancellation",
+    label: "Billing & engagements",
     items: [
       {
         q: "How does billing work?",
@@ -141,16 +141,12 @@ const SECTIONS = [
         a: "Yes. Recovery engagements run for 12 months and can be ended by either party. If you end early, you owe the 12% fee only on savings confirmed to that point — nothing for future work we haven't done. Your free tool access continues regardless.",
       },
       {
-        q: "What happens to my data if I cancel?",
-        a: "Your account data — diagnostics, task history, recovery totals, and timeline — is retained for 90 days after cancellation. After 90 days, your data is permanently deleted from our servers. If you reactivate within 90 days, your full history is restored exactly as it was. We don't sell your data before, during, or after your subscription.",
+        q: "What happens to my data if I close my account?",
+        a: "Your account data — diagnostics, recovery history, confirmed savings, and timeline — is retained for 90 days after account closure. After 90 days, your data is permanently deleted from our servers. If you reactivate within 90 days, your full history is restored exactly as it was. We don't sell your data.",
       },
       {
         q: "Can I get a refund?",
-        a: "If you've been charged and feel there's an error or you're unsatisfied with the service, contact us at support@fruxal.com within 14 days of the charge and we'll review it. We handle refund requests case-by-case with the goal of making it right. We don't offer automatic refunds for renewals that were already processed, but we're reasonable — just reach out.",
-      },
-      {
-        q: "Do you offer discounts for annual billing or nonprofits?",
-        a: "Annual billing and discounts for non-profits, Indigenous-owned businesses, and early-stage startups are available — contact us to discuss. We're a Canadian company and we want to make Fruxal accessible to businesses that need it most.",
+        a: "If you've been charged and feel there's an error or you're unsatisfied with the service, contact us at support@fruxal.com within 14 days of the charge and we'll review it. We handle refund requests case-by-case with the goal of making it right.",
       },
     ],
   },
@@ -159,7 +155,7 @@ const SECTIONS = [
     items: [
       {
         q: "Is my financial data safe?",
-        a: "Your data is stored in a Canadian-region PostgreSQL database with row-level security — your data is only accessible by you. Financial data you enter is used only to generate your diagnostic and is never shared or sold. Documents uploaded by Enterprise users are used only for your analysis. Fruxal does not display advertising and does not share user data with third parties for marketing purposes.",
+        a: "Your data is stored in a Canadian-region PostgreSQL database with row-level security — your data is only accessible by you and your assigned rep. Financial data you enter is used only to generate your diagnostic and recovery plan, and is never shared or sold. Documents uploaded by Enterprise users are used only for your analysis. Fruxal does not display advertising and does not share user data with third parties for marketing purposes.",
       },
       {
         q: "Does Fruxal connect to my accounting software or bank?",
@@ -172,11 +168,11 @@ const SECTIONS = [
     items: [
       {
         q: "Can I see my progress over time?",
-        a: "Yes. The History page shows your full financial journey since joining: a score progression chart, a timeline of every prescan, diagnostic, completed task, and goal milestone grouped by month, and a stats bar showing total days on platform, savings recovered, and annualized impact. Each rescan generates an instant comparison showing score delta, what you fixed, new issues found, and your net financial position.",
+        a: "Yes. The Recovery page shows your full financial journey since joining: a score progression chart, a timeline of every prescan, diagnostic, confirmed recovery, and goal milestone grouped by month, and a stats bar showing total days on platform, savings recovered, and annualized impact. Each rescan generates an instant comparison showing score delta, new issues found, and your net financial position.",
       },
       {
         q: "What happens if my score goes down?",
-        a: "A score drop is normal and informative. Scores can fall for three reasons: (1) a missed tax or compliance deadline applied a penalty, (2) time elapsed since your last diagnostic (the score decays slightly after 31 days to create urgency to rescan), or (3) a rescan found new issues. The score breakdown panel on your dashboard always shows exactly why it moved and what to do about it.",
+        a: "A score drop is normal and informative. Scores can fall for three reasons: (1) a missed tax or compliance deadline applied a penalty, (2) time elapsed since your last diagnostic (the score decays slightly after 31 days to create urgency to rescan), or (3) a rescan found new issues. The score breakdown panel on your dashboard always shows exactly why it moved.",
       },
     ],
   },

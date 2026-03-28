@@ -303,7 +303,7 @@ export function RecoveryCounter({ businessId, mode, lang = "en", onUpdate }: Rec
             <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-0.5">
               {t("Still available", "Encore disponible")}
             </p>
-            <a href="/v2/tasks"
+            <a href="/v2/recovery"
               className="font-black tabular-nums text-ink hover:text-brand transition"
               style={{ fontSize: "18px" }}>
               {fmt(data.savings_available)}

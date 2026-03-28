@@ -108,8 +108,8 @@ export function LastBriefWidget({ businessId, lang = "en" }: LastBriefWidgetProp
               >
                 {t("Read brief →", "Lire le bilan →")}
               </button>
-              <a href="/v2/tasks" className="text-[10px] font-semibold text-ink-muted hover:text-ink">
-                {t("View action plan →", "Plan d'action →")}
+              <a href="/v2/recovery" className="text-[10px] font-semibold text-ink-muted hover:text-ink">
+                {t("View recovery →", "Récupération →")}
               </a>
             </div>
           </div>
@@ -151,10 +151,10 @@ export function LastBriefWidget({ businessId, lang = "en" }: LastBriefWidgetProp
 
             {/* Modal footer */}
             <div className="px-5 py-3 border-t border-border-light flex gap-3">
-              <a href="/v2/tasks"
+              <a href="/v2/recovery"
                 className="flex-1 text-center py-2 text-[11px] font-bold text-white rounded-lg hover:opacity-90 transition"
                 style={{ background: "#1B3A2D" }}>
-                {t("View action plan →", "Plan d'action →")}
+                {t("View my recovery →", "Voir ma récupération →")}
               </a>
               <button
                 onClick={() => setShowModal(false)}

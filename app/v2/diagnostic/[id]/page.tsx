@@ -232,7 +232,7 @@ export default function DiagnosticReportPage() {
 
   const TABS: { key: Tab; label: string; labelFr: string; count?: number }[] = [
     { key: "findings", label: "Leaks Found", labelFr: "Fuites détectées", count: (report.findings ?? []).length },
-    { key: "plan", label: t("Action Plan", "Plan d'action"), labelFr: "Plan d'action", count: ((report.action_plan as any)?.optimal_sequence ?? []).length },
+    { key: "plan", label: t("Recovery Sequence", "Séquence de récupération"), labelFr: "Séquence de récupération", count: ((report.action_plan as any)?.optimal_sequence ?? []).length },
     { key: "risk", label: t("Risk Matrix", "Matrice de risque"), labelFr: "Risques", count: (report.risk_matrix ?? []).length },
     { key: "benchmarks", label: t("Benchmarks", "Repères"), labelFr: "Comparaisons" },
   ];
@@ -591,7 +591,7 @@ export default function DiagnosticReportPage() {
           </div>
         )}
 
-        {/* Action Plan Tab */}
+        {/* Recovery Sequence Tab */}
         {tab === "plan" && (
           <div className="space-y-2">
             {((report.action_plan as any)?.optimal_sequence ?? []).map((a: any, i: number) => (

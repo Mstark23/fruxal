@@ -382,7 +382,7 @@ export default function DiagnosticIntakePage() {
       { label: "Running 4,273 leak detectors…",      labelFR: "Activation de 4 273 détecteurs…",        pct: 38 },
       { label: "Calculating your health score…",     labelFR: "Calcul de votre score de santé…",        pct: 52 },
       { label: "Matching government programs…",      labelFR: "Recherche de programmes gouvernementaux…",pct: 64 },
-      { label: "Generating your action plan…",       labelFR: "Génération de votre plan d'action…",     pct: 76 },
+      { label: "Identifying recovery opportunities…",       labelFR: "Identification des opportunités de récupération…",     pct: 76 },
       { label: "Building fix recommendations…",      labelFR: "Création des recommandations…",           pct: 88 },
       { label: "Finalizing your report…",            labelFR: "Finalisation de votre rapport…",          pct: 96 },
     ];
@@ -404,7 +404,7 @@ export default function DiagnosticIntakePage() {
     { label: "Running 4,273 leak detectors…",      labelFR: "Activation de 4 273 détecteurs…"        },
     { label: "Calculating your health score…",     labelFR: "Calcul de votre score de santé…"        },
     { label: "Matching government programs…",      labelFR: "Recherche de programmes gouvernementaux…"},
-    { label: "Generating your action plan…",       labelFR: "Génération de votre plan d'action…"     },
+    { label: "Identifying recovery opportunities…",       labelFR: "Identification des opportunités de récupération…"     },
     { label: "Building fix recommendations…",      labelFR: "Création des recommandations…"           },
     { label: "Finalizing your report…",            labelFR: "Finalisation de votre rapport…"          },
   ];
