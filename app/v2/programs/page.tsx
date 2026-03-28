@@ -253,15 +253,17 @@ export default function ProgramsPage() {
                             </p>
                           )}
                           {prog.url && (
-                            <a href={prog.url} target="_blank" rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-4 py-2 text-white text-[11px] font-semibold rounded-lg hover:opacity-90 transition"
-                              style={{ background:"#1B3A2D" }}>
-                              {t("Apply now","Postuler")}
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
-                                <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                              </svg>
-                            </a>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold"
+                                style={{ background: "rgba(45,122,80,0.08)", color: "#1B3A2D" }}>
+                                <div className="w-1.5 h-1.5 rounded-full bg-positive shrink-0" />
+                                {t("Your rep handles this application","Votre rep s'occupe de cette demande")}
+                              </div>
+                              <a href={prog.url} target="_blank" rel="noopener noreferrer"
+                                className="text-[10px] font-semibold text-ink-muted hover:text-ink transition">
+                                {t("View program details →","Voir les détails →")}
+                              </a>
+                            </div>
                           )}
                         </div>
                       )}
