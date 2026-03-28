@@ -83,10 +83,6 @@ export default function DiagnosticReportPage() {
   const [tab, setTab] = useState<Tab>("findings");
   const [filterSeverity, setFilterSeverity] = useState<string | null>(null);
   const [prescanLink, setPrescanLink] = useState<any>(null);
-  const [activeGoal, setActiveGoal] = useState<any>(null);
-  const [showGoalForm, setShowGoalForm] = useState(false);
-  const [goalSaved, setGoalSaved] = useState(false);
-  const [goalFormType, setGoalFormType] = useState<"accept"|"adjust"|"own"|null>(null);
   const [comparison, setComparison] = useState<any>(null);
   const [compStatus, setCompStatus] = useState<"loading"|"generating"|"ready"|"first_scan"|"hidden">("loading");
   const [compExpanded, setCompExpanded] = useState(false);
@@ -122,16 +118,6 @@ export default function DiagnosticReportPage() {
     poll();
   }, [report?.id]);
 
-  // Fetch active goal to decide whether to show suggestion
-  useEffect(() => {
-    if (!report?.id) return;
-    const bid = (report as any).businessId ?? "";
-    if (!bid) return;
-    fetch(`/api/v2/goals?businessId=${bid}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.activeGoal) setActiveGoal(d.activeGoal); })
-      .catch(() => {});
-  }, [report?.id]);
 
   // Fetch prescan continuity data when report loads with prescan context
   useEffect(() => {
@@ -310,10 +296,23 @@ export default function DiagnosticReportPage() {
         </div>
 
         {/* Executive Summary */}
-        <div className="bg-white/[0.06] border border-white/[0.14] rounded-xl p-5 mb-6" style={{ animation: "fadeUp 0.4s ease-out" }}>
+        <div className="bg-white/[0.06] border border-white/[0.14] rounded-xl p-5 mb-4" style={{ animation: "fadeUp 0.4s ease-out" }}>
           <h2 className="text-sm font-semibold text-ink-secondary mb-3">{isFr ? "Votre situation en clair" : "Here's your situation, clearly"}</h2>
           <p className="text-xs text-ink-secondary leading-relaxed whitespace-pre-wrap">
             {isFr ? (report.executive_summary_fr || report.executive_summary) : report.executive_summary}
+          </p>
+        </div>
+
+        {/* Rep context note */}
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl mb-5"
+          style={{ background: "rgba(27,58,45,0.05)", border: "1px solid rgba(27,58,45,0.12)", animation: "fadeUp 0.45s ease-out" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2" strokeLinecap="round" className="shrink-0 mt-0.5">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <p className="text-[11px] text-ink-secondary leading-relaxed">
+            {isFr
+              ? "Votre rep examinera ce rapport avec vous lors de votre appel. Vous n'avez rien à faire avec ces résultats — ils s'en occupent."
+              : "Your rep will review this report with you on your call. You don't need to do anything with these findings — they handle it."}
           </p>
         </div>
 
@@ -347,9 +346,9 @@ export default function DiagnosticReportPage() {
                       filterSeverity === sev ? `${st.bg} ${st.text}` : "bg-white/[0.06] text-ink/85"
                     }`}>
                     {{
-                      critical: isFr ? `Urgent (${count})` : `Fix Now (${count})`,
-                      high: isFr ? `Bientôt (${count})` : `Fix Soon (${count})`,
-                      medium: isFr ? `Planifier (${count})` : `Plan It (${count})`,
+                      critical: isFr ? `Urgent (${count})` : `Urgent (${count})`,
+                      high: isFr ? `Bientôt (${count})` : `High (${count})`,
+                      medium: isFr ? `Planifier (${count})` : `Medium (${count})`,
                       low: isFr ? `Bon à savoir (${count})` : `Good to Know (${count})`,
                     }[sev]}
                   </button>
@@ -391,7 +390,7 @@ export default function DiagnosticReportPage() {
                     </div>
                     {comparison.savings_recovered_monthly > 0 && (
                       <div>
-                        <p className="text-[11px] text-ink-muted uppercase tracking-wider mb-0.5">{isFr ? "Récupéré" : "Fixed"}</p>
+                        <p className="text-[11px] text-ink-muted uppercase tracking-wider mb-0.5">{isFr ? "Récupéré" : "Recovered"}</p>
                         <p className="text-[12px] font-bold text-positive">+${(comparison.savings_recovered_monthly ?? 0).toLocaleString()}/mo</p>
                       </div>
                     )}
@@ -422,81 +421,6 @@ export default function DiagnosticReportPage() {
               <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-xl border border-border-light">
                 <div className="w-4 h-4 border-2 border-brand/30 border-t-brand rounded-full animate-spin shrink-0" />
                 <p className="text-[11px] text-ink-faint">{isFr ? "Comparaison avec votre dernier scan…" : "Comparing with your previous scan…"}</p>
-              </div>
-            )}
-
-            {/* Goal suggestion card — shown when no active goal and report has a suggestion */}
-            {report?.goal_suggestion && !activeGoal && !goalSaved && (
-              <div className="mb-4 rounded-xl border overflow-hidden"
-                style={{ borderColor: "rgba(27,58,45,0.2)", background: "rgba(27,58,45,0.03)" }}>
-                <div className="px-4 py-3 border-b" style={{ borderColor: "rgba(27,58,45,0.12)", background: "rgba(27,58,45,0.06)" }}>
-                  <div className="flex items-center gap-2">
-                    
-                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#1B3A2D" }}>
-                      {isFr ? "OBJECTIF SUGGÉRÉ SUR 90 JOURS" : "SUGGESTED 90-DAY GOAL"}
-                    </span>
-                  </div>
-                </div>
-                <div className="px-4 py-3">
-                  {!showGoalForm ? (
-                    <>
-                      <p className="text-[14px] font-black text-ink mb-1">
-                        &ldquo;{report.goal_suggestion.goal_title}&rdquo;
-                      </p>
-                      {report.goal_suggestion.goal_description && (
-                        <p className="text-[11px] text-ink/85 mb-2 leading-relaxed">
-                          {report.goal_suggestion.goal_description}
-                        </p>
-                      )}
-                      {report.goal_suggestion.suggestion_rationale && (
-                        <p className="text-[10px] text-ink/90 italic mb-3">
-                          {report.goal_suggestion.suggestion_rationale}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={async () => {
-                            const bid = (report as any).businessId ?? "";
-                            if (!bid) return;
-                            const res = await fetch("/api/v2/goals", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                businessId: bid,
-                                goal: { ...report.goal_suggestion, source_report_id: report.id },
-                              }),
-                            });
-                            if (res.ok) setGoalSaved(true);
-                          }}
-                          className="px-3 py-1.5 text-[11px] font-bold text-white rounded-lg hover:opacity-90 transition"
-                          style={{ background: "#1B3A2D" }}>
-                          {isFr ? "Accepter cet objectif ✓" : "Accept this goal ✓"}
-                        </button>
-                        <button onClick={() => setShowGoalForm(true)}
-                          className="px-3 py-1.5 text-[11px] font-semibold text-ink-muted border border-border-light rounded-lg hover:bg-bg-section transition">
-                          {isFr ? "Ajuster" : "Adjust"}
-                        </button>
-                        <button onClick={() => setGoalSaved(true)}
-                          className="px-3 py-1.5 text-[11px] text-ink-faint hover:text-ink transition">
-                          {isFr ? "Ignorer" : "Dismiss"}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-[11px] text-ink-faint">
-                      {isFr ? "Rendez-vous sur votre tableau de bord pour définir un objectif personnalisé." :
-                       "Head to your dashboard to set a custom goal."}
-                      <a href="/v2/dashboard" className="ml-1 text-brand font-semibold hover:underline">
-                        {isFr ? "Tableau de bord →" : "Dashboard →"}
-                      </a>
-                    </p>
-                  )}
-                  {goalSaved && (
-                    <p className="text-[11px] font-semibold text-positive">
-                      {isFr ? "Objectif enregistré — visible sur votre tableau de bord." : "Goal saved — visible on your dashboard."}
-                    </p>
-                  )}
-                </div>
               </div>
             )}
 
@@ -574,11 +498,12 @@ export default function DiagnosticReportPage() {
                     </p>
                     <div className="flex items-center gap-3 text-[10px] mb-2">
                       <span className={`font-bold ${st.text}`}>${(f.impact_min ?? 0).toLocaleString()}–${(f.impact_max ?? 0).toLocaleString()}/yr</span>
-                      <span className="text-ink/55">⏱ {f.timeline}</span>
-                      <span className="text-ink/55">{f.difficulty}</span>
-                      <span className="text-ink/80">{f.solution_type}</span>
+                      <span className="text-ink/55">{f.category}</span>
                     </div>
                     <div className="bg-brand/5 border border-brand/10 rounded-lg px-3 py-2">
+                      <p className="text-[9px] font-bold text-brand/50 uppercase tracking-wider mb-1">
+                        {isFr ? "Ce que votre rep va adresser" : "What your rep will address"}
+                      </p>
                       <p className="text-[11px] text-brand-accent">
                         {isFr ? (f.recommendation_fr || f.recommendation) : f.recommendation}
                       </p>
@@ -594,6 +519,15 @@ export default function DiagnosticReportPage() {
         {/* Recovery Sequence Tab */}
         {tab === "plan" && (
           <div className="space-y-2">
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl mb-2"
+              style={{ background: "rgba(27,58,45,0.05)", border: "1px solid rgba(27,58,45,0.10)" }}>
+              <div className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse shrink-0" />
+              <p className="text-[11px] text-ink-secondary">
+                {isFr
+                  ? "Votre rep travaillera ces éléments dans cet ordre. Aucune action requise de votre part."
+                  : "Your rep will work through these in this order. No action needed from you."}
+              </p>
+            </div>
             {((report.action_plan as any)?.optimal_sequence ?? []).map((a: any, i: number) => (
               <div key={i} className="flex items-start gap-3 bg-white/[0.06] border border-white/[0.14] rounded-xl p-4"
                 style={{ animation: `fadeUp 0.2s ease-out ${i * 0.04}s both` }}>
@@ -610,7 +544,6 @@ export default function DiagnosticReportPage() {
                   <div className="flex items-center gap-3 text-[10px]">
                     <span className="text-brand-accent font-semibold">${(a.estimated_savings ?? 0).toLocaleString()}</span>
                     <span className="text-ink/55">{a.timeline}</span>
-                    <span className="text-ink/80">{a.difficulty}</span>
                   </div>
                 </div>
               </div>
