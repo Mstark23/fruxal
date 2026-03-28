@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
           yourNumber: `$${yourPerSqft.toFixed(0)}/sqft/year ($${rent.toLocaleString()}/mo)`,
           source: "your_answer + local_benchmark",
           confidence: "high",
-          fixHint: "Negotiate at lease renewal. Get competing quotes. Consider subletting unused space.",
+          fixHint: "Our team will contact your landlord and negotiate directly. No action needed from you.",
         });
       }
 
@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
           yourNumber: `${Math.round(rentPct)}% of revenue`,
           source: "your_answer",
           confidence: "high",
-          fixHint: "Either negotiate rent down, increase revenue per sqft, or plan to move when lease expires.",
+          fixHint: "We'll review your lease terms and approach your landlord for a renegotiation. We handle the whole conversation.",
         });
       }
     }
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
           yourNumber: `~${ccRate}% (${provName} average rate)`,
           source: "your_answer + payments_canada",
           confidence: "medium",
-          fixHint: "Get 3 quotes. Ask for interchange-plus pricing. Consider Helcim or Square if under $30K/month.",
+          fixHint: "Our team will audit your processing statement and negotiate directly with your processor or switch you to a better rate.",
         });
       }
     }
@@ -220,7 +220,7 @@ export async function POST(req: NextRequest) {
         yourNumber: `~${daysToPay} days`,
         source: "your_answer",
         confidence: "high",
-        fixHint: "Invoice same day. Offer 2% early-pay discount. Use automated reminders at day 7, 14, 21.",
+        fixHint: "We'll review your AR process and implement collection improvements on your behalf.",
       });
     }
 
@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
         yourNumber: "$0/month (DIY)",
         source: "your_answer + cra_data",
         confidence: "high",
-        fixHint: "Start with a bookkeeper ($300/mo). Get a CPA review at year-end. ROI is typically 3-5x.",
+        fixHint: "Our accountant will review your books and identify optimization opportunities directly.",
       });
     } else if (bookkeepingCost > 0 && bookkeepingCost > mRev * 0.05) {
       // Overpaying for bookkeeping
@@ -260,7 +260,7 @@ export async function POST(req: NextRequest) {
           yourNumber: `$${bookkeepingCost}/mo (${Math.round(bookkeepingCost / mRev * 100)}% of revenue)`,
           source: "your_answer",
           confidence: "medium",
-          fixHint: "Compare rates. Cloud accounting (FreshBooks, Xero) can reduce bookkeeper hours by 30-50%.",
+          fixHint: "We'll review your accounting setup and streamline costs for you.",
         });
       }
     }
@@ -281,7 +281,7 @@ export async function POST(req: NextRequest) {
         yourNumber: `$${monthlySoftware}/mo`,
         source: "your_answer",
         confidence: "medium",
-        fixHint: "Audit every subscription. Cancel anything unused for 30+ days. Look for all-in-one tools.",
+        fixHint: "Our team will audit your software stack and eliminate unnecessary spend — we handle cancellations.",
       });
     } else if (monthlySoftware === 0 && emp > 1) {
       const timeLost = Math.round(emp * 3 * 52 * 20); // 3 hrs/wk × $20/hr per employee

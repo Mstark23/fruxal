@@ -34,7 +34,7 @@ async function handler(req: NextRequest) {
     const { data: overdueFollowUps } = await supabaseAdmin
       .from("tier3_pipeline")
       .select("id, company_name, stage, follow_up_date, rep_id, user_id, tier3_reps(name, email)")
-      .in("stage", ["contacted", "called", "diagnostic_sent"])
+      .in("stage", ["contacted", "called", "call_booked", "diagnostic_sent", "agreement_out"])
       .lte("follow_up_date", today)
       .not("rep_id", "is", null);
 

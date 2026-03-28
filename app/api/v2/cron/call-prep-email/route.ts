@@ -43,8 +43,12 @@ async function handler(req: NextRequest) {
       const rep  = a.tier3_reps as any;
       if (!pipe?.contact_email) continue;
       // Skip if already booked
-      if (pipe.stage === "call_booked" || pipe.stage === "signed" ||
-          pipe.stage === "in_engagement" || pipe.stage === "fee_collected") continue;
+      // Skip if call already happened or engagement advanced past call stage
+      if (pipe.stage === "signed" || pipe.stage === "agreement_out" ||
+          pipe.stage === "in_engagement" || pipe.stage === "recovery_tracking" ||
+          pipe.stage === "fee_collected" || pipe.stage === "completed") continue;
+      // Only send prep email for call_booked stage
+      if (pipe.stage !== "call_booked") continue;
 
       const contactName = pipe.contact_name?.split(" ")[0] || "there";
       const repName     = rep?.name || "your Fruxal rep";
