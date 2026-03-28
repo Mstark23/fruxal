@@ -157,7 +157,7 @@ const SEQUENCE: SequenceStep[] = [
         \$${v.dailyCost}/day, every day, until someone addresses them.
       </p>
       <p style="color:#3d3d4e;margin:0 0 24px">
-        Your scan is still there. So is your action plan. Run a new one if anything has changed — 
+        Your scan is still there. The leaks are still costing you money. Run a new intake if anything has changed — 
         it's still free, always.
       </p>
     `,
