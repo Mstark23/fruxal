@@ -282,8 +282,6 @@ export async function sendRescanEmail({
 }: RescanEmailArgs): Promise<boolean> {
   const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const reportUrl = `${appUrl}/v2/diagnostic/${newReportId}`;
-  const tasksUrl  = `${appUrl}/v2/tasks`;
-
   const scoreLine = scoreDelta > 0
     ? `<span style="color:#2D7A50;font-weight:700">↑ ${prevScore} → ${newScore} (+${scoreDelta})</span>`
     : scoreDelta < 0

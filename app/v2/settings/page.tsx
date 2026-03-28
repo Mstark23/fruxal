@@ -667,7 +667,7 @@ export default function SettingsPage() {
           <div className="bg-white rounded-2xl p-6 max-w-md w-full">
             <p className="text-[17px] font-bold text-ink mb-2">Are you sure?</p>
             <p className="text-[13px] text-ink-muted mb-4">
-              This will permanently delete all your diagnostic reports, completed tasks, and financial history.
+              This will permanently delete all your diagnostic reports, confirmed recoveries, and financial history.
             </p>
             <p className="text-[12px] font-semibold text-ink mb-1">Type DELETE to confirm:</p>
             <input type="text" value={deleteInput} onChange={e => setDeleteInput(e.target.value)}

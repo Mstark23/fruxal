@@ -400,7 +400,7 @@ export default function OnboardingTour() {
               </div>
 
               <p className="text-white/25 text-xs mb-6 max-w-xs mx-auto">
-                {data.health_score < 40 ? "Your business has significant gaps. Let's fix them together." :
+                {data.health_score < 40 ? "Your business has significant gaps — your rep will address the biggest ones first." :
                  data.health_score < 70 ? "Good foundation, but there's real money being left on the table." :
                  "Looking solid! A few optimizations could save you even more."}
               </p>

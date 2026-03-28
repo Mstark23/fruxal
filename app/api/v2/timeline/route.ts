@@ -1,7 +1,7 @@
 // =============================================================================
 // app/api/v2/timeline/route.ts
 // GET /api/v2/timeline?businessId=XXX
-// Assembles user journey: prescan → diagnostics → completed tasks
+// Assembles user journey: prescan → diagnostics → confirmed recoveries
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
       entries.push({
         type: "tasks",
         date: firstTask?.completed_at,
-        title: `${group.month}: ${group.tasks.length} fix${group.tasks.length !== 1 ? "es" : ""} completed`,
+        title: `${group.month}: ${group.tasks.length} recovery${group.tasks.length !== 1 ? " confirmations" : " confirmed"}`,
         subtitle: group.totalSavings > 0
           ? `$${Math.round(group.totalSavings).toLocaleString()}/month recovered`
           : null,

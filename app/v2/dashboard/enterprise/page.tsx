@@ -20,10 +20,12 @@
 
 
 import { useState, useEffect, useRef } from "react";
-
+import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
+import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "@/components/v2/LiveScoreRing";
+import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
+import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-
 
 const fade = (delay = 0) => ({
   animation: `fadeUp 0.4s ease ${delay}s both`,
@@ -41,9 +43,6 @@ export default function EnterpriseDashboard() {
   const [lang, setLang] = useState<"en" | "fr">("en");
   const [loading, setLoading] = useState(true);
   const [reportId,   setReportId]   = useState<string | null>(null);
-
-
-
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [rerunning,  setRerunning]  = useState(false);
   const [mounted,    setMounted]    = useState(false);
@@ -748,7 +747,7 @@ export default function EnterpriseDashboard() {
                 t("7 diagnostic scores",      "7 scores diagnostiques"),
                 t("EBITDA + EV impact",        "Impact BAIIA + valeur d'entreprise"),
                 t("Risk matrix",              "Matrice des risques"),
-                t("Priority action plan",     "Plan d'action prioritaire"),
+                t("Recovery sequence",        "Séquence de récupération"),
                 t("PDF export",              "Export PDF"),
                 t("CPA briefing memo",        "Mémo pour comptable"),
               ].map(item => (
@@ -1319,7 +1318,7 @@ export default function EnterpriseDashboard() {
                   style={{ color: "#1B3A2D" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                 </div>
-                <p className="text-[10px] text-ink-faint flex-1">{t("Full analysis, CPA briefing, and priority action plan unlocked on your strategy call.", "Analyse complète, briefing CPA et plan d'action déverrouillés lors de votre appel stratégie.")}</p>
+                <p className="text-[10px] text-ink-faint flex-1">{t("Full analysis, CPA briefing, and recovery sequence unlocked on your strategy call.", "Analyse complète, briefing CPA et séquence de récupération déverrouillés lors de votre appel stratégie.")}</p>
                 <a href={callHref} target="_blank" rel="noopener noreferrer"
                   className="shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
                   style={{ background: "#1B3A2D" }}>
@@ -1401,8 +1400,8 @@ export default function EnterpriseDashboard() {
               {/* Preview items — blurred */}
               <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.04)" }}>
                 {[
-                  { icon: "📋", label: t("Accountant Briefing & Recovery Plan", "Briefing comptable et plan de récupération"), sub: t("What our team will action — RDTOH, CDA, tax exposure, vendor renegotiations", "Ce que notre équipe mettra en œuvre — IMRTD, CDC, exposition fiscale, renégociations") },
-                  { icon: "⚙️", label: t("Recovery Execution Plan", "Plan d'exécution de la récupération"), sub: t("Our accountant's step-by-step recovery sequence — ranked by ROI", "La séquence de récupération de notre comptable — classée par ROI") },
+                  { icon: "briefing", label: t("CPA / Board Briefing Memo", "Mémo Briefing CPA"), sub: t("RDTOH strategy, tax exposure, talking points for your accountant", "Stratégie IMRTD, exposition fiscale, points pour votre comptable") },
+                  { icon: "seq", label: t("Priority Action Sequence", "Séquence d'actions prioritaires"), sub: t("Step-by-step recovery plan ranked by ROI and effort", "Plan de récupération étape par étape classé par ROI") },
                   { icon: "bench", label: t("Peer Benchmark Comparisons", "Comparaisons aux pairs sectoriels"), sub: t("How your margins, payroll ratio, and EBITDA compare to top quartile", "Comment vos marges, masse salariale et BAIIA se comparent aux meilleurs") },
                 ].map((item, i) => (
                   <div key={i} className="px-5 py-3 flex items-center gap-4" style={{ filter: "blur(0.5px)", opacity: 0.55 }}>
@@ -1419,8 +1418,8 @@ export default function EnterpriseDashboard() {
               <div className="px-5 py-4 flex flex-col sm:flex-row items-center gap-3"
                 style={{ background: "#FAFAF8", borderTop: "1px solid rgba(0,0,0,0.05)" }}>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold text-ink">{t("We execute your recovery. You pay 12% of confirmed savings.", "Nous exécutons votre récupération. Vous payez 12% des économies confirmées.")}</p>
-                  <p className="text-[10px] text-ink-faint mt-0.5">{t("No upfront cost. Our accountant handles CRA, vendors, and grant applications.", "Sans frais initiaux. Notre comptable gère l'ARC, les fournisseurs et les subventions.")}</p>
+                  <p className="text-[12px] font-semibold text-ink">{t("We find it. We recover it. You pay nothing upfront.", "Nous trouvons. Nous récupérons. Vous ne payez rien d'avance.")}</p>
+                  <p className="text-[10px] text-ink-faint mt-0.5">{t("12% contingency on confirmed savings — booked only after you approve each finding.", "12% à la performance sur les économies confirmées — facturé uniquement après approbation.")}</p>
                 </div>
                 <a href={callHref} target="_blank" rel="noopener noreferrer"
                   className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-[12px] font-bold text-white rounded-lg transition hover:opacity-90"
@@ -1474,8 +1473,6 @@ export default function EnterpriseDashboard() {
             { key:"contacted",         label:t("Contacted","Contacté"),      labelFr:"Contacté" },
             { key:"diagnostic_sent",   label:t("Diagnostic Sent","Diagnostic envoyé"), labelFr:"Diagnostic envoyé" },
             { key:"call_booked",       label:t("Call Booked","Appel réservé"), labelFr:"Appel réservé" },
-            { key:"agreement_out",     label:t("Agreement Sent","Contrat envoyé"), labelFr:"Contrat envoyé" },
-            { key:"signed",            label:t("Signed","Signé"), labelFr:"Signé" },
             { key:"in_engagement",     label:t("Active Engagement","Engagement actif"), labelFr:"Engagement actif" },
             { key:"recovery_tracking", label:t("Recovery Tracking","Suivi récupération"), labelFr:"Suivi récupération" },
             { key:"completed",         label:t("Completed","Complété"),      labelFr:"Complété" },
