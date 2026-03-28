@@ -102,6 +102,7 @@ export async function GET(req: NextRequest) {
         estimatedHigh: 0,
         highConfidenceCount: 0,
         stage: p.stage || "lead",
+        confirmedSavings: (p as any).confirmed_savings || 0,
         notes: p.notes || null,
         followUpDate: p.follow_up_date || null,
         lostReason: p.lost_reason || null,

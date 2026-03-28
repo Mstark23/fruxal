@@ -41,6 +41,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── Accountant portal — same bypass pattern as rep ───────────────────────
+  if (pathname.startsWith("/accountant") || pathname.startsWith("/api/accountant")) {
+    return NextResponse.next();
+  }
+
   // /dashboard → rewrite to /v2/dashboard
   if (pathname.startsWith("/dashboard")) {
     const url = req.nextUrl.clone();
@@ -97,6 +102,7 @@ export const config = {
     "/v2/:path*",
     "/api/:path*",
     "/rep/:path*",
+    "/accountant/:path*",
     "/rep",
   ],
 };

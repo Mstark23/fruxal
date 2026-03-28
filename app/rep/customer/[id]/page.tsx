@@ -646,6 +646,120 @@ ${repInfo?.name || 'Your Fruxal rep'}`
           </div>
         )}
 
+
+        {tab === "debrief" && (
+          <div className="space-y-4">
+            {debriefDone ? (
+              <div className="flex flex-col items-center py-10 gap-3 bg-white border border-[#E5E3DD] rounded-xl">
+                <div className="w-12 h-12 rounded-full bg-[rgba(45,122,80,0.08)] flex items-center justify-center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <p className="text-[14px] font-semibold text-[#1A1A18]">Debrief saved</p>
+                <p className="text-[12px] text-[#8E8C85] text-center">
+                  {debriefOutcome === "ready_to_sign" ? "Engagement email sent to client with signature link." : "Pipeline updated."}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white border border-[#E5E3DD] rounded-xl p-5" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
+                <p className="text-[11px] font-bold text-[#8E8C85] uppercase tracking-wider mb-4">Post-Call Debrief</p>
+
+                <div className="mb-4">
+                  <p className="text-[12px] font-semibold text-[#1A1A18] mb-2">How did the call go?</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { val: "ready_to_sign", label: "Ready to sign", color: "#2D7A50", bg: "rgba(45,122,80,0.08)" },
+                      { val: "needs_time",    label: "Needs time",    color: "#C4841D", bg: "rgba(196,132,29,0.08)" },
+                      { val: "not_interested",label: "Not interested",color: "#B34040", bg: "rgba(179,64,64,0.08)" },
+                    ] as const).map(opt => (
+                      <button key={opt.val}
+                        onClick={() => setDebriefOutcome(opt.val)}
+                        className="py-2 px-3 rounded-lg text-[12px] font-semibold border transition"
+                        style={{
+                          background: debriefOutcome === opt.val ? opt.bg : "white",
+                          color: debriefOutcome === opt.val ? opt.color : "#8E8C85",
+                          borderColor: debriefOutcome === opt.val ? opt.color + "33" : "#E8E6E1",
+                        }}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {(client?.diagnostic?.findings || []).length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-[12px] font-semibold text-[#1A1A18] mb-2">Which findings did they agree to pursue?</p>
+                    <div className="space-y-1.5">
+                      {(client.diagnostic.findings as any[]).slice(0, 8).map((f: any) => (
+                        <label key={f.id} className="flex items-center gap-2.5 cursor-pointer">
+                          <div
+                            onClick={() => setDebriefFindings((prev: string[]) =>
+                              prev.includes(f.id) ? prev.filter((x: string) => x !== f.id) : [...prev, f.id]
+                            )}
+                            className="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition"
+                            style={{
+                              background: debriefFindings.includes(f.id) ? "#1B3A2D" : "white",
+                              borderColor: debriefFindings.includes(f.id) ? "#1B3A2D" : "#E8E6E1",
+                            }}>
+                            {debriefFindings.includes(f.id) && (
+                              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            )}
+                          </div>
+                          <span className="text-[12px] text-[#3A3935] flex-1">{f.title}</span>
+                          <span className="text-[11px] font-semibold text-[#B34040] shrink-0">${((f.impact_max || f.impact_min || 0) as number).toLocaleString()}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mb-3">
+                  <label className="block text-[12px] font-semibold text-[#1A1A18] mb-1.5">Client concerns / objections</label>
+                  <textarea value={debriefConcerns}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDebriefConcerns(e.target.value)}
+                    rows={2} placeholder="Any hesitations, questions, pushback…"
+                    className="w-full text-[12px] border border-[#E8E6E1] rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#1B3A2D]/20" />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-[12px] font-semibold text-[#1A1A18] mb-1.5">Internal notes</label>
+                  <textarea value={debriefNotes}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDebriefNotes(e.target.value)}
+                    rows={2} placeholder="Anything the team should know…"
+                    className="w-full text-[12px] border border-[#E8E6E1] rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#1B3A2D]/20" />
+                </div>
+
+                <button
+                  onClick={async () => {
+                    if (!debriefOutcome) return;
+                    setDebriefSubmitting(true);
+                    const debriefPipeId = (client?.pipeline?.id as string) || diagId;
+                    await fetch(`/api/rep/customer/${debriefPipeId}/debrief`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        call_outcome:    debriefOutcome,
+                        agreed_findings: debriefFindings,
+                        client_concerns: debriefConcerns,
+                        notes:           debriefNotes,
+                      }),
+                    });
+                    setDebriefDone(true);
+                    setDebriefSubmitting(false);
+                  }}
+                  disabled={!debriefOutcome || debriefSubmitting}
+                  className="w-full py-3 rounded-xl text-[13px] font-bold text-white transition disabled:opacity-40"
+                  style={{ background: "linear-gradient(135deg, #1B3A2D, #2D7A50)" }}>
+                  {debriefSubmitting ? "Saving…" : debriefOutcome === "ready_to_sign" ? "Save & Send Agreement Email →" : "Save Debrief →"}
+                </button>
+                {debriefOutcome === "ready_to_sign" && (
+                  <p className="text-center text-[11px] text-[#8E8C85] mt-2">
+                    Signature link will be emailed to {(client?.contactEmail as string) || "client"} automatically.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {tab === "outreach" && (
           <div className="space-y-4">
             {client.diagnostic?.outreachEmail ? (

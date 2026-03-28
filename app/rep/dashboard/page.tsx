@@ -24,7 +24,7 @@ export default function RepDashboard() {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search,  setSearch]  = useState("");
-  const [filter,  setFilter]  = useState("all");
+  const [filter,  setFilter]  = useState("needs_action");
   const [showCalendlyEdit, setShowCalendlyEdit] = useState(false);
   const [calendlyInput, setCalendlyInput] = useState("");
   const [savingCalendly, setSavingCalendly] = useState(false);
@@ -60,12 +60,28 @@ export default function RepDashboard() {
   const filtered = clients.filter(c => {
     const q = search.toLowerCase();
     const matchSearch = !q || c.companyName?.toLowerCase().includes(q) || c.industry?.toLowerCase().includes(q);
+    const needsAction =
+      // No debrief after call
+      c.pipeline?.stage === "call_booked" ||
+      // Agreement sent but not signed > 3 days
+      (c.pipeline?.stage === "agreement_out") ||
+      // New lead not yet contacted
+      (c.pipeline?.stage === "lead" && c.assignedAt && (Date.now() - new Date(c.assignedAt).getTime()) < 86400000 * 3) ||
+      // Follow-up overdue
+      (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date());
     const matchFilter =
+      filter === "needs_action" ? needsAction :
       filter === "active"   ? !!c.engagement :
       filter === "pipeline" ? (!c.engagement && !!c.pipeline) :
       filter === "followup" ? (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)) : true;
     return matchSearch && matchFilter;
   });
+  const needsActionCount = clients.filter(c =>
+    c.pipeline?.stage === "call_booked" ||
+    c.pipeline?.stage === "agreement_out" ||
+    (c.pipeline?.stage === "lead" && c.assignedAt && (Date.now() - new Date(c.assignedAt).getTime()) < 86400000 * 3) ||
+    (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date())
+  ).length;
 
   const activeCount   = clients.filter(c => c.engagement).length;
   const followUpCount = clients.filter(c => c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)).length;

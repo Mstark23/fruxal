@@ -103,6 +103,49 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     const rep = pipe.tier3_reps as any;
     const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
 
+    // Auto-create tier3_engagement and advance to in_engagement
+    try {
+      const { data: existingEng } = await supabaseAdmin
+        .from("tier3_engagements")
+        .select("id")
+        .eq("pipeline_id", pipe.id)
+        .maybeSingle();
+
+      if (!existingEng) {
+        // Fetch report data for scope
+        const reportId = pipe.report_id || null;
+        let scopeCategories: string[] = [];
+        if (reportId) {
+          const { data: report } = await supabaseAdmin
+            .from("diagnostic_reports")
+            .select("result_json")
+            .eq("id", reportId)
+            .single();
+          const findings = report?.result_json?.findings || [];
+          const cats = [...new Set(findings.map((f: any) => f.category).filter(Boolean))] as string[];
+          scopeCategories = cats.slice(0, 5);
+        }
+
+        await supabaseAdmin.from("tier3_engagements").insert({
+          pipeline_id:       pipe.id,
+          report_id:         reportId,
+          business_id:       pipe.business_id || null,
+          status:            "active",
+          fee_percentage:    rep?.contingency_rate || 12,
+          scope_categories:  scopeCategories,
+          started_at:        signedAt,
+          created_at:        signedAt,
+          updated_at:        signedAt,
+        });
+
+        // Advance pipeline to in_engagement
+        await supabaseAdmin.from("tier3_pipeline").update({
+          stage:      "in_engagement",
+          updated_at: signedAt,
+        }).eq("id", pipe.id);
+      }
+    } catch { /* non-fatal */ }
+
     // Notify rep
     if (rep?.email) {
       await sendEmail({

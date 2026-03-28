@@ -29,6 +29,8 @@ export default function AdminAccountantsPage() {
   const [newProvince, setNewProvince] = useState("");
   const [addSaving,   setAddSaving]   = useState(false);
   const [addDone,     setAddDone]     = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillMsg, setBackfillMsg] = useState("");
   const [sendingLink, setSendingLink] = useState<string | null>(null);
   const [linkSent,    setLinkSent]    = useState<string | null>(null);
 
@@ -101,6 +103,16 @@ export default function AdminAccountantsPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-serif text-[22px] font-bold text-[#1A1A18]">Accountants</h1>
           <div className="flex gap-2">
+            <button onClick={async () => {
+              setBackfilling(true);
+              const res = await fetch("/api/admin/backfill-playbooks", { method: "POST" }).then(r => r.json());
+              setBackfillMsg(res.message || (res.success ? "Done" : res.error));
+              setBackfilling(false);
+            }} disabled={backfilling}
+              className="h-8 px-4 text-[12px] font-medium border border-[#E8E6E1] rounded-lg text-[#8E8C85] hover:bg-[#F8F7F5] transition disabled:opacity-50">
+              {backfilling ? "Running…" : "Backfill playbooks"}
+            </button>
+            {backfillMsg && <span className="text-[11px] text-[#2D7A50]">{backfillMsg}</span>}
             {["workload","add"].map(t => (
               <button key={t} onClick={() => setTab(t as any)}
                 className="h-8 px-4 text-[12px] font-semibold rounded-lg transition"

@@ -93,14 +93,14 @@ export default function AccountantDashboard() {
     </div>
   );
 
-  if (!accountant) return (
-    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4">
-      <div className="bg-white border border-[#E8E6E1] rounded-2xl p-8 max-w-sm w-full text-center">
-        <p className="font-semibold text-[#1A1A18] mb-2">Access required</p>
-        <p className="text-sm text-[#8E8C85]">Ask your admin to set up your accountant account.</p>
+  if (!accountant) {
+    if (typeof window !== "undefined") window.location.href = "/accountant/login";
+    return (
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#EEECE8] border-t-[#1B3A2D] rounded-full animate-spin" />
       </div>
-    </div>
-  );
+    );
+  }
 
   const filtered = filter === "all" ? playbooks : playbooks.filter(p => p.status === filter);
   const quickWins = playbooks.filter(p => p.quick_win && p.status === "queued");

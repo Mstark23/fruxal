@@ -106,8 +106,8 @@ export default function AdminOverviewPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
             { label: "Revenue This Month",    value: fmt(d.revenue.thisMonth),          sub: `vs ${fmt(d.revenue.lastMonth)} last month`, green: true },
-            { label: "MRR (Tier 1)",          value: fmt(d.revenue.tier1MRR),           sub: `${fmtNum(d.users.paid)} paid subscribers`, green: true },
-            { label: "Tier 3 Fees Earned",    value: fmt(d.revenue.tier3FeesEarned),    sub: `${fmt(d.revenue.tier3FeePending)} pending`, green: false },
+            { label: "Contingency Fees",      value: fmt(d.revenue.tier3FeesEarned),    sub: `earned from confirmed savings`, green: true },
+            { label: "Confirmed Fees",    value: fmt(d.revenue.tier3FeesEarned),    sub: `${fmt(d.revenue.tier3FeePending)} pending`, green: false },
             { label: "Affiliate Commissions", value: fmt(d.revenue.affiliateCommissions),sub: "total earned", green: false },
             { label: "Activation Rate",          value: (d.activation?.rate ?? 0) + "%",         sub: `${d.activation?.usersWithDiagnostic ?? 0} users ran diagnostic`, green: (d.activation?.rate ?? 0) >= 40 },
           ].map(c => (

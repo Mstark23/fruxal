@@ -6,7 +6,7 @@ import { AdminNav } from "@/components/admin/AdminNav";
 interface PipelineEntry {
   pipelineId:string|null; diagnosticId:string|null; reportId:string|null;
   companyName:string; industry:string; province:string; revenueBracket:string;
-  estimatedLow:number; estimatedHigh:number; highConfidenceCount:number;
+  estimatedLow:number; estimatedHigh:number; highConfidenceCount:number; confirmedSavings?:number;
   stage:string; notes:string|null; followUpDate:string|null;
   lostReason:string|null; daysInStage:number; createdAt:string; updatedAt:string;
   agreementStatus:string|null; source?:string;
@@ -192,7 +192,10 @@ export default function AdminTier3Page() {
                           className="bg-white border border-[#EEECE8] rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow">
                           <p className="text-sm font-semibold text-[#1A1A18] truncate">{c.companyName}</p>
                           <p className="text-xs font-bold mt-0.5" style={{color:valueColor(c.estimatedHigh)}}>
-                            {fmt(c.estimatedLow)} – {fmt(c.estimatedHigh)}
+                            {c.confirmedSavings && c.confirmedSavings > 0
+                              ? <span style={{color:"#2D7A50"}}>✓ {fmt(c.confirmedSavings)}</span>
+                              : <>{fmt(c.estimatedLow)} – {fmt(c.estimatedHigh)}</>
+                            }
                           </p>
                           <p className="text-[10px] text-[#B5B3AD] mt-1 truncate">{c.industry} · {c.province}</p>
                           <div className="flex items-center justify-between mt-1.5">
@@ -268,9 +271,18 @@ export default function AdminTier3Page() {
 
               <div>
                 <p className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-1">Estimated Value</p>
-                <p className="font-serif text-2xl font-bold" style={{color:valueColor(selected.estimatedHigh)}}>
-                  {fmt(selected.estimatedLow)} – {fmt(selected.estimatedHigh)}
-                </p>
+                {selected.confirmedSavings && selected.confirmedSavings > 0 ? (
+                  <div>
+                    <p className="font-serif text-2xl font-bold text-[#2D7A50]">
+                      ✓ {fmt(selected.confirmedSavings)}
+                    </p>
+                    <p className="text-[11px] text-[#8E8C85]">confirmed · Fruxal fee: {fmt(Math.round(selected.confirmedSavings * 0.12))}</p>
+                  </div>
+                ) : (
+                  <p className="font-serif text-2xl font-bold" style={{color:valueColor(selected.estimatedHigh)}}>
+                    {fmt(selected.estimatedLow)} – {fmt(selected.estimatedHigh)}
+                  </p>
+                )}
                 <p className="text-xs text-[#B5B3AD] mt-0.5">{selected.highConfidenceCount} high-confidence leaks</p>
               </div>
 
