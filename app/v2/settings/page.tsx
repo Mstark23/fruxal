@@ -574,7 +574,7 @@ export default function SettingsPage() {
               {/* ═══ BILLING TAB ═══ */}
               {tab === "billing" && (
                 <div className="space-y-5" style={{ animation: "fadeUp 0.25s ease-out" }}>
-                  <SectionTitle title={isFr ? "Plan actuel" : "Current Plan"} />
+                  <SectionTitle title={isFr ? "Compte et facturation" : "Account & Billing"} />
 
                   <div className="bg-white border border-border-light rounded-xl p-5">
                     <div className="flex items-center justify-between mb-4">
@@ -603,50 +603,24 @@ export default function SettingsPage() {
                     )}
                   </div>
 
-                  {/* Usage */}
-                  <div className="bg-white border border-border-light rounded-xl p-5">
-                    <h4 className="text-xs text-ink-muted font-semibold mb-3">{isFr ? "Utilisation" : "Usage"}</h4>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-ink-muted">{isFr ? "Diagnostics IA" : "AI Diagnostics"}</span>
-                      <span className="text-xs text-ink-secondary font-semibold">
-                        {billing?.diagnostics_used ?? 0} / {billing?.diagnostics_limit === -1 ? "∞" : (billing?.diagnostics_limit ?? 0)}
-                      </span>
-                    </div>
-                    <div className="h-1.5 bg-bg-section rounded-full overflow-hidden">
-                      <div className="h-full bg-brand rounded-full transition-all"
-                        style={{ width: billing?.diagnostics_limit === -1 ? "5%" : Math.min(100, ((billing?.diagnostics_used ?? 0) / (billing?.diagnostics_limit || 1)) * 100) + "%" }} />
-                    </div>
-                  </div>
 
-                  {/* Plan comparison */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { key: "solo", name: "Solo", price: isFr ? "Gratuit" : "Free", features: [isFr ? "Préscan + rapport" : "Prescan + report", isFr ? "Diagnostic complet" : "Full diagnostic", isFr ? "Obligations" : "Obligations", isFr ? "Programmes gouvernementaux" : "Government programs"] },
-                      { key: "enterprise", name: "Enterprise", price: isFr ? "À la performance" : "Performance fee", features: [isFr ? "Tout de Solo" : "Everything in Solo", isFr ? "Analyste dédié" : "Dedicated analyst", isFr ? "Audit forensique" : "Forensic audit", isFr ? "12% des économies confirmées" : "12% of confirmed savings"] },
-                    ].map(plan => (
-                      <div key={plan.key} className={`rounded-xl p-4 border transition-all ${
-                        billing?.plan === plan.key
-                          ? "bg-brand-softer border-brand/20"
-                          : "bg-bg border-border-light"
-                      }`}>
-                        <h4 className="text-sm font-bold text-ink mb-0.5">{plan.name}</h4>
-                        <p className="text-lg font-black text-ink mb-2">{plan.price}</p>
-                        <div className="space-y-1">
-                          {plan.features.map((f, i) => (
-                            <div key={i} className="text-[10px] text-ink-faint flex items-center gap-1">
-                              <span className="text-brand/40">✓</span> {f}
-                            </div>
-                          ))}
+
+                  {/* Recovery fee model info */}
+                  <div className="bg-white border border-border-light rounded-xl p-5">
+                    <h4 className="text-xs text-ink-muted font-semibold mb-3">{isFr ? "Modèle de rémunération" : "How billing works"}</h4>
+                    <div className="space-y-2.5">
+                      {[
+                        { icon: "✓", text: isFr ? "Tous les outils de diagnostic sont gratuits — aucune carte requise" : "All diagnostic tools are free — no credit card required" },
+                        { icon: "✓", text: isFr ? "Le service de récupération fonctionne à 12% des économies confirmées" : "Recovery service runs at 12% of confirmed savings" },
+                        { icon: "✓", text: isFr ? "Vous ne payez rien tant que l'argent n'est pas dans votre compte" : "You pay nothing until money is actually in your account" },
+                        { icon: "✓", text: isFr ? "Si nous ne récupérons rien, vous ne payez rien" : "If we recover nothing, you pay nothing" },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-start gap-2.5">
+                          <span className="text-positive text-[12px] mt-px shrink-0">{item.icon}</span>
+                          <span className="text-[12px] text-ink-secondary leading-snug">{item.text}</span>
                         </div>
-                        {billing?.plan === plan.key ? (
-                          <div className="mt-3 text-[10px] text-brand font-semibold text-center">{isFr ? "Plan actuel" : "Current"}</div>
-                        ) : (
-                          <button className="mt-3 w-full py-1.5 rounded-lg bg-bg-section text-[10px] text-ink-muted hover:text-ink-secondary transition-colors">
-                            {isFr ? "Choisir" : "Select"}
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
 
                   {/* Stripe portal button */}

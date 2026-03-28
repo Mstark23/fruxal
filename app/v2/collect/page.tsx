@@ -113,10 +113,10 @@ export default function CollectPage() {
         {/* Header */}
         <div className="text-center">
           <svg className="w-8 h-8 mx-auto mb-3 text-brand-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
-          <h1 className="text-2xl font-black text-white">Let&apos;s get your real numbers</h1>
+          <h1 className="text-2xl font-black text-white">Documents for Your Rep</h1>
           <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
-            The more data you share, the more accurate your report. Each item takes 1-2 minutes.
-            Skip anything you don&apos;t have — we&apos;ll work with what you give us.
+            Your recovery expert needs these to start working on your file. Each item takes 1-2 minutes.
+            Skip anything you don&apos;t have — your rep will follow up directly if something is critical.
           </p>
         </div>
 

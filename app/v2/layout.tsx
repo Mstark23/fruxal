@@ -11,9 +11,10 @@ function I({d,s=20}:{d:string;s?:number}){
 
 // ── Nav definitions ───────────────────────────────────────────────────────────
 const NAV_STANDARD = [
-  { path:"/v2/dashboard",   icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
-  { path:"/v2/leaks",       icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"My Leaks" },
-  { path:"/v2/recovery",    icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>', label:"Recovery" },
+  { path:"/v2/dashboard",          icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
+  { path:"/v2/diagnostic/intake",  icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Run Intake", cta: true },
+  { path:"/v2/leaks",              icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"My Leaks" },
+  { path:"/v2/recovery",           icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>', label:"Recovery" },
   { path:"/v2/obligations", icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
   { path:"/v2/programs",    icon:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>', label:"Programs" },
   { path:"/v2/collect",     icon:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', label:"Documents" },
@@ -24,6 +25,7 @@ const NAV_STANDARD = [
 // Enterprise nav — Leaks replaced by Run Intake (T2/financials upload CTA)
 const NAV_ENTERPRISE = [
   { path:"/v2/dashboard/enterprise", icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', label:"Dashboard" },
+  { path:"/v2/diagnostic/intake",    icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:"Run Intake", cta: true },
   { path:"/v2/leaks",                icon:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>', label:"My Leaks" },
   { path:"/v2/recovery",             icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>', label:"Recovery" },
   { path:"/v2/obligations",          icon:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/>', label:"Obligations" },
@@ -39,7 +41,7 @@ const NAV_ENTERPRISE = [
 // solo/business users from being permanently locked into enterprise mode.
 const ENTERPRISE_PATHS = ["/v2/dashboard/enterprise"];
 // Routes where enterprise nav stays active (user is navigating around while enterprise)
-const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/collect", "/v2/recovery", "/v2/referral"];
+const ALL_SHELL = ["/v2/dashboard", "/v2/obligations", "/v2/leaks", "/v2/programs", "/v2/settings", "/v2/chat", "/v2/collect", "/v2/recovery", "/v2/referral", "/v2/diagnostic/intake"];
 
 export default function V2Layout({children}:{children:React.ReactNode}) {
   const router   = useRouter();
@@ -120,10 +122,10 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
 
   // Mobile bottom nav — only show 5 most important items
   const MOBILE_NAV_PATHS = isEnterprise
-    ? [navRoot, "/v2/diagnostic/intake", "/v2/obligations", "/v2/chat", "/v2/programs"]
+    ? [navRoot, "/v2/diagnostic/intake", "/v2/recovery", "/v2/leaks", "/v2/chat"]
     : isBusiness
-    ? [navRoot, "/v2/diagnostic/intake", "/v2/chat", "/v2/leaks", "/v2/programs"]
-    : [navRoot, "/v2/diagnostic/intake", "/v2/chat", "/v2/leaks", "/v2/programs"];
+    ? [navRoot, "/v2/diagnostic/intake", "/v2/recovery", "/v2/leaks", "/v2/chat"]
+    : [navRoot, "/v2/diagnostic/intake", "/v2/recovery", "/v2/leaks", "/v2/chat"];
   const MOBILE_NAV = NAV.filter(item => MOBILE_NAV_PATHS.includes(item.path));
 
 
@@ -140,8 +142,8 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
           }`}
           style={active ? {} : { border: "1px solid rgba(27,58,45,0.2)" }}>
           <span className={active ? "text-white" : "text-brand"}><I d={item.icon} s={16}/></span>
-          <span className="text-[12px] font-semibold">{item.label}</span>
-          
+          <span className="text-[12px] font-semibold flex-1">{item.label}</span>
+          {!active && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background:"rgba(27,58,45,0.08)", color:"#1B3A2D" }}>Step 1</span>}
         </button>
       );
     }
@@ -193,7 +195,7 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
 
         {/* Nav */}
         <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-          {NAV.map(item => <NavItem key={item.path} item={item} />)}
+          {NAV.map((item, idx) => <NavItem key={item.path + idx} item={item} />)}
         </nav>
 
         {/* Bottom */}

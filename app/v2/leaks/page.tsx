@@ -20,7 +20,7 @@ const SEVERITY_COLORS: Record<string, { text: string; bg: string }> = {
 };
 
 const SOLUTION_LABELS: Record<string, { icon: string; label: string; fr: string }> = {
-  free: { icon: "—", label: "Free / DIY", fr: "Gratuit / Soi-même" },
+  free: { icon: "—", label: "No Cost", fr: "Sans frais" },
   government: { icon: "—", label: "Gov Program", fr: "Programme gouvernemental" },
   professional: { icon: "—", label: "Professional", fr: "Professionnel" },
   tool: { icon: "—", label: "Tool / Software", fr: "Outil / Logiciel" },
@@ -29,8 +29,8 @@ const SOLUTION_LABELS: Record<string, { icon: string; label: string; fr: string 
 const STATUS_TABS = [
   { value: "all",         label: "All",         fr: "Tous" },
   { value: "detected",    label: "Still Costing You",  fr: "Encore actif" },
-  { value: "in_progress", label: "You're On It",        fr: "En cours" },
-  { value: "fixed",       label: "Fixed ✓",             fr: "Corrigé ✓" },
+  { value: "in_progress", label: "In Recovery",         fr: "En récupération" },
+  { value: "fixed",       label: "Recovered ✓",         fr: "Récupéré ✓" },
 ];
 
 interface Leak {
@@ -155,7 +155,7 @@ export default function LeaksPage() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-brand-soft border border-brand/10 rounded-xl px-3 py-2.5 text-center">
             <p className="text-brand text-lg font-black">${(totalSavings ?? 0).toLocaleString()}</p>
-            <p className="text-brand/20 text-[8px] uppercase tracking-wider">Saved / Year</p>
+            <p className="text-brand/20 text-[8px] uppercase tracking-wider">Confirmed Recovered</p>
           </div>
           <div className="bg-red-500/[0.03] border border-negative/10 rounded-xl px-3 py-2.5 text-center">
             <p className="text-negative/60 text-lg font-black">${(potentialSavings ?? 0).toLocaleString()}</p>
@@ -180,29 +180,11 @@ export default function LeaksPage() {
         {/* Sort + effort filter */}
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {/* Effort filter */}
-          <div className="flex gap-1 flex-wrap">
-            {([
-              { v: "all",    en: "All",    fr: "Tous"    },
-              { v: "easy",   en: "Easy",   fr: "Facile"  },
-              { v: "medium", en: "Medium", fr: "Moyen"   },
-              { v: "hard",   en: "Hard",   fr: "Difficile"},
-            ] as const).map(e => (
-              <button key={e.v} onClick={() => setEffortFilter(e.v)}
-                className={"px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all " + (effortFilter === e.v ? (e.v === "easy" ? "bg-emerald-500/10 text-emerald-600" : e.v === "hard" ? "bg-orange-500/10 text-orange-600" : e.v === "medium" ? "bg-amber-500/10 text-amber-600" : "bg-brand-soft text-brand/80") : "bg-bg-section text-ink-faint hover:text-ink-muted")}>
-                {isFR ? e.fr : e.en}
-              </button>
-            ))}
-          </div>
-
-          {/* Divider */}
-          <div className="h-4 w-px bg-border-light mx-1 hidden sm:block" />
-
           {/* Sort */}
           <div className="flex gap-1 flex-wrap">
             <span className="text-[9px] text-ink-faint self-center mr-1">{isFR ? "Trier:" : "Sort:"}</span>
             {([
               { v: "impact",   en: "Highest impact", fr: "Impact"    },
-              { v: "effort",   en: "Easiest first",  fr: "Plus facile"},
               { v: "severity", en: "Most urgent",    fr: "Urgence"   },
             ] as const).map(s => (
               <button key={s.v} onClick={() => setSortBy(s.v)}
@@ -219,7 +201,7 @@ export default function LeaksPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-2xl mb-2">filter === "fixed" ? "—" : "—"</p>
-            <p className="text-ink-faint text-sm">{filter === "fixed" ? "No leaks fixed yet — pick the highest-dollar one and start there." : "No leaks found."}</p>
+            <p className="text-ink-faint text-sm">{filter === "fixed" ? "No recoveries confirmed yet — your rep is working through your findings." : "No leaks found."}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -242,7 +224,7 @@ export default function LeaksPage() {
                     <div key={i} className="flex-1 min-w-0">
                       <div key={i} className="flex items-center gap-1.5 mb-1">
                         <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase ${sc.bg} ${sc.text}`}>{leak.severity}</span>
-                        <span className="text-ink-faint text-[8px]">{sol.icon} {sol.label}</span>
+
                       </div>
                       <p className={`text-xs font-medium ${isFixed ? "text-ink-faint line-through" : "text-ink-muted"}`}>{leak.title}</p>
                     </div>

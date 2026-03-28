@@ -9,6 +9,7 @@ const TABS = [
   { path: "/admin/enterprise",        label: "Enterprise" },
   { path: "/admin/diagnostic-test",   label: "Engine Tester" },
   { path: "/admin/tier3/reps",        label: "Reps" },
+  { path: "/admin/accountants",        label: "Accountants" },
   { path: "/admin/settings",          label: "Settings" },
 ];
 
@@ -25,6 +26,8 @@ export function AdminNav() {
           active = (pathname?.startsWith("/admin/tier3/engagements") && !pathname?.startsWith("/admin/tier3/reps")) || false;
         else if (!active && tab.path === "/admin/tier3")
           active = (pathname?.startsWith("/admin/tier3") && !pathname?.startsWith("/admin/tier3/engagements") && !pathname?.startsWith("/admin/tier3/reps") && !pathname?.startsWith("/admin/tier3/diagnostic")) || false;
+        else if (!active && tab.path === "/admin/accountants")
+          active = pathname?.startsWith("/admin/accountants") || false;
         else if (!active)
           active = pathname?.startsWith(tab.path + "/") || false;
 

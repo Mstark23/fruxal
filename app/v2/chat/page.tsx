@@ -117,7 +117,7 @@ export default function ChatPage() {
         setCtx(diagCtx);
 
         if (focusLeak) {
-          setMessages([{ role:"user", content:`Tell me more about this and how to fix it: ${focusLeak}`, ts: new Date().toISOString() }]);
+          setMessages([{ role:"user", content:`Tell me more about this finding and what it means for my business: ${focusLeak}`, ts: new Date().toISOString() }]);
         }
       } catch (e: any) {
         setError(e.message);

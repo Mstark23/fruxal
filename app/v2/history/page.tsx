@@ -316,8 +316,8 @@ export default function HistoryPage() {
             {[
               { label: "Score improvement", value: `${stats.scoreImprovement > 0 ? "+" : ""}${stats.scoreImprovement} pts`, sub: `${stats.firstScore} → ${stats.latestScore}`, color: stats.scoreImprovement > 0 ? "#2D7A50" : "#8E8C85" },
               { label: "Monthly recovered", value: fmt(stats.totalSavingsRecovered), sub: `${fmt(stats.totalSavingsAnnualized)}/year`, color: "#2D7A50" },
-              { label: "Tasks completed", value: String(stats.tasksCompleted), sub: `${stats.rescansCompleted} rescan${stats.rescansCompleted !== 1 ? "s" : ""}` },
-              { label: tier === "enterprise" ? "Est. value added" : "Goals achieved", value: tier === "enterprise" ? `~${fmt(stats.estimatedBusinessValueAdded)}` : String(stats.goalsCompleted), sub: tier === "enterprise" ? "over 24 months" : "of set goals" },
+              { label: "Recoveries confirmed", value: String(stats.tasksCompleted), sub: `${stats.rescansCompleted} rescan${stats.rescansCompleted !== 1 ? "s" : ""}` },
+              { label: tier === "enterprise" ? "Est. value added" : "Intakes run", value: tier === "enterprise" ? `~${fmt(stats.estimatedBusinessValueAdded)}` : String(stats.rescansCompleted), sub: tier === "enterprise" ? "over 24 months" : "completed" },
             ].map((s, i) => (
               <div key={i} className="px-4 py-3">
                 <p className="text-[9px] text-ink-faint uppercase tracking-wider mb-0.5">{s.label}</p>
