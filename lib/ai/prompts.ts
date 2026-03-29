@@ -199,7 +199,7 @@ export function computeYourBenchmarks(inputs: PromptInputs): string {
 function buildBenchmarkList(benchmarks: any[]): string {
   return benchmarks
     .map(b => `• ${b.metric_name}: avg ${b.avg_value}${b.unit}, top ${b.top_performer}${b.unit}`)
-    .join("\n") || "No DB benchmarks — use verified Canadian industry averages; flag each as estimate";
+    .join("\n") || "No DB benchmarks — use verified industry averages for this region; flag each as estimate";
 }
 
 // ── JSON schema ────────────────────────────────────────────────────────────────
@@ -357,7 +357,8 @@ export function buildSystemPrompt(inputs: PromptInputs): string {
   const taxCtx      = buildTaxContext(inputs);
   const maxFindings = tierMaxFindings(tier);
 
-  const base = `You are a senior Canadian CFO, tax advisor, and business diagnostician.
+  const isUS = inputs.country === 'US';
+  const base = `You are a senior ${isUS ? 'US' : 'Canadian'} CFO, tax advisor, and business diagnostician.
 Your job is to analyze this business and identify every revenue leak, tax opportunity, government program, and efficiency gap — then recommend specific solutions and service providers.
 
 YOU GENERATE EVERYTHING FROM YOUR OWN KNOWLEDGE. Do not reference slugs from a database. Create your own slugs in kebab-case.
@@ -365,7 +366,7 @@ YOU GENERATE EVERYTHING FROM YOUR OWN KNOWLEDGE. Do not reference slugs from a d
 Province: ${province} | Language: ${isFr ? "French" : "English"} | Tier: ${tier}
 ${taxCtx ? `Tax context: ${taxCtx}` : ""}
 
-INDUSTRY BENCHMARKS (from DB or use Canadian averages):
+${isUS ? "INDUSTRY BENCHMARKS (from DB or use US averages):" : "INDUSTRY BENCHMARKS (from DB or use Canadian averages):"}
 ${buildBenchmarkList(benchmarks)}
 
 INSTRUCTIONS:
@@ -379,10 +380,10 @@ INSTRUCTIONS:
 2. PROGRAMS: In the top-level programs[] array, list EVERY government program this business is eligible for based on province, industry, structure, and activities. Include:
    - Federal programs: SR&ED (if any R&D/innovation), CDAP (digital), Canada Job Grant (if employees), CSBFP (financing), NRC IRAP (if innovation), BDC financing
    - Provincial programs specific to ${province}: ${province === "QC" ? "RS&DE additionnel QC, C3i, Investissement Quebec, Emploi-Quebec" : province === "ON" ? "Ontario Made ITC, Ontario Job Creation Partnership" : province === "BC" ? "BC Employer Training Grant, BC Idea Fund" : "check provincial programs"}
-   - NEVER leave programs[] empty. Every Canadian business qualifies for at least 3-4 programs.
+   ${isUS ? "- NEVER leave programs[] empty. Every US business qualifies for at least 3-4 federal or state programs." : "- NEVER leave programs[] empty. Every Canadian business qualifies for at least 3-4 programs."}
    - Include official URLs and accurate max_amount figures.
 
-3. AFFILIATES in findings: Recommend real Canadian service providers:
+${isUS ? "3. AFFILIATES in findings: Recommend real US service providers:" : "3. AFFILIATES in findings: Recommend real Canadian service providers:"}
    - Accounting: CPA firms, BDO, MNP, Deloitte, Grant Thornton, local CPAs
    - Payroll: Wagepoint, Payworks, ADP Canada, Ceridian
    - Banking: BDC, EDC, ATB, local credit unions

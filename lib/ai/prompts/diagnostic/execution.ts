@@ -29,6 +29,7 @@ export interface BusinessContext {
   structure:       string;
   has_accountant:  boolean;
   owner_name?:     string;
+  country?:  'CA' | 'US';
 }
 
 export function buildExecutionPrompt(
@@ -61,7 +62,8 @@ export function buildExecutionPrompt(
     }
   })();
 
-  return `You are a Canadian forensic accountant executing a business recovery engagement for ${ctx.business_name}, a ${ctx.industry} in ${ctx.province} with $${ctx.annual_revenue.toLocaleString()} annual revenue (${ctx.structure}).
+  const isUS = ctx?.country === "US";
+  return `You are a ${isUS ? "US" : "Canadian"} forensic accountant executing a business recovery engagement for ${ctx.business_name}, a ${ctx.industry} in ${ctx.province} with $${ctx.annual_revenue.toLocaleString()} annual revenue (${ctx.structure}).
 
 Province context: ${provinceNote}
 ${ctx.has_accountant ? "Client has an existing accountant — coordinate, don't replace." : "No accountant on file — we handle all CRA interaction directly."}
@@ -85,7 +87,7 @@ RULES:
 1. draft_template must be COMPLETE text, not a description. If it's a CRA call: write every sentence of the script. If it's an email: write subject + full body.
 2. execution_steps must be in chronological order — what happens first, second, third.
 3. documents_needed must be document names a business owner understands, not accounting jargon.
-4. For QC findings: reference Revenu Québec where applicable, not just CRA.
+${isUS ? "" : "4. For QC findings: reference Revenu Québec where applicable, not just CRA."}
 5. who_executes = "client" only if the client must do it themselves (e.g. open a bank account).
 6. Never say "consult a professional" — WE are the professional.
 

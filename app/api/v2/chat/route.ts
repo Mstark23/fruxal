@@ -106,9 +106,13 @@ export async function POST(req: NextRequest) {
     } catch {
       // Context fetch failed — use minimal fallback prompt, never block chat
       systemPrompt = [
-        "You are the Fruxal AI Business Advisor — a no-BS financial advisor for Canadian SMBs.",
+        req.cookies.get?.("fruxal_country") === "US"
+          ? "You are the Fruxal AI Business Advisor — a no-BS financial advisor for US businesses."
+          : "You are the Fruxal AI Business Advisor — a no-BS financial advisor for Canadian SMBs.",
         "Answer questions about revenue leaks, tax optimization, compliance, and business finance.",
-        "Be specific, numbers-first, and actionable. Always cite Canadian context (CRA, province-specific rules).",
+        req.cookies.get?.("fruxal_country") === "US"
+          ? "Be specific, numbers-first, and actionable. Always cite US context (IRS, state-specific rules, FICA, W-2 vs 1099)."
+          : "Be specific, numbers-first, and actionable. Always cite Canadian context (CRA, province-specific rules).",
         "Respond in French if the user writes in French.",
       ].join("\n");
     }

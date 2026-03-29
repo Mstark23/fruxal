@@ -365,7 +365,7 @@ export default function ObligationsPage() {
             <div className="mb-5">
               <label className="block text-[10px] text-ink-faint mb-1.5">{t("Notes (optional)","Notes (optionnel)")}</label>
               <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2}
-                placeholder={t("E.g., Handled by rep, CRA ref #12345","Ex: Traité par le rep, réf ARC #12345")}
+                placeholder={t("E.g., Handled by rep, ref #12345","Ex: Traité par le rep, réf #12345")}
                 className="w-full px-3 py-2.5 bg-bg border border-border-light rounded-lg text-[12px] text-ink placeholder:text-ink-faint focus:outline-none focus:border-brand transition resize-none" />
             </div>
             <div className="flex gap-3">

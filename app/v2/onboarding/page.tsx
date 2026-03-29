@@ -438,7 +438,7 @@ export default function OnboardingPage() {
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label={isFr ? "Date d'inscription TPS/TVH" : "GST/HST registration date"}>
+                <Field label={(typeof document !== "undefined" && document.cookie.includes("fruxal_country=US")) ? "Sales Tax Registration Date" : isFr ? "Date d'inscription TPS/TVH" : "GST/HST registration date"}>
                   <input type="date" value={data.gst_registration_date} onChange={e => update("gst_registration_date", e.target.value)} className="input-field" />
                 </Field>
                 {data.province === "QC" && (

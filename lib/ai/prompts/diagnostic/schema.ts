@@ -134,7 +134,7 @@ ${ccpcFields}
       "impact_max":  <number — optimistic>,
       "ebitda_improvement":           <number — REQUIRED on every finding>,
       "enterprise_value_improvement": <number — REQUIRED on every finding>,
-      "calculation_shown":  "<explicit arithmetic string e.g. '$280K × 13% HST = $36,400 − ITCs $3,360 = $33,040 → Quick Method $24,640 → saving $8,400'>",
+      "calculation_shown":  "<explicit arithmetic string e.g. '$180K W-2 × 15.3% FICA = $27,540 → optimal $95K W-2 × 15.3% = $14,535 → saving $13,005'>",
       "recommendation":     "<English — 2-3 numbered steps. Step 1 = something doable today or this week.>",
       "recommendation_fr":  "<French>",
       "second_order_effects":    "<plain string — cascading effect of fixing this — NOT an array>",

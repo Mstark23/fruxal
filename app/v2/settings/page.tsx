@@ -441,13 +441,13 @@ export default function SettingsPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <DateField label={isFr ? "Inscription TPS/TVH" : "Tax Registration Date"} value={dates.gst_registration_date}
                       onChange={v => updateDates("gst_registration_date", v)} />
-                    <DateField label={isFr ? "Inscription TVQ" : "QST registration"} value={dates.qst_registration_date}
-                      onChange={v => updateDates("qst_registration_date", v)} />
+                    {profile?.country !== "US" && <DateField label={isFr ? "Inscription TVQ" : "QST registration"} value={dates.qst_registration_date}
+                      onChange={v => updateDates("qst_registration_date", v)} />}
                   </div>
 
                   <DateField label={isFr ? "Premier employé" : "First employee date"} value={dates.first_employee_date}
                     onChange={v => updateDates("first_employee_date", v)}
-                    hint={isFr ? "CNESST/WSIB, équité salariale, comité SST" : "CNESST/WSIB, pay equity, safety committee"} />
+                    hint={profile?.country === "US" ? "Workers comp, WOTC screening, FICA optimization" : isFr ? "CNESST/WSIB, équité salariale, comité SST" : "CNESST/WSIB, pay equity, safety committee"} />
 
                   <div className="grid grid-cols-2 gap-4">
                     <DateField label={isFr ? "Renouvellement permis" : "Licence renewal"} value={dates.licence_renewal_date}
