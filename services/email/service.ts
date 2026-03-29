@@ -33,6 +33,20 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions): Prom
   }
 }
 
+// ─── CASL compliance footer ──────────────────────────────────────────────────
+export function caslFooter(appUrl: string, email: string, type = "marketing"): string {
+  const unsub = `${appUrl}/api/v2/unsubscribe?email=${encodeURIComponent(email)}&type=${type}`;
+  return `
+  <div style="margin-top:32px;padding-top:16px;border-top:1px solid #E8E6E1;text-align:center">
+    <p style="font-size:11px;color:#B5B3AD;margin:0">
+      Fruxal Financial Recovery Inc. · Montréal, QC, Canada<br>
+      <a href="${unsub}" style="color:#B5B3AD;text-decoration:underline">Unsubscribe</a> from these emails
+      &nbsp;·&nbsp;
+      <a href="${appUrl}/legal/privacy" style="color:#B5B3AD;text-decoration:underline">Privacy Policy</a>
+    </p>
+  </div>`;
+}
+
 // ─── Pre-built email templates ──────────────────────────────────────────────
 
 export function emailTemplate(title: string, body: string, ctaText: string, ctaUrl: string): string {
@@ -67,12 +81,12 @@ export async function sendScanComplete(to: string, businessName: string, totalLe
 export async function sendLeakFixed(to: string, leakTitle: string, savings: number): Promise<boolean> {
   return sendEmail({
     to,
-    subject: `${leakTitle} confirmed — $${(savings ?? 0).toLocaleString()}/yr recovered`,
+    subject: `${leakTitle} fixed! Saving $${(savings ?? 0).toLocaleString()}/yr`,
     html: emailTemplate(
-      `💰 $${(savings ?? 0).toLocaleString()}/yr recovered`,
-      `Your rep confirmed the recovery on <strong>${leakTitle}</strong>. That's <strong>$${(savings ?? 0).toLocaleString()}/yr</strong> back in your business.<br><br>Check your recovery timeline to see confirmed amounts and what's still in progress.`,
-      "View My Recovery →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/recovery`
+      `🎉 ${leakTitle} fixed!`,
+      `That fix saves you <strong>$${(savings ?? 0).toLocaleString()}/yr</strong>. Nice work.<br><br>Check your dashboard to see your updated health score and find the next leak to fix.`,
+      "See Your Progress →",
+      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/dashboard?tab=trends`
     ),
   });
 }
@@ -80,12 +94,12 @@ export async function sendLeakFixed(to: string, leakTitle: string, savings: numb
 export async function sendWeeklyDigest(to: string, businessName: string, openLeaks: number, totalLeaking: number, fixedThisWeek: number): Promise<boolean> {
   return sendEmail({
     to,
-    subject: `Weekly: ${openLeaks} leaks open, $${(totalLeaking ?? 0).toLocaleString()}/yr still leaking`,
+    subject: `Weekly: ${openLeaks} leaks open, $${(totalLeaking ?? 0).toLocaleString()} still leaking`,
     html: emailTemplate(
       `Weekly update for ${businessName}`,
-      `<strong>${openLeaks} leaks</strong> still open · <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> still leaking${fixedThisWeek > 0 ? ` · <strong>$${fixedThisWeek.toLocaleString()}</strong> recovered this week 🎉` : ""}<br><br>Your rep is working on the highest-value items. Check your recovery status for updates.`,
-      "View Recovery Status →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/recovery`
+      `<strong>${openLeaks} leaks</strong> still open · <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> still leaking${fixedThisWeek > 0 ? ` · <strong>${fixedThisWeek} fixed</strong> this week 🎉` : ""}<br><br>Your biggest open leak is waiting on your fix list.`,
+      "Open Fix List →",
+      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/dashboard?tab=fix`
     ),
   });
 }
@@ -94,12 +108,12 @@ export async function sendNudge(to: string, totalLeaking: number): Promise<boole
   const daily = Math.round(totalLeaking / 365);
   return sendEmail({
     to,
-    subject: `You're losing $${daily}/day — your rep can stop that`,
+    subject: `You're losing $${daily}/day — let's fix that`,
     html: emailTemplate(
       `$${daily} lost today. And yesterday. And the day before.`,
-      `Your scan found <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> in leaks. Every day costs <strong>$${daily}</strong>.<br><br>Your recovery expert is waiting. Book a free call — we handle everything, and you only pay when money is actually recovered.`,
-      "See My Leaks →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/leaks`
+      `Your scan found <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> in leaks. Every day without action costs <strong>$${daily}</strong>.<br><br>The average user fixes their first leak within 48 hours. You can do it in one click.`,
+      "Fix My First Leak →",
+      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/dashboard?tab=fix`
     ),
   });
 }
@@ -124,34 +138,39 @@ export async function sendMilestoneEmail({
   annualized, top_tasks, next_task,
 }: MilestoneEmailArgs): Promise<boolean> {
   const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
-  const recoveryUrl = `${appUrl}/v2/recovery`;
+  const tasksUrl = `${appUrl}/v2/tasks`;
 
   const taskLines = top_tasks
     .map(t => `<tr><td style="padding:6px 0;font-size:13px;color:#555">→ ${t.title}</td><td style="padding:6px 0;font-size:13px;font-weight:700;color:#00c853;text-align:right">$${(t.savings_monthly ?? 0).toLocaleString()}/mo</td></tr>`)
     .join("");
+
+  const nextLine = next_task
+    ? `<p style="margin:16px 0 0;font-size:13px;color:#555">Your next easiest fix: <strong>${next_task.title}</strong> ($${(next_task.savings_monthly ?? 0).toLocaleString()}/mo)</p>`
+    : "";
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
 <div style="max-width:560px;margin:0 auto;padding:40px 20px">
   <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
     <div style="font-size:20px;font-weight:900;margin-bottom:4px">💧 Fruxal</div>
-    <div style="font-size:12px;color:#888;margin-bottom:24px">Business Recovery</div>
+    <div style="font-size:12px;color:#888;margin-bottom:24px">Business Intelligence</div>
     <div style="font-size:32px;margin-bottom:8px">🎉</div>
     <div style="font-size:22px;font-weight:900;color:#1a1a2e;margin-bottom:8px">
-      $${(milestone ?? 0).toLocaleString()}/month recovered
+      You just hit $${(milestone ?? 0).toLocaleString()}/month recovered
     </div>
     <div style="font-size:14px;color:#555;margin-bottom:20px">
-      That's <strong>$${(annualized ?? 0).toLocaleString()}/year</strong> back in your business. Your rep did that — no upfront cost, no work on your end.
+      That's <strong>$${(annualized ?? 0).toLocaleString()}/year</strong> staying in your business.
     </div>
     <div style="background:#f7f8fa;border-radius:10px;padding:16px;margin-bottom:20px">
-      <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Confirmed recoveries</div>
+      <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">What you've fixed</div>
       <table style="width:100%;border-collapse:collapse">${taskLines}</table>
     </div>
     <div style="font-size:13px;color:#555;margin-bottom:20px">
-      There's still <strong style="color:#1B3A2D">$${(savings_available ?? 0).toLocaleString()}/month</strong> on the table — your rep is working through it.
+      You still have <strong style="color:#1B3A2D">$${(savings_available ?? 0).toLocaleString()}/month</strong> available to capture.
+      ${nextLine}
     </div>
-    <a href="${recoveryUrl}" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px;text-decoration:none">
-      View My Recovery →
+    <a href="${tasksUrl}" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px;text-decoration:none">
+      Continue fixing →
     </a>
   </div>
   <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">Fruxal · fruxal.ca</div>
@@ -159,9 +178,9 @@ export async function sendMilestoneEmail({
 
   return sendEmail({
     to,
-    subject: `🎉 $${(milestone ?? 0).toLocaleString()}/month recovered — here's what's next`,
+    subject: `🎉 You've recovered $${(milestone ?? 0).toLocaleString()}/month on Fruxal`,
     html,
-    text: `$${(milestone ?? 0).toLocaleString()}/month recovered. That's $${(annualized ?? 0).toLocaleString()}/year back in your business. View your recovery: ${recoveryUrl}`,
+    text: `You just hit $${(milestone ?? 0).toLocaleString()}/month recovered. That's $${(annualized ?? 0).toLocaleString()}/year staying in your business. See your progress: ${tasksUrl}`,
   });
 }
 
@@ -210,7 +229,7 @@ export function renderMonthlyBrief({
     <table style="width:100%;border-collapse:collapse">
       <tr>
         <td style="padding:0">
-          <a href="${appUrl}/v2/recovery" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:12px;padding:10px 20px;border-radius:8px;text-decoration:none">View my recovery →</a>
+          <a href="${appUrl}/v2/tasks" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:12px;padding:10px 20px;border-radius:8px;text-decoration:none">View action plan →</a>
         </td>
       </tr>
     </table>
@@ -228,7 +247,7 @@ export function renderMonthlyBrief({
 </body>
 </html>`;
 
-  const fullText = `${businessName} — Monthly Brief (${monthYear})\n\n${bodyText}\n\n---\nView your recovery: ${appUrl}/v2/recovery\nUnsubscribe: ${unsubUrl}`;
+  const fullText = `${businessName} — Monthly Brief (${monthYear})\n\n${bodyText}\n\n---\nView your action plan: ${appUrl}/v2/tasks\nUnsubscribe: ${unsubUrl}`;
 
   return { html, text: fullText };
 }
@@ -282,6 +301,8 @@ export async function sendRescanEmail({
 }: RescanEmailArgs): Promise<boolean> {
   const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const reportUrl = `${appUrl}/v2/diagnostic/${newReportId}`;
+  const tasksUrl  = `${appUrl}/v2/tasks`;
+
   const scoreLine = scoreDelta > 0
     ? `<span style="color:#2D7A50;font-weight:700">↑ ${prevScore} → ${newScore} (+${scoreDelta})</span>`
     : scoreDelta < 0
@@ -314,7 +335,7 @@ export async function sendRescanEmail({
     ${narrative ? `<div style="font-size:14px;color:#555;line-height:1.6;margin-bottom:24px">${narrative}</div>` : ""}
     <div style="display:flex;gap:12px;flex-wrap:wrap">
       <a href="${reportUrl}" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:13px;padding:10px 20px;border-radius:10px;text-decoration:none">View full diagnostic →</a>
-      <a href="${appUrl}/v2/recovery" style="display:inline-block;background:#f0f0f0;color:#1B3A2D;font-weight:700;font-size:13px;padding:10px 20px;border-radius:10px;text-decoration:none">View my recovery →</a>
+      <a href="${tasksUrl}" style="display:inline-block;background:#f0f0f0;color:#1B3A2D;font-weight:700;font-size:13px;padding:10px 20px;border-radius:10px;text-decoration:none">See what to fix next →</a>
     </div>
   </div>
   <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">Fruxal Business Intelligence · fruxal.ca</div>
@@ -401,14 +422,14 @@ export async function sendWelcomeEmail({
         ])
     : (isFR
       ? [
-          { n: "1", text: "Lancez votre analyse complète", sub: "Obtenez vos vrais montants — votre rep en a besoin pour commencer la récupération", href: `${appUrl}/v2/diagnostic` },
-          { n: "2", text: "Voyez où votre argent fuit", sub: "Commencez par la fuite avec le montant le plus élevé — c'est votre plus grande opportunité", href: `${appUrl}/v2/leaks` },
-          { n: "3", text: "Un expert en récupération s'occupera de tout", sub: "Pas de frais avant récupération. On prend 12% de ce qu'on récupère. Vous gardez le reste.", href: `${appUrl}/v2/dashboard` },
+          { n: "1", text: "Lancez votre diagnostic complet", sub: "Obtenez votre score santé, tous vos constats et votre plan d'action personnalisé", href: `${appUrl}/v2/diagnostic` },
+          { n: "2", text: "Voyez vos fuites par ordre de priorité", sub: "Commencez par celle avec le montant le plus élevé", href: `${appUrl}/v2/leaks` },
+          { n: "3", text: "Vos résultats pourraient déclencher une assignation", sub: "Certains profils sont éligibles à un expert en récupération dédié — gratuit.", href: `${appUrl}/v2/dashboard` },
         ]
       : [
-          { n: "1", text: "Run your full intake", sub: "Get your real numbers — your rep needs this to start recovering your money", href: `${appUrl}/v2/diagnostic` },
-          { n: "2", text: "See where your money is leaking", sub: "The highest dollar amount is your biggest win — your rep will tackle it first", href: `${appUrl}/v2/leaks` },
-          { n: "3", text: "A recovery expert handles everything", sub: "No cost until money is recovered. We take 12% of what we get back. You keep the rest.", href: `${appUrl}/v2/dashboard` },
+          { n: "1", text: "Run your full diagnostic", sub: "Get your health score, all findings, and a personalized 90-day action plan", href: `${appUrl}/v2/diagnostic` },
+          { n: "2", text: "See your leaks by priority", sub: "Start with the highest dollar amount — that's your biggest win", href: `${appUrl}/v2/leaks` },
+          { n: "3", text: "Your results may qualify you for a rep", sub: "High-value cases get a dedicated recovery expert assigned — free, no upfront cost", href: `${appUrl}/v2/dashboard` },
         ]);
 
   const stepsHtml = steps.map(s =>

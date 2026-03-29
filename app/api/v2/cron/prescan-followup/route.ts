@@ -7,7 +7,7 @@
 // =============================================================================
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { sendEmail, emailTemplate } from "@/services/email/service";
+import { sendEmail, emailTemplate, caslFooter } from "@/services/email/service";
 
 export const maxDuration = 60;
 
@@ -73,7 +73,7 @@ async function handler(req: NextRequest) {
       const sent = await sendEmail({
         to: cap.email,
         subject: `Your scan found $${totalLeak.toLocaleString()}/yr — results still waiting`,
-        html: emailTemplate("Your results are waiting", body, "See My Full Results →", registerUrl),
+        html: emailTemplate("Your results are waiting", body + caslFooter(appUrl, cap.email, "prescan_followup"), "See My Full Results →", registerUrl),
       });
 
       if (sent) {

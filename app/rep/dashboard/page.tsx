@@ -35,7 +35,11 @@ export default function RepDashboard() {
       fetch("/api/rep/me").then(r => r.json()).catch(() => ({})),
       fetch("/api/rep/pipeline").then(r => r.json()).catch(() => ({})),
     ]).then(([meData, plData]) => {
-      if (meData?.success) setRep(meData.rep);
+      if (!meData?.success) {
+        window.location.href = "/rep/login";
+        return;
+      }
+      setRep(meData.rep);
       if (plData?.success) setClients(plData.clients || []);
     }).finally(() => setLoading(false));
   }, []);

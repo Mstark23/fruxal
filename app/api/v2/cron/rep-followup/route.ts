@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { sendEmail, emailTemplate } from "@/services/email/service";
+import { sendEmail, emailTemplate, caslFooter } from "@/services/email/service";
 
 export const maxDuration = 60;
 

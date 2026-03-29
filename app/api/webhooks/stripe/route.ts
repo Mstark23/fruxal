@@ -154,6 +154,55 @@ export async function POST(req: NextRequest) {
           break;
         }
 
+        case "payment_link.completed": {
+          // Handle fruxal_invoices payment via payment link
+          const session = event.data.object as any;
+          const pipelineId = session.metadata?.pipeline_id;
+          const invoiceNum  = session.metadata?.invoice_num;
+          if (pipelineId) {
+            try {
+              await supabaseAdmin.from("fruxal_invoices").update({
+                status:     "paid",
+                paid_at:    new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }).eq("pipeline_id", pipelineId);
+
+              // Advance pipeline to completed
+              await supabaseAdmin.from("tier3_pipeline").update({
+                stage:      "completed",
+                updated_at: new Date().toISOString(),
+              }).eq("id", pipelineId);
+
+              // Create rep commission (20% of fee)
+              const { data: inv } = await supabaseAdmin
+                .from("fruxal_invoices")
+                .select("fee_amount, pipeline_id")
+                .eq("pipeline_id", pipelineId)
+                .single();
+
+              if (inv?.fee_amount) {
+                const { data: pipe } = await supabaseAdmin
+                  .from("tier3_pipeline")
+                  .select("rep_id")
+                  .eq("id", pipelineId)
+                  .single();
+                if (pipe?.rep_id) {
+                  await supabaseAdmin.from("tier3_rep_commissions").upsert({
+                    rep_id:            pipe.rep_id,
+                    pipeline_id:       pipelineId,
+                    commission_amount: Math.round(inv.fee_amount * 0.20),
+                    status:            "pending",
+                    created_at:        new Date().toISOString(),
+                  }, { onConflict: "pipeline_id,rep_id" }).catch(() => {});
+                }
+              }
+            } catch (e) {
+              console.error("[Stripe] fruxal_invoices update failed:", e);
+            }
+          }
+          break;
+        }
+
         case "invoice.payment_failed": {
           const graceEnd = new Date(Date.now() + 3 * 86400000).toISOString();
           await supabaseAdmin
