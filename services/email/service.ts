@@ -391,12 +391,12 @@ export async function sendWelcomeEmail({
     ? (isFR
       ? [
           { n: "1", text: "Un expert en récupération vous a été assigné", sub: "Vous recevrez bientôt un appel de votre rep Fruxal — soyez disponible.", href: `${appUrl}/v2/dashboard` },
-          { n: "2", text: "Préparez vos documents", sub: "Contrats fournisseurs, relevés bancaires récents, déclarations T2 — votre rep vous guidera.", href: `${appUrl}/v2/collect` },
+          { n: "2", text: "Préparez vos documents", sub: "Contrats fournisseurs, relevés bancaires récents, déclarations fiscales — votre rep vous guidera.", href: `${appUrl}/v2/collect` },
           { n: "3", text: "Aucun frais jusqu'à récupération", sub: "On prend 12% de ce qu'on récupère. Vous gardez 88%.", href: `${appUrl}/v2/dashboard` },
         ]
       : [
           { n: "1", text: "A recovery expert is being assigned to you", sub: "Your Fruxal rep will reach out soon — be available for a short call.", href: `${appUrl}/v2/dashboard` },
-          { n: "2", text: "Prepare your documents", sub: "Vendor contracts, recent bank statements, T2 returns — your rep will guide you on exactly what's needed.", href: `${appUrl}/v2/collect` },
+          { n: "2", text: "Prepare your documents", sub: "Vendor contracts, recent bank statements, tax returns — your rep will guide you on exactly what's needed.", href: `${appUrl}/v2/collect` },
           { n: "3", text: "No cost until money is recovered", sub: "We take 12% of what we recover. You keep 88%. Nothing until then.", href: `${appUrl}/v2/dashboard` },
         ])
     : (isFR

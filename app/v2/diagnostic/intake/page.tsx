@@ -792,7 +792,7 @@ export default function DiagnosticIntakePage() {
                 key: "t4",
                 title: data.country === "US" ? "W-2 / Payroll Summary" : t("T4 Summary", "Sommaire T4"),
                 subtitle: t("Employer payroll summary (if you have employees)", "Sommaire de la paie employeur (si vous avez des employés)"),
-                impact: t("Payroll totals, CPP/EI optimization, EHT exposure", "Masse salariale, optimisation RPC/AE, exposition ISE"),
+                impact: data.country === "US" ? "Payroll totals, FICA optimization, WOTC eligibility" : t("Payroll totals, CPP/EI optimization, EHT exposure", "Masse salariale, optimisation RPC/AE, exposition ISE"),
                 priority: t("Medium impact", "Impact moyen"),
               },
               {

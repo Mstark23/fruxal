@@ -272,7 +272,7 @@ export default function GoPage() {
           {/* Trust signals */}
           <div className="fu" style={{display:"flex",gap:20,marginTop:20,justifyContent:"center",flexWrap:"wrap"}}>
             {[
-              t("🇨🇦 Built for Canadian businesses","🇨🇦 Conçu pour les entreprises canadiennes"),
+              t("Built for businesses like yours","Conçu pour votre type d'entreprise"),
               t("200+ industries covered","200+ industries couvertes"),
               t("All 10 provinces","Les 10 provinces"),
             ].map(s => (

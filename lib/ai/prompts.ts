@@ -283,7 +283,7 @@ const JSON_SCHEMA = `{
   ],
   "accountant_briefing": {
     "summary": "<paragraph for CPA>",
-    "cra_forms_relevant": ["<T2125>", "<T4>"],
+    "forms_relevant": ["<e.g. Schedule C / T2125, W-2 / T4>"],
     "estimated_tax_exposure": <number>,
     "questions_to_ask": ["<question 1>", "<question 2>"]
   },
@@ -340,8 +340,8 @@ ENTERPRISE instructions:
 Every finding must calculate the enterprise value effect (EBITDA x ${evMultiple}x multiple).
 Revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}), EBITDA: $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}), gross margin: ${grossMarginPct}%.
 ${exactNetIncome > 0 ? `Net income last year: $${exactNetIncome.toLocaleString()}` : ""}
-${ownerSalary > 0 ? `Owner salary: $${ownerSalary.toLocaleString()} — assess T4 vs dividends vs IPP` : ""}
-RDTOH / CDA: ${profile.has_cda_balance ? "CDA balance — tax-free capital dividend opportunity" : "N/A"}, passive income vs $50K threshold.
+${ownerSalary > 0 ? `Owner salary: $${ownerSalary.toLocaleString()} — assess ${inputs.country === "US" ? "W-2 salary vs S-corp distributions vs defined benefit plan" : "T4 vs dividends vs IPP"}` : ""}
+${inputs.country === "US" ? `Entity structure: ${profile.structure || "LLC/S-corp"} — assess reasonable comp, QBI deduction, QSBS eligibility.` : `RDTOH / CDA: ${profile.has_cda_balance ? "CDA balance — tax-free capital dividend opportunity" : "N/A"}, passive income vs $50K threshold.`}
 ${overdue > 0 ? `Overdue obligations: ${overdue}, penalty exposure: $${penaltyExposure.toLocaleString()}` : ""}
 ${exitHorizon !== "unknown" ? `Exit horizon: ${exitHorizon} — ensure every finding links to exit timing.` : ""}
 ${isFr ? "Respond in French for all text fields. Keep JSON keys in English." : ""}
@@ -467,8 +467,8 @@ ${exactNetIncome > 0    ? `- Net income last year: $${exactNetIncome.toLocaleStr
 ${exitHorizon !== "unknown" ? `- Exit horizon: ${exitHorizon}` : ""}
 ${hasHoldco             ? "- Has holdco: YES" : ""}
 ${passiveOver50k        ? "- Passive income > $50K: YES" : ""}
-${lcgeEligible          ? "- LCGE eligible: YES" : ""}
-${rdtohBalance > 0      ? `- RDTOH balance: $${rdtohBalance.toLocaleString()}` : ""}
+${inputs.country !== "US" && lcgeEligible ? "- LCGE eligible: YES" : inputs.country === "US" && lcgeEligible ? "- QSBS eligible: YES" : ""}
+${inputs.country !== "US" && rdtohBalance > 0 ? `- RDTOH balance: $${rdtohBalance.toLocaleString()}` : ""}
 ${hasCDA                ? "- CDA balance: YES" : ""}
 ${sredLastYear > 0      ? `- SR&ED claimed last year: $${sredLastYear.toLocaleString()}` : ""}
 ${estimatedTaxDrag > 0  ? `- Estimated annual tax drag: $${estimatedTaxDrag.toLocaleString()}` : ""}
@@ -482,15 +482,17 @@ ${(() => {
   if (!d) return "";
   const lines: string[] = [];
   if (d.t2) {
-    lines.push("\nVERIFIED T2 CORPORATE RETURN DATA (treat as authoritative — from actual CRA filing):");
+    lines.push(`\nVERIFIED ${inputs.country === "US" ? "FORM 1120/1120-S" : "T2 CORPORATE RETURN"} DATA (treat as authoritative — from actual ${inputs.country === "US" ? "IRS filing" : "CRA filing"}):`);
     if (d.t2.tax_year)                lines.push(`  Tax year: ${d.t2.tax_year}`);
     if (d.t2.net_income_before_tax)   lines.push(`  Net income before tax: $${(d.t2.net_income_before_tax ?? 0).toLocaleString()}`);
     if (d.t2.taxable_income)          lines.push(`  Taxable income: $${(d.t2.taxable_income ?? 0).toLocaleString()}`);
     if (d.t2.total_tax_payable)       lines.push(`  Total tax payable: $${(d.t2.total_tax_payable ?? 0).toLocaleString()}`);
-    if (d.t2.small_business_deduction)lines.push(`  SBD claimed: $${(d.t2.small_business_deduction ?? 0).toLocaleString()}`);
-    if (d.t2.sred_credit_claimed)     lines.push(`  SR&ED credit: $${(d.t2.sred_credit_claimed ?? 0).toLocaleString()}`);
-    if (d.t2.rdtoh_balance)           lines.push(`  RDTOH balance: $${(d.t2.rdtoh_balance ?? 0).toLocaleString()}`);
-    if (d.t2.passive_income)          lines.push(`  Passive income: $${(d.t2.passive_income ?? 0).toLocaleString()}`);
+    if (inputs.country !== "US") {
+      if (d.t2.small_business_deduction) lines.push(`  SBD claimed: $${(d.t2.small_business_deduction ?? 0).toLocaleString()}`);
+      if (d.t2.sred_credit_claimed)     lines.push(`  SR&ED credit: $${(d.t2.sred_credit_claimed ?? 0).toLocaleString()}`);
+      if (d.t2.rdtoh_balance)           lines.push(`  RDTOH balance: $${(d.t2.rdtoh_balance ?? 0).toLocaleString()}`);
+      if (d.t2.passive_income)          lines.push(`  Passive income: $${(d.t2.passive_income ?? 0).toLocaleString()}`);
+    }
     if (d.t2.confidence)              lines.push(`  Parse confidence: ${d.t2.confidence}`);
   }
   if (d.financials) {
@@ -507,19 +509,21 @@ ${(() => {
     if (d.financials.confidence)      lines.push(`  Parse confidence: ${d.financials.confidence}`);
   }
   if (d.gst) {
-    lines.push("\nVERIFIED GST/HST RETURN DATA:");
-    if (d.gst.total_sales_and_other_revenue) lines.push(`  Reported GST sales: $${(d.gst.total_sales_and_other_revenue ?? 0).toLocaleString()}`);
-    if (d.gst.gst_hst_collected)             lines.push(`  GST/HST collected: $${(d.gst.gst_hst_collected ?? 0).toLocaleString()}`);
-    if (d.gst.input_tax_credits)             lines.push(`  ITCs claimed: $${(d.gst.input_tax_credits ?? 0).toLocaleString()}`);
+    lines.push(`\nVERIFIED ${inputs.country === "US" ? "SALES TAX / FORM 941 RETURN" : "GST/HST RETURN"} DATA:`);
+    if (d.gst.total_sales_and_other_revenue) lines.push(`  Reported ${inputs.country === "US" ? "taxable sales" : "GST sales"}: $${(d.gst.total_sales_and_other_revenue ?? 0).toLocaleString()}`);
+    if (d.gst.gst_hst_collected)             lines.push(`  ${inputs.country === "US" ? "Sales tax collected" : "GST/HST collected"}: $${(d.gst.gst_hst_collected ?? 0).toLocaleString()}`);
+    if (d.gst.input_tax_credits)             lines.push(`  ${inputs.country === "US" ? "Input tax credits" : "ITCs"} claimed: $${(d.gst.input_tax_credits ?? 0).toLocaleString()}`);
     if (d.gst.net_tax_remitted)              lines.push(`  Net remitted: $${(d.gst.net_tax_remitted ?? 0).toLocaleString()}`);
-    if (d.gst.quick_method !== undefined)    lines.push(`  Quick method elected: ${d.gst.quick_method ? "YES" : "NO"}`);
+    if (d.gst.quick_method !== undefined && inputs.country !== "US") lines.push(`  Quick method elected: ${d.gst.quick_method ? "YES" : "NO"}`);
   }
   if (d.t4) {
-    lines.push("\nVERIFIED T4 SUMMARY DATA:");
-    if (d.t4.total_employment_income) lines.push(`  Total T4 employment income: $${(d.t4.total_employment_income ?? 0).toLocaleString()}`);
-    if (d.t4.number_of_t4s)           lines.push(`  Number of T4s issued: ${d.t4.number_of_t4s}`);
-    if (d.t4.total_cpp_deducted)      lines.push(`  Total CPP deducted: $${(d.t4.total_cpp_deducted ?? 0).toLocaleString()}`);
-    if (d.t4.total_ei_deducted)       lines.push(`  Total EI deducted: $${(d.t4.total_ei_deducted ?? 0).toLocaleString()}`);
+    lines.push(`\nVERIFIED ${inputs.country === "US" ? "W-2 / PAYROLL SUMMARY" : "T4 SUMMARY"} DATA:`);
+    if (d.t4.total_employment_income) lines.push(`  Total ${inputs.country === "US" ? "W-2" : "T4"} employment income: $${(d.t4.total_employment_income ?? 0).toLocaleString()}`);
+    if (d.t4.number_of_t4s)           lines.push(`  Number of ${inputs.country === "US" ? "W-2s" : "T4s"} issued: ${d.t4.number_of_t4s}`);
+    if (inputs.country !== "US") {
+      if (d.t4.total_cpp_deducted)    lines.push(`  Total CPP deducted: $${(d.t4.total_cpp_deducted ?? 0).toLocaleString()}`);
+      if (d.t4.total_ei_deducted)     lines.push(`  Total EI deducted: $${(d.t4.total_ei_deducted ?? 0).toLocaleString()}`);
+    }
   }
   return lines.join("\n");
 })()}

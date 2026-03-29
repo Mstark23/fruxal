@@ -499,10 +499,10 @@ export default function EnterpriseDashboard() {
                   {t("Enterprise analysis needs your exact numbers", "L'analyse enterprise nécessite vos chiffres exacts")}
                 </p>
                 <p className="text-[10px]" style={{ color: "#b45309" }}>
-                  {profile.country === "US" ? "Upload Form 1120-S / 1120 + financial statements for precise EBITDA & exit planning" :
-                  profile.country === "US" ? "Upload Form 1120-S / 1120 + financial statements for precise EBITDA & exit planning" :
-                  t("Upload T2 + financial statements for precise EBITDA, enterprise value & exit planning",
-                     "Téléversez T2 + états financiers pour BAIIA, valeur d'entreprise et planification de sortie précis")}
+                  {profile.country === "US"
+                    ? "Upload Form 1120-S / 1120 + financial statements for precise EBITDA & exit planning"
+                    : t("Upload T2 + financial statements for precise EBITDA, enterprise value & exit planning",
+                       "Téléversez T2 + états financiers pour BAIIA, valeur d'entreprise et planification de sortie précis")}
                 </p>
               </div>
             </div>
