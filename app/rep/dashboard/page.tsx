@@ -10,8 +10,6 @@ const STAGE_LABEL: Record<string, { label: string; color: string; bg: string }> 
   contacted:         { label:"Contacted",       color:"#0369a1", bg:"rgba(3,105,161,0.07)"  },
   diagnostic_sent:   { label:"Diagnostic Sent", color:"#7C3AED", bg:"rgba(124,58,237,0.07)" },
   call_booked:       { label:"Call Booked",     color:"#C4841D", bg:"rgba(196,132,29,0.08)" },
-  agreement_out:     { label:"Agreement Sent",  color:"#7C3AED", bg:"rgba(124,58,237,0.07)" },
-  signed:            { label:"Signed ✓",        color:"#1B3A2D", bg:"rgba(27,58,45,0.08)"   },
   engaged:           { label:"Engaged",         color:"#1B3A2D", bg:"rgba(27,58,45,0.08)"   },
   in_engagement:     { label:"Active",          color:"#2D7A50", bg:"rgba(45,122,80,0.08)"  },
   recovery_tracking: { label:"Recovery",        color:"#3D7A5E", bg:"rgba(61,122,94,0.08)"  },
@@ -24,9 +22,8 @@ export default function RepDashboard() {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search,  setSearch]  = useState("");
-  const [filter,  setFilter]  = useState("needs_action");
+  const [filter,  setFilter]  = useState("all");
   const [showCalendlyEdit, setShowCalendlyEdit] = useState(false);
-  const [showCommissions, setShowCommissions] = useState(false);
   const [calendlyInput, setCalendlyInput] = useState("");
   const [savingCalendly, setSavingCalendly] = useState(false);
 
@@ -35,11 +32,7 @@ export default function RepDashboard() {
       fetch("/api/rep/me").then(r => r.json()).catch(() => ({})),
       fetch("/api/rep/pipeline").then(r => r.json()).catch(() => ({})),
     ]).then(([meData, plData]) => {
-      if (!meData?.success) {
-        window.location.href = "/rep/login";
-        return;
-      }
-      setRep(meData.rep);
+      if (meData?.success) setRep(meData.rep);
       if (plData?.success) setClients(plData.clients || []);
     }).finally(() => setLoading(false));
   }, []);
@@ -65,28 +58,12 @@ export default function RepDashboard() {
   const filtered = clients.filter(c => {
     const q = search.toLowerCase();
     const matchSearch = !q || c.companyName?.toLowerCase().includes(q) || c.industry?.toLowerCase().includes(q);
-    const needsAction =
-      // No debrief after call
-      c.pipeline?.stage === "call_booked" ||
-      // Agreement sent but not signed > 3 days
-      (c.pipeline?.stage === "agreement_out") ||
-      // New lead not yet contacted
-      (c.pipeline?.stage === "lead" && c.assignedAt && (Date.now() - new Date(c.assignedAt).getTime()) < 86400000 * 3) ||
-      // Follow-up overdue
-      (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date());
     const matchFilter =
-      filter === "needs_action" ? needsAction :
       filter === "active"   ? !!c.engagement :
       filter === "pipeline" ? (!c.engagement && !!c.pipeline) :
       filter === "followup" ? (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)) : true;
     return matchSearch && matchFilter;
   });
-  const needsActionCount = clients.filter(c =>
-    c.pipeline?.stage === "call_booked" ||
-    c.pipeline?.stage === "agreement_out" ||
-    (c.pipeline?.stage === "lead" && c.assignedAt && (Date.now() - new Date(c.assignedAt).getTime()) < 86400000 * 3) ||
-    (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date())
-  ).length;
 
   const activeCount   = clients.filter(c => c.engagement).length;
   const followUpCount = clients.filter(c => c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)).length;
@@ -105,6 +82,18 @@ export default function RepDashboard() {
           <div className="flex items-center gap-3">
             <span className="text-[17px] font-bold text-[#1B3A2D] tracking-tight">Fruxal</span>
             <span className="text-[10px] font-semibold text-[#8E8C85] uppercase tracking-wider bg-[#F0EFEB] px-2 py-0.5 rounded-full">Rep Portal</span>
+            <div className="hidden sm:flex items-center gap-1 ml-2">
+              <button onClick={() => router.push("/rep/training")}
+                className="text-[11px] font-semibold px-3 py-1 rounded-lg hover:bg-[#F0EFEB] transition"
+                style={{ color: "#1B3A2D" }}>
+                Drill
+              </button>
+              <button onClick={() => router.push("/rep/scripts")}
+                className="text-[11px] font-semibold px-3 py-1 rounded-lg hover:bg-[#F0EFEB] transition"
+                style={{ color: "#1B3A2D" }}>
+                Scripts
+              </button>
+            </div>
           </div>
           {rep && (
             <div className="flex items-center gap-3">
@@ -131,7 +120,7 @@ export default function RepDashboard() {
           {[
             { label:"Clients",          value:clients.length,                            sub:"assigned"    },
             { label:"Active",           value:activeCount,                               sub:"engagements" },
-            { label:"Commissions Paid", value:fmtM(rep?.stats?.commissions_paid||0),    sub:"earned · click for details", onClick:()=>setShowCommissions(true) },
+            { label:"Commissions Paid", value:fmtM(rep?.stats?.commissions_paid||0),    sub:"earned"      },
             { label:"Pending",          value:fmtM(rep?.stats?.commissions_pending ?? 0), sub:"to collect"  },
             { label:"Pipeline Value",   value:fmtM(clients.filter((c:any) => c.engagement).reduce((s:number,c:any) => s+(c.annualLeak??0)*((rep?.commission_rate||20)/100),0)), sub:"if all close" },
           ].map(s => (
@@ -281,37 +270,6 @@ export default function RepDashboard() {
           </div>
         )}
       </div>
-
-      {/* Commissions modal */}
-      {showCommissions && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#E5E3DD] flex items-center justify-between">
-              <p className="text-[14px] font-bold text-[#1A1A18]">My Commissions</p>
-              <button onClick={() => setShowCommissions(false)} className="text-[#8E8C85] hover:text-[#1A1A18]">✕</button>
-            </div>
-            <div className="px-6 py-4 space-y-2">
-              <div className="flex justify-between py-2 border-b border-[#F0EFEB]">
-                <span className="text-[12px] text-[#8E8C85]">Paid</span>
-                <span className="text-[13px] font-bold text-[#2D7A50]">{fmtM(rep?.stats?.commissions_paid || 0)}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-[#F0EFEB]">
-                <span className="text-[12px] text-[#8E8C85]">Pending</span>
-                <span className="text-[13px] font-bold text-[#C4841D]">{fmtM(rep?.stats?.commissions_pending || 0)}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-[12px] font-semibold text-[#1A1A18]">Total earned</span>
-                <span className="text-[14px] font-bold text-[#1A1A18]">{fmtM((rep?.stats?.commissions_paid || 0) + (rep?.stats?.commissions_pending || 0))}</span>
-              </div>
-              <p className="text-[11px] text-[#8E8C85] pt-2">
-                Your rate: {rep?.commission_rate ?? 20}% of Fruxal&apos;s 12% fee.
-                E.g. $100K savings → $12K Fruxal fee → ${Math.round(120000 * (rep?.commission_rate ?? 20) / 100 / 1000)}K your commission.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
