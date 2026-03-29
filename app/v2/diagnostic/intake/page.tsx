@@ -247,6 +247,7 @@ export default function DiagnosticIntakePage() {
             business_name:    p.business_name    || "",
             structure:        p.structure        || "",
             province:         p.province         || "",
+            country:          p.country          || "CA",
             industry:         p.industry         || "",
             fiscal_year_end_month: p.fiscal_year_end_month || 12,
             gst_registration_date: p.gst_registration_date || "",
@@ -519,7 +520,7 @@ export default function DiagnosticIntakePage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-ink-secondary mb-1">{t("GST/HST registration date", "Date d'inscription TPS/TVQ")}</label>
+                <label className="block text-[11px] font-semibold text-ink-secondary mb-1">{data.country === "US" ? "Sales Tax Registration Date" : t("GST/HST registration date", "Date d'inscription TPS/TVQ")}</label>
                 <input type="date" value={data.gst_registration_date} onChange={e => setData(d => ({ ...d, gst_registration_date: e.target.value }))}
                   className="w-full px-3 py-2.5 text-sm bg-white border border-border rounded-lg focus:outline-none focus:border-brand/50" />
                 <p className="text-[9px] text-ink-faint mt-1">{t("Leave blank if unknown", "Laisser vide si inconnu")}</p>
@@ -664,7 +665,7 @@ export default function DiagnosticIntakePage() {
           <div className="space-y-6" style={{ animation: "fadeUp 0.25s ease-out" }}>
             <div>
               <h2 className="text-lg font-bold text-ink mb-1">{t("Enterprise structure", "Structure d'entreprise")}</h2>
-              <p className="text-xs text-ink-faint">{t("These fields unlock enterprise-level findings — exit planning, LCGE, RDTOH, holdco strategies.", "Ces champs permettent des constats de niveau entreprise — planification de sortie, ECGC, IMRTD, stratégies de société de portefeuille.")}</p>
+              <p className="text-xs text-ink-faint">{data.country === "US" ? "These fields unlock enterprise-level findings — exit planning, QSBS, entity structure, holding company strategies." : t("These fields unlock enterprise-level findings — exit planning, LCGE, RDTOH, holdco strategies.", "Ces champs permettent des constats de niveau entreprise — planification de sortie, ECGC, IMRTD, stratégies de société de portefeuille.")}</p>
             </div>
 
             <div className="bg-white border border-border-light rounded-xl p-4 space-y-3">
@@ -675,8 +676,8 @@ export default function DiagnosticIntakePage() {
                 value={data.passive_income_over_50k} onChange={v => setData(d => ({ ...d, passive_income_over_50k: v }))} isFr={isFr} />
               <Toggle label="Has shareholder agreements in place" labelFr="A des conventions entre actionnaires"
                 value={data.shareholder_agreements} onChange={v => setData(d => ({ ...d, shareholder_agreements: v }))} isFr={isFr} />
-              <Toggle label="Has a Capital Dividend Account (CDA) balance" labelFr="A un compte de dividende en capital (CDC)"
-                value={data.has_cda_balance} onChange={v => setData(d => ({ ...d, has_cda_balance: v }))} isFr={isFr} />
+              {data.country === "CA" && <Toggle label="Has a Capital Dividend Account (CDA) balance" labelFr="A un compte de dividende en capital (CDC)"
+                value={data.has_cda_balance} onChange={v => setData(d => ({ ...d, has_cda_balance: v }))} isFr={isFr} />}
             </div>
 
             <div className="bg-white border border-border-light rounded-xl p-4 space-y-3">
@@ -696,7 +697,7 @@ export default function DiagnosticIntakePage() {
               </div>
               <div>
                 <label className="block text-[11px] font-semibold text-ink-secondary mb-1">
-                  {t("Eligible for LCGE? (Lifetime Capital Gains Exemption — $1.016M)", "Admissible à l'ECGC? (Exonération cumulative des gains en capital — 1,016 M$)")}
+                  {data.country === "US" ? "Eligible for QSBS? (Section 1202 Qualified Small Business Stock — up to $10M exclusion)" : t("Eligible for LCGE? (Lifetime Capital Gains Exemption — $1.016M)", "Admissible à l'ECGC? (Exonération cumulative des gains en capital — 1,016 M$)")}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[["true","Yes","Oui"],["false","No","Non"],["null","Unknown","Inconnu"]].map(([v,en,fr]) => (
@@ -723,8 +724,8 @@ export default function DiagnosticIntakePage() {
               <div className="grid grid-cols-2 gap-3">
                 <MoneyInput label="R&D credit claimed last year" labelFr="Crédit RS&DE réclamé l'an dernier"
                   value={data.sred_claimed_last_year} onChange={v => setData(d => ({ ...d, sred_claimed_last_year: v }))} isFr={isFr} />
-                <MoneyInput label="RDTOH balance" labelFr="Solde IMRTD"
-                  value={data.rdtoh_balance} onChange={v => setData(d => ({ ...d, rdtoh_balance: v }))} isFr={isFr} />
+                {data.country === "CA" && <MoneyInput label="RDTOH balance" labelFr="Solde IMRTD"
+                  value={data.rdtoh_balance} onChange={v => setData(d => ({ ...d, rdtoh_balance: v }))} isFr={isFr} />}
               </div>
             </div>
           </div>
@@ -789,7 +790,7 @@ export default function DiagnosticIntakePage() {
               },
               {
                 key: "t4",
-                title: t("T4 Summary", "Sommaire T4"),
+                title: data.country === "US" ? "W-2 / Payroll Summary" : t("T4 Summary", "Sommaire T4"),
                 subtitle: t("Employer payroll summary (if you have employees)", "Sommaire de la paie employeur (si vous avez des employés)"),
                 impact: t("Payroll totals, CPP/EI optimization, EHT exposure", "Masse salariale, optimisation RPC/AE, exposition ISE"),
                 priority: t("Medium impact", "Impact moyen"),
@@ -945,7 +946,7 @@ export default function DiagnosticIntakePage() {
               <div className="bg-white border border-border-light rounded-xl p-4">
                 <p className="text-[10px] font-bold text-ink uppercase mb-2">{t("Documents read by Claude", "Documents lus par Claude")}</p>
                 <div className="space-y-1">
-                  {[["t2","T2 Corporate Return"],["financials","Financial Statements"],["gst","GST/HST Return"],["t4","T4 Summary"],["bank","Bank Statements"]].map(([k,label]) =>
+                  {[["t2", data.country === "US" ? "Form 1120 / 1120-S" : "T2 Corporate Return"],["financials","Financial Statements"],["gst", data.country === "US" ? "Form 941 / Sales Tax Return" : "GST/HST Return"],["t4", data.country === "US" ? "W-2 / Form 941 Summary" : "T4 Summary"],["bank","Bank Statements"]].map(([k,label]) =>
                     docs[k].data ? (
                       <div key={k} className="flex items-center justify-between">
                         <span className="text-[10px] text-ink-muted">✓ {label}</span>

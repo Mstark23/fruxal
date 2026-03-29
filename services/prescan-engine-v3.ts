@@ -414,6 +414,13 @@ export function normalizeProvince(raw: string): string {
   };
   // If they said 'canada' without a province, don't default to QC
   if (n === 'canada' || n === 'ca') return 'ON'; // neutral — ~40% of Canada's businesses
+  // US states — pass through if 2-letter code not in CA map
+  const US_STATES = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
+    'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO',
+    'MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+    'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC']);
+  const upper = n.toUpperCase();
+  if (US_STATES.has(upper)) return upper;
   return map[n] || (n.length === 2 ? n.toUpperCase() : 'QC');
 }
 
@@ -2017,7 +2024,7 @@ export async function insertPrescanRun(
     employee_turnover_cost: { en: 'Employee Turnover Cost', fr: 'Coûts de roulement du personnel' },
     supplier_discount_missed: { en: 'Missed Supplier Discounts', fr: 'Rabais fournisseurs manqués' },
     debt_interest_high: { en: 'Business Debt Interest Gap', fr: 'Écart d\'intérêt sur la dette d\'entreprise' },
-    tax_filing_inefficiency: { en: 'GST/HST Input Credits Missed', fr: 'Crédits de taxe sur intrants manqués' },
+    tax_filing_inefficiency: { en: 'Sales Tax Credits Missed', fr: 'Crédits de taxe sur intrants manqués' },
     professional_fees_high: { en: 'Professional Fees Above Optimal', fr: 'Honoraires professionnels au-dessus de l\'optimal' },
     no_bookkeeping_system: { en: 'No Bookkeeping System', fr: 'Absence de système de comptabilité' },
     subcontractor_markup: { en: 'Subcontractor Cost Gap', fr: 'Écart de coûts de sous-traitance' },
@@ -2029,7 +2036,7 @@ export async function insertPrescanRun(
     processing_rate_high: { en: 'Your card processing rate is above the industry median. Renegotiating or switching processors could save you significantly.', fr: 'Votre taux de traitement est au-dessus de la médiane. Renégocier ou changer de fournisseur pourrait vous faire économiser.' },
     rent_or_chair_high: { en: 'Your rent-to-revenue ratio is higher than similar businesses. Consider renegotiating your lease at renewal.', fr: 'Votre ratio loyer/revenus est plus élevé que des entreprises similaires. Renégociez votre bail au renouvellement.' },
     tax_optimization_gap: { en: 'Without proper accounting software, businesses typically miss 5-10% in eligible deductions.', fr: 'Sans logiciel de comptabilité, les entreprises manquent typiquement 5-10% des déductions admissibles.' },
-    payroll_ratio_high: { en: 'Your payroll costs are above benchmark. Review overtime, classifications, and CNESST optimization.', fr: 'Vos coûts de paie sont au-dessus du benchmark. Révisez le temps supplémentaire et l\'optimisation CNESST.' },
+    payroll_ratio_high: { en: 'Your payroll costs are above benchmark. Review overtime, worker classifications, workers comp rates, and WOTC screening.', fr: 'Vos coûts de paie sont au-dessus du benchmark. Révisez le temps supplémentaire et l\'optimisation CNESST.' },
     insurance_overpayment: { en: 'Businesses that haven\'t compared insurance in 2+ years typically overpay by 15-25%.', fr: 'Les entreprises qui n\'ont pas comparé leurs assurances depuis 2+ ans surpaient de 15-25%.' },
     fuel_vehicle_high: { en: 'Your fuel costs are above average. Route optimization and fuel card programs could help.', fr: 'Vos coûts de carburant sont au-dessus de la moyenne. L\'optimisation des trajets pourrait aider.' },
     software_bloat: { en: 'Businesses at your level often accumulate overlapping subscriptions. An audit could eliminate waste.', fr: 'Les entreprises accumulent souvent des abonnements redondants. Un audit pourrait éliminer le gaspillage.' },
@@ -2045,7 +2052,7 @@ export async function insertPrescanRun(
     employee_turnover_cost: { en: 'Each employee replacement costs 30-50% of their annual salary. Reducing turnover by even 5% saves significantly.', fr: 'Chaque remplacement d\'employé coûte 30-50% de leur salaire annuel. Réduire le roulement de 5% économise considérablement.' },
     supplier_discount_missed: { en: 'Most suppliers offer 2-5% early payment discounts that go unclaimed. Negotiating terms could save thousands.', fr: 'La plupart des fournisseurs offrent des rabais de 2-5% pour paiement rapide qui ne sont pas réclamés.' },
     debt_interest_high: { en: 'SMB interest rates vary by 2-3% between lenders. Refinancing or consolidating could reduce your interest burden.', fr: 'Les taux d\'intérêt PME varient de 2-3% entre prêteurs. Refinancer ou consolider pourrait réduire votre fardeau.' },
-    tax_filing_inefficiency: { en: 'Without proper tracking, 1-2% of eligible GST/HST input tax credits go unclaimed each year.', fr: 'Sans suivi adéquat, 1-2% des crédits de taxe sur intrants admissibles ne sont pas réclamés chaque année.' },
+    tax_filing_inefficiency: { en: 'Without proper tracking, 1-2% of eligible sales tax credits go unclaimed each year.', fr: 'Sans suivi adéquat, 1-2% des crédits de taxe sur intrants admissibles ne sont pas réclamés chaque année.' },
     professional_fees_high: { en: 'Most businesses don\'t compare accountant or lawyer fees. Shopping around typically saves 15-30%.', fr: 'La plupart des entreprises ne comparent pas les honoraires de comptable ou avocat. Magasiner économise typiquement 15-30%.' },
     no_bookkeeping_system: { en: 'Without a bookkeeping system, businesses lose money to lost receipts, missed expenses, and duplicate payments.', fr: 'Sans système de comptabilité, les entreprises perdent de l\'argent en reçus perdus, dépenses manquées et paiements en double.' },
     subcontractor_markup: { en: 'Subcontractor costs vary widely. Competitive bidding and regular rate reviews can reduce this gap.', fr: 'Les coûts de sous-traitance varient considérablement. Les appels d\'offres et révisions régulières peuvent réduire cet écart.' },

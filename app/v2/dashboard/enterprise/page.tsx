@@ -500,6 +500,7 @@ export default function EnterpriseDashboard() {
                 </p>
                 <p className="text-[10px]" style={{ color: "#b45309" }}>
                   {profile.country === "US" ? "Upload Form 1120-S / 1120 + financial statements for precise EBITDA & exit planning" :
+                  profile.country === "US" ? "Upload Form 1120-S / 1120 + financial statements for precise EBITDA & exit planning" :
                   t("Upload T2 + financial statements for precise EBITDA, enterprise value & exit planning",
                      "Téléversez T2 + états financiers pour BAIIA, valeur d'entreprise et planification de sortie précis")}
                 </p>
@@ -550,13 +551,13 @@ export default function EnterpriseDashboard() {
             {profile.passive_income_over_50k && (
               <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold"
                 style={{ background: "rgba(179,64,64,0.07)", color: "#B34040", border: "1px solid rgba(179,64,64,0.15)" }}>
-                {t("Passive income >$50K — SBD at risk", "Revenus passifs >50K$ — DPE à risque")}
+                {profile.country === "US" ? "Passive income >$50K — C-corp retained earnings risk" : t("Passive income >$50K — SBD at risk", "Revenus passifs >50K$ — DPE à risque")}
               </span>
             )}
             {profile.lcge_eligible === true && (
               <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold"
                 style={{ background: "rgba(45,122,80,0.07)", color: "#2D7A50", border: "1px solid rgba(45,122,80,0.15)" }}>
-                {t("LCGE eligible ($1.25M)", "ECGC admissible (1,25 M$)")}
+                {profile.country === "US" ? "QSBS eligible (Section 1202)" : t("LCGE eligible ($1.25M)", "ECGC admissible (1,25 M$)")}
               </span>
             )}
             {profile.shareholder_agreements && (
@@ -717,7 +718,9 @@ export default function EnterpriseDashboard() {
                     {t("Run your diagnostic", "Lancez votre diagnostic")}
                   </p>
                   <p className="text-[10px] text-ink-faint mt-0.5">
-                    {t("AI analysis across 7 dimensions — exit readiness, EBITDA impact, RDTOH/CDA strategy, peer benchmarks, and more.",
+                    {profile.country === "US" ? "AI analysis across 7 dimensions — exit readiness, EBITDA impact, QSBS/entity structure, peer benchmarks, and more." :
+                  profile.country === "US" ? "AI analysis across 7 dimensions — exit readiness, EBITDA impact, QSBS/entity structure, peer benchmarks, and more." :
+                  t("AI analysis across 7 dimensions — exit readiness, EBITDA impact, RDTOH/CDA strategy, peer benchmarks, and more.",
                        "Analyse IA sur 7 dimensions — prêt à vendre, impact BAIIA, stratégie IMRTD/CDC, benchmarks et plus.")}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1.5">
@@ -1402,7 +1405,7 @@ export default function EnterpriseDashboard() {
               {/* Preview items — blurred */}
               <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.04)" }}>
                 {[
-                  { icon: "briefing", label: t("CPA / Board Briefing Memo", "Mémo Briefing CPA"), sub: t("RDTOH strategy, tax exposure, talking points for your accountant", "Stratégie IMRTD, exposition fiscale, points pour votre comptable") },
+                  { icon: "briefing", label: t("CPA / Board Briefing Memo", "Mémo Briefing CPA"), sub: profile.country === "US" ? "Entity optimization, tax exposure, talking points for your CPA" : t("RDTOH strategy, tax exposure, talking points for your accountant", "Stratégie IMRTD, exposition fiscale, points pour votre comptable") },
                   { icon: "seq", label: t("Priority Action Sequence", "Séquence d'actions prioritaires"), sub: t("Step-by-step recovery plan ranked by ROI and effort", "Plan de récupération étape par étape classé par ROI") },
                   { icon: "bench", label: t("Peer Benchmark Comparisons", "Comparaisons aux pairs sectoriels"), sub: t("How your margins, payroll ratio, and EBITDA compare to top quartile", "Comment vos marges, masse salariale et BAIIA se comparent aux meilleurs") },
                 ].map((item, i) => (

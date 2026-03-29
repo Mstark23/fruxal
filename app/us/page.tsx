@@ -566,7 +566,7 @@ export default function LandingPage() {
       <section id="features" className="py-24 px-6 lg:px-12 max-w-[1200px] mx-auto">
         <div className="text-label uppercase text-brand font-semibold mb-3.5">{t("Capabilities", "Fonctionnalités")}</div>
         <h2 className="font-serif text-h2 text-ink font-normal max-w-[520px] mb-3.5">{t("What your accountant charges $300/hr to find — we find free", "Ce que votre comptable facture 300 $/h pour trouver — on le trouve gratuitement")}</h2>
-        <p className="text-[16px] leading-relaxed text-ink-secondary max-w-[460px] mb-14">{t("Compared against 4,000+ Canadian industry benchmarks. Specific dollar amounts. Real solutions. No subscription required.", "Comparé à plus de 4 000 repères de l'industrie canadienne. Montants précis. Solutions réelles. Aucun abonnement requis.")}</p>
+        <p className="text-[16px] leading-relaxed text-ink-secondary max-w-[460px] mb-14">{t("Compared against 4,000+ US industry benchmarks. Specific dollar amounts. Real solutions. No subscription required.", "Compared against 4,000+ US industry benchmarks. Specific dollar amounts. Real solutions. No subscription required.")}</p>
 
         <div className="grid md:grid-cols-3 gap-px bg-border-light border border-border-light rounded-card overflow-hidden">
           {[
@@ -598,7 +598,7 @@ export default function LandingPage() {
               { n: "01", h: t("Quick conversation", "Conversation rapide"), p: t("Answer a few questions about your business — type, revenue, costs, and tools.", "Répondez à quelques questions sur votre entreprise — type, revenus, coûts et outils.") },
               { n: "02", h: t("Instant analysis", "Analyse instantanée"), p: t("We compare your structure to benchmarks and detect where money leaks.", "Nous comparons votre structure aux références et détectons les fuites.") },
               { n: "03", h: t("See your leaks", "Voyez vos fuites"), p: t("Get your Financial Health Score and a breakdown of each leak.", "Obtenez votre score de santé et le détail de chaque fuite.") },
-              { n: "04", h: t("Fix it — free match included", "Corrigez — mise en relation incluse"), p: t("We match you with vetted Canadian partners who solve your exact leak type. No commissions charged to you. We handle the referral.", "On vous connecte avec des partenaires canadiens vérifiés qui résolvent votre fuite spécifique. Aucune commission à votre charge. On gère la mise en relation.") },
+              { n: "04", h: t("Fix it — free match included", "Corrigez — mise en relation incluse"), p: t("We match you with vetted US partners who solve your exact leak type. No commissions charged to you. We handle the referral.", "We match you with vetted US partners who solve your exact leak type. No commissions charged to you. We handle the referral.") },
             ].map(s => (
               <div key={s.n}>
                 <div className="w-full h-px bg-border mb-6 relative">
@@ -618,7 +618,7 @@ export default function LandingPage() {
       <section className="py-16 px-6 lg:px-12 border-y border-border-light bg-bg-section">
         <div className="max-w-[1200px] mx-auto">
           <p className="text-center text-[11px] font-bold uppercase tracking-widest text-ink-faint mb-10">
-            {t("Trusted by Canadian small businesses", "Fait confiance par les PME canadiennes")}
+            {t("Trusted by US small businesses", "Trusted by US small businesses")}
           </p>
 
           {/* Stats */}
