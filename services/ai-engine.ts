@@ -1,9 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/db/client";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
 
 const MODEL = process.env.AI_MODEL || "claude-sonnet-4-6";
 
@@ -11,6 +8,8 @@ const MODEL = process.env.AI_MODEL || "claude-sonnet-4-6";
 // EXTRACT: Send document to Claude for analysis
 // =============================================================================
 export async function analyzeContract(documentId: string, fileBuffer: Buffer, fileType: string, fileName: string) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   // Build the prompt
   const systemPrompt = `You are a revenue intelligence analyst for a medical supply / e-commerce company. Your job is to analyze contracts, fee schedules, and business agreements to extract structured financial data.
 

@@ -30,9 +30,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-});
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 export interface DiscoveredPattern {
@@ -82,6 +79,8 @@ export interface MarketBenchmark {
 // =============================================================================
 
 export async function tier1_CodeDetection(businessId: string, industry: string): Promise<IntelligenceInsight[]> {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   const insights: IntelligenceInsight[] = [];
 
   // Fetch business leaks and scan history

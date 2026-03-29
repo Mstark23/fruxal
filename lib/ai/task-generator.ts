@@ -8,7 +8,6 @@ import Anthropic from "@anthropic-ai/sdk";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { findSolutionsForTask } from "@/lib/solutions/matcher";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export interface DiagnosticTask {
   id?: string;
@@ -121,6 +120,8 @@ export async function generateTasksFromFindings(
   businessId: string,
   language: string = "en"
 ): Promise<DiagnosticTask[]> {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   if (!findings || findings.length === 0) return [];
 
   try {

@@ -9,7 +9,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRep } from "@/lib/rep-auth";
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const DIFFICULTY_INSTRUCTIONS: Record<string, string> = {
   warm: "You are open and curious. You have some concerns but you're not hostile. You ask reasonable questions and can be moved by a logical, confident rep. You convert after 4–6 solid exchanges.",
@@ -90,6 +89,8 @@ RESPONSE FORMAT (strict JSON):
 }
 
 export async function POST(req: NextRequest) {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   try {
     const auth = await requireRep(req);
     if (!auth.authorized) {
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
 
       // Get coach evaluation first (fast, structured)
       const coachRes = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5-20251029",
         max_tokens: 300,
         system: buildCoachSystem(),
         messages: [
@@ -148,7 +149,7 @@ export async function POST(req: NextRequest) {
 
       // Get prospect response
       const prospectRes = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5-20251029",
         max_tokens: 120,
         system: buildProspectSystem(persona, scenario, difficulty),
         messages: [
