@@ -23,9 +23,6 @@ import { randomUUID } from 'crypto';
 // ════════════════════════════════════════════════════════════════
 
 
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
-
 // UTM extraction helper
 function extractUTM(body: any) {
   return {
