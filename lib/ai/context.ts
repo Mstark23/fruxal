@@ -40,13 +40,40 @@ export async function fetchDiagnosticContext(
         p_language:    language,
       }),
 
-      // Leak detectors
-      supabaseAdmin
-        .from("provincial_leak_detectors")
-        .select("*")
-        .eq("province", province)
-        .order("annual_impact_max", { ascending: false })
-        .limit(tier === "enterprise" ? 60 : tier === "business" ? 40 : 25),
+      // Leak detectors — for US: query federal (province='US') + state-specific
+      // For CA: query by province as before
+      (async () => {
+        const limit = tier === "enterprise" ? 60 : tier === "business" ? 40 : 25;
+        if (country === "US") {
+          const [federal, stateSpecific] = await Promise.all([
+            supabaseAdmin
+              .from("provincial_leak_detectors")
+              .select("*")
+              .eq("province", "US")
+              .eq("is_active", true)
+              .order("annual_impact_max", { ascending: false })
+              .limit(limit),
+            supabaseAdmin
+              .from("provincial_leak_detectors")
+              .select("*")
+              .eq("province", province)  // state code e.g. 'TX'
+              .eq("is_active", true)
+              .order("annual_impact_max", { ascending: false })
+              .limit(20),
+          ]);
+          const combined = [
+            ...(stateSpecific.data || []),
+            ...(federal.data || []),
+          ].slice(0, limit);
+          return { data: combined, error: null };
+        }
+        return supabaseAdmin
+          .from("provincial_leak_detectors")
+          .select("*")
+          .eq("province", province)
+          .order("annual_impact_max", { ascending: false })
+          .limit(limit);
+      })(),
 
       // Government programs — filter by country via region column
       supabaseAdmin
