@@ -492,7 +492,7 @@ export default function LandingPage() {
               <button
                 onClick={() => router.push(`/register?prescanRunId=${result!.prescanRunId}`)}
                 className="flex-1 px-7 py-3.5 text-[15px] font-semibold text-white bg-brand rounded-sm hover:bg-brand-light transition text-center">
-                {t("Create free account & unlock full report →", "Créer un compte gratuit et débloquer le rapport complet →")}
+                {t("Create free account & get a recovery expert →", "Créer un compte gratuit et obtenir un expert en récupération →")}
               </button>
               <button
                 onClick={() => window.open(`/api/prescan/report?prescanRunId=${result!.prescanRunId}&lang=${lang}`, "_blank")}

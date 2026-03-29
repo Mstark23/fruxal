@@ -9,7 +9,7 @@ const translations: Record<string, Record<string, string>> = {
   en: {
     // Landing
     "hero.title": "Your business is leaking money.",
-    "hero.subtitle": "Answer a few questions. We'll show you exactly how much you're losing per year — and how to fix every dollar of it.",
+    "hero.subtitle": "Answer a few questions. We'll show you exactly how much you're losing per year — and get an expert to recover it.",
     "hero.cta": "Find My Leaks — It's Free →",
     "hero.no_cc": "No credit card · No QuickBooks needed · See 3 leaks free",
     "nav.login": "Log In",

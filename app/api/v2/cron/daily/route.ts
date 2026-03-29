@@ -297,7 +297,7 @@ function buildEmailHtml(email: any): string {
     <!-- CTA -->
     <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.ca"}${d.dashboard_url || "/v2/obligations"}"
        style="display:block;text-align:center;padding:14px;background:#10b981;color:#fff;font-weight:700;font-size:14px;border-radius:10px;text-decoration:none;margin-top:20px;">
-      ${d.tier === "overdue" ? (isFr ? "Corriger maintenant →" : "Fix Now →") : (isFr ? "Voir l'obligation →" : "View Obligation →")}
+      ${d.tier === "overdue" ? (isFr ? "Voir l'obligation →" : "View Obligation →") : (isFr ? "Voir l'obligation →" : "View Obligation →")}
     </a>
   </div>
 
