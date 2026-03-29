@@ -129,5 +129,6 @@ export const config = {
     "/rep",
     "/us/:path*",
     "/us",
+    "/",
   ],
 };
