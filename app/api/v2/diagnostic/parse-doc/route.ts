@@ -10,7 +10,6 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 const DOC_PROMPTS: Record<string, string> = {
   t2: `You are a Canadian tax document parser. Extract data from this T2 Corporate Tax Return.
@@ -104,6 +103,8 @@ If a field is not present, use null. Never guess.`,
 };
 
 export async function POST(req: NextRequest) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token?.sub) {
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
       : { type: "image" as const, source: { type: "base64" as const, media_type: mediaType, data: base64 } };
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5-20251029",
       max_tokens: 1500,
       system: systemPrompt,
       messages: [{

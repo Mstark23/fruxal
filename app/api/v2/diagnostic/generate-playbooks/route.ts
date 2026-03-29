@@ -12,10 +12,11 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import Anthropic from "@anthropic-ai/sdk";
 import { buildExecutionPrompt } from "@/lib/ai/prompts/diagnostic/execution";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) return NextResponse.json({ success: false, error: "API key missing" }, { status: 500 });
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   // Internal auth — only callable from our own server
   const auth = req.headers.get("Authorization") || "";
   const secret = process.env.CRON_SECRET || "";
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
     const systemPrompt = buildExecutionPrompt(findings, ctx, language);
 
     const response = await anthropic.messages.create({
-      model:      "claude-sonnet-4-20250514",
+      model:      "claude-sonnet-4-5-20251029",
       max_tokens: 8000,
       messages:   [{ role: "user", content: "Generate the execution playbooks for all findings as a JSON array." }],
       system:     systemPrompt,

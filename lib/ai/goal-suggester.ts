@@ -136,7 +136,7 @@ For a solo operator, a recovery_amount goal of 30-50% of available savings (${fm
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5-20251029",
         max_tokens: 400,
         system: `You are suggesting a realistic 90-day financial goal for a Canadian SMB owner based on their diagnostic results.
 

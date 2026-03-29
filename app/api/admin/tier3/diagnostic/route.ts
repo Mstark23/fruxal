@@ -10,7 +10,6 @@ import crypto from "crypto";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 const REVENUE_LABELS: Record<string, string> = {
   "1M_5M": "$1M–$5M", "5M_20M": "$5M–$20M", "20M_50M": "$20M–$50M"
@@ -33,6 +32,8 @@ const PROVINCE_CONTEXT: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   const auth = await requireAdmin(req);
   if (!auth.authorized) return auth.error!;
 
@@ -113,7 +114,7 @@ Categories to use: tax_structure, vendor_procurement, payroll_hr, banking_treasu
 Calculate totalEstimatedLow/High as sum of all leaks. feeRangeLow/High = 12% of total. highConfidenceCount = count of HIGH leaks.`;
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5-20251029",
       max_tokens: 4000,
       messages: [{ role: "user", content: prompt }],
     });

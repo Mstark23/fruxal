@@ -12,7 +12,6 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { PRESCAN_SYSTEM_PROMPT } from '@/lib/ai/prompts/prescan/system';
-import { US_PRESCAN_SYSTEM_PROMPT } from '@/lib/ai/prompts/prescan/system-us';
 import { validatePrescanData, buildValidationFollowUp } from '@/services/prescan-validator';
 import { runPrescanForBusiness, PrescanTags } from '@/services/prescan-engine-v3';
 import { getLeakExplanation } from '@/lib/leak-explanations';
@@ -24,7 +23,6 @@ import { randomUUID } from 'crypto';
 // ════════════════════════════════════════════════════════════════
 
 
-const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
@@ -68,27 +66,27 @@ setInterval(() => {
 }, 300_000);
 
 /* ─── Language instruction prepended to system prompt ─── */
-function buildSystemPrompt(lang: string, prefilledIndustry = "", country = "CA"): string {
-  const basePrompt = country === "US" ? US_PRESCAN_SYSTEM_PROMPT : PRESCAN_SYSTEM_PROMPT;
-  const topicTwoLabel = country === "US" ? "Topic 2 (State)" : "Topic 2 (Province)";
+function buildSystemPrompt(lang: string, prefilledIndustry = ""): string {
   const industryHint = prefilledIndustry
-    ? `\nPRE-FILLED CONTEXT: The user arrived from a partner widget with industry "${prefilledIndustry}" already selected. You already know their business type — DO NOT ask Topic 1 (Business Type). Start directly with ${topicTwoLabel}. Internally tag: <collected data_key="business_type" value="${prefilledIndustry}" />\n`
+    ? `\nPRE-FILLED CONTEXT: The user arrived from a partner widget with industry "${prefilledIndustry}" already selected. You already know their business type — DO NOT ask Topic 1 (Business Type). Start directly with Topic 2 (Province). Internally tag: <collected data_key="business_type" value="${prefilledIndustry}" />\n`
     : "";
 
-  if (lang === "fr" && country !== "US") {
+  if (lang === "fr") {
     return `CRITICAL LANGUAGE INSTRUCTION: You MUST speak French from your very first message. Every word the user sees must be in French — professional, clear Quebec French. Always use "vous", never "tu". Data tags (<collected>, <set_*>, <run_analysis />) stay in English (machine-readable). Everything else: French only. Never call yourself a financial advisor — you are Fruxal.
 
 Your first message MUST be in French. Example opening: "Bonjour ! Je suis Fruxal, votre assistant diagnostic. Je vais vous poser quelques questions rapides pour comprendre votre entreprise et identifier où vous perdez probablement de l'argent. Commençons — quel type d'entreprise avez-vous ?"
 
-${industryHint}${basePrompt}`;
+${industryHint}${PRESCAN_SYSTEM_PROMPT}`;
   }
 
-  return industryHint + basePrompt;
+  return industryHint + PRESCAN_SYSTEM_PROMPT;
 }
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
 export async function POST(request: NextRequest) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   try {
     // Rate limit: 10 requests/minute per IP
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -100,8 +98,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { sessionId, message, history, lang, prefilledIndustry, country } = body;
-    const isUS = (country === 'US') || (request.cookies.get?.('fruxal_country')?.value === 'US');
+    const { sessionId, message, history, lang, prefilledIndustry } = body;
     
     if (!message) {
       return NextResponse.json(
@@ -121,9 +118,9 @@ export async function POST(request: NextRequest) {
     
     // Call Claude API with language-aware system prompt
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5-20251029',
       max_tokens: 1500, // Increased: final summary + tags + run_analysis needs room
-      system: buildSystemPrompt(lang || "en", prefilledIndustry || "", isUS ? "US" : "CA"),
+      system: buildSystemPrompt(lang || "en", prefilledIndustry || ""),
       messages,
     });
     
@@ -181,9 +178,9 @@ export async function POST(request: NextRequest) {
           ];
           
           const followUpResponse = await anthropic.messages.create({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-5-20251029',
             max_tokens: 512,
-            system: buildSystemPrompt(lang || 'en', '', isUS ? 'US' : 'CA'),
+            system: buildSystemPrompt(lang || 'en'),
             messages: followUpMessages,
           });
           
@@ -342,7 +339,7 @@ export async function POST(request: NextRequest) {
             // Gap 2 fix: prescan_run_id as top-level column so dashboard API Path C can join on it
             prescan_run_id: prescanRunId,
             input_snapshot: {
-              province:          tags.province || (isUS ? 'TX' : 'QC'),
+              province:          tags.province || 'QC',
               industry:          tags.business_type || 'generic',
               structure:         tags.structure || 'sole_proprietor',
               revenue_band:      tags.revenue_band || null,
@@ -375,8 +372,7 @@ export async function POST(request: NextRequest) {
             obligation_categories: [],
             teaser_programs: [],
             hidden_program_count: 0,
-            province: tags.province || (isUS ? 'TX' : 'QC'),
-            country: isUS ? 'US' : 'CA',
+            province: tags.province || 'QC',
             industry: tags.business_type || 'generic',
             structure: tags.structure || 'sole_proprietor',
             tier: tier || 'solo',
@@ -397,8 +393,7 @@ export async function POST(request: NextRequest) {
               await supabase.from('prescan_results').insert({
                 prescan_run_id: prescanRunId,
                 user_id: realUserId || null,
-                province: tags.province || (isUS ? 'TX' : 'QC'),
-                country: isUS ? 'US' : 'CA',
+                province: tags.province || 'QC',
                 industry: tags.business_type || 'generic',
                 structure: tags.structure || 'sole_proprietor',
                 tier: tier || 'solo',

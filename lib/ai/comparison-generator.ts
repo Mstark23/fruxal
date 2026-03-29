@@ -134,7 +134,7 @@ Write a brief, specific comparison summary. Lead with the score change and bigge
           method: "POST",
           headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
           body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
+            model: "claude-sonnet-4-5-20251029",
             max_tokens: 300,
             system: `You are summarizing the difference between two financial diagnostic scans for a Canadian SMB owner. Be specific with numbers. Write in a direct, encouraging tone. Respond with JSON only, no preamble, no markdown:
 {"headline":"...","narrative":"..."}

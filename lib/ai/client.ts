@@ -13,15 +13,28 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 
-// ─── Single SDK instance ─────────────────────────────────────────────────────
-export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
+// ─── Lazy SDK instance — never crashes at module load ─────────────────────────
+let _anthropic: Anthropic | null = null;
+export function getAnthropicClient(): Anthropic {
+  if (!_anthropic) {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+    }
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropic;
+}
+/** @deprecated use getAnthropicClient() — exported for backwards compat with routes that destructure */
+export const anthropic = new Proxy({} as Anthropic, {
+  get(_t, prop) {
+    return (getAnthropicClient() as any)[prop];
+  },
 });
 
 // ─── Model constants ─────────────────────────────────────────────────────────
 export const CLAUDE_MODEL   = "claude-sonnet-4-6";          // main — diagnostics, analysis
 export const CLAUDE_FAST    = "claude-haiku-4-5-20251001";  // cheap — prescan chat, follow-ups
-export const CLAUDE_LEGACY  = "claude-sonnet-4-20250514";   // legacy routes still using old string
+export const CLAUDE_LEGACY  = "claude-sonnet-4-5-20251029";   // legacy routes still using old string
 
 // ─── Token budgets by use case ───────────────────────────────────────────────
 export const TOKENS = {
@@ -57,7 +70,7 @@ export interface ClaudeResult {
  */
 export async function callClaude(opts: ClaudeCallOptions): Promise<ClaudeResult> {
   const model = opts.model ?? CLAUDE_MODEL;
-  const response = await anthropic.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model,
     max_tokens: opts.maxTokens,
     system:     opts.system,

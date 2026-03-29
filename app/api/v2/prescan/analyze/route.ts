@@ -33,9 +33,10 @@ function pscRateCheck(ip: string): boolean {
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 export async function POST(req: NextRequest) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   const _pIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (!pscRateCheck(_pIp)) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   try {

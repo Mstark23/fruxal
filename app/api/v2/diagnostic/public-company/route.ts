@@ -10,7 +10,6 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import Anthropic from "@anthropic-ai/sdk";
 import { aggregateFMPData, type FMPCompanyData } from "@/services/fmp/fmp-aggregator";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export const maxDuration = 120;
 
 // ── Build a rich prompt from real public financials ──────────────────────────
@@ -228,6 +227,8 @@ function buildJSONSchema(fmp: FMPCompanyData): string {
 
 // ── POST handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   const start = Date.now();
 
   try {
@@ -306,7 +307,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5-20251029",
         max_tokens: 10000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
@@ -329,7 +330,7 @@ export async function POST(req: NextRequest) {
     const resultJson = {
       ...aiResult,
       fmp_snapshot: fmpData,
-      model_used: "claude-sonnet-4-20250514",
+      model_used: "claude-sonnet-4-5-20251029",
       prompt_tokens: promptTokens,
       completion_tokens: completionTokens,
       analysis_duration_ms: duration,

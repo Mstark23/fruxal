@@ -9,7 +9,6 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 const PROVINCE_TAX_CONTEXT: Record<string, string> = {
   QC: "Quebec: SB corporate rate 12.2% (federal 9% + provincial 3.2%). Personal top rate 53.3%. QST 9.975% + GST 5%. Dual CRA + Revenu Québec. CNESST workers comp. Law 25 privacy. Bill 96 French. CCQ for construction.",
@@ -25,6 +24,8 @@ const PROVINCE_TAX_CONTEXT: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   const auth = await requireAdmin(req);
   if (!auth.authorized) return auth.error!;
 
@@ -173,7 +174,7 @@ Generate 8-12 high-quality findings specific to ${businessName}. Calculate all d
 RESPOND WITH ONLY VALID JSON.`;
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5-20251029",
       max_tokens: 8000,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],

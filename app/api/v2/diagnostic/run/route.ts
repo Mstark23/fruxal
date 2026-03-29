@@ -26,35 +26,32 @@ import { buildTimeline }         from "@/lib/ai/timeline-builder";
 import { contributeBenchmarks } from "@/lib/benchmark/contribute";
 import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export const maxDuration = 120;
 
-// Per-user rate limiter for diagnostic runs
+// Per-user rate limiter — module-level Map is safe (just doesn't persist across cold starts)
 const _diagRl = new Map<string, { c: number; r: number }>();
 
 function diagRateCheck(userId: string): boolean {
   const now = Date.now();
-  const window = 10 * 60 * 1000; // 10 minutes
-  const max = 3; // max 3 diagnostic runs per 10 min per user
+  const window = 10 * 60 * 1000;
+  const max = 3;
   const entry = _diagRl.get(userId);
-  if (!entry || entry.r < now) {
-    _diagRl.set(userId, { c: 1, r: now + window });
-    return true;
-  }
+  if (!entry || entry.r < now) { _diagRl.set(userId, { c: 1, r: now + window }); return true; }
   entry.c++;
   return entry.c <= max;
 }
 
-// Cleanup stale entries every 15 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [k, v] of _diagRl) { if (v.r < now) _diagRl.delete(k); }
-}, 900_000);
-
 export async function POST(req: NextRequest) {
   const start = Date.now();
 
+  // ── Always return JSON — safety net for unexpected crashes ─────────────
   try {
+    // Validate API key early so we get a clear error, not a module crash
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json({ success: false, error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
+    }
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
     // ── Auth ──────────────────────────────────────────────────────────────
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token?.sub) {
@@ -383,7 +380,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const response = await anthropic.messages.create({
-        model:      "claude-sonnet-4-20250514",
+        model:      "claude-sonnet-4-6",
         max_tokens: tierMaxTokens(tier),
         system:     systemPrompt,
         messages:   [{ role: "user", content: userPrompt }],
@@ -446,7 +443,7 @@ export async function POST(req: NextRequest) {
         total_programs_value:    (totals.programs_value || aiResult?.total_programs_value) ?? 0,
         ebitda_impact:           (totals.ebitda_impact || aiResult?.ebitda_impact) ?? 0,
         enterprise_value_impact: (totals.enterprise_value_impact || aiResult?.enterprise_value_impact) ?? 0,
-        model_used:           "claude-sonnet-4-20250514",
+        model_used:           "claude-sonnet-4-6",
         completed_at:         new Date().toISOString(),
         updated_at:           new Date().toISOString(),
       })
