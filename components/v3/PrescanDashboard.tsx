@@ -246,7 +246,7 @@ export default function PrescanDashboard({
                 
                 <div key={index} className="p-3 bg-blue-50 rounded-lg">
                   <div key={index} className="text-sm font-medium text-blue-900 mb-1">
-                    {isEn ? 'How to fix this:' : 'Comment régler ceci:'}
+                    {isEn ? 'What your rep will address:' : 'Ce que votre rep va adresser :'}
                   </div>
                   <p className="text-sm text-blue-800">
                     {info.fix}
