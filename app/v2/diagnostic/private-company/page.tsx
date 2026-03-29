@@ -260,7 +260,7 @@ export default function PrivateCompanyPage() {
               <Field label="RDTOH Balance" hint="if known">
                 <MoneyInput value={form.rdtoh_balance} onChange={v => set("rdtoh_balance", v)} placeholder="0" />
               </Field>
-              <Field label="SR&ED Claimed Last Year">
+              <Field label="R&D Credit Claimed Last Year">
                 <MoneyInput value={form.sred_last_year} onChange={v => set("sred_last_year", v)} placeholder="0" />
               </Field>
             </div>

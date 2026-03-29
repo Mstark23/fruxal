@@ -181,11 +181,11 @@ export default function BenchmarksPage() {
           <p className="text-sm text-ink-muted">
             {totalPeers >= 5
               ? t(
-                  `Compared against ${totalPeers} Canadian businesses in your sector.`,
+                  `Compared against ${totalPeers} businesses in your sector.`,
                   `Comparé à ${totalPeers} entreprises canadiennes de votre secteur.`
                 )
               : t(
-                  "Based on Canadian industry averages. More Fruxal users in your sector will make these more precise.",
+                  "Based on industry averages. More Fruxal users in your sector will make these more precise.",
                   "Basé sur les moyennes canadiennes. Plus d'utilisateurs Fruxal dans votre secteur amélioreront la précision."
                 )
             }
@@ -263,7 +263,7 @@ export default function BenchmarksPage() {
         <div className="mt-8 p-5 rounded-2xl border border-border-light bg-white text-center">
           <p className="text-[13px] text-ink-muted leading-relaxed">
             {t(
-              "These benchmarks improve as more Canadian businesses use Fruxal. Your anonymized metrics help make the platform more accurate for everyone.",
+              "These benchmarks improve as more businesses use Fruxal. Your anonymized metrics help make the platform more accurate for everyone.",
               "Ces repères s'améliorent à mesure que davantage d'entreprises canadiennes utilisent Fruxal. Vos données anonymisées aident à améliorer la précision pour tous."
             )}
           </p>

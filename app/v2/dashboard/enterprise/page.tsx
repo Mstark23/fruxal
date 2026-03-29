@@ -499,7 +499,8 @@ export default function EnterpriseDashboard() {
                   {t("Enterprise analysis needs your exact numbers", "L'analyse enterprise nécessite vos chiffres exacts")}
                 </p>
                 <p className="text-[10px]" style={{ color: "#b45309" }}>
-                  {t("Upload T2 + financial statements for precise EBITDA, enterprise value & exit planning",
+                  {profile.country === "US" ? "Upload Form 1120-S / 1120 + financial statements for precise EBITDA & exit planning" :
+                  t("Upload T2 + financial statements for precise EBITDA, enterprise value & exit planning",
                      "Téléversez T2 + états financiers pour BAIIA, valeur d'entreprise et planification de sortie précis")}
                 </p>
               </div>
@@ -647,7 +648,8 @@ export default function EnterpriseDashboard() {
                     {t("Complete your business profile", "Complétez votre profil d'entreprise")}
                   </p>
                   <p className="text-[10px] text-ink-faint mt-0.5">
-                    {t("Revenue, structure, province, exit horizon — the foundation of your diagnostic.",
+                    {profile.country === "US" ? "Revenue, structure, state, exit horizon — the foundation of your diagnostic." :
+                    t("Revenue, structure, province, exit horizon — the foundation of your diagnostic.",
                        "Revenus, structure, province, horizon de sortie — la base de votre diagnostic.")}
                   </p>
                 </div>
@@ -1031,7 +1033,7 @@ export default function EnterpriseDashboard() {
             <div className="flex items-center justify-center gap-3 mt-1.5">
               {savingsAnchorConf === "exact" ? (
                 <span className="text-[11px] font-medium border rounded-full px-2 py-0.5" style={{ color: "#2D7A50", borderColor: "rgba(45,122,80,0.25)", background: "rgba(45,122,80,0.04)" }}>
-                  ✓ {t("Based on your T2 and financial statements", "Basé sur votre T2 et états financiers")}
+                  ✓ {profile.country === "US" ? "Based on your Form 1120-S and financial statements" : t("Based on your T2 and financial statements", "Basé sur votre T2 et états financiers")}
                 </span>
               ) : (
                 <span className="text-[11px] text-ink-faint border border-border-light rounded-full px-2 py-0.5">

@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     try {
       const { data } = await supabaseAdmin
         .from("business_profiles")
-        .select("province, industry, industry_label, business_structure, annual_revenue, exact_annual_revenue, employee_count, has_accountant, business_id, business_name")
+        .select("province, country, industry, industry_label, business_structure, annual_revenue, exact_annual_revenue, employee_count, has_accountant, business_id, business_name")
         .eq("user_id", userId)
         .single();
       profile = data;
@@ -391,8 +391,8 @@ export async function GET(req: NextRequest) {
         .from("tier3_pipeline")
         .select("id, stage")
         .eq("user_id", userId)
-        .in("stage", ["lead", "contacted", "called", "call_booked", "diagnostic_sent", "agreement_out",
-                       "signed", "in_engagement", "recovery_tracking", "fee_collected", "engaged",
+        .in("stage", ["contacted", "called", "diagnostic_sent", "agreement_out",
+                       "signed", "in_engagement", "recovery_tracking", "engaged",
                        "onboarding", "active", "closed_won"])
         .order("created_at", { ascending: false })
         .limit(1)
@@ -426,6 +426,7 @@ export async function GET(req: NextRequest) {
         businessId,
         profile: {
           province:      profile.province || "QC",
+          country:       profile.country || "CA",
           industry:      profile.industry_label || profile.industry || "Small Business",
           structure:     struct,
           business_name: profile.business_name || "",

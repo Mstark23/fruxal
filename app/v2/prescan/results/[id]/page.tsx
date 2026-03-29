@@ -204,7 +204,7 @@ export default function PrescanResultsPage() {
             <p className="text-3xl font-black text-red-400">
               ${(s.leak_range_min ?? 0).toLocaleString()} — ${(s.leak_range_max ?? 0).toLocaleString()}
             </p>
-            <p className="text-white/15 text-[10px] mt-1">Based on your revenue, industry, province, and patterns across thousands of Canadian businesses — not a generic estimate.</p>
+            <p className="text-white/15 text-[10px] mt-1">Based on your revenue, industry, location, and patterns across thousands of businesses — not a generic estimate.</p>
           </div>
         </div>
 
@@ -403,7 +403,7 @@ export default function PrescanResultsPage() {
                 <div className="space-y-2 mb-4">
                   {[
                     { n: "1", en: "We assign you a recovery expert", fr: "On vous assigne un expert en récupération" },
-                    { n: "2", en: "Our accountant calls CRA and handles the claims", fr: "Notre comptable appelle l'ARC et gère les réclamations" },
+                    { n: "2", en: "Our accountant handles the filings and claims", fr: "Notre comptable appelle l'ARC et gère les réclamations" },
                     { n: "3", en: "You pay nothing until money is recovered", fr: "Vous ne payez rien avant récupération" },
                     { n: "4", en: "We take 12% of what we get back. You keep the rest.", fr: "On prend 12% de ce qu'on récupère. Vous gardez le reste." },
                   ].map(s => (

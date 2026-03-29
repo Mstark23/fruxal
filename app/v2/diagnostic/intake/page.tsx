@@ -530,7 +530,7 @@ export default function DiagnosticIntakePage() {
             {!data.structure && (
               <div className="flex gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
                 <span className="text-amber-500 text-sm">⚠</span>
-                <p className="text-[11px] text-amber-700">{t("Legal structure affects your biggest findings (tax drag, small business deduction, SR&ED eligibility).", "La structure légale affecte vos plus grandes économies potentielles.")}</p>
+                <p className="text-[11px] text-amber-700">{t("Legal structure affects your biggest findings (tax drag, entity optimization, R&D credit eligibility).", "La structure légale affecte vos plus grandes économies potentielles.")}</p>
               </div>
             )}
           </div>
@@ -638,7 +638,7 @@ export default function DiagnosticIntakePage() {
             <div className="bg-white border border-border-light rounded-xl p-4 space-y-3">
               <h3 className="text-[11px] font-bold text-ink uppercase tracking-wide">{t("Business activities", "Activités commerciales")}</h3>
               <div className="grid grid-cols-1 gap-2">
-                <Toggle label="Conducts R&D or innovation activities (SR&ED eligible)" labelFr="Fait de la R&D ou des activités d'innovation (RS&DE)"
+                <Toggle label="Conducts R&D or innovation activities (R&D credit eligible)" labelFr="Fait de la R&D ou des activités d'innovation (RS&DE)"
                   value={data.does_rd} onChange={v => setData(d => ({ ...d, does_rd: v }))} isFr={isFr} />
                 <Toggle label="Exports goods or services outside Canada" labelFr="Exporte des biens ou services hors Canada"
                   value={data.exports_goods} onChange={v => setData(d => ({ ...d, exports_goods: v }))} isFr={isFr} />
@@ -721,7 +721,7 @@ export default function DiagnosticIntakePage() {
                   placeholder="e.g. 2022" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <MoneyInput label="SR&ED credit claimed last year" labelFr="Crédit RS&DE réclamé l'an dernier"
+                <MoneyInput label="R&D credit claimed last year" labelFr="Crédit RS&DE réclamé l'an dernier"
                   value={data.sred_claimed_last_year} onChange={v => setData(d => ({ ...d, sred_claimed_last_year: v }))} isFr={isFr} />
                 <MoneyInput label="RDTOH balance" labelFr="Solde IMRTD"
                   value={data.rdtoh_balance} onChange={v => setData(d => ({ ...d, rdtoh_balance: v }))} isFr={isFr} />
@@ -775,15 +775,15 @@ export default function DiagnosticIntakePage() {
               },
               {
                 key: "t2",
-                title: t("T2 Corporate Tax Return", "Déclaration de revenus T2"),
-                subtitle: t("Last filed T2 (corporations only)", "Dernier T2 produit (sociétés par actions seulement)"),
-                impact: t("Taxable income, SBD, RDTOH, CDA, SR&ED credits", "Revenu imposable, DPE, IMRTD, CDC, crédits RS&DE"),
+                title: t("Corporate Tax Return (T2 / Form 1120)", "Déclaration de revenus T2"),
+                subtitle: t("Last filed corporate return (T2 / Form 1120)", "Dernier T2 produit (sociétés par actions seulement)"),
+                impact: t("Taxable income, entity structure, R&D credits", "Revenu imposable, DPE, IMRTD, CDC, crédits RS&DE"),
                 priority: t("Highest impact", "Impact le plus élevé"),
               },
               {
                 key: "gst",
-                title: t("GST/HST Return (GST34)", "Déclaration TPS/TVQ (GST34)"),
-                subtitle: t("Most recent GST/HST filing", "Dernière déclaration TPS/TVQ"),
+                title: t("Sales Tax Return (GST34 / Form 941)", "Déclaration TPS/TVQ (GST34)"),
+                subtitle: t("Most recent sales tax filing", "Dernière déclaration TPS/TVQ"),
                 impact: t("Total sales, ITC claims, quick method check", "Ventes totales, CTI, vérification méthode rapide"),
                 priority: t("High impact", "Impact élevé"),
               },

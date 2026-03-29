@@ -49,7 +49,7 @@ export default function ReferralPage() {
         <p className="text-label uppercase text-brand font-semibold mb-2">Referral Program</p>
         <h1 className="font-serif text-h1 text-ink font-normal mb-3">Earn $500 per referral</h1>
         <p className="text-body text-ink-secondary leading-relaxed">
-          Know another Canadian business owner who could benefit from a Fruxal recovery?
+          Know another business owner who could benefit from a Fruxal recovery?
           Refer them. When their engagement closes — money is confirmed and fee collected —
           you earn <strong className="text-ink">$500</strong>.
         </p>

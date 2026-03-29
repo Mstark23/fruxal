@@ -439,7 +439,7 @@ export default function SettingsPage() {
                     hint={isFr ? "Renouvellement REQ (5 ans QC)" : "Registration renewal (5yr)"} />
 
                   <div className="grid grid-cols-2 gap-4">
-                    <DateField label={isFr ? "Inscription TPS/TVH" : "GST/HST registration"} value={dates.gst_registration_date}
+                    <DateField label={isFr ? "Inscription TPS/TVH" : "Tax Registration Date"} value={dates.gst_registration_date}
                       onChange={v => updateDates("gst_registration_date", v)} />
                     <DateField label={isFr ? "Inscription TVQ" : "QST registration"} value={dates.qst_registration_date}
                       onChange={v => updateDates("qst_registration_date", v)} />

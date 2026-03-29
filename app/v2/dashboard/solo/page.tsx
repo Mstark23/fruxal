@@ -33,7 +33,7 @@ export default function SoloDashboard() {
   const [leaks, setLeaks] = useState<Leak[]>([]);
   const [tier, setTier] = useState("solo");
   const [recommendedPlan, setRecommendedPlan] = useState("solo");
-  const [profile, setProfile] = useState({ province: "QC", industry: "Small Business", structure: "" });
+  const [profile, setProfile] = useState({ province: "QC", country: "CA", industry: "Small Business", structure: "" });
   const [overdue, setOverdue] = useState(0);
   const [penaltyExposure, setPenaltyExposure] = useState(0);
   const [obligationsTotal, setObligationsTotal] = useState(0);
@@ -85,7 +85,7 @@ export default function SoloDashboard() {
       // Free users who qualify by revenue stay on solo and see upgrade CTAs.
       setTier(detectedTier);
       if (d.recommended_plan) setRecommendedPlan(d.recommended_plan);
-      setProfile(d.profile || { province: "QC", industry: "Small Business", structure: "" });
+      setProfile(d.profile || { province: "QC", country: "CA", industry: "Small Business", structure: "" });
       setObligationsTotal(d.obligations?.total ?? 0);
       setOverdue(d.obligations?.overdue ?? 0);
       setPenaltyExposure(d.obligations?.penalty_exposure ?? 0);
@@ -353,7 +353,7 @@ export default function SoloDashboard() {
               <div className="grid grid-cols-3 gap-2 mb-4">
                 {[
                   { n: "1", text: t("Book a free call with your rep", "Réservez un appel gratuit") },
-                  { n: "2", text: t("We handle all the work & CRA calls", "On s'occupe de tout") },
+                  { n: "2", text: profile.country === "US" ? "We handle all the work & IRS filings" : t("We handle all the work & CRA calls", "On s'occupe de tout") },
                   { n: "3", text: t(`You keep ${100 - (assignedRep.contingency_rate ?? 12)}% of what we recover`, `Vous gardez ${100 - (assignedRep.contingency_rate ?? 12)}% de ce qu'on récupère`) },
                 ].map(s => (
                   <div key={s.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -573,7 +573,7 @@ export default function SoloDashboard() {
                     {t(`${assignedRep.name} is working on your file`, `${assignedRep.name} travaille sur votre dossier`)}
                   </p>
                   <p className="text-[11px] text-ink-muted mb-4">
-                    {t("Our accountant is handling the CRA calls, vendor negotiations, and grant applications. You'll be notified as amounts are confirmed.", "Notre comptable s'occupe des appels à l'ARC, des négociations fournisseurs et des demandes de subventions. Vous serez notifié au fur et à mesure des confirmations.")}
+                    {profile.country === "US" ? "Our accountant is handling the IRS filings, vendor negotiations, and federal program applications. You'll be notified as amounts are confirmed." : t("Our accountant is handling the CRA calls, vendor negotiations, and grant applications. You'll be notified as amounts are confirmed.", "Notre comptable s'occupe des appels à l'ARC, des négociations fournisseurs et des demandes de subventions. Vous serez notifié au fur et à mesure des confirmations.")}
                   </p>
                   {recovered > 0 && (
                     <div className="p-3 rounded-xl mb-3" style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
@@ -599,7 +599,7 @@ export default function SoloDashboard() {
                   {[
                     { n: "1", en: "Book a free call with your assigned rep", fr: "Réservez un appel gratuit avec votre rep" },
                     { n: "2", en: "We review your full diagnostic together", fr: "Nous examinons votre diagnostic ensemble" },
-                    { n: "3", en: "Our accountant contacts CRA & vendors", fr: "Notre comptable contacte l'ARC et les fournisseurs" },
+                    { n: "3", en: profile.country === "US" ? "Our accountant contacts the IRS & vendors" : "Our accountant contacts CRA & vendors", fr: "Notre comptable contacte l'ARC et les fournisseurs" },
                     { n: "4", en: "We invoice 12% of what we actually recover", fr: "Nous facturons 12% de ce que nous récupérons" },
                   ].map(s => (
                     <div key={s.n} className="flex items-start gap-3">

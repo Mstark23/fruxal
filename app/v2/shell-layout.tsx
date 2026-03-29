@@ -85,7 +85,7 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
           {!active && (
             <span className="ml-auto text-[8px] font-bold uppercase tracking-wide"
               style={{ color: "rgba(27,58,45,0.45)" }}>
-              T2 ↑
+              Docs ↑
             </span>
           )}
         </button>
