@@ -40,7 +40,23 @@ export async function GET(req: NextRequest) {
       .in("status", ["requested", "pending", "received", "reviewed"])
       .order("created_at", { ascending: false });
 
-    return NextResponse.json({ requests: docs || [] });
+    // Also check rep_document_requests (written by accountants)
+    const { data: acctDocs } = await supabaseAdmin
+      .from("rep_document_requests")
+      .select("id, label, notes, status, created_at")
+      .eq("pipeline_id", pipe.id)
+      .in("status", ["pending", "received", "reviewed"])
+      .order("created_at", { ascending: false });
+
+    const merged = [
+      ...(docs || []).map((d: any) => ({ ...d, source: "rep" })),
+      ...(acctDocs || []).map((d: any) => ({
+        id: d.id, document_type: "document", label: d.label,
+        status: d.status, notes: d.notes, received_at: null, source: "accountant",
+      })),
+    ];
+
+    return NextResponse.json({ requests: merged });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

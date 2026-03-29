@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       userId,
       plan,
       `${origin}/dashboard?upgraded=true`,
-      `${origin}/dashboard?tab=home`,
+      `${origin}/v2/dashboard`,
       interval,
     );
 

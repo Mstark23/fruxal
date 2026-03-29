@@ -122,7 +122,7 @@ function RegisterForm() {
 
         <div className="flex justify-end mb-4"><LangToggle lang={lang} setLang={setLang} /></div>
         <h1 className="font-serif text-[28px] text-ink font-normal mb-2">{t("Create your account", "Créer votre compte")}</h1>
-        <p className="text-sm text-ink-secondary mb-8">{prescanRunId ? t("Your results are ready. Create your account — a recovery expert will be assigned to your file.", "Vos résultats sont prêts. Créez votre compte — un expert en récupération sera assigné à votre dossier.") : t("Create your account to see your financial leaks and get a recovery expert assigned.", "Créez votre compte pour voir vos fuites financières et obtenir un expert en récupération.")}</p>
+        <p className="text-sm text-ink-secondary mb-8">{prescanRunId ? t("Your results are saved. Create your account to see all leaks and get a recovery expert assigned.", "Vos résultats sont sauvegardés. Créez votre compte pour voir toutes vos fuites et obtenir un expert en récupération.") : t("Access your financial dashboard and start protecting your margins.", "Accédez à votre tableau de bord financier et protégez vos marges.")}</p>
 
         {/* Google OAuth — PRIMARY CTA */}
         <button
