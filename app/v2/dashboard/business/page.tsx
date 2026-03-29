@@ -61,10 +61,7 @@ export default function BusinessDashboard() {
   const [planSequence, setPlanSequence] = useState<any[]>([]);
 
   // T2 is free — affiliates are the revenue, not subscriptions
-  const [isPaid, setIsPaid] = useState(true); // always true
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const upgradeUrl = "/enterprise"; // upsell to enterprise (T3) only
-  const upgradePrice = "";
 
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
   const isFR = lang === "fr";
@@ -403,7 +400,7 @@ export default function BusinessDashboard() {
                   <span className="text-xs text-ink-muted mb-1">/100</span>
                 </div>
                 <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${score}%`, background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
-                {isPaid && dashboardBusinessId && (
+                {dashboardBusinessId && (
                   <ScoreRingAddons businessId={dashboardBusinessId} lang={lang} />
                 )}
               </>
@@ -420,11 +417,6 @@ export default function BusinessDashboard() {
             <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-negative">${(totalLeak ?? 0).toLocaleString()}</div>
             <div className="text-[11px] text-ink-muted mt-1.5">
               {displayLeaks.length} {t("findings", "constats")}
-              {!isPaid && (diagFindings.length > 3 || leaks.length > 3) && (
-                <span className="ml-1 text-negative font-semibold">
-                  +{(diagFindings.length || leaks.length) - 3} {t("locked", "verrouillés")}
-                </span>
-              )}
             </div>
           </button>
 
@@ -465,7 +457,7 @@ export default function BusinessDashboard() {
         {/* MAIN 3-COL */}
 
         {/* ── RECOVERY COUNTER ────────────────────────────────────────── */}
-        {isPaid && dashboardBusinessId && (
+        {dashboardBusinessId && (
           <div className="mb-4" style={fade(0.07)}>
             <RecoveryCounter businessId={dashboardBusinessId} mode="hero" lang={lang} />
           </div>
@@ -482,14 +474,14 @@ export default function BusinessDashboard() {
             {diagFindings.length > 0 ? (
               // Diagnostic view: show findings with calculation math
               <>
-                {diagFindings.slice(0, isPaid ? 6 : 3).map((f: any, i: number) => (
-                  <div key={i} onClick={() => isPaid && router.push("/v2/leaks")} className={`px-4 py-3 border-b border-border-light last:border-0 group ${isPaid ? "hover:bg-surface-hover cursor-pointer" : ""}`}
+                {diagFindings.slice(0, 6).map((f: any, i: number) => (
+                  <div key={i} onClick={() => router.push("/v2/leaks")} className={"px-4 py-3 border-b border-border-light last:border-0 group hover:bg-surface-hover cursor-pointer"}
                     style={{ borderLeft: `3px solid ${SEV_DOT[f.severity] || "#C5C2BB"}`, background: f.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
                     <div className="flex items-start gap-2 mb-1">
                       <div className="w-[6px] h-[6px] rounded-full shrink-0 mt-1.5" style={{ background: SEV_DOT[f.severity] || "#8E8C85" }} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className={`text-[12px] font-semibold text-ink truncate ${isPaid ? "group-hover:text-brand transition-colors" : ""}`}>{isFR ? (f.title_fr || f.title) : f.title}</span>
+                          <span className={"text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors"}>{isFR ? (f.title_fr || f.title) : f.title}</span>
                           <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">${(f.impact_max ?? f.impact_min ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -499,7 +491,7 @@ export default function BusinessDashboard() {
                       </div>
                     </div>
                     {/* Calculation math — visible only for paid users */}
-                    {isPaid && f.calculation_shown && (
+                    {f.calculation_shown && (
                       <div className="ml-[14px] mt-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(27,58,45,0.03)", border: "1px solid rgba(27,58,45,0.06)" }}>
                         <code className="text-[11px] text-ink-muted leading-relaxed">{f.calculation_shown}</code>
                       </div>
@@ -507,42 +499,6 @@ export default function BusinessDashboard() {
                   </div>
                 ))}
                 {/* Lock gate for unpaid users */}
-                {!isPaid && diagFindings.length > 3 && (() => {
-                  const locked = diagFindings.slice(3);
-                  const lockedVal = locked.reduce((s: number, f: any) => s + ((f.impact_max || f.impact_min) ?? 0), 0);
-                  return (
-                    <div className="relative">
-                      {locked.slice(0, 2).map((f: any, i: number) => (
-                        <div key={i} className="px-4 py-3 border-b border-border-light select-none pointer-events-none"
-                          style={{ borderLeft: `3px solid ${SEV_DOT[f.severity] || "#C5C2BB"}`, filter: "blur(4px)", opacity: 0.35 }}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: SEV_DOT[f.severity] || "#8E8C85" }} />
-                            <span className="text-[12px] font-semibold text-ink flex-1">{isFR ? (f.title_fr || f.title) : f.title}</span>
-                            <span className="font-serif text-[13px] font-bold text-negative">${(f.impact_max ?? f.impact_min ?? 0).toLocaleString()}</span>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="absolute inset-0 flex items-end justify-center pb-3"
-                        style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.95) 45%)" }}>
-                        <div className="text-center px-4 pt-6">
-                          <p className="text-[12px] font-bold text-ink mb-0.5">
-                            {locked.length} {t("more findings locked", "constats supplémentaires verrouillés")}
-                          </p>
-                          {lockedVal > 0 && (
-                            <p className="text-[11px] text-ink-muted mb-3">
-                              {t("Additional", "Supplémentaire")} <span className="font-bold text-negative">${(lockedVal ?? 0).toLocaleString()}</span> {t("in recoverable savings", "en économies récupérables")}
-                            </p>
-                          )}
-                          <button onClick={() => router.push(upgradeUrl)}
-                            className="text-[11px] font-bold text-white px-4 py-2 rounded-lg transition hover:opacity-90"
-                            style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
-                            {t("Scale up with Enterprise →", "Passer à l'entreprise →")}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
                   <span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span>
@@ -551,8 +507,8 @@ export default function BusinessDashboard() {
             ) : (
               // Fallback: original leak list (free/prescan data)
               <>
-                {leaks.slice(0, isPaid ? 6 : 3).map((l, i) => (
-                  <div key={i} onClick={() => isPaid && router.push("/v2/leaks")} className={`px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 transition-colors ${isPaid ? "hover:bg-surface-hover cursor-pointer group" : ""}`}>
+                {leaks.slice(0, 6).map((l, i) => (
+                  <div key={i} onClick={() => router.push("/v2/leaks")} className={"px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 transition-colors hover:bg-surface-hover cursor-pointer group"}>
                     <div key={i} className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
                     <div key={i} className="flex-1 min-w-0">
                       <div className="text-[12px] font-semibold text-ink truncate">{isFR ? (l.title_fr || l.title) : l.title}</div>
@@ -564,14 +520,6 @@ export default function BusinessDashboard() {
                     </div>
                   </div>
                 ))}
-                {!isPaid && leaks.length > 3 && (
-                  <div className="px-4 py-4 text-center border-t border-border-light">
-                    <p className="text-[11px] text-ink-muted mb-2.5">{leaks.length - 3} {t("more leaks hidden", "fuites supplémentaires cachées")}</p>
-                    <button onClick={() => router.push(upgradeUrl)} className="text-[11px] font-bold text-white bg-brand px-4 py-2 rounded-lg hover:opacity-90 transition">
-                      {t("Scale up with Enterprise", "Passer à l'entreprise")}
-                    </button>
-                  </div>
-                )}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
                   <span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span>
@@ -705,7 +653,7 @@ export default function BusinessDashboard() {
             )}
 
             {/* ── DIAGNOSTIC ADDITION: CPA Briefing (paid only) ── */}
-            {isPaid && briefing && (
+            {briefing && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex items-center justify-between">
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Accountant Briefing", "Briefing comptable")}</span>
@@ -761,7 +709,7 @@ export default function BusinessDashboard() {
             )}
 
             {/* ── DIAGNOSTIC ADDITION: Priority sequence (paid only) ── */}
-            {isPaid && planSequence.length > 0 && (
+            {planSequence.length > 0 && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light">
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("What To Do First", "Quoi faire en premier")}</span>
@@ -782,28 +730,8 @@ export default function BusinessDashboard() {
               </div>
             )}
 
-            {/* ── DIAGNOSTIC benchmarks OR existing cost breakdown (paid only) + upgrade CTA ── */}
-            {!isPaid ? (
-              <div className="bg-white rounded-xl border border-border-light p-5 text-center"
-                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3"
-                  style={{ background: "rgba(27,58,45,0.06)" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                </div>
-                <p className="text-[12px] font-bold text-ink mb-1">
-                  {t("CPA Briefing · Priority Sequence · Benchmarks", "Briefing CPA · Séquence · Benchmarks")}
-                </p>
-                <p className="text-[11px] text-ink-muted mb-4">
-                  {t("Full calculation math, accountant talking points, and peer comparisons included.", "Math de calcul, points pour comptable et comparaisons aux pairs inclus.")}
-                </p>
-                <button onClick={() => router.push(upgradeUrl)}
-                  className="text-[11px] font-bold text-white px-5 py-2.5 rounded-lg transition hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
-                  {t("Scale up with Enterprise →", "Passer à l'entreprise →")}
-                </button>
-                <p className="text-[11px] text-ink-muted mt-2">{t("Cancel anytime", "Annulez en tout temps")}</p>
-              </div>
-            ) : diagBenchmarks.length > 0 && (
+            {/* ── Benchmarks ── */}
+            {diagBenchmarks.length > 0 && (
               <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
                 <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Costs vs Industry", "Coûts vs industrie")}</span>
@@ -873,7 +801,7 @@ export default function BusinessDashboard() {
                 </div>
                 <div>
                   <div className="text-[12px] font-semibold text-ink">{t("Book advisor call", "Réserver un appel")}</div>
-                  <div className="text-[11px] text-ink-faint">{isPaid ? t("Monthly 30-min included", "Session 30 min mensuelle incluse") : t("Free 30-min strategy call", "Appel stratégie gratuit de 30 min")}</div>
+                  <div className="text-[11px] text-ink-faint">{t("Monthly 30-min included", "Session 30 min mensuelle incluse")}</div>
                 </div>
               </div>
             </a>
