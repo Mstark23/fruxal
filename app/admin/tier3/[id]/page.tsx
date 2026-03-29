@@ -177,14 +177,28 @@ export default function AdminTier3DetailPage() {
                 </div>
               )}
               <div className="flex gap-2 mt-4">
-                <button onClick={() => router.push(`/tier3/diagnostic/${entry.diagnosticId}`)}
-                  className="flex-1 py-2 bg-[#1B3A2D] text-white text-sm font-semibold rounded-lg hover:bg-[#2A5A44] transition">
-                  View Diagnostic
-                </button>
-                <a href={`/api/tier3/diagnostic/${entry.diagnosticId}/pdf`} target="_blank" rel="noreferrer"
-                  className="flex-1 py-2 text-center bg-white border border-[#E8E6E1] text-[#56554F] text-sm font-medium rounded-lg hover:bg-[#F8F7F5] transition">
-                  Download PDF
-                </a>
+                {entry.reportId ? (
+                  <button onClick={() => router.push(`/v2/diagnostic/${entry.reportId}`)}
+                    className="flex-1 py-2 bg-[#1B3A2D] text-white text-sm font-semibold rounded-lg hover:bg-[#2A5A44] transition">
+                    View Report
+                  </button>
+                ) : entry.diagnosticId ? (
+                  <button onClick={() => router.push(`/tier3/diagnostic/${entry.diagnosticId}`)}
+                    className="flex-1 py-2 bg-[#1B3A2D] text-white text-sm font-semibold rounded-lg hover:bg-[#2A5A44] transition">
+                    View Diagnostic
+                  </button>
+                ) : null}
+                {entry.reportId ? (
+                  <a href={`/api/v2/diagnostic/${entry.reportId}/pdf`} target="_blank" rel="noreferrer"
+                    className="flex-1 py-2 text-center bg-white border border-[#E8E6E1] text-[#56554F] text-sm font-medium rounded-lg hover:bg-[#F8F7F5] transition">
+                    Download PDF
+                  </a>
+                ) : entry.diagnosticId ? (
+                  <a href={`/api/tier3/diagnostic/${entry.diagnosticId}/pdf`} target="_blank" rel="noreferrer"
+                    className="flex-1 py-2 text-center bg-white border border-[#E8E6E1] text-[#56554F] text-sm font-medium rounded-lg hover:bg-[#F8F7F5] transition">
+                    Download PDF
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>

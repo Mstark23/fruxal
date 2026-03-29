@@ -38,16 +38,24 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       ...a, companyName: diagMap[a.diagnostic_id] || "Unknown",
     }));
 
-    // Enrich commissions with company names
-    const engIds = commissions.map((c: any) => c.engagement_id).filter(Boolean);
-    const engMap: Record<string, string> = {};
+    // Enrich commissions with company names — via engagement_id (old) or pipeline_id (new)
+    const engIds  = commissions.map((c: any) => c.engagement_id).filter(Boolean);
+    const pipeIds = commissions.map((c: any) => c.pipeline_id).filter(Boolean);
+    const engMap:  Record<string, string> = {};
+    const pipeMap: Record<string, string> = {};
+
     if (engIds.length > 0) {
       const { data: engs } = await supabaseAdmin.from("tier3_engagements").select("id, company_name").in("id", engIds);
       for (const e of engs || []) engMap[e.id] = e.company_name;
     }
+    if (pipeIds.length > 0) {
+      const { data: pipes } = await supabaseAdmin.from("tier3_pipeline").select("id, company_name").in("id", pipeIds);
+      for (const p of pipes || []) pipeMap[p.id] = p.company_name;
+    }
 
     const enrichedCommissions = commissions.map((c: any) => ({
-      ...c, companyName: engMap[c.engagement_id] || "Unknown",
+      ...c,
+      companyName: engMap[c.engagement_id] || pipeMap[c.pipeline_id] || "Unknown",
     }));
 
     const totalEarned = commissions.filter((c: any) => c.status === "paid").reduce((s: number, c: any) => s + (c.commission_amount ?? 0), 0);
