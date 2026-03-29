@@ -129,6 +129,7 @@ export async function POST(req: NextRequest) {
         estimated_hours:      pb.estimated_hours || null,
         quick_win:            pb.quick_win || false,
         created_at:           new Date().toISOString(),
+        pipeline_id:          pipelineId,
         updated_at:           new Date().toISOString(),
       };
     });

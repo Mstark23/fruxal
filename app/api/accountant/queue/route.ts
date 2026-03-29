@@ -109,10 +109,10 @@ export async function PATCH(req: NextRequest) {
     // When a finding is confirmed → check total confirmed + notify
     if (status === "confirmed" && confirmed_amount !== undefined) {
       try {
-        // Get this playbook's pipeline_id
+        // Get this playbook's pipeline_id + finding context
         const { data: pb } = await supabaseAdmin
           .from("execution_playbooks")
-          .select("pipeline_id, diagnostic_report_id")
+          .select("pipeline_id, diagnostic_report_id, finding_id, finding_title, category, amount_recoverable")
           .eq("id", playbook_id)
           .single();
 
@@ -140,8 +140,33 @@ export async function PATCH(req: NextRequest) {
               ...(allDone ? { stage: "fee_collected" } : {}),
             })
             .eq("id", pb.pipeline_id)
-            .select("company_name, contact_name, contact_email, tier3_reps(name, calendly_url)")
+            .select("company_name, contact_name, contact_email, diagnostic_id, tier3_reps(name, calendly_url)")
             .single();
+
+          // Write to tier3_confirmed_findings so customer /v2/recovery page sees it
+          if (pipeUpdate?.diagnostic_id) {
+            const { data: eng } = await supabaseAdmin
+              .from("tier3_engagements")
+              .select("id")
+              .eq("diagnostic_id", pipeUpdate.diagnostic_id)
+              .order("started_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (eng?.id) {
+              await supabaseAdmin.from("tier3_confirmed_findings").upsert({
+                id: `playbook_${playbook_id}`,
+                engagement_id:    eng.id,
+                leak_id:          pb.finding_id  || playbook_id,
+                leak_name:        pb.finding_title || "Recovery",
+                category:         pb.category     || "general",
+                estimated_low:    pb.amount_recoverable || 0,
+                estimated_high:   pb.amount_recoverable || 0,
+                confirmed_amount: Number(confirmed_amount),
+                confidence_note:  "Confirmed by accountant",
+              }, { onConflict: "id" }).catch(() => {});
+            }
+          }
 
           // Notify client of confirmed saving (non-blocking)
           if (pipeUpdate?.contact_email && confirmed_amount) {

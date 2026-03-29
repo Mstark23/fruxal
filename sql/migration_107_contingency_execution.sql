@@ -108,3 +108,20 @@ ALTER TABLE tier3_rep_commissions
 -- Indexes for new pipeline columns
 CREATE INDEX IF NOT EXISTS idx_pipeline_agreement_token ON tier3_pipeline(agreement_token) WHERE agreement_token IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_pipeline_stage_user      ON tier3_pipeline(user_id, stage);
+
+-- Document requests from reps/accountants to clients
+CREATE TABLE IF NOT EXISTS rep_document_requests (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  pipeline_id    UUID,
+  engagement_id  UUID,
+  requested_by   TEXT DEFAULT 'rep',  -- 'rep' | 'accountant'
+  document_type  TEXT,
+  label          TEXT NOT NULL,
+  notes          TEXT,
+  status         TEXT DEFAULT 'pending',  -- pending | received | reviewed
+  received_at    TIMESTAMPTZ,
+  created_at     TIMESTAMPTZ DEFAULT now(),
+  updated_at     TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_rep_doc_requests_pipeline ON rep_document_requests(pipeline_id);
+CREATE INDEX IF NOT EXISTS idx_rep_doc_requests_status   ON rep_document_requests(status);
