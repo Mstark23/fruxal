@@ -287,7 +287,7 @@ export default function EnterprisePage() {
                       : t("Book my discovery call →","Réserver mon appel découverte →")}
                   </button>
                   <p className="text-[11px] text-[#8E8C85] text-center">
-                    {t("No upfront cost · NDA on first call · Cancel anytime","Aucun frais initial · NDA dès le premier appel · Annulez à tout moment")}
+                    {t("No upfront cost · NDA on first call · 12% of confirmed savings only","Aucun frais initial · NDA dès le premier appel · 12% des économies confirmées seulement")}
                   </p>
                 </form>
               </div>
