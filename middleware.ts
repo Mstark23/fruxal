@@ -39,6 +39,17 @@ export async function middleware(req: NextRequest) {
   const isUSPlatform = host.includes("fruxal.com") && !host.includes("fruxal.ca");
   const country = isUSPlatform ? "US" : "CA";
 
+  // ── US domain: rewrite root to /us so the US landing page renders ──────
+  // All other paths (prescan, dashboard, etc.) pass through normally —
+  // they read the country cookie set below.
+  if (isUSPlatform && pathname === "/") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/us";
+    const res = NextResponse.rewrite(url);
+    res.cookies.set("fruxal_country", "US", { httpOnly: false, sameSite: "lax", path: "/", maxAge: 31536000 });
+    return res;
+  }
+
   // ── Rep portal — completely bypass ALL middleware logic, pass through raw ──
   // Must return NextResponse.next() with NO additional headers so Set-Cookie
   // from the verify route handler is never stripped.
@@ -116,5 +127,7 @@ export const config = {
     "/rep/:path*",
     "/accountant/:path*",
     "/rep",
+    "/us/:path*",
+    "/us",
   ],
 };
