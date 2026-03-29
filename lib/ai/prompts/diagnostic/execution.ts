@@ -76,9 +76,9 @@ ${findingsJson}
 For each finding, return ONE object with these fields:
 - finding_id: string (match the id from input)
 - execution_steps: string[] — numbered steps our accountant follows start to finish. Be specific: "Call CRA Business Enquiries at 1-800-959-5525, select option 2..." not "Contact CRA". Minimum 3 steps, maximum 8.
-- documents_needed: string[] — exact documents to request from client. e.g. "T2 corporate return 2022 and 2023", not "tax returns".
+- documents_needed: string[] — exact documents to request from client. e.g. ${isUS ? `"Form 1120-S 2023", "W-2 summary", "bank statements"` : `"T2 corporate return 2022 and 2023", "T4 summary"`}, not "tax returns".
 - draft_template: string — the ACTUAL text of the letter, email, or script to use. Include placeholders like [CLIENT_NAME], [CRA_BN], [DATE]. This must be ready to send after filling in placeholders. For CRA calls: write the script. For vendor negotiations: write the email. For grant applications: write the cover letter.
-- cra_forms: string[] — specific CRA/Revenu Québec form codes if applicable (e.g. "T661", "RC4288", "T2 Schedule 8"). Empty array if no forms.
+- ${isUS ? `irs_forms: string[] — specific IRS form codes (e.g. "Form 6765", "8850", "4562", "1120-S"). Empty array if no forms.` : `cra_forms: string[] — specific CRA/Revenu Québec form codes if applicable (e.g. "T661", "RC4288", "T2 Schedule 8"). Empty array if no forms.`}
 - who_executes: "accountant" | "rep" | "client" — who on our team takes the lead.
 - estimated_hours: number — realistic hours to complete this finding end to end.
 - quick_win: boolean — true if this can be actioned within 1 week with minimal back-and-forth.
@@ -92,5 +92,5 @@ ${isUS ? "" : "4. For QC findings: reference Revenu Québec where applicable, no
 6. Never say "consult a professional" — WE are the professional.
 
 RESPOND WITH ONLY A VALID JSON ARRAY — no markdown, no preamble:
-[{ "finding_id": "...", "execution_steps": [...], "documents_needed": [...], "draft_template": "...", "cra_forms": [...], "who_executes": "...", "estimated_hours": ..., "quick_win": ... }]`;
+[{ "finding_id": "...", "execution_steps": [...], "documents_needed": [...], "draft_template": "...", "${isUS ? 'irs_forms' : 'cra_forms'}": [...], "who_executes": "...", "estimated_hours": ..., "quick_win": ... }]`;
 }

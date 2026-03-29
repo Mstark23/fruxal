@@ -461,7 +461,7 @@ export async function sendRepAssigned(
       (after our ${contingencyRate}% contingency fee). You don't pay anything until savings are confirmed.
     </p>
     <p style="color:#3d3d4e;margin:0 0 24px">
-      ${repName} will handle all the work — agency filings, vendor renegotiations, program applications. 
+      ${repName} will handle all the work — CRA/IRS filings, vendor renegotiations, grant & program applications. 
       You just need to show up for one call.
     </p>
   `;

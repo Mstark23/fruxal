@@ -776,8 +776,8 @@ export default function DiagnosticIntakePage() {
               },
               {
                 key: "t2",
-                title: t("Corporate Tax Return (T2 / Form 1120)", "Déclaration de revenus T2"),
-                subtitle: t("Last filed corporate return (T2 / Form 1120)", "Dernier T2 produit (sociétés par actions seulement)"),
+                title: data.country === "US" ? "Corporate Tax Return (Form 1120 / 1120-S)" : t("Corporate Tax Return (T2)", "Déclaration de revenus T2"),
+                subtitle: data.country === "US" ? "Last filed Form 1120 or 1120-S" : t("Last filed T2 (corporations only)", "Dernier T2 produit (sociétés par actions seulement)"),
                 impact: t("Taxable income, entity structure, R&D credits", "Revenu imposable, DPE, IMRTD, CDC, crédits RS&DE"),
                 priority: t("Highest impact", "Impact le plus élevé"),
               },
