@@ -107,7 +107,7 @@ async function processRun(req: NextRequest) {
   }
 
   // Get user emails for eligible businesses
-  const eligibleBizMap = new Map(businesses.filter(b => eligibleBizIds.includes(b.id)).map(b => [b.id, b]));
+  const eligibleBizMap = new Map<string, any>(businesses.filter((b: any) => eligibleBizIds.includes(b.id)).map((b: any) => [b.id, b]));
 
   // Get user emails
   const userIds = [...new Set([...eligibleBizMap.values()].map(b => b.owner_user_id).filter(Boolean))];
@@ -116,7 +116,7 @@ async function processRun(req: NextRequest) {
     .select("id, email, name")
     .in("id", userIds);
 
-  const userMap = new Map((users || []).map((u: any) => [u.id, u]));
+  const userMap = new Map<string, any>((users || []).map((u: any) => [u.id, u]));
 
   const appUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://fruxal.ca";
   let sent = 0, skipped = 0, errors = 0;
