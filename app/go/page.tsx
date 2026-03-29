@@ -335,7 +335,7 @@ export default function GoPage() {
                 {t("Save your results & see the full report","Enregistrez vos résultats et voyez le rapport complet")}
               </p>
               <p className="sans" style={{fontSize:12,color:"rgba(255,255,255,0.6)",marginBottom:16,lineHeight:1.6}}>
-                {t("Free account. Track your leaks, get monthly re-scans, and fix what's costing you money.","Compte gratuit. Suivez vos fuites, obtenez des analyses mensuelles.")}
+                {t("Free account. See every leak with exact dollar amounts — your rep handles the recovery.","Compte gratuit. Voyez chaque fuite avec les montants exacts — votre rep s'occupe de la récupération.")}
               </p>
               <button onClick={() => router.push(`/register?prescanRunId=${result.prescanRunId}`)} className="sans"
                 style={{padding:"12px 28px",fontSize:14,fontWeight:600,color:"#1B3A2D",background:"white",border:"none",borderRadius:8,cursor:"pointer",width:"100%"}}>

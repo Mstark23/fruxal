@@ -358,7 +358,7 @@ export default function HistoryPage() {
               {/* Events */}
               <div className="pl-1 border-l-2 border-border-light space-y-1 ml-2">
                 {grouped[key].map(e => (
-                  <EventCard key={e.id} event={e} />
+                  <EventCard key={e.id as string} event={e as TimelineEvent} />
                 ))}
               </div>
             </div>
