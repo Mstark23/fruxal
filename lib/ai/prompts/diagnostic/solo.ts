@@ -81,9 +81,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use Canadian solo operator averages for this industry"}
 
-${buildQualityBar("solo")}
+${buildQualityBar("solo", "US")}
 
-${buildSolutionMatrix("solo", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
+${buildSolutionMatrix("solo", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
 
 STRUCTURAL RULES:
 ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Revenue is an estimate. Dollar amounts in findings must show ranges (e.g. "$4K–$12K"), not single figures. Set severity ≤ medium for revenue-dependent findings.` : ""}
@@ -137,7 +137,7 @@ ${(() => {
 })()}
 
 Return ONLY this JSON (no markdown fences):
-${buildDiagnosticSchema("solo", 5)}`;
+${buildDiagnosticSchema("solo", 5, "US")}`;
 
   return { systemPrompt, userPrompt };
 }
@@ -216,9 +216,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use US SMB averages for this industry and state"}
 
-${buildQualityBar("solo")}
+${buildQualityBar("solo", "US")}
 
-${buildSolutionMatrix("solo", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
+${buildSolutionMatrix("solo", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
 
 STRUCTURAL RULES:
 1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()}.

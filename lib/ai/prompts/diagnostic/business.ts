@@ -88,9 +88,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use Canadian SMB averages for this industry"}
 
-${buildQualityBar("business")}
+${buildQualityBar("business", "US")}
 
-${buildSolutionMatrix("business", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
+${buildSolutionMatrix("business", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
 
 STRUCTURAL RULES:
 ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Revenue is an estimate. Dollar amounts in findings must show ranges (e.g. "$4K–$12K"), not single figures. Set severity ≤ medium for revenue-dependent findings.` : ""}
@@ -144,7 +144,7 @@ ${(() => {
 })()}
 
 Return ONLY this JSON (no markdown fences):
-${buildDiagnosticSchema("business", 7)}`;
+${buildDiagnosticSchema("business", 7, "US")}`;
 
   return { systemPrompt, userPrompt };
 }
@@ -227,9 +227,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use US SMB averages for this industry and state"}
 
-${buildQualityBar("business")}
+${buildQualityBar("business", "US")}
 
-${buildSolutionMatrix("business", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
+${buildSolutionMatrix("business", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
 
 STRUCTURAL RULES:
 1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()}.

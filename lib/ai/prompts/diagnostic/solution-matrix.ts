@@ -18,7 +18,9 @@ export function buildSolutionMatrix(
   industry:     string,
   hasPayroll:   boolean,
   doesRd:       boolean,
+  country:      "CA" | "US" = "CA",
 ): string {
+  if (country === "US") return buildUSSolutionMatrix(tier, province, annualRevenue, employees, industry, hasPayroll, doesRd);
 
   const isQC = province === "QC";
   const isON = province === "ON";
@@ -228,6 +230,218 @@ CASH_FLOW | Working capital, AR >45 days, credit facility, treasury
   → AR automation: Versapay (https://versapay.com, network-based AR, best B2B $5M+) | Esker (https://esker.ca)
   → Credit facility: BDC (https://bdc.ca, government-backed, lower rates for CCPCs) | RBC Commercial credit line | ${isAB ? "ATB Business (https://atb.com)" : "TD Commercial"}
   → Trade credit insurance: Euler Hermes Canada (https://eulerhermes.ca) — for large AR concentration risk
+`.trim();
+  }
+
+  return "";
+}
+
+
+// =============================================================================
+// US SOLUTION MATRIX — IRS forms, US tools, US advisory firms
+// =============================================================================
+function buildUSSolutionMatrix(
+  tier:         DiagnosticTier,
+  state:        string,
+  annualRevenue: number,
+  employees:    number,
+  industry:     string,
+  hasPayroll:   boolean,
+  doesRd:       boolean,
+): string {
+  const industryLower = industry.toLowerCase();
+  const isRetailFood  = /restaurant|retail|food|cafe|bar/.test(industryLower);
+  const isMfg         = /manufactur|wholesale|distribut/.test(industryLower);
+  const isHealth      = /health|medical|dental|clinic|pharmacy/.test(industryLower);
+  const isSaaS        = /saas|software|tech|digital|app/.test(industryLower);
+  const noIncomeTax   = ["TX","FL","NV","WY","SD","TN","AK","WA","NH"].includes(state);
+
+  const statePayrollNote = `${state}: register for state unemployment insurance (SUI/SUTA) — rates vary 1–8%. Workers compensation mandatory — register with state WC board or use PEO.`;
+  const stateTaxNote = noIncomeTax
+    ? `${state}: no state income tax — strong advantage. Focus on federal optimization and sales tax nexus.`
+    : `${state}: state income tax applies — layer state deductions on top of federal. Confirm state-specific credits.`;
+
+  if (tier === "solo") {
+    return `
+SOLUTION MATRIX — US SOLO TIER ($0–$150K, ${employees} employees, ${state})
+For each finding, use the matching row. MAX 2 solutions per finding.
+The "why" must name the specific problem for this business — never generic.
+
+TAX | SE tax, S-corp election, deductions, IRS filings, state income tax
+  ${stateTaxNote}
+  → Accounting: Wave (free, US-ready) | FreshBooks (~$19/mo, best for freelancers/solo service)
+  → Tax filing: TurboTax Self-Employed (~$130/yr) | H&R Block Self-Employed (~$115/yr)
+  → S-corp election (if revenue >$60K): file Form 2553. Use Gusto Contractor (~$6/mo) after election.
+  → Home office: Form 8829 (actual method) or $5/sq ft simplified — both IRS-accepted.
+  ❌ Never recommend enterprise accounting for solo.
+
+PAYROLL | W-2 employees, FICA, FUTA, state SUI, Form 941
+  ${statePayrollNote}
+  ${employees === 0
+    ? "→ No employees — ensure 1099-NEC issued for all contractors >$600/yr by Jan 31. Use Track1099 (https://track1099.com, $2/form)."
+    : `→ Gusto (https://gusto.com, $46/mo + $6/ee, best US payroll for <10 employees, handles FICA/FUTA/state)
+  → Justworks (https://justworks.com, PEO model, includes benefits + workers comp, ~$59/ee/mo)`}
+
+COMPLIANCE | IRS deadlines, state filings, annual report, business license
+  → IRS Online Account (https://www.irs.gov/payments/your-online-account, free — monitor balance/notices)
+  → Registered Agent: Registered Agents Inc (https://www.registeredagentsinc.com, $100/yr) for state compliance
+  → Accounting: Wave (free) | QuickBooks Self-Employed (~$15/mo, mileage + SE tax estimates)
+
+OPERATIONS | Pricing, time tracking, project management, process gaps
+  → Toggl Track (https://toggl.com, free tier) | Harvest (https://getharvest.com, ~$12/mo)
+  → Notion (free) | Asana (free tier) for project management
+  → Mileage: MileIQ (https://mileiq.com, ~$60/yr, IRS-compliant log)
+
+INSURANCE | GL, professional liability, E&O, business owner policy
+  → Next Insurance (https://nextinsurance.com, US specialist, online quote <5 min, small biz BOP)
+  → Hiscox (https://hiscox.com/small-business-insurance, excellent for professional/consulting)
+  → Pie Insurance (https://pieinsurance.com, workers comp specialist for small biz)
+  ❌ Never recommend Zensurance (Canadian) for US businesses.
+
+CONTRACT | Client agreements, IP ownership, scope creep, payment terms
+  → Bonsai (https://hellobonsai.com, ~$24/mo, contracts + invoicing, US law templates)
+  → PandaDoc free tier (https://pandadoc.com) | DocuSign (https://docusign.com, 3 free/mo then ~$15/mo)
+
+GROWTH | Pricing, lead gen, referrals, service expansion
+  → HubSpot CRM (https://hubspot.com, free tier) | Calendly (https://calendly.com, free tier)
+  → Squarespace (~$23/mo) | Webflow (~$23/mo) if website upgrade needed
+
+STRUCTURE | Sole prop vs LLC vs S-corp, state registration, fiscal year
+  → LLC formation: ZenBusiness (https://zenbusiness.com, $49 + state fees) | Northwest Registered Agent (https://northwestregisteredagent.com, $39)
+  → S-corp election: file Form 2553 with IRS — free, do within 75 days of tax year start
+  → CPA for entity modeling: Bench (https://bench.co, online bookkeeping + CPA from $299/mo)
+
+CASH_FLOW | Late AR, invoicing gaps, payment collection, banking fees
+  → Wave Invoicing (free, instant) | FreshBooks (automated reminders, ~$19/mo)
+  → Relay Financial (https://relayfi.com, no-fee US business banking, excellent for small biz)
+  → Mercury Bank (https://mercury.com, tech-friendly, no fees, ACH + wires)
+`.trim();
+  }
+
+  if (tier === "business") {
+    return `
+SOLUTION MATRIX — US BUSINESS TIER ($150K–$1M, ${employees} employees, ${state})
+For each finding, use the matching row. MAX 3 solutions per finding.
+The "why" must reference state compliance, employee count, and specific gap. Not generic.
+
+TAX | W-2/distribution split, S-corp reasonable comp, Section 179, QBI, sales tax nexus
+  ${stateTaxNote}
+  → Owner comp modeling: CPA required — search AICPA directory (https://aicpastore.aicpa.org) for local CPA
+  → Accounting: QuickBooks Online (~$35–$80/mo, US standard) | Xero (https://xero.com, ~$32–$65/mo)
+  → Sales tax nexus: TaxJar (https://taxjar.com, ~$19/mo) | Avalara (https://avalara.com, $50+/mo for multi-state)
+  ${doesRd ? "→ R&D credit (Section 41): Boast.ai (https://boast.ai, AI-assisted, ~15% of credit) | Clarus R+D (https://clarusrd.com, specialist for SMB)" : ""}
+  → Expense management: Expensify (https://expensify.com, ~$5/user/mo) | Dext (https://dext.com, receipt capture)
+
+PAYROLL | ${employees} employees — ${statePayrollNote}
+  ${employees <= 15
+    ? "→ Gusto (https://gusto.com, $46/mo + $6/ee, best US payroll <15 employees, full tax filing)\n  → Justworks (https://justworks.com, PEO, includes benefits + workers comp, ~$59/ee/mo)"
+    : "→ Rippling (https://rippling.com, ~$8/ee/mo, best mid-market, includes HRIS + payroll + benefits)\n  → ADP RUN (https://adp.com/run, $59+/mo, strong compliance, 20+ employees)"}
+  ${!hasPayroll ? "→ Not yet on payroll: register EIN if needed (free, IRS.gov), then choose provider above." : ""}
+  → WOTC screening: Efficient Hire (https://efficienthire.com) | ADP TotalSource (includes WOTC at scale)
+
+COMPLIANCE | IRS notices, state registrations, annual reports, director liability
+  → State filings: Registered Agents Inc (https://www.registeredagentsinc.com, $100/yr/state)
+  → Accounting compliance: QuickBooks Online | Xero — keep books clean for IRS audit trail
+  → Sales tax: TaxJar (https://taxjar.com) | Avalara (https://avalara.com, multi-state)
+
+OPERATIONS | Margins, vendor costs, process gaps, inventory, pricing
+  ${isRetailFood ? "→ POS/inventory: Square for Restaurants (https://squareup.com, best US food/retail) | Toast (https://pos.toasttab.com, restaurant-specific)" : ""}
+  ${isMfg ? "→ Inventory: inFlow Inventory (https://inflowinventory.com, $89/mo) | Cin7 (https://cin7.com)" : ""}
+  → Accounting upgrade: QuickBooks Online Advanced (~$200/mo) | Sage Intacct (if multi-entity)
+  → Vendor spend: Procurify (https://procurify.com) | BILL.com (https://bill.com, AP automation)
+
+INSURANCE | GL, professional liability, cyber, key person, BOP
+  → Business Owner Policy: Next Insurance (https://nextinsurance.com) | Hiscox (https://hiscox.com)
+  → Cyber: Coalition (https://coalitioninc.com, active monitoring + insurance, $800–$3K/yr)
+  → Workers comp: Pie Insurance (https://pieinsurance.com) | Employers (https://employers.com)
+  → Key person: Principal Financial (https://principal.com) | Guardian Life (https://guardianlife.com)
+  → Broker: Lockton Companies (https://lockton.com) | Hub International (https://hubinternational.com)
+
+CONTRACT | Vendor contracts, client terms, IP, e-signatures
+  → DocuSign Business Pro (https://docusign.com, ~$65/mo) | PandaDoc (https://pandadoc.com, better value)
+  → Legal review: LegalZoom Business (https://legalzoom.com, ~$100-300/matter) or local business attorney
+
+GROWTH | Revenue expansion, sales process, CRM, e-commerce, retention
+  → CRM: HubSpot CRM (https://hubspot.com, free to starter $45/mo) | Pipedrive (https://pipedrive.com, ~$15/user/mo)
+  → E-commerce: Shopify (https://shopify.com, $39–$105/mo) | BigCommerce (https://bigcommerce.com)
+  → Email: Mailchimp (https://mailchimp.com) | Klaviyo (https://klaviyo.com, e-commerce focused)
+
+STRUCTURE | LLC vs S-corp vs C-corp, entity optimization, fiscal year
+  → Structure analysis: CPA required — AICPA (https://aicpa.org) or local firm
+  → S-corp election: Form 2553, file within 75 days of tax year start
+  → Business banking: Chase Business (https://chase.com/business) | Mercury (https://mercury.com, no fees)
+
+CASH_FLOW | AR collection, payment terms, working capital, banking
+  → AR automation: FreshBooks (automated reminders) | Bill.com (https://bill.com, best B2B AR)
+  → Payments: Stripe (https://stripe.com, best developer-friendly) | Square (https://squareup.com)
+  → Working capital: BlueVine (https://bluevine.com, line of credit) | Kabbage / American Express Business Line
+`.trim();
+  }
+
+  if (tier === "enterprise") {
+    const revM = (annualRevenue / 1_000_000).toFixed(1);
+
+    return `
+SOLUTION MATRIX — US ENTERPRISE TIER ($1M+, ${employees} employees, ${state})
+For each finding, use the matching row. MAX 3 solutions per finding.
+The "why" must be CFO-level: ROI, IRS compliance, integration depth — not feature lists.
+Tax/structure findings → advisory firm required alongside software.
+
+TAX | W-2/distribution optimization, QBI, Section 179, bonus depreciation, QSBS, entity structure
+  ${stateTaxNote}
+  → Advisory REQUIRED for structural tax: Aprio (https://aprio.com) | CliftonLarsonAllen (https://claconnect.com) | local Big 4 regional
+  ${doesRd ? "→ R&D credit (Section 41): Boast.ai (https://boast.ai) | alliantgroup (https://alliantgroup.com, largest R&D credit firm in US) | Clarus R+D (https://clarusrd.com)" : ""}
+  → Cost segregation: Engineered Tax Services (https://engineeredtaxservices.com) | National Tax Group (https://nationaltaxgroup.com)
+  ❌ Never recommend TurboTax or QuickBooks tax filing for enterprise.
+
+PAYROLL | ${employees} employees — ${statePayrollNote}
+  ${employees >= 50
+    ? "→ Rippling (https://rippling.com, best 50–500 US employees, unified HRIS+payroll+benefits)\n  → ADP Workforce Now (https://adp.com, global standard, excellent multi-state compliance)"
+    : "→ Rippling (https://rippling.com) | Justworks PEO (https://justworks.com, all-in including benefits + workers comp)"}
+  → Group benefits: Sequoia One (https://sequoiaone.com, premium PEO) | Namely (https://namely.com, HCM + benefits)
+  ${isHealth ? "→ Healthcare-specific: TriNet (https://trinet.com, HIPAA-aware PEO)" : ""}
+  → WOTC at scale: Efficient Hire (https://efficienthire.com) — systematic screening saves $9,600/eligible hire
+
+COMPLIANCE | IRS audit exposure, state registrations, multi-state nexus, SOC controls
+  → Multi-state compliance: Avalara (https://avalara.com, #1 US sales tax automation) | Vertex (https://vertexinc.com)
+  → State registrations: CT Corporation (https://ctcorporation.com) | CSC Global (https://cscglobal.com)
+  → Document management: NetSuite | Sage Intacct (built-in audit trails)
+  → IRS controversy: Chamberlain Hrdlicka (https://chamberlainlaw.com) | Meadows Collier (tax litigation)
+
+OPERATIONS | ERP, process efficiency, vendor leverage, margin leakage
+  ${annualRevenue >= 3_000_000
+    ? "→ ERP: Sage Intacct (https://sageintacct.com, best $2M–$50M multi-entity, real-time consolidation) | NetSuite (https://netsuite.com, scales higher)"
+    : "→ Accounting: QuickBooks Online Advanced (~$200/mo) or Xero for single-entity $1M–$3M"}
+  ${isMfg ? "→ Manufacturing ERP: Epicor (https://epicor.com) | Microsoft Dynamics 365 Business Central" : ""}
+  → Spend management: Procurify (https://procurify.com) | Coupa (https://coupa.com, enterprise spend)
+  → Accounts payable: Bill.com (https://bill.com) | Tipalti (https://tipalti.com, global AP)
+
+INSURANCE | Commercial P&C, cyber, D&O, EPLI, key person, business interruption
+  → Commercial P&C: Chubb (https://chubb.com, largest US commercial P&C) | Travelers (https://travelers.com)
+  → Cyber: Coalition (https://coalitioninc.com) | Beazley (https://beazley.com, specialist large risk)
+  → D&O/EPLI: AXA XL (https://axaxl.com) | Markel (https://markel.com)
+  → Key person COLI: Principal Financial | Pacific Life — corporate-owned, tax-efficient
+  → Broker: Lockton (https://lockton.com) | Marsh McLennan (https://marshmclennan.com) for $10M+ enterprise
+
+CONTRACT | CLM, vendor leverage, IP protection, licensing
+  → DocuSign CLM (https://docusign.com/products/contract-lifecycle-management) | Ironclad (https://ironcladapp.com)
+  → Legal: Cooley LLP (https://cooley.com) | DLA Piper (https://dlapiper.com) | Wilson Sonsini (tech/growth companies)
+
+GROWTH | M&A, market expansion, pricing power, channel development
+  → CRM: Salesforce (https://salesforce.com) | HubSpot Sales Hub Enterprise
+  → BI: Power BI (~$10/user/mo) | Tableau (https://tableau.com) | Looker (Google)
+  → M&A advisory: Raymond James (https://raymondjames.com) | Robert W. Baird (https://rwbaird.com) | Lincoln International (https://lincolninternational.com, $10M–$250M exits)
+
+STRUCTURE | QSBS (Section 1202), C-corp conversion, defined benefit plans, family office
+  → Advisory REQUIRED: Withum (https://withum.com) | Aprio (https://aprio.com) | national CPA firm with M&A practice
+  → Defined benefit / cash balance plan: October Three (https://octoberthree.com) | Pinnacle Plan Design (https://pinnacleplandesign.com)
+  → QSBS structuring: Cooley LLP | Gunderson Dettmer (https://gunderson.com, startup/growth specialist)
+  → Banking: JPMorgan Private Client (https://jpmorgan.com) | Silicon Valley Bank / First Citizens (tech focus)
+
+CASH_FLOW | AR >45 days, working capital, credit facility, treasury optimization
+  → AR automation: Versapay (https://versapay.com, B2B AR network) | Billtrust (https://billtrust.com)
+  → Credit facility: JPMorgan Chase Commercial (https://jpmorgan.com) | Wells Fargo Business Line | Silicon Valley Bank
+  → Trade credit insurance: Euler Hermes / Allianz Trade (https://allianz-trade.com) | Coface (https://coface.com)
 `.trim();
   }
 

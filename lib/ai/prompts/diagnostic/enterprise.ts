@@ -171,9 +171,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use Canadian enterprise averages for this industry"}
 
-${buildQualityBar("enterprise")}
+${buildQualityBar("enterprise", "US")}
 
-${buildSolutionMatrix("enterprise", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
+${buildSolutionMatrix("enterprise", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
 
 STRUCTURAL RULES:
 1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}) and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}).
@@ -234,7 +234,7 @@ BUSINESS FLAGS
 - Handles Data:      ${profile.handles_data         ? "YES" : "NO"}
 
 Return ONLY this JSON (no markdown fences):
-${buildDiagnosticSchema("enterprise", 12)}`;
+${buildDiagnosticSchema("enterprise", 12, "US")}`;
 
   return { systemPrompt, userPrompt };
 }
@@ -333,9 +333,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use US enterprise averages for this industry and state"}
 
-${buildQualityBar("enterprise")}
+${buildQualityBar("enterprise", "US")}
 
-${buildSolutionMatrix("enterprise", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
+${buildSolutionMatrix("enterprise", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
 
 STRUCTURAL RULES:
 1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()}.

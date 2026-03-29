@@ -8,15 +8,26 @@
 
 export type DiagnosticTier = "solo" | "business" | "enterprise";
 
-export function buildQualityBar(tier: DiagnosticTier): string {
+export function buildQualityBar(tier: DiagnosticTier, country: "CA" | "US" = "CA"): string {
   const minImpact   = tier === "enterprise" ? "$5,000" : tier === "business" ? "$2,000" : "$500";
   const audience    = tier === "enterprise" ? "CFO/board" : tier === "business" ? "business owner" : "sole proprietor";
   const maxFindings = tier === "enterprise" ? 12 : tier === "business" ? 7 : 5;
 
-  return `
-FINDING QUALITY BAR — read this before writing a single finding:
-
-✅ GREAT finding:
+  const greatExample = country === "US"
+    ? `✅ GREAT finding (US):
+  title:       "S-Corp Reasonable Compensation Saving $18,300/yr in FICA"
+  description: "Owner currently takes $180K W-2. At $380K net income, optimal split is $95K W-2 +
+    $285K S-corp distribution. FICA on $95K W-2: $14,535 employer + $14,535 employee = $29,070.
+    Current FICA on $180K: $27,540. But SE tax on distribution avoided: $285K × 15.3% cap =
+    net FICA saving $18,300/yr after payroll costs."
+  calculation: "Current: $180K W-2 × 15.3% (cap at $168K) = $27,540 total FICA
+    Optimal: $95K × 15.3% = $14,535 employer + $14,535 employee = $29,070
+    Distribution FICA saved: $85K × 15.3% = $13,005 — net saving after $500 payroll admin = $12,505
+    Plus: distributions not subject to SE tax → additional ~$5,800 saved"
+  recommendation: "1. File Form 2553 (S-corp election) by March 15 if calendar year.
+    2. Engage CPA for reasonable compensation study — document with industry comp data.
+    3. Set up payroll via Gusto for W-2 processing, distribute remainder as S-corp distribution."`
+    : `✅ GREAT finding (CA):
   title:       "HST Quick Method Election Saving $8,400/yr"
   description: "At $280K revenue with 93% service-based billing, the Quick Method election
     remits 8.8% on $280K = $24,640 vs actual HST collected at 13% less ITCs (~$33,040).
@@ -25,7 +36,12 @@ FINDING QUALITY BAR — read this before writing a single finding:
     $280K × 8.8% = $24,640 → annual saving $8,400"
   recommendation: "1. File RC7004 before next HST filing deadline.
     2. Confirm eligibility — >$400K gross revenue disqualifies.
-    3. Request CRA confirm receipt within 30 days."
+    3. Request CRA confirm receipt within 30 days."`;
+
+  return `
+FINDING QUALITY BAR — read this before writing a single finding:
+
+${greatExample}
 
 ❌ MEDIOCRE finding (never produce this):
   title:       "Improve Cash Flow Management"

@@ -10,11 +10,22 @@
 
 export type DiagnosticTier = "solo" | "business" | "enterprise";
 
-export function buildDiagnosticSchema(tier: DiagnosticTier, maxFindings: number): string {
+export function buildDiagnosticSchema(tier: DiagnosticTier, maxFindings: number, country: "CA" | "US" = "CA"): string {
   const minRisk  = tier === "enterprise" ? 5 : tier === "business" ? 4 : 3;
   const minBench = tier === "enterprise" ? 6 : tier === "business" ? 5 : 4;
   const minSeq   = tier === "enterprise" ? 6 : tier === "business" ? 5 : 3;
   const minCpa   = tier === "enterprise" ? 4 : 2;
+
+  const isUS = country === "US";
+  const cpaForms  = isUS
+    ? '"<real IRS form e.g. Form 1120-S, W-2, 941, 940, 6765, 8850, 4562, Schedule K-1>"'
+    : '"<real CRA form e.g. T2 Schedule 1, T661, RC4288, T4, T5, RC7004>"';
+  const ccpcFields = isUS
+    ? `    "qsbs_plan":        "<Section 1202 QSBS eligibility analysis or 'N/A'>",
+    "entity_structure": "<S-corp/C-corp/LLC optimization recommendation or 'N/A'>",`
+    : `    "rdtoh_strategy":   "<assessed value or 'N/A'>",
+    "cda_strategy":     "<assessed value or 'N/A'>",
+    "lcge_plan":        "<assessed value or 'N/A'>",`;
 
   return `{
   "scores": {
@@ -52,12 +63,10 @@ export function buildDiagnosticSchema(tier: DiagnosticTier, maxFindings: number)
       { "point": "<specific agenda item — English>", "point_fr": "<French>" }
     ],
     "key_findings":     ["<one-line summary of finding>"],
-    "forms_to_discuss": ["<real CRA form e.g. T2 Schedule 1, T661, RC4288, T4, T5, RC7004>"],
+    "forms_to_discuss": [${cpaForms}],
     "tax_exposures":    "<specific tax risk with dollar amount — English>",
     "tax_exposures_fr": "<French>",
-    "rdtoh_strategy":   "<assessed value or 'N/A'>",
-    "cda_strategy":     "<assessed value or 'N/A'>",
-    "lcge_plan":        "<assessed value or 'N/A'>",
+${ccpcFields}
     "questions_to_ask": ["<specific question for their accountant>"]
   },
 
