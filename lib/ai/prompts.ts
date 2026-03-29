@@ -283,7 +283,7 @@ const JSON_SCHEMA = `{
   ],
   "accountant_briefing": {
     "summary": "<paragraph for CPA>",
-    "forms_relevant": ["<e.g. Schedule C / T2125, W-2 / T4>"],
+    "forms_relevant": ["<e.g. W-2 / T4, Schedule C / T2125, Form 941>"],
     "estimated_tax_exposure": <number>,
     "questions_to_ask": ["<question 1>", "<question 2>"]
   },
@@ -393,7 +393,7 @@ ${isUS ? "3. AFFILIATES in findings: Recommend real US service providers:" : "3.
 
 4. CALCULATIONS: Every dollar figure must be derived from ACTUAL data below.
    DATA CONFIDENCE LABELS — follow these strictly:
-   • VERIFIED = from uploaded document (T2, financials, bank). Treat as authoritative. Do not hedge.
+   • VERIFIED = from uploaded document (${isUS ? "Form 1120-S/W-2" : "T2/T4"}, financials, bank). Treat as authoritative. Do not hedge.
    • INTAKE = user-entered exact value. High confidence. Use directly.
    • ESTIMATED = computed by formula or headcount proxy. Treat as approximate.
      When using ESTIMATED values, add "(estimated)" to calculation_shown and
@@ -443,7 +443,7 @@ DATA QUALITY SUMMARY (read before generating findings):
   }
 - Payroll confidence: \${profile.exact_payroll_total ? "HIGH — exact intake value" : profile.qb_payroll_ttm ? "HIGH — QuickBooks TTM" : employees > 0 ? "LOW — headcount proxy ($55K/employee). Flag payroll findings as estimates." : "NONE — no payroll data."}
 - Financial statements uploaded: \${inputs.docData?.financials ? "YES — use these as authoritative" : "NO — using intake estimates"}
-- T2 return uploaded: \${inputs.docData?.t2 ? "YES — treat as authoritative" : "NO — tax findings based on estimates"}
+- ${inputs.country === "US" ? "Form 1120/1120-S" : "T2 return"} uploaded: \${inputs.docData?.t2 ? "YES — treat as authoritative" : "NO — tax findings based on estimates"}
 
 CRITICAL INSTRUCTION: When data confidence is LOW or NONE, your findings must:
 1. Show dollar ranges (e.g. "$8K–$24K/yr") rather than single precise numbers

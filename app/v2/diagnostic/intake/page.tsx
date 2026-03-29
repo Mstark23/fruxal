@@ -722,7 +722,7 @@ export default function DiagnosticIntakePage() {
                   placeholder="e.g. 2022" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <MoneyInput label="R&D credit claimed last year" labelFr="Crédit RS&DE réclamé l'an dernier"
+                <MoneyInput label="R&D credit claimed last year" labelFr="Crédit R&D réclamé l'an dernier"
                   value={data.sred_claimed_last_year} onChange={v => setData(d => ({ ...d, sred_claimed_last_year: v }))} isFr={isFr} />
                 {data.country === "CA" && <MoneyInput label="RDTOH balance" labelFr="Solde IMRTD"
                   value={data.rdtoh_balance} onChange={v => setData(d => ({ ...d, rdtoh_balance: v }))} isFr={isFr} />}

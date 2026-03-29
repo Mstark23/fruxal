@@ -451,7 +451,7 @@ export default function OnboardingPage() {
               {(parseInt(data.employee_count) > 0 || data.has_payroll) && (
                 <Field label={isFr ? "Date du premier employé" : "First employee start date"}>
                   <input type="date" value={data.first_employee_date} onChange={e => update("first_employee_date", e.target.value)} className="input-field" />
-                  <p className="text-[10px] text-white/15 mt-1">{isFr ? "Utilisée pour: CNESST/WSIB, équité salariale, comité SST" : "Used for: CNESST/WSIB, pay equity, safety committee deadlines"}</p>
+                  <p className="text-[10px] text-white/15 mt-1">{(typeof document !== "undefined" && document.cookie.includes("fruxal_country=US")) ? "Used for: workers comp, WOTC eligibility, FICA optimization" : isFr ? "Utilisée pour: CNESST/WSIB, équité salariale, comité SST" : "Used for: CNESST/WSIB, pay equity, safety committee deadlines"}</p>
                 </Field>
               )}
 

@@ -241,7 +241,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (ctx.benchmarks.length === 0) {
-      console.warn(`[Diagnostic] No industry benchmarks in DB for industry="${profile.industry_slug || profile.industry}" — AI will use Canadian averages`);
+      console.warn(`[Diagnostic] No industry benchmarks in DB for industry="${profile.industry_slug || profile.industry}" — AI will use regional industry averages`);
     }
 
     // ── 4b. Fetch prescan context (2s timeout — never blocks diagnostic) ────
