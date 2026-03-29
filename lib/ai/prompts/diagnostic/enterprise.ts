@@ -16,13 +16,14 @@ import { FRUXAL_VOICE }          from "@/lib/ai/identity";
 
 export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
   const {
-    profile, province, annualRevenue, revenueSource,
+    profile, province, country, annualRevenue, revenueSource,
     estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct,
     employees, isFr, taxCtx, leakList, programList, benchmarkList,
     overdue, penaltyExposure, ownerSalary, exactNetIncome, exitHorizon,
     hasHoldco, passiveOver50k, lcgeEligible, rdtohBalance, hasCDA,
     sredLastYear, estimatedTaxDrag, obligationsCount,
   } = ctx;
+  if ((country ?? "CA") === "US") return buildUSEnterprisePrompts(ctx);
 
   const industry    = profile.industry_label || profile.industry || "business";
   const bizName     = profile.business_name  || "this corporation";
@@ -234,6 +235,133 @@ BUSINESS FLAGS
 
 Return ONLY this JSON (no markdown fences):
 ${buildDiagnosticSchema("enterprise", 12)}`;
+
+  return { systemPrompt, userPrompt };
+}
+
+
+// =============================================================================
+// US ENTERPRISE TIER — $1M+ revenue, US owner-managed C-corps / S-corps / LLCs
+// =============================================================================
+function buildUSEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
+  const {
+    profile, province: state, annualRevenue, revenueSource,
+    estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct,
+    employees, isFr, taxCtx, leakList, programList, benchmarkList,
+    overdue, penaltyExposure, ownerSalary, exitHorizon,
+    hasHoldco, sredLastYear, estimatedTaxDrag,
+  } = ctx;
+
+  const industry   = profile.industry_label || profile.industry || "business";
+  const bizName    = profile.business_name  || "this corporation";
+  const structure  = profile.structure      || "s_corp";
+
+  // US EV multiples (similar ranges, US M&A comps)
+  const evLow  = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * 4) : Math.round(annualRevenue * 0.5);
+  const evHigh = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * 8) : Math.round(annualRevenue * 0.9);
+
+  const systemPrompt = `${FRUXAL_VOICE}
+
+You are analyzing ${bizName}, a ${industry} in ${state} (US) generating $${(annualRevenue ?? 0).toLocaleString()} revenue.
+Structure: ${structure} | EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}) | Gross margin: ${grossMarginPct}%
+Employees: ${employees}${ownerSalary > 0 ? ` | Owner W-2: $${ownerSalary.toLocaleString()}` : ""}
+Enterprise value range: $${(evLow ?? 0).toLocaleString()}–$${(evHigh ?? 0).toLocaleString()} (4–8× EBITDA)
+
+${taxCtx}
+
+─── THINK BEFORE YOU WRITE JSON — 10 CHECKS ───────────────────────────────────
+
+1. OWNER COMPENSATION & ENTITY STRUCTURE
+   Owner W-2: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "unknown"} | EBITDA: ~$${estimatedEBITDA.toLocaleString()}
+   → S-corp: reasonable compensation vs distribution split. FICA on W-2 only — model optimal split.
+   → C-corp: double taxation on dividends vs salary deductibility. Is conversion to S-corp or LLC beneficial?
+   → If holding company structure: evaluate management fees, IP holding, captive insurance.
+
+2. R&D TAX CREDIT (Section 41)
+   ${profile.does_rd || (sredLastYear ?? 0) > 0 ? `R&D flagged. QREs: wages (~65%), supplies (~35%), contract research (65% of external).` : `Does this ${industry} do process improvement, custom software dev, or technical uncertainty work?`}
+   → 20% incremental method or 14% ASC method — which gives larger credit at this revenue?
+   → ASC method: 14% × (QREs − 50% × avg 3-yr QREs). Calculate both.
+   → Payroll tax offset: still available if <$5M gross receipts?
+
+3. SECTION 179 & BONUS DEPRECIATION
+   → Section 179: $1,220,000 immediate expensing limit (2024). Phase-out at $3.05M purchases.
+   → Bonus depreciation: 80% first-year (2024), 60% (2025), 40% (2026) — accelerate purchases?
+   → Cost segregation study: reclassify building components to 5/7/15-yr property for faster depreciation.
+
+4. QUALIFIED BUSINESS INCOME (Section 199A)
+   → 20% QBI deduction for S-corps, LLCs, partnerships. Phase-out for specified service trades.
+   → At $${annualRevenue.toLocaleString()}, is this business above W-2 wage limitation threshold?
+   → W-2 wage limit: deduction capped at 50% of W-2 wages or 25% of wages + 2.5% of qualified property.
+
+5. PAYROLL & EMPLOYMENT TAX
+   ${employees} employees | Payroll: ~$${estimatedPayroll > 0 ? estimatedPayroll.toLocaleString() : "estimated"}
+   → Form 941 deposits on schedule? 940 FUTA filed? SUTA registered in all employee states?
+   → WOTC (Work Opportunity Tax Credit): up to $9,600/eligible hire. Is screening process in place?
+   → PEO vs self-administered: at ${employees} employees, is professional employer organization cost-effective?
+   → Misclassification: any 1099 contractors vs W-2 employees? IRS 20-factor test risk?
+
+6. SALES TAX NEXUS & WAYFAIR
+   → Economic nexus triggered in how many states? Threshold: $100K or 200 transactions.
+   → Voluntary disclosure program: retroactive exposure can often be settled for 3 years back + no penalties.
+   → Marketplace facilitator laws: if selling via Amazon/Shopify, is tax collection being handled?
+
+7. RETIREMENT PLANS
+   → Defined benefit plan: can shelter $200K–$300K+/yr for owner vs $69K SEP-IRA limit.
+   → Cash balance plan + 401(k): combined can reach $350K+/yr for owners 55+.
+   → Employee 401(k) match: tax deductible, reduces FICA base for S-corp.
+
+8. EXIT PLANNING / QSBS (Section 1202)
+   → Qualified Small Business Stock: up to $10M or 10× basis EXCLUDED from federal capital gains if:
+     C-corp, held 5+ years, acquired at original issue, active business. Is conversion from S-corp worth it?
+   → ${exitHorizon !== "none" ? `Exit horizon: ${exitHorizon}. Optimize structure now.` : "No exit horizon specified — raise QSBS and estate planning questions."}
+   → Installment sale vs asset vs stock sale: tax implications at this EV range.
+
+9. HOLDING COMPANY / IP STRUCTURE
+   ${hasHoldco ? "Holdco confirmed. Assess: management fees (must be arm's-length), IP holding (royalty deductibility), captive insurance (Section 831(b) micro-captive)." : `At $${annualRevenue.toLocaleString()}, evaluate: separate IP holding entity (royalty stream), captive insurance, real estate segregation.`}
+
+10. BIGGEST LEVER
+    State the single highest-dollar opportunity (quantified) before writing JSON.
+
+───────────────────────────────────────────────────────────────────────────────
+
+GOVERNMENT PROGRAMS — include applicable slugs in program_slugs:
+${programList || "None matched"}
+
+LEAK DETECTORS — additional context:
+${leakList || "None"}
+
+INDUSTRY BENCHMARKS:
+${benchmarkList || "Use US enterprise averages for this industry and state"}
+
+${buildQualityBar("enterprise")}
+
+${buildSolutionMatrix("enterprise", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
+
+STRUCTURAL RULES:
+1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()}.
+2. Use USD. Reference IRS forms (1120-S, W-2, 941, 6765, 8850, 4562, 8996), not CRA.
+3. Maximum 9 findings. No finding under $5,000 annual impact at this revenue level.
+4. Every finding MUST include ebitda_improvement AND enterprise_value_improvement at 4–8× EBITDA.
+5. second_order_effects is a PLAIN STRING — NOT an array.
+6. REQUIRED — all sections: totals, cpa_briefing, risk_matrix, benchmark_comparisons, exit_readiness, priority_sequence.
+RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
+
+  const userPrompt = `Analyze this US enterprise business and return a complete JSON diagnostic report.
+
+PROFILE:
+- Industry:       ${industry}
+- State:          ${state}
+- Structure:      ${structure}
+- Annual revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource})
+- Gross margin:   ${grossMarginPct}%
+- Est. EBITDA:    $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource})
+- Employees:      ${employees}
+${estimatedPayroll > 0 ? `- Est. payroll:   $${estimatedPayroll.toLocaleString()}` : ""}
+${ownerSalary > 0 ? `- Owner W-2:      $${ownerSalary.toLocaleString()}` : ""}
+- Does R&D:       ${profile.does_rd ? "YES" : "NO"}
+- Has holdco:     ${hasHoldco ? "YES" : "NO"}
+- Exit horizon:   ${exitHorizon || "not specified"}
+`;
 
   return { systemPrompt, userPrompt };
 }

@@ -6,7 +6,8 @@
 
 export interface DiagCtx {
   profile:          any;        // raw business_profiles row
-  province:         string;
+  country:          'CA' | 'US'; // platform country — drives entire prompt branch
+  province:         string;      // CA: province code | US: state code (e.g. 'TX', 'CA', 'NY')
   annualRevenue:    number;
   revenueSource:    string;
   employees:        number;

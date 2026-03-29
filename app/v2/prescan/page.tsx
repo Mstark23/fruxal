@@ -7,6 +7,7 @@
 // =============================================================================
 
 "use client";
+import { getCountryFromCookie, US_STATES, CA_PROVINCES, getUSStateInsight, type Country } from "@/lib/country";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -16,7 +17,7 @@ import { LangToggle } from "@/components/ui/LangToggle";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface PrescanAnswers {
-  province: string;
+  province: string;  // CA: province code | US: state code
   industry: string;
   structure: string;
   monthly_revenue: number;
@@ -39,18 +40,7 @@ interface PrescanAnswers {
 
 type Step = 0 | 1 | 2 | 3 | 4 | 5;
 
-const PROVINCES = [
-  { value: "QC", label: "Quebec", fr: "Québec" },
-  { value: "ON", label: "Ontario" },
-  { value: "BC", label: "British Columbia" },
-  { value: "AB", label: "Alberta" },
-  { value: "SK", label: "Saskatchewan" },
-  { value: "MB", label: "Manitoba" },
-  { value: "NS", label: "Nova Scotia" },
-  { value: "NB", label: "New Brunswick" },
-  { value: "PE", label: "PEI" },
-  { value: "NL", label: "Newfoundland" },
-];
+// Regions are dynamically selected based on country (see getRegions below)
 
 const INDUSTRIES = [
   { value: "restaurant", label: "Restaurant / Food", fr: "Restaurant / Alimentation" },
@@ -103,7 +93,7 @@ export default function PrescanPage() {
   const [step, setStep] = useState<Step>(0);
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<PrescanAnswers>({
-    province: "", industry: "", structure: "",
+    province: "", industry: "", structure: "", country: getCountryFromCookie(),
     monthly_revenue: 0, employee_count: 0,
     has_accountant: false, has_payroll: false,
     handles_data: false, handles_food: false,
@@ -192,11 +182,17 @@ export default function PrescanPage() {
           {/* ═══ STEP 0: Province + Industry ═══ */}
           {step === 0 && (
             <div className="space-y-6">
-              <Question q="Where are you based? (Province affects which grants and credits apply to you.)" qfr="Où êtes-vous établi(e)? (La province détermine les subventions et crédits disponibles.)" isFR={isFR} />
+              <Question
+                q={answers.country === "US"
+                  ? "Which state are you based in? (State affects which tax credits and programs apply to you.)"
+                  : "Where are you based? (Province affects which grants and credits apply to you.)"}
+                qfr="Où êtes-vous établi(e)? (La province détermine les subventions et crédits disponibles.)"
+                isFR={isFR}
+              />
               <div className="grid grid-cols-2 gap-2">
-                {PROVINCES.map(p => (
+                {(answers.country === "US" ? US_STATES : CA_PROVINCES).map(p => (
                   <OptionButton key={p.value} selected={answers.province === p.value}
-                    onClick={() => set("province", p.value)} label={isFR && p.fr ? p.fr : p.label} />
+                    onClick={() => set("province", p.value)} label={"fr" in p && isFR ? (p as any).fr : p.label} />
                 ))}
               </div>
 
@@ -337,7 +333,7 @@ export default function PrescanPage() {
 
               <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl px-4 py-3 mt-2">
                 <p className="text-xs text-emerald-400/70 font-medium">
-                  {"Scanning " + (isFR ? PROVINCES.find(p => p.value === answers.province)?.fr || PROVINCES.find(p => p.value === answers.province)?.label : PROVINCES.find(p => p.value === answers.province)?.label) + " " + (isFR ? "réglementations," : "regulations,") + " " + (answers.monthly_revenue >= 10000 ? "mid-market" : "small business") + " tax rules, and government programs for " + (INDUSTRIES.find(i => i.value === answers.industry)?.label?.toLowerCase()) + " businesses."}
+                  {"Scanning " + (isFR ? (answers.country === "US" ? US_STATES : CA_PROVINCES).find(p => p.value === answers.province)?.label : (answers.country === "US" ? US_STATES : CA_PROVINCES).find(p => p.value === answers.province)?.label) + " " + (isFR ? "réglementations," : "regulations,") + " " + (answers.monthly_revenue >= 10000 ? "mid-market" : "small business") + " tax rules, and government programs for " + (INDUSTRIES.find(i => i.value === answers.industry)?.label?.toLowerCase()) + " businesses."}
                 </p>
               </div>
             </div>

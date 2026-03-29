@@ -15,6 +15,7 @@
 // =============================================================================
 
 "use client";
+import { getCountryFromCookie, US_STATES, CA_PROVINCES } from "@/lib/country";
 
 import { useState, useEffect, useCallback } from "react";
 import { useLang } from "@/hooks/useLang";
@@ -31,6 +32,7 @@ interface OnboardingData {
   industry_naics: string;
   structure: string;
   province: string;
+  country: string;
   city: string;
 
   // Step 2: Financial
@@ -66,7 +68,7 @@ interface OnboardingData {
 }
 
 const INITIAL_DATA: OnboardingData = {
-  business_name: "", industry: "", industry_naics: "", structure: "", province: "", city: "",
+  business_name: "", industry: "", industry_naics: "", structure: "", province: "", city: "", country: getCountryFromCookie(),
   monthly_revenue: "", employee_count: "0", fiscal_year_end_month: "12",
   has_payroll: false, handles_data: false, has_physical_location: false,
   incorporation_date: "", registration_date: "", gst_registration_date: "",
@@ -101,18 +103,7 @@ const STRUCTURES = [
   { value: "npo", label: "Non-Profit", labelFr: "Organisme sans but lucratif" },
 ];
 
-const PROVINCES = [
-  { value: "QC", label: "Quebec", labelFr: "Québec" },
-  { value: "ON", label: "Ontario", labelFr: "Ontario" },
-  { value: "BC", label: "British Columbia", labelFr: "Colombie-Britannique" },
-  { value: "AB", label: "Alberta", labelFr: "Alberta" },
-  { value: "MB", label: "Manitoba", labelFr: "Manitoba" },
-  { value: "SK", label: "Saskatchewan", labelFr: "Saskatchewan" },
-  { value: "NS", label: "Nova Scotia", labelFr: "Nouvelle-Écosse" },
-  { value: "NB", label: "New Brunswick", labelFr: "Nouveau-Brunswick" },
-  { value: "PE", label: "Prince Edward Island", labelFr: "Île-du-Prince-Édouard" },
-  { value: "NL", label: "Newfoundland & Labrador", labelFr: "Terre-Neuve-et-Labrador" },
-];
+// Provinces/states loaded dynamically via CA_PROVINCES / US_STATES from lib/country
 
 const REVENUE_RANGES = [
   { value: "0", label: "Pre-revenue", labelFr: "Pré-revenu" },
@@ -343,11 +334,11 @@ export default function OnboardingPage() {
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label={isFr ? "Province" : "Province"}>
+                <Field label={data.country === "US" ? "State" : (isFr ? "Province" : "Province")}>
                   <select value={data.province} onChange={e => update("province", e.target.value)} className="input-field">
                     <option value="">{isFr ? "Sélectionner..." : "Select..."}</option>
-                    {PROVINCES.map(p => (
-                      <option key={p.value} value={p.value}>{isFr ? p.labelFr : p.label}</option>
+                    {(data.country === "US" ? US_STATES : CA_PROVINCES).map(p => (
+                      <option key={p.value} value={p.value}>{isFr && "labelFr" in p ? (p as any).labelFr : p.label}</option>
                     ))}
                   </select>
                 </Field>
@@ -536,7 +527,7 @@ export default function OnboardingPage() {
                 <SummaryRow label={isFr ? "Entreprise" : "Business"} value={data.business_name} />
                 <SummaryRow label={isFr ? "Industrie" : "Industry"} value={INDUSTRIES.find(i => i.value === data.industry)?.[isFr ? "labelFr" : "label"] || data.industry} />
                 <SummaryRow label={isFr ? "Structure" : "Structure"} value={STRUCTURES.find(s => s.value === data.structure)?.[isFr ? "labelFr" : "label"] || data.structure} />
-                <SummaryRow label={isFr ? "Province" : "Province"} value={PROVINCES.find(p => p.value === data.province)?.[isFr ? "labelFr" : "label"] || data.province} />
+                <SummaryRow label={isFr ? "Province" : "Province"} value={(data.country === "US" ? US_STATES : CA_PROVINCES).find(p => p.value === data.province)?.label || data.province} />
                 <SummaryRow label={isFr ? "Revenu mensuel" : "Monthly revenue"} value={REVENUE_RANGES.find(r => r.value === data.monthly_revenue)?.[isFr ? "labelFr" : "label"] || data.monthly_revenue} />
                 <SummaryRow label={isFr ? "Employés" : "Employees"} value={EMPLOYEE_RANGES.find(e => e.value === data.employee_count)?.[isFr ? "labelFr" : "label"] || data.employee_count} />
                 <SummaryRow label={isFr ? "Fin d'exercice" : "Fiscal year-end"} value={MONTHS.find(m => m.value === data.fiscal_year_end_month)?.[isFr ? "labelFr" : "label"] || data.fiscal_year_end_month} />

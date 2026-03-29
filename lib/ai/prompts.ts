@@ -12,7 +12,8 @@ export interface PromptInputs {
   profile:    any;
   tier:       DiagnosticTier;
   isFr:       boolean;
-  province:   string;
+  country:    "CA" | "US";
+  province:   string;  // CA: province code | US: state code
   employees:  number;
   annualRevenue:    number;
   revenueSource:    string;
@@ -51,8 +52,78 @@ export interface PromptInputs {
 
 // ── Tax context ────────────────────────────────────────────────────────────────
 
+// =============================================================================
+// US Tax Context — state-aware, IRS-centric
+// =============================================================================
+const US_STATE_TAX: Record<string, string> = {
+  TX: "No state income tax. Franchise tax (0.375% retail, 0.75% other) on revenue >$2.47M. Sales tax 6.25% + local up to 8.25%. No state payroll tax beyond federal.",
+  FL: "No state income tax. Sales tax 6% + local. Reemployment tax (FUTA equivalent) 2.7% new employers on first $7,000/employee.",
+  NY: "State income tax 4–10.9%. NYC surcharge if NYC-based. Sales tax 4% + local (NYC 8.875%). MTA payroll tax 0.34% if NYC metro. Corporate franchise tax 6.5% on net income.",
+  CA: "State income tax up to 13.3% (highest in US). Sales tax 7.25% base + local up to 10.75%. SDI 0.9% on wages. Corporate tax 8.84% (S-corp 1.5%). Annual LLC fee $800 min.",
+  WA: "No state income tax. B&O tax on gross receipts (0.471%–1.5% by industry). Sales tax 6.5% + local. L&I workers comp mandatory.",
+  IL: "Flat state income tax 4.95%. Sales tax 6.25% + local. Replacement tax 2.5% on S-corps/partnerships. IDES unemployment insurance.",
+  GA: "State income tax 5.49% (flat 2024). Sales tax 4% + local up to 9%. Corporate income tax 5.49%.",
+  NC: "State income tax 4.5% (dropping to 3.99% by 2026). Sales tax 4.75% + local. Corporate income tax 2.5%.",
+  AZ: "State income tax 2.5% flat. Sales tax 5.6% + local. Corporate income tax 4.9%.",
+  CO: "State income tax 4.4% flat. Sales tax 2.9% + local. Corporate income tax 4.4%.",
+  OH: "No traditional income tax on businesses (commercial activity tax 0.26% on gross receipts >$1M). Sales tax 5.75% + local.",
+  PA: "State income tax 3.07% flat. Sales tax 6%. Corporate income tax 8.99% (phasing down to 4.99% by 2031). Gross receipts tax on utilities.",
+  MI: "State income tax 4.05%. Sales tax 6%. Corporate income tax 6%.",
+  NJ: "State income tax up to 10.75%. Sales tax 6.625%. Corporate business tax 9% on net income >$100K.",
+  VA: "State income tax up to 5.75%. Sales tax 4.3% + local. Corporate income tax 6%.",
+};
+
+function buildUSTaxContext(inputs: PromptInputs): string {
+  const { province: state, hasHoldco, sredLastYear } = inputs;
+  const payroll = (inputs as any).estimatedPayroll ?? 0;
+  const emp     = inputs.employees ?? 0;
+  const lines: string[] = [];
+
+  // Federal baseline — always applies
+  lines.push("FEDERAL: Corporate rate 21% (C-corp) | S-corp/LLC pass-through: ordinary rates up to 37%. Self-employment tax 15.3% on net earnings up to $168,600 (2024 SS wage base), 2.9% Medicare above.");
+  lines.push("FEDERAL PAYROLL: FICA — employer pays 6.2% SS + 1.45% Medicare per employee. FUTA 6% on first $7,000/employee (credit to 0.6% if state SUI paid). Form 941 quarterly required.");
+
+  // State-specific
+  const stateTax = US_STATE_TAX[state] || `State ${state} — apply standard state income tax, sales tax nexus, and workers compensation rules. Verify current rates with state revenue department.`;
+  lines.push(`STATE (${state}): ${stateTax}`);
+
+  // Structure flags
+  const structure = (inputs.profile?.structure || "").toLowerCase();
+  if (structure.includes("s_corp") || structure.includes("s-corp")) {
+    lines.push("S-CORP: Shareholder-employee must receive reasonable W-2 compensation before distributions. IRS scrutiny on low salary + high distributions. Document comp study.");
+  }
+  if (structure.includes("llc")) {
+    lines.push("LLC: Check if taxed as sole prop, partnership, S-corp, or C-corp. Multi-member LLCs default to partnership — Schedule K-1 required. S-corp election (Form 2553) may reduce SE tax.");
+  }
+  if (hasHoldco) {
+    lines.push("HOLDING COMPANY: Assess IC-DISC for export income, captive insurance, IP holding structure. Management fee deductibility between entities.");
+  }
+
+  // R&D credit
+  if (inputs.profile?.does_rd || (sredLastYear ?? 0) > 0) {
+    lines.push("R&D CREDIT (Section 41): 20% incremental research credit or ASC method (14% of QREs above 50% of avg prior 3 years). Startups <$5M revenue can offset up to $500K payroll taxes. Document contemporaneously.");
+  }
+
+  // Payroll thresholds
+  if (payroll > 0) {
+    lines.push(`PAYROLL: ~$${payroll.toLocaleString()} estimated. FUTA deposits required if liability >$500. 941 must be deposited semi-weekly if payroll >$50K/lookback period. State SUI registration required in each state with employees.`);
+  }
+
+  // Sales tax nexus warning
+  lines.push("SALES TAX NEXUS: Economic nexus thresholds ($100K sales OR 200 transactions) triggered in most states post-Wayfair (2018). Audit exposure if selling to multiple states without registration.");
+
+  return lines.join("\n");
+}
+
 export function buildTaxContext(inputs: PromptInputs): string {
   const { province, hasHoldco, passiveOver50k, lcgeEligible, rdtohBalance, hasCDA, sredLastYear } = inputs;
+  const country = inputs.country ?? "CA";
+
+  // ── US TAX CONTEXT ──────────────────────────────────────────────────────────
+  if (country === "US") {
+    return buildUSTaxContext(inputs);
+  }
+  // ── CA TAX CONTEXT (original logic below) ───────────────────────────────────
   const payroll = (inputs as any).estimatedPayroll ?? 0;
   const emp     = inputs.employees ?? 0;
   const lines: string[] = [];

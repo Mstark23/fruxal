@@ -27,7 +27,8 @@ export async function fetchDiagnosticContext(
   province:   string,
   industry:   string,
   tier:       DiagnosticTier,
-  language:   string
+  language:   string,
+  country:    "CA" | "US" = "CA"
 ): Promise<DiagnosticContext> {
 
   const [obligationsResult, leakResult, programResult, affiliateResult, benchmarkResult] =
@@ -47,16 +48,16 @@ export async function fetchDiagnosticContext(
         .order("annual_impact_max", { ascending: false })
         .limit(tier === "enterprise" ? 60 : tier === "business" ? 40 : 25),
 
-      // Government programs
+      // Government programs — filter by country via region column
       supabaseAdmin
         .from("affiliate_partners")
         .select("slug, name, name_fr, description, description_fr, annual_value_min, annual_value_max, category")
         .eq("is_government_program", true)
-        .or(`provinces.cs.{${province}},provinces.is.null`)
+        .in("region", country === "US" ? ["US"] : ["CA","CA-QC","CA-ON","CA-BC","CA-AB","ALL"])
         .order("priority_score", { ascending: false })
         .limit(20),
 
-      // Commercial affiliates
+      // Commercial affiliates — no country filter (tools like QuickBooks work everywhere)
       supabaseAdmin
         .from("affiliate_partners")
         .select("slug, name, name_fr, description, description_fr, category")
@@ -71,7 +72,7 @@ export async function fetchDiagnosticContext(
           .from("benchmark_aggregates")
           .select("metric_key, metric_name, metric_name_fr, effective_avg, effective_p75, unit, confidence, sample_size, lower_is_better")
           .eq("industry_slug", industry)
-          .or(`province.eq.${province},province.eq.ALL`)
+          .or(`province.eq.${province},province.eq.ALL,province.eq.${country}`)
           .order("sample_size", { ascending: false })
           .limit(10);
 

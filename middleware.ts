@@ -34,6 +34,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── Country detection — fruxal.com = US, fruxal.ca = CA ──────────────────
+  const host = req.headers.get("host") || "";
+  const isUSPlatform = host.includes("fruxal.com") && !host.includes("fruxal.ca");
+  const country = isUSPlatform ? "US" : "CA";
+
   // ── Rep portal — completely bypass ALL middleware logic, pass through raw ──
   // Must return NextResponse.next() with NO additional headers so Set-Cookie
   // from the verify route handler is never stripped.
@@ -79,6 +84,13 @@ export async function middleware(req: NextRequest) {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  // Set country cookie so client components and API routes can read it
+  response.cookies.set("fruxal_country", country, {
+    httpOnly: false,  // readable by client JS
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365, // 1 year
+  });
   return response;
 }
 

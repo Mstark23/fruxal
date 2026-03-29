@@ -15,10 +15,11 @@ import { FRUXAL_VOICE }          from "@/lib/ai/identity";
 
 export function buildSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
   const {
-    profile, province, annualRevenue, revenueSource,
+    profile, province, country, annualRevenue, revenueSource,
     employees, isFr, taxCtx, leakList, programList, benchmarkList,
     overdue, penaltyExposure,
   } = ctx;
+  if ((country ?? "CA") === "US") return buildUSSoloPrompts(ctx);
 
   const industry  = profile.industry_label || profile.industry || "business";
   const bizName   = profile.business_name  || "this business";
@@ -137,6 +138,111 @@ ${(() => {
 
 Return ONLY this JSON (no markdown fences):
 ${buildDiagnosticSchema("solo", 5)}`;
+
+  return { systemPrompt, userPrompt };
+}
+
+
+// =============================================================================
+// US SOLO — Sole proprietors, single-member LLCs, micro-businesses
+// =============================================================================
+function buildUSSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
+  const {
+    profile, province: state, annualRevenue, revenueSource,
+    employees, isFr, taxCtx, leakList, programList, benchmarkList,
+    overdue, penaltyExposure,
+  } = ctx;
+
+  const industry = profile.industry_label || profile.industry || "business";
+  const bizName  = profile.business_name  || "this business";
+  const structure = profile.structure     || "sole_proprietorship";
+  const { estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct } = ctx;
+
+  const systemPrompt = `${FRUXAL_VOICE}
+
+You are analyzing ${bizName}, a ${industry} operating in ${state} (US) as a ${structure}.
+Annual revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}).
+Employees: ${employees}.
+
+${taxCtx}
+
+─── THINK BEFORE YOU WRITE JSON ───────────────────────────────────────────────
+
+1. SELF-EMPLOYMENT TAX
+   SE tax is 15.3% on net earnings up to $168,600, then 2.9% Medicare above.
+   Revenue: $${(annualRevenue ?? 0).toLocaleString()}, EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()}
+   → Estimated SE tax burden? S-corp election (Form 2553) savings if revenue ≥ $60K?
+   → At this revenue, what is the reasonable W-2 salary vs distribution split?
+   → Document the annual SE tax saved with S-corp election after payroll costs.
+
+2. BUSINESS STRUCTURE
+   Currently: ${structure}.
+   ${(structure.includes("llc") || structure.includes("s_corp"))
+     ? "Already structured — optimize salary vs distribution split and document reasonable compensation."
+     : annualRevenue >= 60_000
+     ? `At $${annualRevenue.toLocaleString()}, LLC or S-corp election likely saves $3,000–$12,000/yr in SE tax. Model it.`
+     : "Below S-corp breakeven. Focus on deduction optimization."}
+
+3. DEDUCTIONS BEING MISSED
+   Does this ${industry} operator likely have:
+   - Home office (Section 280A — $5/sq ft simplified or actual)
+   - Vehicle (Section 179 / actual vs standard mileage $0.67/mi 2024)
+   - Health insurance premiums (100% deductible for self-employed — Schedule 1)
+   - SEP-IRA or Solo 401(k): up to $69,000/yr (2024) contribution
+   - Business use of phone, internet, software subscriptions
+   What is the estimated annual deduction impact at their marginal rate?
+
+4. SALES TAX NEXUS
+   Does this business sell goods/services across state lines?
+   → Economic nexus: $100K or 200 transactions triggers registration in most states (post-Wayfair).
+   → Penalty exposure if unregistered: back taxes + up to 25% penalties.
+
+5. GOVERNMENT PROGRAMS
+   Review programs below. Which apply to this ${industry} in ${state}?
+   WOTC, SBA microloans, Section 179, R&D credit, STEP grants — what is realistic total?
+
+6. BIGGEST LEVER
+   Single highest-dollar opportunity stated as a number before JSON.
+
+Only after this reasoning, produce the JSON report.
+───────────────────────────────────────────────────────────────────────────────
+
+GOVERNMENT PROGRAMS — include applicable slugs in program_slugs:
+${programList || "None matched"}
+
+LEAK DETECTORS — additional context:
+${leakList || "None"}
+
+INDUSTRY BENCHMARKS:
+${benchmarkList || "Use US SMB averages for this industry and state"}
+
+${buildQualityBar("solo")}
+
+${buildSolutionMatrix("solo", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false)}
+
+STRUCTURAL RULES:
+1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()}.
+2. Use USD. Reference IRS forms (Schedule C, Form 941, W-2, 1099-NEC), not CRA forms.
+3. Maximum 5 findings. No finding under $500 annual impact.
+4. second_order_effects is a PLAIN STRING — NOT an array.
+5. REQUIRED — totals, cpa_briefing, risk_matrix, benchmark_comparisons, exit_readiness, priority_sequence.
+6. MANDATORY WRITE ORDER: scores → savings_anchor → executive_summary → totals → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence → findings.
+RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
+
+  const userPrompt = `Analyze this US solo/micro business and return a complete JSON diagnostic report.
+
+PROFILE:
+- Industry:       ${industry}
+- State:          ${state}
+- Structure:      ${structure}
+- Annual revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource})
+- Gross margin:   ${grossMarginPct}%
+- Est. EBITDA:    $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource})
+- Employees:      ${employees}
+${estimatedPayroll > 0 ? `- Est. payroll:   $${estimatedPayroll.toLocaleString()}` : ""}
+- Has accountant: ${profile.has_accountant  ? "YES" : "NO"}
+- Does R&D:       ${profile.does_rd         ? "YES" : "NO"}
+`;
 
   return { systemPrompt, userPrompt };
 }

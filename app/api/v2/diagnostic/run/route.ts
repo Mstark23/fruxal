@@ -121,7 +121,8 @@ export async function POST(req: NextRequest) {
 
     const tier     = resolveTier(profile, business);
     const isFr     = language === "fr";
-    const province = profile.province || "ON";
+    const country  = (profile.country || "CA") as "CA" | "US";
+    const province = profile.province || (country === "US" ? "TX" : "ON");
     const employees = profile.employee_count ?? 0;
 
     // ── 2. Derived financials ─────────────────────────────────────────────
@@ -201,12 +202,13 @@ export async function POST(req: NextRequest) {
       province,
       profile.industry_slug || profile.industry || "",
       tier,
-      language
+      language,
+      country
     );
 
     // ── 4. Build prompts ──────────────────────────────────────────────────
     const promptInputs: PromptInputs = {
-      profile, tier, isFr, province, employees,
+      profile, tier, isFr, country, province, employees,
       annualRevenue,    revenueSource,
       grossMarginPct,   estimatedEBITDA,  ebitdaSource,
       estimatedPayroll, estimatedTaxDrag,
@@ -271,6 +273,7 @@ export async function POST(req: NextRequest) {
 
     const diagCtx = {
       profile,
+      country,
       province,
       annualRevenue,
       revenueSource,
