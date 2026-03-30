@@ -47,8 +47,8 @@ export async function findUserLeaks(userId: string): Promise<LeakLookupResult> {
     .single();
 
   const businessId = profile?.business_id || null;
-  const province = profile?.province || "QC";
-  const industry = profile?.industry_label || profile?.industry || "PME";
+  const province = profile?.province || "";
+  const industry = profile?.industry_label || profile?.industry || "Small Business";
 
   // ─── Status tracking map ───────────────────────────────
   const { data: statusRows } = await supabaseAdmin
@@ -241,7 +241,7 @@ export async function findUserLeaks(userId: string): Promise<LeakLookupResult> {
     const { data: generic } = await supabaseAdmin
       .from("provincial_leak_detectors")
       .select("*")
-      .eq("province", province)
+      .in("province", province ? [province, "ALL"] : ["ALL"])
       .eq("is_active", true)
       .order("annual_impact_max", { ascending: false });
 

@@ -58,7 +58,7 @@ export async function generateIntelligence(params: {
     p_business_id: params.businessId,
     p_user_id: params.userId || null,
     p_business_name: params.businessName || null,
-    p_province: params.province || "QC",
+    p_province: params.province || "",
     p_municipality: params.municipality || null,
     p_structure: params.structure || "sole_proprietor",
     p_is_incorporated: params.isIncorporated || false,

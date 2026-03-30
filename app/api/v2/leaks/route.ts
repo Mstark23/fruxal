@@ -36,9 +36,10 @@ export async function GET(req: NextRequest) {
       enrichedDetectors = await Promise.all(
         detectors.map(async (d) => {
           try {
+            const province = searchParams.get("province") || "";
             const partners = await getSmartPartners({
               leakCategory: d.category,
-              province: "QC",
+              province,
               industry,
               structure,
               employeeCount: employees,

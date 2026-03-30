@@ -68,7 +68,7 @@ function buildTaskPrompt(
 
 BUSINESS CONTEXT:
 - Industry: ${profile.industry || "small business"}
-- Province: ${profile.province || "QC"}
+- Province/State: ${profile.province || "N/A"}
 - Revenue: ~$${(((profile.annual_revenue ?? 0)) / 1000).toFixed(0)}K/year
 - Tier: ${cfg.context}
 - Language preference: ${isFR ? "French (respond in French)" : "English"}

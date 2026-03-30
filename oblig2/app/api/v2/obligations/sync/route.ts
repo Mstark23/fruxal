@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     } catch {}
 
     // ── Fallback: match obligation_rules to profile, upsert user_obligations ─
-    const province  = profile.province || "QC";
+    const province  = profile.province || "";
     const industry  = profile.industry_slug || profile.industry || "generic_small_business";
     const structure = profile.business_structure || null;
     const employees = profile.employee_count || 1;

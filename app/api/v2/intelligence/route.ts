@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       businessId: body.businessId,
       userId: token.sub,
       businessName: body.businessName,
-      province: body.province || "QC",
+      province: body.province || "",
       municipality: body.municipality,
       structure: body.structure || "sole_proprietor",
       isIncorporated: body.isIncorporated || false,

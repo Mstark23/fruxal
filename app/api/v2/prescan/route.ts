@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       monthlyRevenue: Math.max(0, Number(monthlyRevenue) || 0),
       employeeCount: Math.max(0, Math.floor(Number(employeeCount) || 0)),
       structure: structure || "sole_proprietor",
-      province: (province || "QC").toUpperCase(),
+      province: (province || "").toUpperCase(),
       municipality: body.municipality?.toLowerCase().trim(),
       businessName: body.businessName,
       fiscalYearEndMonth: body.fiscalYearEndMonth || 12,

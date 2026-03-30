@@ -97,6 +97,10 @@ export async function POST(req: NextRequest) {
       total_assets:          d.total_assets          ?? null,
       total_liabilities:     d.total_liabilities     ?? null,
 
+      // Country + province (override onboarding if provided from intake form)
+      country:               d.country               ?? undefined,
+      province:              d.province               ?? undefined,
+
       // Operations flags (override onboarding if provided)
       has_payroll:           d.has_payroll            ?? undefined,
       employee_count:        d.employee_count         ?? undefined,

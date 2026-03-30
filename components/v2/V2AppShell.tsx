@@ -9,10 +9,12 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLang } from "@/hooks/useLang";
 
 export function V2AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLang();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isChat = pathname?.includes("/chat");
@@ -40,7 +42,7 @@ export function V2AppShell({ children }: { children: React.ReactNode }) {
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            📊 Dashboard
+            📊 {t("Dashboard", "Tableau de bord")}
           </button>
           <button
             onClick={() => router.push("/v2/chat")}
@@ -50,7 +52,7 @@ export function V2AppShell({ children }: { children: React.ReactNode }) {
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            💬 AI Advisor
+            💬 {t("AI Advisor", "Conseiller IA")}
           </button>
         </div>
 
@@ -80,7 +82,7 @@ export function V2AppShell({ children }: { children: React.ReactNode }) {
               isDashboard ? "bg-white/10 text-white" : "text-gray-400"
             }`}
           >
-            📊 Dashboard
+            📊 {t("Dashboard", "Tableau de bord")}
           </button>
           <button
             onClick={() => { router.push("/v2/chat"); setMobileMenuOpen(false); }}
@@ -88,7 +90,7 @@ export function V2AppShell({ children }: { children: React.ReactNode }) {
               isChat ? "bg-white/10 text-white" : "text-gray-400"
             }`}
           >
-            💬 AI Advisor
+            💬 {t("AI Advisor", "Conseiller IA")}
           </button>
           <button
             onClick={() => { router.push("/settings"); setMobileMenuOpen(false); }}

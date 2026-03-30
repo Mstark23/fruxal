@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
             // Gap 2 fix: prescan_run_id as top-level column so dashboard API Path C can join on it
             prescan_run_id: prescanRunId,
             input_snapshot: {
-              province:          tags.province || 'QC',
+              province:          tags.province || '',
               industry:          tags.business_type || 'generic',
               structure:         tags.structure || 'sole_proprietor',
               revenue_band:      tags.revenue_band || null,
@@ -376,7 +376,7 @@ export async function POST(request: NextRequest) {
             obligation_categories: [],
             teaser_programs: [],
             hidden_program_count: 0,
-            province: tags.province || 'QC',
+            province: tags.province || '',
             industry: tags.business_type || 'generic',
             structure: tags.structure || 'sole_proprietor',
             tier: tier || 'solo',
@@ -397,7 +397,7 @@ export async function POST(request: NextRequest) {
               await supabase.from('prescan_results').insert({
                 prescan_run_id: prescanRunId,
                 user_id: realUserId || null,
-                province: tags.province || 'QC',
+                province: tags.province || '',
                 industry: tags.business_type || 'generic',
                 structure: tags.structure || 'sole_proprietor',
                 tier: tier || 'solo',

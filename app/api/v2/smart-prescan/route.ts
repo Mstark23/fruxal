@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
     const aRev = mRev * 12;
     const emp = employeeCount || 1;
     const sizeTier = body.size || (emp <= 1 && mRev < 15000 ? "solo" : emp <= 10 ? "small" : "growth");
-    const prov = answers.province || "QC";
+    const prov = answers.province || "";
     const provName = PROV[prov] || prov;
 
     // Load benchmarks
