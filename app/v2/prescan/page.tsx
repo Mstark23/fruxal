@@ -275,7 +275,7 @@ export default function PrescanPage() {
             <div className="space-y-6">
               <Question q="Check what applies — these flags directly change your results:" qfr="Cochez ce qui s'applique — ces indicateurs modifient directement vos résultats :" isFR={isFR} />
               <div className="space-y-2">
-                <FlagToggle on={answers.has_accountant} onClick={() => set("has_accountant", !answers.has_accountant)} label="I have an accountant or bookkeeper"  />
+                <FlagToggle on={answers.has_accountant} onClick={() => set("has_accountant", !answers.has_accountant)} label={answers.country === "US" ? "I have a CPA or bookkeeper" : "I have an accountant or bookkeeper"}  />
                 <FlagToggle on={answers.handles_data} onClick={() => set("handles_data", !answers.handles_data)} label="I collect customer data (emails, payments)" icon="" />
                 <FlagToggle on={answers.has_physical_location} onClick={() => set("has_physical_location", !answers.has_physical_location)} label="I have a physical office, store or warehouse"  />
                 <FlagToggle on={answers.exports_goods} onClick={() => set("exports_goods", !answers.exports_goods)} label={answers.country === "US" ? "I sell to clients outside the United States" : "I sell to clients outside Canada"} icon="" />

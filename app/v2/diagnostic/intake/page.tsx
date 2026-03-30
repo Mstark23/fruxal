@@ -9,6 +9,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "@/hooks/useLang";
+import { US_STATES, CA_PROVINCES } from "@/lib/country";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -501,12 +502,12 @@ export default function DiagnosticIntakePage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-ink-secondary mb-1">{t("Province", "Province")}</label>
+                <label className="block text-[11px] font-semibold text-ink-secondary mb-1">{data.country === "US" ? "State" : t("Province", "Province")}</label>
                 <select value={data.province} onChange={e => setData(d => ({ ...d, province: e.target.value }))}
                   className="w-full px-3 py-2.5 text-sm bg-white border border-border rounded-lg focus:outline-none focus:border-brand/50">
-                  {[["QC","Québec"],["ON","Ontario"],["BC","British Columbia"],["AB","Alberta"],["MB","Manitoba"],
-                    ["SK","Saskatchewan"],["NS","Nova Scotia"],["NB","New Brunswick"],["PE","PEI"],["NL","Newfoundland"]].map(([v,l]) => (
-                    <option key={v} value={v}>{l}</option>
+                  <option value="">{t("Select...", "Sélectionner...")}</option>
+                  {(data.country === "US" ? US_STATES : CA_PROVINCES).map(p => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
               </div>
@@ -642,7 +643,7 @@ export default function DiagnosticIntakePage() {
               <div className="grid grid-cols-1 gap-2">
                 <Toggle label="Conducts R&D or innovation activities (R&D credit eligible)" labelFr="Fait de la R&D ou des activités d'innovation (RS&DE)"
                   value={data.does_rd} onChange={v => setData(d => ({ ...d, does_rd: v }))} isFr={isFr} />
-                <Toggle label="Exports goods or services outside Canada" labelFr="Exporte des biens ou services hors Canada"
+                <Toggle label={data.country === "US" ? "Exports goods or services outside the United States" : "Exports goods or services outside Canada"} labelFr="Exporte des biens ou services hors Canada"
                   value={data.exports_goods} onChange={v => setData(d => ({ ...d, exports_goods: v }))} isFr={isFr} />
                 <Toggle label="Collects or stores customer personal data" labelFr="Collecte ou stocke des données personnelles clients"
                   value={data.handles_data} onChange={v => setData(d => ({ ...d, handles_data: v }))} isFr={isFr} />

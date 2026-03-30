@@ -211,7 +211,7 @@ export default function SoloDashboard() {
           {t("Get your financial health score and every detected leak with exact dollar amounts — in 5 minutes. Your rep handles the rest.", "Obtenez votre score de santé financière et chaque fuite avec les montants exacts — en 5 minutes. Votre rep s'occupe du reste.")}
         </p>
         <p className="text-[12px] text-ink-faint mb-6">
-          {t("Takes about 5 minutes · No accountant needed", "Environ 5 minutes · Sans comptable")}
+          {profile.country === "US" ? "Takes about 5 minutes · No CPA needed" : t("Takes about 5 minutes · No accountant needed", "Environ 5 minutes · Sans comptable")}
         </p>
         <button onClick={() => router.push("/v2/diagnostic")}
           className="px-7 py-3 text-[14px] font-bold text-white bg-brand rounded-xl hover:bg-brand/90 transition">

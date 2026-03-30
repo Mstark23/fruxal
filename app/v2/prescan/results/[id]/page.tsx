@@ -495,8 +495,9 @@ export default function PrescanResultsPage() {
               {(() => {
                 const scanUrl = typeof window !== "undefined" ? window.location.href : "";
                 const totalLeakAmt = s?.leak_range_min ?? 0;
+                const handle = (result.input_snapshot.country ?? "CA") === "US" ? "@fruxal" : "@fruxalca";
                 const twitterText = encodeURIComponent(
-                  `My business may be losing $${totalLeakAmt.toLocaleString()}/year. I found out with a free scan from @fruxalca → ${scanUrl}`
+                  `My business may be losing $${totalLeakAmt.toLocaleString()}/year. I found out with a free scan from ${handle} → ${scanUrl}`
                 );
                 const liText = encodeURIComponent(
                   `Just ran a free financial diagnostic on my business — found $${totalLeakAmt.toLocaleString()}/year in potential leaks I wasn't aware of. Free 3-min scan: ${scanUrl}`
