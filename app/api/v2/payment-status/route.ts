@@ -12,9 +12,10 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-12-18.acacia" as any,
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-12-18.acacia" as any });
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
     // Check subscription still active if applicable
     if (progress.payment_status === "active" && progress.stripe_subscription_id) {
       try {
-        const sub = await stripe.subscriptions.retrieve(progress.stripe_subscription_id);
+        const sub = await getStripe().subscriptions.retrieve(progress.stripe_subscription_id);
         if (sub.status !== "active" && sub.status !== "trialing") {
           // Subscription lapsed
           await supabase
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Retrieve the checkout session from Stripe
-    const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
+    const checkoutSession = await getStripe().checkout.sessions.retrieve(sessionId);
 
     if (checkoutSession.payment_status !== "paid") {
       return NextResponse.json({ error: "Payment not completed", paid: false }, { status: 400 });

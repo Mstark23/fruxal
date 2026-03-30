@@ -13,9 +13,10 @@ import Stripe from "stripe";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20" as any,
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" as any });
+}
 
 // Map plan name → businesses.tier value the dashboard resolver reads
 const PLAN_TO_TIER: Record<string, string> = {
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
     // ── Signature verification ────────────────────────────────────────────
     if (process.env.STRIPE_WEBHOOK_SECRET && sig) {
       try {
-        event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        event = getStripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
       } catch (err: any) {
         console.error("[Webhook] Signature verification failed:", err.message);
         return NextResponse.json({ error: "Invalid signature" }, { status: 400 });

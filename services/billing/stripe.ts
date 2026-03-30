@@ -9,9 +9,10 @@
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-06-20" as any,
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" as any });
+}
 
 export const PLANS: Record<string, any> = {
   free: {
@@ -87,7 +88,7 @@ export async function getCurrentPlan(businessId: string): Promise<{
   }
 
   try {
-    const sub = await stripe.subscriptions.retrieve(business.stripe_subscription_id);
+    const sub = await getStripe().subscriptions.retrieve(business.stripe_subscription_id);
     return {
       plan: (business.tier as "free" | "solo" | "pro" | "business" | "growth" | "team") || "free",
       status: sub.status,
@@ -128,7 +129,7 @@ export async function createCheckout(
   let customerId = business?.stripe_customer_id;
 
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    const customer = await getStripe().customers.create({
       email: user?.email || undefined,
       name: business?.name || user?.name || undefined,
       metadata: { businessId, userId },
@@ -142,7 +143,7 @@ export async function createCheckout(
   }
 
   // Create checkout session
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
@@ -171,7 +172,7 @@ export async function createPortalSession(
 
   if (!business?.stripe_customer_id) throw new Error("No Stripe customer found");
 
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: business.stripe_customer_id,
     return_url: returnUrl,
   });

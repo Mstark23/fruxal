@@ -16,9 +16,10 @@ import { getCountryFromHost } from "@/lib/country";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-12-18.acacia" as any,
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-12-18.acacia" as any });
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
     let customerId = progress?.stripe_customer_id;
 
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email: userEmail || undefined,
         metadata: { userId, source: "fruxal-v2" },
       });
@@ -199,7 +200,7 @@ export async function POST(req: NextRequest) {
     (sessionConfig as any).billing_address_collection = "required";
     (sessionConfig as any).customer_update = { address: "auto", name: "auto" };
 
-    const checkoutSession = await stripe.checkout.sessions.create(sessionConfig);
+    const checkoutSession = await getStripe().checkout.sessions.create(sessionConfig);
 
     // Sync businesses.tier immediately — don't wait for Stripe webhook
     // This ensures the user sees the correct dashboard right after payment
