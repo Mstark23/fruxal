@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     // Find the user's pipeline → engagement
     const { data: pipe } = await supabaseAdmin
       .from("tier3_pipeline")
-      .select("diagnostic_id")
+      .select("id, diagnostic_id")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)

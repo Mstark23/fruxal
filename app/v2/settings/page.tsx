@@ -24,6 +24,7 @@ interface ProfileData {
   industry: string;
   structure: string;
   province: string;
+  country: string;
   city: string;
   monthly_revenue: string;
   employee_count: string;

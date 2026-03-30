@@ -25,6 +25,7 @@ interface OverviewData {
   tier3:    { totalDiagnostics:number; pipelineValue:number; byStatus:Record<string,number>; feesThisMonth:number };
   contingency?: { assigned:number; in_engagement:number; savings_confirmed:number; commissions_pending:number };
   intelligence?: { patternsDiscovered:number; patternsAbsorbed:number; lastRun:string|null; topIndustries:string[] };
+  execution?: { totalPlaybooks:number; queued:number; inProgress:number; confirmed:number; totalRecovered:number };
   system:   { lastUpdated:string };
 }
 

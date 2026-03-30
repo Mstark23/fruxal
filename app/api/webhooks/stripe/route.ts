@@ -155,9 +155,9 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        case "payment_link.completed": {
+        case "payment_link.completed" as any: {
           // Handle fruxal_invoices payment via payment link
-          const session = event.data.object as any;
+          const session = (event as any).data.object as any;
           const pipelineId = session.metadata?.pipeline_id;
           const invoiceNum  = session.metadata?.invoice_num;
           if (pipelineId) {
