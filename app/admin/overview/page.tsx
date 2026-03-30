@@ -25,7 +25,7 @@ interface OverviewData {
   tier3:    { totalDiagnostics:number; pipelineValue:number; byStatus:Record<string,number>; feesThisMonth:number };
   contingency?: { assigned:number; in_engagement:number; savings_confirmed:number; commissions_pending:number };
   intelligence?: { patternsDiscovered:number; patternsAbsorbed:number; lastRun:string|null; topIndustries:string[] };
-  execution?: { totalPlaybooks:number; queued:number; inProgress:number; confirmed:number; totalRecovered:number };
+  execution?: { totalPlaybooks:number; queued:number; unassigned:number; in_progress:number; inProgress?:number; confirmed:number; confirmed_count:number; totalRecovered:number; total_value:number; confirmed_value:number; fruxal_fee:number; quick_wins?:number };
   system:   { lastUpdated:string };
 }
 
@@ -315,7 +315,7 @@ export default function AdminOverviewPage() {
                 <p className="text-[15px] font-bold text-[#1B3A2D]">{fmt(exec.fruxal_fee)}</p>
               </div>
             </div>
-            {exec.quick_wins > 0 && (
+            {(exec.quick_wins ?? 0) > 0 && (
               <p className="text-[11px] mt-3" style={{ color: "#2D7A50" }}>
                 ⚡ {exec.quick_wins} quick win{exec.quick_wins !== 1 ? "s" : ""} unactioned — assign to accountant
               </p>
