@@ -126,9 +126,13 @@ function RegisterForm() {
 
         {/* Google OAuth — PRIMARY CTA */}
         <button
-          onClick={() => {
-            const dest = prescanRunId ? `/v2/dashboard?prescanRunId=${prescanRunId}` : "/v2/dashboard";
-            signIn("google", { callbackUrl: dest });
+          onClick={async () => {
+            try {
+              const dest = prescanRunId ? `/v2/dashboard?prescanRunId=${prescanRunId}` : "/v2/dashboard";
+              await signIn("google", { callbackUrl: dest });
+            } catch {
+              setError("Google sign-in is not available right now. Please use email below.");
+            }
           }}
           className="w-full flex items-center justify-center gap-3 py-3.5 bg-white border border-border rounded-sm text-sm font-semibold text-ink hover:bg-bg-section hover:border-border-focus transition shadow-sm"
         >
