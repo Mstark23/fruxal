@@ -467,8 +467,10 @@ export async function POST(req: NextRequest) {
         diagnostic_report_id:  reportId,
         created_at:            new Date().toISOString(),
       }));
-      try { // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
-    await supabaseAdmin.from("detected_leaks").insert(leakRows); } catch { /* non-fatal */ }
+      try {
+        const { error: leakErr } = await supabaseAdmin.from("detected_leaks").insert(leakRows);
+        if (leakErr) console.error("[Diagnostic:Run] detected_leaks insert failed:", leakErr.message);
+      } catch (e: any) { console.error("[Diagnostic:Run] detected_leaks insert error:", e.message); }
     }
 
     // ── 9. Generate execution playbooks in background (non-blocking) ────────
@@ -530,7 +532,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 9g. Rebuild timeline (non-blocking)
-    buildTimeline(businessId, userId).catch(() => {});
+    buildTimeline(businessId, userId).catch((e) => console.warn('[Diagnostic] timeline build failed:', e.message));
 
     // ── 9h. Contribute anonymized metrics to benchmark flywheel (non-blocking) ──
     // Strips all PII — only stores industry+province+revenue_band+metric_value.

@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
         leakTotal,
         clientDashUrl,
       ),
-    ]).catch(() => {}); // non-fatal
+    ]).catch((e) => { console.warn("[assign-rep] notification failed:", e.message); });
 
     return NextResponse.json({
       success: true,

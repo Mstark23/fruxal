@@ -166,7 +166,7 @@ export async function PATCH(req: NextRequest) {
                 await supabaseAdmin.from("tier3_confirmed_findings")
                   .update({ confirmed_amount: Number(confirmed_amount), confidence_note: "Confirmed by accountant" })
                   .eq("id", existing.id)
-                  .catch(() => {});
+                  .catch((e: any) => console.error("[Accountant:Queue] confirmed_findings update failed:", e.message));
               } else {
                 await supabaseAdmin.from("tier3_confirmed_findings").insert({
                   engagement_id:    eng.id,
@@ -177,7 +177,7 @@ export async function PATCH(req: NextRequest) {
                   estimated_high:   pb.amount_recoverable || 0,
                   confirmed_amount: Number(confirmed_amount),
                   confidence_note:  "Confirmed by accountant",
-                }).catch(() => {});
+                }).catch((e: any) => console.error("[Accountant:Queue] confirmed_findings insert failed:", e.message));
               }
             }
           }
@@ -214,7 +214,7 @@ export async function PATCH(req: NextRequest) {
     <p style="font-size:13px;color:#8E8C85;margin:0">Your Fruxal team will continue working on the remaining findings. You'll receive an update as each one is confirmed.</p>
   </div>
 </div></body></html>`,
-            }).catch(() => {});
+            }).catch((e: any) => console.warn("[Accountant:Queue] client notification failed:", e.message));
           }
 
           // Notify admin if all done
@@ -230,7 +230,7 @@ export async function PATCH(req: NextRequest) {
               company: pipe?.company_name || "Client",
               amount:  totalConfirmed,
               extra:   `Fruxal fee: $${Math.round(totalConfirmed * 0.12).toLocaleString()}`,
-            }).catch(() => {});
+            }).catch((e: any) => console.warn("[Accountant:Queue] admin notification failed:", e.message));
           }
         }
       } catch { /* non-fatal */ }

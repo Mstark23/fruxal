@@ -349,7 +349,7 @@ export async function POST(request: NextRequest) {
               industry: run?.industry_slug || undefined,
               score,
               link: `${baseUrl}/admin/tier3`,
-            }).catch(() => {});
+            }).catch((e: any) => console.warn("[Register] Admin notify failed:", e.message));
             await fetch(baseUrl + "/api/admin/assign-rep", {
                 method: "POST",
                 headers: {
@@ -361,7 +361,7 @@ export async function POST(request: NextRequest) {
                   repId: rep.id,
                   notes: `Auto-assigned at registration. Lead score: ${score}. Prescan: ${prescanRunId}.`,
                 }),
-              }).catch(() => {});
+              }).catch((e: any) => console.warn("[Register] Rep auto-assign failed:", e.message));
             }
           }
         } catch { /* non-fatal — never block registration */ }
@@ -374,7 +374,7 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ referralCode, newUserId: userId }),
-      }).catch(() => {});
+      }).catch((e: any) => console.warn("[Register] Referral tracking failed:", e.message));
     }
 
     // Send welcome email (non-blocking)
