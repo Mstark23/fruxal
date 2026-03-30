@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
 
       // Get coach evaluation first (fast, structured)
       const coachRes = await client.messages.create({
-        model: "claude-sonnet-4-5-20251029",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 300,
         system: buildCoachSystem(),
         messages: [
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
 
       // Get prospect response
       const prospectRes = await client.messages.create({
-        model: "claude-sonnet-4-5-20251029",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 120,
         system: buildProspectSystem(persona, scenario, difficulty),
         messages: [

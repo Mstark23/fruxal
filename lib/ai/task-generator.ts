@@ -128,7 +128,7 @@ export async function generateTasksFromFindings(
     const prompt = buildTaskPrompt(findings, profile, tier, language);
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20251029",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 2000,
       system:
         "You are a financial efficiency expert. Output ONLY valid JSON. No markdown, no preamble, no explanation. Just the JSON object.",

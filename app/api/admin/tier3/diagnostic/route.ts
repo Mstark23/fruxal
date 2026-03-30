@@ -114,7 +114,7 @@ Categories to use: tax_structure, vendor_procurement, payroll_hr, banking_treasu
 Calculate totalEstimatedLow/High as sum of all leaks. feeRangeLow/High = 12% of total. highConfidenceCount = count of HIGH leaks.`;
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20251029",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 4000,
       messages: [{ role: "user", content: prompt }],
     });

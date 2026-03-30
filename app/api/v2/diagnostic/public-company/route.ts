@@ -307,7 +307,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-5-20251029",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 10000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
@@ -330,7 +330,7 @@ export async function POST(req: NextRequest) {
     const resultJson = {
       ...aiResult,
       fmp_snapshot: fmpData,
-      model_used: "claude-sonnet-4-5-20251029",
+      model_used: "claude-sonnet-4-20250514",
       prompt_tokens: promptTokens,
       completion_tokens: completionTokens,
       analysis_duration_ms: duration,

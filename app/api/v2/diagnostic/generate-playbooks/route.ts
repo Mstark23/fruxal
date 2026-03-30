@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     const systemPrompt = buildExecutionPrompt(findings, ctx, language);
 
     const response = await anthropic.messages.create({
-      model:      "claude-sonnet-4-5-20251029",
+      model:      "claude-sonnet-4-20250514",
       max_tokens: 8000,
       messages:   [{ role: "user", content: "Generate the execution playbooks for all findings as a JSON array." }],
       system:     systemPrompt,

@@ -174,7 +174,7 @@ Generate 8-12 high-quality findings specific to ${businessName}. Calculate all d
 RESPOND WITH ONLY VALID JSON.`;
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20251029",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 8000,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],

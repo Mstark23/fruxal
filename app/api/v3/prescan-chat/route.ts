@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     
     // Call Claude API with language-aware system prompt
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20251029',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1500, // Increased: final summary + tags + run_analysis needs room
       system: buildSystemPrompt(lang || "en", prefilledIndustry || "", country),
       messages,
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
           ];
           
           const followUpResponse = await anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20251029',
+            model: 'claude-sonnet-4-20250514',
             max_tokens: 512,
             system: buildSystemPrompt(lang || 'en', '', country),
             messages: followUpMessages,
@@ -469,7 +469,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error: any) {
-    console.error('❌ Prescan chat error:', error?.message);
+    console.error('❌ Prescan chat error:', error?.message, error?.status, error?.type, error?.stack?.split('\n').slice(0, 3).join('\n'));
 
     const friendlyMessage = "I'm having trouble right now. Please try again in a moment.";
 
