@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { company, name, email, phone, revenue, industry, province, message, lang } = body;
+    const { company, name, email, phone, revenue, industry, province, country, message, lang } = body;
     if (!company || !name || !email || !revenue) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }

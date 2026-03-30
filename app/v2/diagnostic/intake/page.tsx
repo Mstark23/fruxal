@@ -679,6 +679,10 @@ export default function DiagnosticIntakePage() {
                 value={data.shareholder_agreements} onChange={v => setData(d => ({ ...d, shareholder_agreements: v }))} isFr={isFr} />
               {data.country === "CA" && <Toggle label="Has a Capital Dividend Account (CDA) balance" labelFr="A un compte de dividende en capital (CDC)"
                 value={data.has_cda_balance} onChange={v => setData(d => ({ ...d, has_cda_balance: v }))} isFr={isFr} />}
+              {data.country === "US" && <Toggle label="Currently structured as S-Corp (vs C-Corp or LLC)"
+                value={data.is_scorp} onChange={v => setData(d => ({ ...d, is_scorp: v }))} isFr={false} />}
+              {data.country === "US" && <Toggle label="Has accumulated retained earnings / E&P over $250K"
+                value={data.has_accumulated_ep} onChange={v => setData(d => ({ ...d, has_accumulated_ep: v }))} isFr={false} />}
             </div>
 
             <div className="bg-white border border-border-light rounded-xl p-4 space-y-3">
@@ -723,7 +727,7 @@ export default function DiagnosticIntakePage() {
                   placeholder="e.g. 2022" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <MoneyInput label="R&D credit claimed last year" labelFr="Crédit R&D réclamé l'an dernier"
+                <MoneyInput label={data.country === "US" ? "R&D credit claimed last year (Section 41)" : "SR&ED credit claimed last year"} labelFr="Crédit RS&DE réclamé l'an dernier"
                   value={data.sred_claimed_last_year} onChange={v => setData(d => ({ ...d, sred_claimed_last_year: v }))} isFr={isFr} />
                 {data.country === "CA" && <MoneyInput label="RDTOH balance" labelFr="Solde IMRTD"
                   value={data.rdtoh_balance} onChange={v => setData(d => ({ ...d, rdtoh_balance: v }))} isFr={isFr} />}

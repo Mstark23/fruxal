@@ -6,14 +6,9 @@
 // =============================================================================
 
 import { useState, useEffect } from "react";
+import { getCountryFromCookie, US_STATES, CA_PROVINCES } from "@/lib/country";
 
 const CALENDLY = process.env.NEXT_PUBLIC_ENTERPRISE_CALENDLY_URL || "https://calendly.com/admin-fruxal/30min";
-
-const PROVINCES = [
-  "Alberta","British Columbia","Manitoba","New Brunswick",
-  "Newfoundland","Nova Scotia","Ontario","PEI",
-  "Quebec","Saskatchewan",
-];
 
 const REVENUE_BANDS = [
   { value: "1m_3m",  label: "$1M – $3M" },
@@ -27,9 +22,13 @@ export default function EnterprisePage() {
   const isFR = lang === "fr";
   const t = (en: string, fr: string) => isFR ? fr : en;
 
+  const country = typeof document !== "undefined" ? getCountryFromCookie() : "CA";
+  const isUS = country === "US";
+  const regions = isUS ? US_STATES : CA_PROVINCES;
+
   const [form, setForm] = useState({
     company: "", name: "", email: "", phone: "",
-    revenue: "", industry: "", province: "", message: "",
+    revenue: "", industry: "", province: "", country: country, message: "",
   });
   const [state, setState] = useState<"idle"|"submitting"|"done"|"error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -254,12 +253,12 @@ export default function EnterprisePage() {
                     </div>
                     <div>
                       <label className="text-[11px] font-semibold text-[#8E8C85] uppercase tracking-wider block mb-1.5">
-                        {t("Province","Province")}
+                        {isUS ? "State" : t("Province","Province")}
                       </label>
                       <select value={form.province} onChange={e => set("province", e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-[#F9F8F6] border border-[#E8E6E1] rounded-lg text-[14px] text-[#1a1a2e] outline-none focus:border-[#1B3A2D] focus:ring-[3px] focus:ring-[#1B3A2D]/8 transition">
                         <option value="">{t("Select","Choisir")}</option>
-                        {PROVINCES.map(p => <option key={p}>{p}</option>)}
+                        {regions.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                       </select>
                     </div>
                     <div className="col-span-2">
@@ -321,7 +320,7 @@ export default function EnterprisePage() {
             <div className="flex items-center justify-center gap-6 mt-5 flex-wrap">
               {[
                 t("NDA on day 1","NDA dès le jour 1"),
-                t("Canadian data servers","Serveurs canadiens"),
+                isUS ? "SOC 2 compliant servers" : t("Canadian data servers","Serveurs canadiens"),
                 t("No upfront fees","Aucun frais initial"),
               ].map(item => (
                 <span key={item} className="text-[11px] text-[#8E8C85] font-medium">{item}</span>
@@ -385,7 +384,9 @@ export default function EnterprisePage() {
             ],
             [
               t('"I\'m not comfortable sharing financial data."','"Je ne suis pas à l\'aise avec le partage de données."'),
-              t("NDA from the first call. All data on encrypted, PIPEDA-compliant Canadian servers. You can walk away at any point before signing.","NDA dès le premier appel. Toutes les données sur des serveurs canadiens chiffrés, conformes à la LPRPDE. Vous pouvez partir avant de signer.")
+              isUS
+                ? "NDA from the first call. All data on encrypted, SOC 2 compliant servers. You can walk away at any point before signing."
+                : t("NDA from the first call. All data on encrypted, PIPEDA-compliant Canadian servers. You can walk away at any point before signing.","NDA dès le premier appel. Toutes les données sur des serveurs canadiens chiffrés, conformes à la LPRPDE. Vous pouvez partir avant de signer.")
             ],
           ].map(([q, a]) => (
             <details key={q as string} className="group bg-white rounded-xl border border-[#E8E6E1] overflow-hidden">
