@@ -52,6 +52,14 @@ export function emailTemplate(title: string, body: string, ctaText: string, ctaU
 </div></body></html>`;
 }
 
+/** CASL / CAN-SPAM compliant unsubscribe footer for marketing emails */
+export function caslFooter(appUrl: string, email: string, source: string = "general"): string {
+  const unsub = `${appUrl}/api/v2/unsubscribe?email=${encodeURIComponent(email)}&source=${source}`;
+  return `<p style="font-size:10px;color:#B5B3AD;margin-top:20px;text-align:center">
+    You're receiving this because you used Fruxal. <a href="${unsub}" style="color:#B5B3AD;text-decoration:underline">Unsubscribe</a>
+  </p>`;
+}
+
 export async function sendScanComplete(to: string, businessName: string, totalLeaking: number, leakCount: number, urgentCount: number): Promise<boolean> {
   return sendEmail({
     to,

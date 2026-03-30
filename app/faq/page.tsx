@@ -4,6 +4,13 @@
 // =============================================================================
 
 import { useState } from "react";
+import { getCountryFromCookie } from "@/lib/country";
+
+const isUS = typeof document !== "undefined" && getCountryFromCookie() === "US";
+const prof = isUS ? "CPA" : "accountant";
+const agency = isUS ? "IRS" : "CRA";
+const programs = isUS ? "SBA loans, R&D tax credits, WOTC, and state-level incentives" : "SR&ED, CDAP, provincial hiring credits, export programs, and industry-specific funding";
+const region = isUS ? "state" : "provincial";
 
 const SECTIONS = [
   {
@@ -11,7 +18,7 @@ const SECTIONS = [
     items: [
       {
         q: "What is Fruxal?",
-        a: "Fruxal is a Canadian business recovery service for small and mid-size businesses. It finds invisible revenue leaks — money leaving your business through inefficiencies, missed deductions, or overpriced services — then assigns a recovery expert who handles everything on your behalf. You only pay when money is actually recovered.",
+        a: `Fruxal is a business recovery service for small and mid-size businesses. It finds invisible revenue leaks — money leaving your business through inefficiencies, missed deductions, or overpriced services — then assigns a recovery expert who handles everything on your behalf. You only pay when money is actually recovered.`,
       },
       {
         q: "Who is Fruxal built for?",
@@ -53,7 +60,7 @@ const SECTIONS = [
     items: [
       {
         q: "How does the recovery service work?",
-        a: "Once your intake is complete, a Fruxal recovery expert is assigned to your file. They review your diagnostic findings, book a call with you to confirm priorities, then our accountant handles everything — CRA correspondence, vendor renegotiations, grant applications, and follow-through. You don't lift a finger. We take 12% of confirmed savings. If we recover nothing, you pay nothing.",
+        a: `Once your intake is complete, a Fruxal recovery expert is assigned to your file. They review your diagnostic findings, book a call with you to confirm priorities, then our ${prof} handles everything — ${agency} correspondence, vendor renegotiations, program applications, and follow-through. You don't lift a finger. We take 12% of confirmed savings. If we recover nothing, you pay nothing.`,
       },
       {
         q: "What is the Recovery Counter?",
@@ -61,7 +68,7 @@ const SECTIONS = [
       },
       {
         q: "What does my rep actually do?",
-        a: "Your rep manages your entire recovery engagement. They contact CRA on your behalf, negotiate with vendors, apply for government grants, and track every dollar recovered. You'll receive updates as amounts are confirmed. For questions or check-ins, you can book a call directly through your rep's calendar link on your dashboard.",
+        a: `Your rep manages your entire recovery engagement. They contact ${agency} on your behalf, negotiate with vendors, apply for government programs, and track every dollar recovered. You'll receive updates as amounts are confirmed. For questions or check-ins, you can book a call directly through your rep's calendar link on your dashboard.`,
       },
     ],
   },
@@ -96,7 +103,7 @@ const SECTIONS = [
     items: [
       {
         q: "Does Fruxal identify grants I might qualify for?",
-        a: "Yes. Every diagnostic includes a government programs section that matches your business to federal and provincial grants, subsidies, and tax credits you may be eligible for. This includes programs like SR&ED (Scientific Research & Experimental Development tax credits), CDAP (Canada Digital Adoption Program), provincial hiring credits, export programs, and industry-specific funding. Fruxal shows the maximum funding amount and eligibility summary for each program.",
+        a: `Yes. Every diagnostic includes a government programs section that matches your business to federal and ${region} grants, subsidies, and tax credits you may be eligible for. This includes programs like ${programs}. Fruxal shows the maximum funding amount and eligibility summary for each program.`,
       },
       {
         q: "What is SR&ED and do I qualify?",
@@ -108,7 +115,7 @@ const SECTIONS = [
       },
       {
         q: "Can Fruxal help me apply for grants?",
-        a: "Yes — grant applications are part of the recovery service. If your diagnostic identifies a program you qualify for, your rep and accountant handle the application process. For businesses not yet in a recovery engagement, Fruxal identifies and explains which programs you likely qualify for so you understand what's available.",
+        a: `Yes — program applications are part of the recovery service. If your diagnostic identifies a program you qualify for, your rep and ${prof} handle the application process. For businesses not yet in a recovery engagement, Fruxal identifies and explains which programs you likely qualify for so you understand what's available.`,
       },
     ],
   },
@@ -121,7 +128,7 @@ const SECTIONS = [
       },
       {
         q: "What's included for free vs. paid?",
-        a: "Free forever: prescan, financial health score, full leak report, AI advisor chat, obligations tracker, deadlines and compliance alerts, government programs directory, industry benchmarks, and monthly brief. The recovery service (assigned rep, CRA correspondence, grant applications, vendor renegotiation) operates on 12% contingency — no cost unless we recover money.",
+        a: `Free forever: prescan, financial health score, full leak report, AI advisor chat, obligations tracker, deadlines and compliance alerts, government programs directory, industry benchmarks, and monthly brief. The recovery service (assigned rep, ${agency} correspondence, program applications, vendor renegotiation) operates on 12% contingency — no cost unless we recover money.`,
       },
       {
         q: "Why is it free?",

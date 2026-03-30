@@ -179,7 +179,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     </div>
   </div>
   <p style="text-align:center;margin-top:16px;font-size:11px;color:#B5B3AD">
-    Fruxal · <a href="https://fruxal.ca" style="color:#B5B3AD;text-decoration:none">fruxal.ca</a>
+    Fruxal · <a href="${appUrl}" style="color:#B5B3AD;text-decoration:none">${appUrl.replace("https://","")}</a>
   </p>
 </div></body></html>`;
 
