@@ -26,7 +26,9 @@ import { buildTimeline }         from "@/lib/ai/timeline-builder";
 import { contributeBenchmarks } from "@/lib/benchmark/contribute";
 import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+function getAnthropic() {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
 export const maxDuration = 120;
 
 // Per-user rate limiter for diagnostic runs
@@ -382,7 +384,7 @@ export async function POST(req: NextRequest) {
     let aiResult: any;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await getAnthropic().messages.create({
         model:      "claude-sonnet-4-20250514",
         max_tokens: tierMaxTokens(tier),
         system:     systemPrompt,

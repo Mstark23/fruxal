@@ -5,7 +5,8 @@ import { generateMagicToken } from "@/lib/accountant-auth";
 import { sendEmail } from "@/services/email/service";
 
 export async function POST(req: NextRequest) {
-  const { email } = await req.json();
+  try {
+  const { email } = await req.json().catch(() => ({ email: null }));
   if (!email) return NextResponse.json({ success: false, error: "Email required" }, { status: 400 });
 
   const { data: accountant } = await supabaseAdmin
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
   const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
   const link   = `${appUrl}/accountant/verify?token=${encodeURIComponent(token)}`;
 
-  await sendEmail({
+  const sent = await sendEmail({
     to:      accountant.email,
     subject: "Your Fruxal accountant login link",
     html: `<!DOCTYPE html><html><body style="font-family:sans-serif;background:#f7f8fa;padding:40px 20px">
@@ -48,5 +49,10 @@ export async function POST(req: NextRequest) {
 </div></body></html>`,
   });
 
+  if (!sent) console.error("[Accountant:Auth] Failed to send magic link to:", accountant.email);
   return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("[Accountant:Auth:Send]", err.message);
+    return NextResponse.json({ success: false, error: "Failed to send login link" }, { status: 500 });
+  }
 }
