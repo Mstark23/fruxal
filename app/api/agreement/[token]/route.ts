@@ -146,6 +146,23 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
       }
     } catch { /* non-fatal */ }
 
+    // Auto-generate execution playbooks for accountant queue (non-blocking)
+    if (pipe.report_id) {
+      const playbookUrl = `${appUrl}/api/v2/diagnostic/generate-playbooks`;
+      fetch(playbookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.CRON_SECRET || ""}`,
+        },
+        body: JSON.stringify({
+          reportId: pipe.report_id,
+          businessId: pipe.business_id || pipe.id,
+          language: "en",
+        }),
+      }).catch(e => console.warn("[Agreement] playbook generation failed (non-blocking):", e.message));
+    }
+
     // Notify rep
     if (rep?.email) {
       await sendEmail({
