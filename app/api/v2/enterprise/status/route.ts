@@ -11,6 +11,7 @@ import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {

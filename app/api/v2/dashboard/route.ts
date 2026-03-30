@@ -14,6 +14,7 @@ import { findUserLeaks } from "@/lib/find-user-leaks";
 import crypto from "crypto";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
+export const dynamic = "force-dynamic";
 
 // Safe import — leak-explanations may not be deployed yet
 let getLeakExplanation: any = null;

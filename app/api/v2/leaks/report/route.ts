@@ -29,6 +29,7 @@ function stripAccents(t: string): string {
   return t.replace(/[^\x00-\x7F]/g, ch => ACCENT_MAP[ch] || ch);
 }
 
+export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

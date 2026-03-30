@@ -84,6 +84,7 @@ function getTier(days: number): Tier {
   return "long_term";
 }
 
+export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

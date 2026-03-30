@@ -421,7 +421,7 @@ export default function PrescanResultsPage() {
                 <div className="space-y-2 mb-4">
                   {[
                     { n: "1", en: "We assign you a recovery expert", fr: "On vous assigne un expert en récupération" },
-                    { n: "2", en: result.input_snapshot.country === "US" ? "Our CPA handles the IRS filings and claims" : "Our accountant handles the CRA filings and claims", fr: "Notre comptable s'occupe des réclamations auprès de l'ARC" },
+                    { n: "2", en: (result.input_snapshot.country ?? "CA") === "US" ? "Our CPA handles the IRS filings and claims" : "Our accountant handles the CRA filings and claims", fr: "Notre comptable s'occupe des réclamations auprès de l'ARC" },
                     { n: "3", en: "You pay nothing until money is recovered", fr: "Vous ne payez rien avant récupération" },
                     { n: "4", en: "We take 12% of what we get back. You keep the rest.", fr: "On prend 12% de ce qu'on récupère. Vous gardez le reste." },
                   ].map(s => (
@@ -537,8 +537,8 @@ export default function PrescanResultsPage() {
               </div>
               <div className="w-px h-6 bg-white/[0.04]" />
               <div className="text-center">
-                <p className="text-white/30 text-sm font-bold">{result.input_snapshot.country === "US" ? "50" : "10"}</p>
-                <p className="text-white/10 text-[9px]">{result.input_snapshot.country === "US" ? "states" : "provinces"}</p>
+                <p className="text-white/30 text-sm font-bold">{(result.input_snapshot.country ?? "CA") === "US" ? "50" : "10"}</p>
+                <p className="text-white/10 text-[9px]">{(result.input_snapshot.country ?? "CA") === "US" ? "states" : "provinces"}</p>
               </div>
               <div className="w-px h-6 bg-white/[0.04]" />
               <div className="text-center">

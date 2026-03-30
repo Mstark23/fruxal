@@ -20,6 +20,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     // ─── Auth ────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const maxDuration = 30;
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
