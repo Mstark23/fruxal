@@ -33,13 +33,16 @@ export async function PATCH(
       changes.push(`Plan → ${newPlan}`);
     }
 
-    // ─── Update province ───
+    // ─── Update province/state ───
     if (province) {
-      if (!["ON", "QC", "BC", "AB", "MB", "SK", "NB", "NS", "PE", "NL", "NT", "YT", "NU"].includes(province)) {
-        return NextResponse.json({ success: false, error: "Invalid province code" }, { status: 400 });
+      const CA_PROVINCES = ["ON","QC","BC","AB","MB","SK","NB","NS","PE","NL","NT","YT","NU"];
+      const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
+      if (!CA_PROVINCES.includes(province) && !US_STATES.includes(province)) {
+        return NextResponse.json({ success: false, error: "Invalid province/state code" }, { status: 400 });
       }
-      await supabaseAdmin.from("business_profiles").update({ province }).eq("user_id", id);
-      changes.push(`Province → ${province}`);
+      const country = US_STATES.includes(province) ? "US" : "CA";
+      await supabaseAdmin.from("business_profiles").update({ province, country }).eq("user_id", id);
+      changes.push(`Province/State → ${province} (${country})`);
     }
 
     // ─── Update industry ───

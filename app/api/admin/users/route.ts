@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
       safe(async () => {
         const { data } = await supabaseAdmin
           .from("business_profiles")
-          .select("user_id, province, industry, industry_label, business_structure, annual_revenue, employee_count, business_id")
+          .select("user_id, province, country, industry, industry_label, business_structure, annual_revenue, employee_count, business_id")
           .in("user_id", userIds);
         const map: Record<string, any> = {};
         for (const p of data || []) map[p.user_id] = p;
@@ -121,6 +121,7 @@ export async function GET(req: NextRequest) {
         plan: isPaid ? "paid" : "free",
         planName: prog.paid_plan || "free",
         province: prof.province || null,
+        country: prof.country || null,
         industry: prof.industry_label || prof.industry || null,
         businessName: prof.business_structure || null,
         annualRevenue: prof.annual_revenue || null,

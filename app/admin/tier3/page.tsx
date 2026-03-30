@@ -206,7 +206,7 @@ export default function AdminTier3Page() {
                               : <>{fmt(c.estimatedLow)} – {fmt(c.estimatedHigh)}</>
                             }
                           </p>
-                          <p className="text-[10px] text-[#B5B3AD] mt-1 truncate">{c.industry} · {c.province}</p>
+                          <p className="text-[10px] text-[#B5B3AD] mt-1 truncate">{c.industry} · {c.province}{c.country ? ` (${c.country})` : ""}</p>
                           <div className="flex items-center justify-between mt-1.5">
                             <span className="text-[9px] text-[#B5B3AD]">Day {c.daysInStage}</span>
                             <div className="w-2 h-2 rounded-full" style={{
@@ -236,7 +236,7 @@ export default function AdminTier3Page() {
                 className="grid grid-cols-[1fr_100px_80px_100px_120px_80px_80px_70px] px-4 py-3 border-b border-[#EEECE8] last:border-0 hover:bg-[#F8F7F5] transition-colors items-center cursor-pointer">
                 <span className="text-sm font-semibold text-[#1A1A18] truncate">{e.companyName}</span>
                 <span className="text-xs text-[#56554F] truncate">{e.industry}</span>
-                <span className="text-xs text-[#8E8C85]">{e.province}</span>
+                <span className="text-xs text-[#8E8C85]">{e.province}{e.country ? ` (${e.country})` : ""}</span>
                 <span className="text-xs text-[#8E8C85]">{e.revenueBracket}</span>
                 <span className="text-xs font-bold" style={{color:valueColor(e.estimatedHigh)}}>{fmt(e.estimatedLow)}–{fmt(e.estimatedHigh)}</span>
                 <span className="text-xs text-[#1A1A18] font-medium text-center">{e.highConfidenceCount}</span>
@@ -266,7 +266,7 @@ export default function AdminTier3Page() {
             <div className="px-6 py-5 space-y-5">
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  ["Industry",selected.industry],["Province",selected.province],
+                  ["Industry",selected.industry],["Region",`${selected.province || "—"}${selected.country ? ` (${selected.country})` : ""}`],
                   ["Revenue",selected.revenueBracket],["Days in Stage",String(selected.daysInStage)+"d"],
                   ...(selected.contactEmail ? [["Email", selected.contactEmail]] : []),
                   ...(selected.contactPhone ? [["Phone", selected.contactPhone]] : []),

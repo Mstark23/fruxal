@@ -131,7 +131,7 @@ export default function AdminUsersPage() {
         {/* Table */}
         <div className="bg-white border border-[#EEECE8] rounded-xl shadow-sm overflow-hidden mb-4">
           <div className="grid grid-cols-[1fr_70px_110px_60px_55px_65px_80px_55px_80px] px-4 py-2.5 bg-[#FAFAF8] border-b border-[#EEECE8]">
-            {["User","Plan","Business","Province","Scans","Diags","Health","Joined","Actions"].map(h => (
+            {["User","Plan","Business","Region","Scans","Diags","Health","Joined","Actions"].map(h => (
               <span key={h} className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider">{h}</span>
             ))}
           </div>
@@ -161,7 +161,7 @@ export default function AdminUsersPage() {
                 {u.plan.toUpperCase()}
               </span>
               <span className="text-xs text-[#56554F] truncate">{u.businessName || "—"}</span>
-              <span className="text-xs text-[#8E8C85]">{u.province || "—"}</span>
+              <span className="text-xs text-[#8E8C85]">{u.province || "—"} <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: u.country === "US" ? "#EFF6FF" : "#F0FDF4", color: u.country === "US" ? "#2563EB" : "#16A34A" }}>{u.country || ""}</span></span>
               <span className="text-xs text-[#1A1A18] font-medium text-center">{u.prescanCount}</span>
               <span className="text-xs text-[#1A1A18] font-medium text-center">{u.diagnosticCount}</span>
               <span className="text-xs font-bold" style={{ color: scoreColor(u.healthScore) }}>

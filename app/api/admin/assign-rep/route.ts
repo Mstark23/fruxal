@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     // Get user's business profile
     const { data: profile } = await supabaseAdmin
       .from("business_profiles")
-      .select("business_id, business_name, industry, province, annual_revenue")
+      .select("business_id, business_name, industry, province, country, annual_revenue")
       .eq("user_id", userId)
       .single();
 

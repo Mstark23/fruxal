@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       safe(async () => { const { data } = await supabaseAdmin.from("tier3_agreements").select("diagnostic_id, status, contact_name, contact_title, fee_percentage"); return data || []; }, [] as any[]),
       // v2 flow: diagnostic_reports
       safe(async () => { const { data } = await supabaseAdmin.from("diagnostic_reports").select("id, business_id, user_id, tier, status, total_annual_leaks, total_potential_savings, ebitda_impact, enterprise_value_impact, overall_score, findings_count, critical_findings, completed_at, created_at").eq("tier", "enterprise").eq("status", "completed").order("created_at", { ascending: false }); return data || []; }, [] as any[]),
-      safe(async () => { const { data } = await supabaseAdmin.from("business_profiles").select("business_id, business_name, industry, province, exact_annual_revenue, employee_count"); return data || []; }, [] as any[]),
+      safe(async () => { const { data } = await supabaseAdmin.from("business_profiles").select("business_id, business_name, industry, province, country, exact_annual_revenue, employee_count"); return data || []; }, [] as any[]),
     ]);
 
     // Build profile lookup by business_id
@@ -70,6 +70,7 @@ export async function GET(req: NextRequest) {
         companyName: d.company_name,
         industry: d.industry,
         province: d.province,
+        country: pipe?.country || null,
         revenueBracket: d.revenue_bracket,
         estimatedLow: estLow,
         estimatedHigh: estHigh,
@@ -145,6 +146,7 @@ export async function GET(req: NextRequest) {
           companyName: prof.business_name || `User ${p.user_id?.slice(0,8)}`,
           industry: prof.industry || null,
           province: prof.province || null,
+          country: prof.country || null,
           revenueBracket: rev ? `$${Math.round(rev/1000)}K/yr` : null,
           estimatedLow: estLeak * 0.7,
           estimatedHigh: estLeak * 1.3,
