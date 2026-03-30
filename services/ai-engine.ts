@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/db/client";
 
 
-const MODEL = process.env.AI_MODEL || "claude-sonnet-4-6";
+const MODEL = process.env.AI_MODEL || "claude-sonnet-4-20250514";
 
 // =============================================================================
 // EXTRACT: Send document to Claude for analysis

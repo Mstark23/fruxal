@@ -19,7 +19,7 @@ export const anthropic = new Anthropic({
 });
 
 // ─── Model constants ─────────────────────────────────────────────────────────
-export const CLAUDE_MODEL   = "claude-sonnet-4-6";          // main — diagnostics, analysis
+export const CLAUDE_MODEL   = "claude-sonnet-4-20250514";          // main — diagnostics, analysis
 export const CLAUDE_FAST    = "claude-haiku-4-5-20251001";  // cheap — prescan chat, follow-ups
 export const CLAUDE_LEGACY  = "claude-sonnet-4-20250514";   // legacy routes still using old string
 

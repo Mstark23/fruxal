@@ -269,6 +269,7 @@ export async function tier1_CodeDetection(businessId: string, industry: string):
 // =============================================================================
 
 export async function tier2_WeeklyBatchAnalysis(): Promise<DiscoveredPattern[]> {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const patterns: DiscoveredPattern[] = [];
 
   // ─── Step 1: Gather aggregate data across all businesses ───────────────
@@ -368,7 +369,7 @@ Focus on:
 
     try {
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-6",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 2000,
         messages: [{ role: "user", content: prompt }],
       });
@@ -502,6 +503,7 @@ export async function tier3_DeepAnalysis(
   analysisType: "full_business" | "single_leak" | "comparison" | "forecast",
   context?: { leakId?: string; question?: string }
 ): Promise<IntelligenceInsight[]> {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   // Gather full business context
   const [
     { data: business },
@@ -629,7 +631,7 @@ Return JSON:
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     });
