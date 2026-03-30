@@ -4,7 +4,7 @@ import { AdminNav } from "@/components/admin/AdminNav";
 
 interface User {
   id: string; email: string; name: string; plan: "free"|"paid";
-  province: string; industry: string; businessName: string;
+  province: string; country: string|null; industry: string; businessName: string;
   createdAt: string; lastActiveAt: string; prescanCount: number;
   diagnosticCount: number; healthScore: number|null; stripeCustomerId: string|null;
 }

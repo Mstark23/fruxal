@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     notes:         notes || null,
     status:        "pending",
     created_at:    new Date().toISOString(),
-  }).catch(() => { /* non-fatal — table may not have pipeline_id yet */ });
+  }).then(({ error }: any) => { if (error) console.warn("[Accountant:DocRequest] insert failed:", error.message); });
 
   // Email client
   await sendEmail({

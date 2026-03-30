@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
           commission_amount: commissionAmount,
           status:            "pending",
           created_at:        new Date().toISOString(),
-        }).catch(() => {});
+        }).then(({ error }: any) => { if (error) console.warn("[Invoices] commission insert failed:", error.message); });
       }
     }
   }

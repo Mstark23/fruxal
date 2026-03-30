@@ -163,12 +163,12 @@ export async function PATCH(req: NextRequest) {
                 .maybeSingle();
 
               if (existing?.id) {
-                await supabaseAdmin.from("tier3_confirmed_findings")
+                const { error: updErr } = await supabaseAdmin.from("tier3_confirmed_findings")
                   .update({ confirmed_amount: Number(confirmed_amount), confidence_note: "Confirmed by accountant" })
-                  .eq("id", existing.id)
-                  .catch((e: any) => console.error("[Accountant:Queue] confirmed_findings update failed:", e.message));
+                  .eq("id", existing.id);
+                if (updErr) console.error("[Accountant:Queue] confirmed_findings update failed:", updErr.message);
               } else {
-                await supabaseAdmin.from("tier3_confirmed_findings").insert({
+                const { error: insErr } = await supabaseAdmin.from("tier3_confirmed_findings").insert({
                   engagement_id:    eng.id,
                   leak_id:          pb.finding_id  || playbook_id,
                   leak_name:        pb.finding_title || "Recovery",
@@ -177,7 +177,8 @@ export async function PATCH(req: NextRequest) {
                   estimated_high:   pb.amount_recoverable || 0,
                   confirmed_amount: Number(confirmed_amount),
                   confidence_note:  "Confirmed by accountant",
-                }).catch((e: any) => console.error("[Accountant:Queue] confirmed_findings insert failed:", e.message));
+                });
+                if (insErr) console.error("[Accountant:Queue] confirmed_findings insert failed:", insErr.message);
               }
             }
           }

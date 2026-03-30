@@ -5,7 +5,7 @@ import { AdminNav } from "@/components/admin/AdminNav";
 
 interface PipelineEntry {
   pipelineId:string|null; diagnosticId:string|null; reportId:string|null;
-  companyName:string; industry:string; province:string; revenueBracket:string;
+  companyName:string; industry:string; province:string; country?:string|null; revenueBracket:string;
   estimatedLow:number; estimatedHigh:number; highConfidenceCount:number; confirmedSavings?:number;
   stage:string; notes:string|null; followUpDate:string|null;
   lostReason:string|null; daysInStage:number; createdAt:string; updatedAt:string;
