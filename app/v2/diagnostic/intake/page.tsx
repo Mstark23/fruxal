@@ -17,6 +17,7 @@ interface IntakeData {
   business_name: string;
   structure: string;
   province: string;
+  country: string;
   industry: string;
   fiscal_year_end_month: number;
   gst_registration_date: string;
@@ -186,7 +187,7 @@ export default function DiagnosticIntakePage() {
   };
 
   const [data, setData] = useState<IntakeData>({
-    business_name: "", structure: "", province: "", industry: "",
+    business_name: "", structure: "", province: "", country: "", industry: "",
     fiscal_year_end_month: 12, gst_registration_date: "",
     exact_annual_revenue: null, gross_margin_pct: null, exact_payroll_total: null,
     owner_salary: null, net_income_last_year: null, ebitda_estimate: null,

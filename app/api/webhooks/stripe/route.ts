@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
                     commission_amount: Math.round(inv.fee_amount * 0.20),
                     status:            "pending",
                     created_at:        new Date().toISOString(),
-                  }, { onConflict: "pipeline_id,rep_id" }).catch(() => {});
+                  }, { onConflict: "pipeline_id,rep_id" }).then(({ error }: any) => { if (error) console.warn("[Webhook] commission upsert failed:", error.message); });
                 }
               }
             } catch (e) {

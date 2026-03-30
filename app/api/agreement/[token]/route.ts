@@ -66,7 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
 
     const { data: pipe } = await supabaseAdmin
       .from("tier3_pipeline")
-      .select("id, company_name, contact_email, agreement_token_expiry, stage, tier3_reps(name, email)")
+      .select("id, company_name, contact_email, agreement_token_expiry, stage, report_id, business_id, tier3_reps(name, email)")
       .eq("agreement_token", token)
       .single();
 
