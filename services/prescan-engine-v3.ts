@@ -421,7 +421,8 @@ export function normalizeProvince(raw: string): string {
     'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC']);
   const upper = n.toUpperCase();
   if (US_STATES.has(upper)) return upper;
-  return map[n] || (n.length === 2 ? n.toUpperCase() : 'QC');
+  if (!n) return '';
+  return map[n] || (n.length === 2 ? n.toUpperCase() : '');
 }
 
 // ============================================================================
@@ -593,7 +594,7 @@ export function buildPrescanInputFromTags(tags: PrescanTags): PrescanInput {
   return {
     businessType,
     industrySlug,
-    province: normalizeProvince(tags.province || 'QC'),
+    province: normalizeProvince(tags.province || ''),
     revenueBand,
     annualRevenue,
     paymentMix,

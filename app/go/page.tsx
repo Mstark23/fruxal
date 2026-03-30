@@ -63,7 +63,7 @@ export default function GoPage() {
     try {
       const res = await fetch("/api/v3/prescan-chat", {
         method: "POST", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ sessionId: null, message: isFR ? "Bonjour, prêt à commencer." : "Hi, ready to start.", history: [], lang }),
+        body: JSON.stringify({ sessionId: null, message: isFR ? "Bonjour, prêt à commencer." : "Hi, ready to start.", history: [], lang, country: "CA" }),
       });
       const d: PrescanResponse = await res.json();
       setSessionId(d.sessionId);
@@ -84,7 +84,7 @@ export default function GoPage() {
     try {
       const res = await fetch("/api/v3/prescan-chat", {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ sessionId, message: text, history: rawHistory, lang }),
+        body: JSON.stringify({ sessionId, message: text, history: rawHistory, lang, country: "CA" }),
       });
       const d: PrescanResponse = await res.json();
       if (!sessionId && d.sessionId) setSessionId(d.sessionId);

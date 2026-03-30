@@ -343,6 +343,7 @@ export async function POST(request: NextRequest) {
             // Gap 2 fix: prescan_run_id as top-level column so dashboard API Path C can join on it
             prescan_run_id: prescanRunId,
             input_snapshot: {
+              country:           country,
               province:          tags.province || '',
               industry:          tags.business_type || 'generic',
               structure:         tags.structure || 'sole_proprietor',
