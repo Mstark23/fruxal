@@ -18,6 +18,7 @@ import { LangToggle } from "@/components/ui/LangToggle";
 
 interface PrescanAnswers {
   province: string;  // CA: province code | US: state code
+  country: Country;  // "CA" | "US"
   industry: string;
   structure: string;
   monthly_revenue: number;
@@ -89,7 +90,7 @@ const EMPLOYEE_RANGES = [
 export default function PrescanPage() {
   const router = useRouter();
   const { lang, setLang, t, isFR } = useLang();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<Step>(0);
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<PrescanAnswers>({
@@ -128,22 +129,31 @@ export default function PrescanPage() {
     if (step > 0) setStep((step - 1) as Step);
   };
 
+  const [errorMsg, setErrorMsg] = useState("");
+
   const submit = async () => {
     setSubmitting(true);
+    setErrorMsg("");
     try {
-      setIsLoading(true);
-    const res = await fetch("/api/v2/prescan/analyze", {
+      const res = await fetch("/api/v2/prescan/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers),
+        body: JSON.stringify({ ...answers, country: answers.country ?? getCountryFromCookie() }),
       });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `Server error (${res.status})`);
+      }
       const json = await res.json();
       if (json.success && json.resultId) {
         router.push(`/v2/prescan/results/${json.resultId}`);
+        return;
       }
-    setIsLoading(false);
-    } catch (err) {
-      console.error(err);
+      throw new Error(json.error || "Scan failed — please try again.");
+    } catch (err: any) {
+      console.error("[Prescan] submit error:", err);
+      setErrorMsg(err.message || "Something went wrong. Please try again.");
+    } finally {
       setSubmitting(false);
     }
   };
@@ -222,10 +232,12 @@ export default function PrescanPage() {
               </div>
               <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-3">
                 <p className="text-[11px] text-amber-400/60">
-                  {answers.province === "SK" ? "Saskatchewan has 0% provincial corporate tax on the first $600K — the best rate in Canada." :
-                     answers.province === "AB" ? "Alberta has the lowest corporate rate in Canada at 8%." :
-                     answers.province === "NL" ? "NL has the biggest gap between personal (54.8%) and corporate (12%) rates in Canada." :
-                     "Your business structure directly affects how much tax you pay. We'll check if you're optimized."}
+                  {answers.country === "US"
+                    ? getUSStateInsight(answers.province)
+                    : answers.province === "SK" ? "Saskatchewan has 0% provincial corporate tax on the first $600K — the best rate in Canada."
+                    : answers.province === "AB" ? "Alberta has the lowest corporate rate in Canada at 8%."
+                    : answers.province === "NL" ? "NL has the biggest gap between personal (54.8%) and corporate (12%) rates in Canada."
+                    : "Your business structure directly affects how much tax you pay. We'll check if you're optimized."}
                 </p>
               </div>
             </div>
@@ -266,7 +278,7 @@ export default function PrescanPage() {
                 <FlagToggle on={answers.has_accountant} onClick={() => set("has_accountant", !answers.has_accountant)} label="I have an accountant or bookkeeper"  />
                 <FlagToggle on={answers.handles_data} onClick={() => set("handles_data", !answers.handles_data)} label="I collect customer data (emails, payments)" icon="" />
                 <FlagToggle on={answers.has_physical_location} onClick={() => set("has_physical_location", !answers.has_physical_location)} label="I have a physical office, store or warehouse"  />
-                <FlagToggle on={answers.exports_goods} onClick={() => set("exports_goods", !answers.exports_goods)} label="I sell to clients outside Canada" icon="" />
+                <FlagToggle on={answers.exports_goods} onClick={() => set("exports_goods", !answers.exports_goods)} label={answers.country === "US" ? "I sell to clients outside the United States" : "I sell to clients outside Canada"} icon="" />
                 <FlagToggle on={answers.does_rd} onClick={() => set("does_rd", !answers.does_rd)} label="I do any R&D, innovation, or custom software" icon="" />
                 {["restaurant","salon","fitness","healthcare"].includes(answers.industry) && (
                   <FlagToggle on={answers.handles_food} onClick={() => set("handles_food", !answers.handles_food)} label="I handle or serve food" icon="" />
@@ -339,6 +351,13 @@ export default function PrescanPage() {
             </div>
           )}
         </div>
+
+        {/* Error message */}
+        {errorMsg && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="pb-8 flex gap-3">

@@ -255,20 +255,7 @@ export function canAccess(plan: string, feature: string): boolean {
 }
 
 // ─── Apply paywall to leak list ──────────────────────────────────────────────
-export function applyPaywall(leaks: any[], plan: string): any[] {
-  if (["solo","pro","business","growth","team"].includes(plan)) return leaks;
-
-  // Free plan: show 3 leaks with details, blur the rest
-  return leaks.map((leak, i) => {
-    if (i < 3) return leak;
-    return {
-      ...leak,
-      title: "🔒 Upgrade to see this leak",
-      description: "This leak is hidden on the free plan.",
-      fixAction: "Upgrade to Pro to see fix recommendations.",
-      yours: "***",
-      benchmark: "***",
-      locked: true,
-    };
-  });
+// Contingency model — all leaks visible to all users. No gating.
+export function applyPaywall(leaks: any[], _plan: string): any[] {
+  return leaks;
 }

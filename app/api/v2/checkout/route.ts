@@ -12,6 +12,7 @@ import { authOptions } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getCountryFromHost } from "@/lib/country";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
@@ -61,7 +62,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid plan. Choose 'report', 'solo', 'advisor', or 'business'" }, { status: 400 });
     }
 
-    const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
+    const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || "https://fruxal.vercel.app";
+
+    // Determine currency from user profile or host domain
+    const { data: profileRow } = await supabaseAdmin
+      .from("business_profiles").select("country").eq("user_id", userId).maybeSingle();
+    const country = profileRow?.country || getCountryFromHost(req.headers.get("host") || "");
+    const isUS = country === "US";
+    const currency = isUS ? "usd" : "cad";
 
     // Get or create Stripe customer
     const { data: progress } = await supabase
@@ -94,12 +102,12 @@ export async function POST(req: NextRequest) {
         mode: "payment",
         line_items: [{
           price_data: {
-            currency: "cad",
+            currency,
             product_data: {
               name: "Fruxal — Full Leak Report",
               description: "Complete business leak analysis with fix plan, tool recommendations, and priority action items",
             },
-            unit_amount: 4700, // $47.00 CAD
+            unit_amount: isUS ? 3900 : 4700, // $39 USD / $47 CAD
           },
           quantity: 1,
         }],
@@ -117,12 +125,12 @@ export async function POST(req: NextRequest) {
         mode: "subscription",
         line_items: [{
           price_data: {
-            currency: "cad",
+            currency,
             product_data: {
               name: "Fruxal Solo",
               description: "AI diagnostics, automated alerts, detailed fix steps, and government program matching",
             },
-            unit_amount: 4900, // $49.00 CAD
+            unit_amount: isUS ? 3900 : 4900, // $39 USD / $49 CAD
             recurring: { interval: "month" },
           },
           quantity: 1,
@@ -141,12 +149,12 @@ export async function POST(req: NextRequest) {
         mode: "subscription",
         line_items: [{
           price_data: {
-            currency: "cad",
+            currency,
             product_data: {
               name: "Fruxal Business",
               description: "Full AI diagnostic · 7 findings with calculation math · CPA briefing · Priority sequence · Benchmarks · Monthly re-scans",
             },
-            unit_amount: 14900, // $149.00 CAD
+            unit_amount: isUS ? 11900 : 14900, // $119 USD / $149 CAD
             recurring: { interval: "month" },
           },
           quantity: 1,
@@ -165,12 +173,12 @@ export async function POST(req: NextRequest) {
         mode: "subscription",
         line_items: [{
           price_data: {
-            currency: "cad",
+            currency,
             product_data: {
               name: "Fruxal Advisor",
               description: "Full leak report + ongoing AI business advisor, monthly re-scans, and priority support",
             },
-            unit_amount: 7900, // $79.00 CAD
+            unit_amount: isUS ? 5900 : 7900, // $59 USD / $79 CAD
             recurring: { interval: "month" },
           },
           quantity: 1,

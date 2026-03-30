@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       structure:           body.structure || null,
       business_structure:  body.structure || null,
       province:            body.province || null,
+      country:             body.country === "US" ? "US" : body.country === "CA" ? "CA" : null,
       city:                body.city || null,
       monthly_revenue:     toNum(body.monthly_revenue),
       annual_revenue:      toNum(body.monthly_revenue) * 12,
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
       sells_alcohol:       toBool(body.sells_alcohol),
       handles_food:        toBool(body.handles_food),
       does_rd:             toBool(body.does_rd),
+      exports_goods:       toBool(body.exports_goods),
       has_professional_order: toBool(body.has_professional_order),
       has_holdco:          toBool(body.has_holdco),
       incorporation_date:  toDate(body.incorporation_date),
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
         updated_at:    new Date().toISOString(),
       })
       .eq("owner_user_id", userId)
-      ).catch(() => {});
+      ).catch((e: any) => { console.warn("[Onboarding] businesses table update failed:", e.message); });
 
     return NextResponse.json({ success: true, businessId });
 

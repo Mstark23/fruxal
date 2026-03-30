@@ -41,8 +41,7 @@ export function ChatInterface({
   const [loading, setLoading] = useState(false);
   const [convId, setConvId] = useState(initialConvId);
   const [error, setError] = useState<string | null>(null);
-  const [paywalled, setPaywalled] = useState(false);
-  const [checkingOut, setCheckingOut] = useState(false);
+  const paywalled = false; // Contingency model — chat is always free
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -92,11 +91,7 @@ export function ChatInterface({
 
       const data = await res.json();
 
-      if (res.status === 402 && data.error === "paywall") {
-        setPaywalled(true);
-        setLoading(false);
-        return;
-      }
+      // Contingency model — no paywall check needed
 
       if (!res.ok) throw new Error(data.error || "Failed to get response");
 
@@ -141,26 +136,7 @@ export function ChatInterface({
     } catch (e) { /* silent */ }
   };
 
-  const handleCheckout = async (plan: "report" | "advisor") => {
-    setCheckingOut(true);
-    try {
-      const res = await fetch("/api/v2/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, scanId }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        if (typeof window !== "undefined") window.location.href = data.url;
-      } else {
-        setError("Failed to create checkout session");
-      }
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setCheckingOut(false);
-    }
-  };
+  // Contingency model — handleCheckout removed, no paid plans
 
   // ─── Render a message with tool cards ─────────────────────────────────────
   function renderMessageContent(content: string) {
@@ -260,37 +236,7 @@ export function ChatInterface({
           </div>
         )}
 
-        {/* Paywall */}
-        {paywalled && (
-          <div className="flex justify-center my-4">
-            <div className="bg-gradient-to-b from-[#0d1320] to-[#111827] border border-[#00c853]/30 rounded-2xl px-6 py-6 max-w-md w-full text-center">
-              <div className="text-3xl mb-3">🔒</div>
-              <div className="text-lg font-bold text-white mb-1">You&apos;re finding real savings</div>
-              <div className="text-sm text-gray-400 mb-5">
-                Unlock your full fix plan with tool recommendations, priority actions, and unlimited Fruxal access.
-              </div>
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleCheckout("report")}
-                  disabled={checkingOut}
-                  className="w-full bg-[#00c853] text-black font-bold py-3 rounded-xl hover:bg-[#00e676] transition-colors disabled:opacity-50"
-                >
-                  {checkingOut ? "Redirecting..." : "Get Full Report — $47 CAD"}
-                </button>
-                <button
-                  onClick={() => handleCheckout("advisor")}
-                  disabled={checkingOut}
-                  className="w-full bg-white/5 border border-[#00c853]/30 text-[#00c853] font-bold py-3 rounded-xl hover:bg-[#00c853]/10 transition-colors disabled:opacity-50"
-                >
-                  {checkingOut ? "Redirecting..." : "AI Advisor — $79/mo CAD"}
-                </button>
-                <div className="text-[10px] text-gray-600 mt-2">
-                  One-time report includes all leaks + fixes. Monthly advisor adds unlimited AI chat + re-scans.
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Contingency model — chat is always free, no paywall */}
 
         {/* Error */}
         {error && (

@@ -718,10 +718,10 @@ export default function EnterpriseDashboard() {
                     {t("Run your diagnostic", "Lancez votre diagnostic")}
                   </p>
                   <p className="text-[10px] text-ink-faint mt-0.5">
-                    {profile.country === "US" ? "AI analysis across 7 dimensions — exit readiness, EBITDA impact, QSBS/entity structure, peer benchmarks, and more." :
-                  profile.country === "US" ? "AI analysis across 7 dimensions — exit readiness, EBITDA impact, QSBS/entity structure, peer benchmarks, and more." :
-                  t("AI analysis across 7 dimensions — exit readiness, EBITDA impact, RDTOH/CDA strategy, peer benchmarks, and more.",
-                       "Analyse IA sur 7 dimensions — prêt à vendre, impact BAIIA, stratégie IMRTD/CDC, benchmarks et plus.")}
+                    {profile.country === "US"
+                      ? "AI analysis across 7 dimensions — exit readiness, EBITDA impact, QSBS/entity structure, peer benchmarks, and more."
+                      : t("AI analysis across 7 dimensions — exit readiness, EBITDA impact, RDTOH/CDA strategy, peer benchmarks, and more.",
+                           "Analyse IA sur 7 dimensions — prêt à vendre, impact BAIIA, stratégie IMRTD/CDC, benchmarks et plus.")}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1.5">
                     <span className="text-[11px] text-ink-faint">✓ {t("Exit readiness score", "Score de préparation à la vente")}</span>

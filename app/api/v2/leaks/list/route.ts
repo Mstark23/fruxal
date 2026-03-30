@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { findUserLeaks } from "@/lib/find-user-leaks";
 
-const FREE_LEAK_LIMIT = 3;
+// Contingency model — all leaks visible to all users. No paid gating.
 
 async function getUserTier(userId: string): Promise<string> {
   try {
@@ -37,10 +37,7 @@ export async function GET(req: NextRequest) {
       getUserTier(userId),
     ]);
 
-    // Tier gate — free/solo/pro users see max 3 leaks
-    const isPaid = ["business","growth","team","corp","enterprise","advisor"].includes(tier);
-    const gated  = !isPaid && leaks.length > FREE_LEAK_LIMIT;
-
+    // Contingency model — all leaks visible, no gating
     let result = leaks;
     if (filter !== "all") result = result.filter(l => l.status === filter);
 
@@ -51,19 +48,10 @@ export async function GET(req: NextRequest) {
       return so !== 0 ? so : b.impact_max - a.impact_max;
     });
 
-    // Apply gate AFTER sort so top 3 are the most impactful
-    const totalCount  = result.length;
-    const lockedCount = gated ? Math.max(0, totalCount - FREE_LEAK_LIMIT) : 0;
-    const lockedValue = gated
-      ? result.slice(FREE_LEAK_LIMIT).reduce((s, l) => s + (l.impact_max ?? 0), 0)
-      : 0;
-
-    if (gated) result = result.slice(0, FREE_LEAK_LIMIT);
-
     return NextResponse.json({
       success: true,
       data: result,
-      meta: { tier, isPaid, gated, totalCount, lockedCount, lockedValue },
+      meta: { tier, isPaid: true, gated: false, totalCount: result.length, lockedCount: 0, lockedValue: 0 },
     });
   } catch (err: any) {
     console.error("[Leaks:List] Error:", err);

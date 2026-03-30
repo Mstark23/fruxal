@@ -58,6 +58,7 @@ interface PrescanResult {
     annual_revenue: number;
     employee_count: number;
     tier: string;
+    country?: "CA" | "US";
   };
   summary: {
     health_score: number;
@@ -108,7 +109,10 @@ export default function PrescanResultsPage() {
   const [captureEmailVal, setCaptureEmailVal] = useState("");
   const [captureLoading, setCaptureLoading] = useState(false);
 
+  const [error, setError] = useState(false);
+
   useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
     async function load() {
       try {
         const res = await fetch(`/api/v2/prescan/results/${params.id}`);
@@ -116,32 +120,46 @@ export default function PrescanResultsPage() {
         if (json.success) {
           setResult(json.data);
           // Staggered reveal for drama
-          const _to = setTimeout(() => setRevealPhase(1), 300);   // Score ring
-          return () => clearTimeout(_to);
-          const _to2 = setTimeout(() => setRevealPhase(2), 1200);   // Findings
-          return () => clearTimeout(_to);
-          const _to3 = setTimeout(() => setRevealPhase(3), 2400);   // Obligations
-          return () => clearTimeout(_to);
-          const _to4 = setTimeout(() => setRevealPhase(4), 3200);   // Programs
-          return () => clearTimeout(_to);
-          const _to5 = setTimeout(() => setRevealPhase(5), 4000);   // CTA
-          return () => clearTimeout(_to);
+          timers.push(setTimeout(() => setRevealPhase(1), 300));   // Score ring
+          timers.push(setTimeout(() => setRevealPhase(2), 1200));  // Findings
+          timers.push(setTimeout(() => setRevealPhase(3), 2400));  // Obligations
+          timers.push(setTimeout(() => setRevealPhase(4), 3200));  // Programs
+          timers.push(setTimeout(() => setRevealPhase(5), 4000));  // CTA
+        } else {
+          setError(true);
         }
       } catch (err) {
         console.error(err);
+        setError(true);
       } finally {
         setLoading(false);
       }
     }
     load();
+    return () => timers.forEach(t => clearTimeout(t));
   }, [params.id]);
 
-  if (loading || !result) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0e14] flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-3 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white/30 text-sm animate-pulse">Running your scan against 4,200+ leak patterns…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !result) {
+    return (
+      <div className="min-h-screen bg-[#0a0e14] flex items-center justify-center">
+        <div className="text-center max-w-sm px-4">
+          <p className="text-red-400 text-sm font-semibold mb-2">Something went wrong</p>
+          <p className="text-white/30 text-xs mb-4">We couldn't load your scan results. Please try running your scan again.</p>
+          <button onClick={() => router.push("/v2/prescan")}
+            className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-semibold transition-all">
+            Run a New Scan →
+          </button>
         </div>
       </div>
     );
@@ -403,7 +421,7 @@ export default function PrescanResultsPage() {
                 <div className="space-y-2 mb-4">
                   {[
                     { n: "1", en: "We assign you a recovery expert", fr: "On vous assigne un expert en récupération" },
-                    { n: "2", en: "Our accountant handles the filings and claims", fr: "Notre comptable appelle l'ARC et gère les réclamations" },
+                    { n: "2", en: result.input_snapshot.country === "US" ? "Our CPA handles the IRS filings and claims" : "Our accountant handles the CRA filings and claims", fr: "Notre comptable s'occupe des réclamations auprès de l'ARC" },
                     { n: "3", en: "You pay nothing until money is recovered", fr: "Vous ne payez rien avant récupération" },
                     { n: "4", en: "We take 12% of what we get back. You keep the rest.", fr: "On prend 12% de ce qu'on récupère. Vous gardez le reste." },
                   ].map(s => (
@@ -519,8 +537,8 @@ export default function PrescanResultsPage() {
               </div>
               <div className="w-px h-6 bg-white/[0.04]" />
               <div className="text-center">
-                <p className="text-white/30 text-sm font-bold">10</p>
-                <p className="text-white/10 text-[9px]">provinces</p>
+                <p className="text-white/30 text-sm font-bold">{result.input_snapshot.country === "US" ? "50" : "10"}</p>
+                <p className="text-white/10 text-[9px]">{result.input_snapshot.country === "US" ? "states" : "provinces"}</p>
               </div>
               <div className="w-px h-6 bg-white/[0.04]" />
               <div className="text-center">

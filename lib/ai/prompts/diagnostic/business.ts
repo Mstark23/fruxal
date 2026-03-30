@@ -88,9 +88,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use Canadian SMB averages for this industry"}
 
-${buildQualityBar("business", "US")}
+${buildQualityBar("business", "CA")}
 
-${buildSolutionMatrix("business", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
+${buildSolutionMatrix("business", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "CA")}
 
 STRUCTURAL RULES:
 ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Revenue is an estimate. Dollar amounts in findings must show ranges (e.g. "$4K–$12K"), not single figures. Set severity ≤ medium for revenue-dependent findings.` : ""}
@@ -144,7 +144,7 @@ ${(() => {
 })()}
 
 Return ONLY this JSON (no markdown fences):
-${buildDiagnosticSchema("business", 7, "US")}`;
+${buildDiagnosticSchema("business", 7, "CA")}`;
 
   return { systemPrompt, userPrompt };
 }
@@ -243,6 +243,7 @@ RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
   const userPrompt = `Analyze this US business and return a complete JSON diagnostic report.
 
 PROFILE:
+- Business:       ${bizName}
 - Industry:       ${industry}
 - State:          ${state}
 - Structure:      ${structure}
@@ -252,9 +253,16 @@ PROFILE:
 - Employees:      ${employees}
 ${estimatedPayroll > 0 ? `- Est. payroll:   $${estimatedPayroll.toLocaleString()}` : ""}
 ${ownerSalary > 0 ? `- Owner W-2:      $${ownerSalary.toLocaleString()}` : ""}
-- Has accountant: ${profile.has_accountant  ? "YES" : "NO"}
+- Has payroll:    ${profile.has_payroll     ? "YES" : "NO"}
 - Does R&D:       ${profile.does_rd         ? "YES" : "NO"}
-`;
+- Has accountant: ${profile.has_accountant  ? "YES" : "NO"}
+- Has bookkeeper: ${profile.has_bookkeeper  ? "YES" : "NO"}
+- Physical location: ${profile.has_physical_location ? "YES" : "NO"}
+- Handles data:   ${profile.handles_data    ? "YES" : "NO"}
+${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — penalty exposure: $${penaltyExposure.toLocaleString()}` : ""}
+
+Return ONLY this JSON (no markdown fences):
+${buildDiagnosticSchema("business", 7, "US")}`;
 
   return { systemPrompt, userPrompt };
 }

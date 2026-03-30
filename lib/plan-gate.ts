@@ -7,16 +7,17 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 type Feature = "diagnostic" | "pdf_export" | "monthly_brief" | "advisor_chat" | "solutions_browse";
 type Plan    = "free" | "solo" | "business" | "advisor" | "enterprise";
 
+// Contingency model — all features are free. Revenue comes from 12% of recovered savings.
 const GATES: Record<Feature, Plan[]> = {
-  diagnostic:       ["solo", "business", "advisor", "enterprise"],  // free = 1 lifetime
-  pdf_export:       ["business", "advisor", "enterprise"],
-  monthly_brief:    ["business", "advisor", "enterprise"],
-  advisor_chat:     ["business", "advisor", "enterprise"],          // free = 3 msg/month
+  diagnostic:       ["free", "solo", "business", "advisor", "enterprise"],
+  pdf_export:       ["free", "solo", "business", "advisor", "enterprise"],
+  monthly_brief:    ["free", "solo", "business", "advisor", "enterprise"],
+  advisor_chat:     ["free", "solo", "business", "advisor", "enterprise"],
   solutions_browse: ["free", "solo", "business", "advisor", "enterprise"],
 };
 
 const PLAN_DISPLAY: Record<string, string> = {
-  solo: "Solo ($49/mo)", business: "Business ($149/mo)", advisor: "Advisor ($79/mo)", enterprise: "Enterprise",
+  free: "Free", solo: "Solo", business: "Business", advisor: "Advisor", enterprise: "Enterprise",
 };
 
 export async function checkPlanAccess(

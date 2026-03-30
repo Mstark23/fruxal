@@ -102,30 +102,30 @@ const translations: Record<string, Record<string, string>> = {
     fr: "Les réponses IA sont basées sur des références sectorielles. Connectez QuickBooks pour des chiffres exacts.",
   },
 
-  // ─── Paywall ────────────────────────────────────────────────────────────
+  // ─── Recovery CTA (contingency model) ───────────────────────────────────
   "paywall.title": {
-    en: "You're finding real savings",
-    fr: "Vous trouvez de vraies économies",
+    en: "Ready to recover your money?",
+    fr: "Prêt à récupérer votre argent?",
   },
   "paywall.desc": {
-    en: "Unlock your full fix plan with tool recommendations, priority actions, and unlimited Fruxal access.",
-    fr: "Débloquez votre plan complet avec des recommandations d'outils, des actions prioritaires et un accès illimité au conseiller IA.",
+    en: "We do all the work — filings, claims, and follow-ups. You pay nothing until money is recovered.",
+    fr: "On s'occupe de tout — déclarations, réclamations et suivis. Vous ne payez rien avant récupération.",
   },
   "paywall.report": {
-    en: "Get Full Report — $47 CAD",
-    fr: "Obtenir le rapport complet — 47 $ CAD",
+    en: "Book a Free Recovery Call",
+    fr: "Réservez un appel de récupération gratuit",
   },
   "paywall.advisor": {
-    en: "AI Advisor — $79/mo CAD",
-    fr: "Conseiller IA — 79 $/mois CAD",
+    en: "Talk to a Recovery Expert",
+    fr: "Parler à un expert en récupération",
   },
   "paywall.report_desc": {
-    en: "One-time report includes all leaks + fixes.",
-    fr: "Le rapport unique inclut toutes les fuites + corrections.",
+    en: "No cost until we recover. We take 12% of what we get back.",
+    fr: "Aucun frais avant récupération. On prend 12% de ce qu'on récupère.",
   },
   "paywall.advisor_desc": {
-    en: "Monthly advisor adds unlimited AI chat + re-scans.",
-    fr: "Le conseiller mensuel ajoute un chat IA illimité + re-analyses.",
+    en: "Free tools + expert recovery. You keep 88%.",
+    fr: "Outils gratuits + récupération experte. Vous gardez 88%.",
   },
 
   // ─── Actions ────────────────────────────────────────────────────────────

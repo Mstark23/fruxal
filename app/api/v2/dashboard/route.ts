@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
             business_id: newBizId, user_id: userId,
             industry: run.industry_slug || "generic_small_business",
             industry_slug: run.industry_slug || "generic_small_business",
-            province: run.province || "QC",
+            province: run.province || null,
             annual_revenue: run.annual_revenue || null,
             onboarding_completed: true,
             tour_completed_at: new Date().toISOString(),
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
             .is("user_id", null);
 
           profile = {
-            province: run.province || "QC",
+            province: run.province || null,
             industry: run.industry_slug || "generic_small_business",
             industry_label: null,
             business_structure: null,
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
         success: true,
         data: {
           tier: "solo",
-          profile: { province: "QC", industry: "Small Business", structure: "" },
+          profile: { province: "", country: "", industry: "Small Business", structure: "" },
           health_score: 50, total_leak_estimate: 0,
           leaks: { total: 0, detected: 0, fixed: 0, total_savings: 0, potential_savings: 0, top_unfixed: [] },
           obligations: { total: 0, overdue: 0, upcoming_deadlines: [], penalty_exposure: 0 },
@@ -425,8 +425,8 @@ export async function GET(req: NextRequest) {
         recommended_plan,
         businessId,
         profile: {
-          province:      profile.province || "QC",
-          country:       profile.country || "CA",
+          province:      profile.province || "",
+          country:       profile.country || "",
           industry:      profile.industry_label || profile.industry || "Small Business",
           structure:     struct,
           business_name: profile.business_name || "",

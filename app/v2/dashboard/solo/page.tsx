@@ -33,7 +33,7 @@ export default function SoloDashboard() {
   const [leaks, setLeaks] = useState<Leak[]>([]);
   const [tier, setTier] = useState("solo");
   const [recommendedPlan, setRecommendedPlan] = useState("solo");
-  const [profile, setProfile] = useState({ province: "QC", country: "CA", industry: "Small Business", structure: "" });
+  const [profile, setProfile] = useState({ province: "", country: "", industry: "Small Business", structure: "" });
   const [overdue, setOverdue] = useState(0);
   const [penaltyExposure, setPenaltyExposure] = useState(0);
   const [obligationsTotal, setObligationsTotal] = useState(0);
@@ -320,8 +320,8 @@ export default function SoloDashboard() {
         {overdue > 0 && (
           <button onClick={() => router.push("/v2/obligations")} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl mb-4 text-left" style={{ background: "rgba(179,64,64,0.03)", border: "1px solid rgba(179,64,64,0.1)", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(6px)", transition: "all 0.45s cubic-bezier(0.16,1,0.3,1) 0.02s" }}>
             <div className="w-[6px] h-[6px] rounded-full bg-negative animate-pulse" />
-            <span className="text-[11px] font-semibold text-negative flex-1">{overdue} {t("overdue obligation", "obligation en retard")}{overdue > 1 ? "s" : ""} - ${penaltyExposure.toLocaleString()} {t("at risk", "a risque")}</span>
-            <span className="text-[10px] font-semibold text-negative">{t("Resolve", "Resoudre")}</span>
+            <span className="text-[11px] font-semibold text-negative flex-1">{overdue} {t("overdue obligation", "obligation en retard")}{overdue > 1 ? "s" : ""} - ${penaltyExposure.toLocaleString()} {t("at risk", "à risque")}</span>
+            <span className="text-[10px] font-semibold text-negative">{t("Resolve", "Résoudre")}</span>
           </button>
         )}
 
@@ -573,7 +573,7 @@ export default function SoloDashboard() {
                     {t(`${assignedRep.name} is working on your file`, `${assignedRep.name} travaille sur votre dossier`)}
                   </p>
                   <p className="text-[11px] text-ink-muted mb-4">
-                    {profile.country === "US" ? "Our accountant is handling the IRS filings, vendor negotiations, and federal program applications. You'll be notified as amounts are confirmed." : t("Our accountant is handling the CRA calls, vendor negotiations, and grant applications. You'll be notified as amounts are confirmed.", "Notre comptable s'occupe des appels à l'ARC, des négociations fournisseurs et des demandes de subventions. Vous serez notifié au fur et à mesure des confirmations.")}
+                    {profile.country === "US" ? "Our CPA is handling the IRS filings, vendor negotiations, and federal program applications. You'll be notified as amounts are confirmed." : t("Our accountant is handling the CRA calls, vendor negotiations, and grant applications. You'll be notified as amounts are confirmed.", "Notre comptable s'occupe des appels à l'ARC, des négociations fournisseurs et des demandes de subventions. Vous serez notifié au fur et à mesure des confirmations.")}
                   </p>
                   {recovered > 0 && (
                     <div className="p-3 rounded-xl mb-3" style={{ background: "rgba(45,122,80,0.04)", border: "1px solid rgba(45,122,80,0.10)" }}>
@@ -599,7 +599,7 @@ export default function SoloDashboard() {
                   {[
                     { n: "1", en: "Book a free call with your assigned rep", fr: "Réservez un appel gratuit avec votre rep" },
                     { n: "2", en: "We review your full diagnostic together", fr: "Nous examinons votre diagnostic ensemble" },
-                    { n: "3", en: profile.country === "US" ? "Our accountant contacts the IRS & vendors" : "Our accountant contacts CRA & vendors", fr: "Notre comptable contacte l'ARC et les fournisseurs" },
+                    { n: "3", en: profile.country === "US" ? "Our CPA contacts the IRS & vendors" : "Our accountant contacts CRA & vendors", fr: "Notre comptable contacte l'ARC et les fournisseurs" },
                     { n: "4", en: "We invoice 12% of what we actually recover", fr: "Nous facturons 12% de ce que nous récupérons" },
                   ].map(s => (
                     <div key={s.n} className="flex items-start gap-3">
@@ -685,7 +685,7 @@ export default function SoloDashboard() {
                   {diagPrograms.slice(0, 3).map((p, i) => (
                     <div key={i} className="px-4 py-2.5 border-b border-border-light last:border-0">
                       <div className="text-[11px] font-semibold text-ink truncate">{isFR ? (p.name_fr || p.name) : p.name}</div>
-                      {p.value > 0 && <div className="text-[10px] text-positive font-semibold mt-0.5">{t("up to", "jusqu a")} ${(p.value ?? 0).toLocaleString()}</div>}
+                      {p.value > 0 && <div className="text-[10px] text-positive font-semibold mt-0.5">{t("up to", "jusqu'à")} ${(p.value ?? 0).toLocaleString()}</div>}
                     </div>
                   ))}
                   {diagPrograms.length > 3 && (
@@ -710,7 +710,7 @@ export default function SoloDashboard() {
                   <span className="text-[12px] font-bold text-ink tabular-nums">{recovPct}%</span>
                 </div>
                 <div className="flex justify-between text-[11px] text-ink-faint">
-                  <span>${(recovered ?? 0).toLocaleString()} {t("recovered", "recupere")}</span>
+                  <span>${(recovered ?? 0).toLocaleString()} {t("recovered", "récupéré")}</span>
                   <span>${(totalLeak ?? 0).toLocaleString()} total</span>
                 </div>
               </div>

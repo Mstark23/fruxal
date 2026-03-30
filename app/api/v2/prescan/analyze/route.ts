@@ -18,7 +18,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import Anthropic from "@anthropic-ai/sdk";
+import { getCountryFromHost, type Country } from "@/lib/country";
 
 // Rate limit: 10 prescan analyses per IP per hour
 const _pscRl = new Map<string, {c: number; r: number}>();
@@ -35,8 +35,6 @@ export const maxDuration = 60; // Vercel function timeout (seconds)
 
 
 export async function POST(req: NextRequest) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
   const _pIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (!pscRateCheck(_pIp)) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   try {
@@ -50,6 +48,12 @@ export async function POST(req: NextRequest) {
       uses_payroll_software, tax_last_reviewed,
       vendor_contracts_stale, has_business_insurance,
     } = body;
+
+    // Determine country: explicit from client, or detect from Host header
+    const country: Country = body.country === "US" ? "US"
+      : body.country === "CA" ? "CA"
+      : getCountryFromHost(req.headers.get("host") || "");
+    const isUS = country === "US";
 
     if (!province || !industry || !structure) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
@@ -69,11 +73,19 @@ export async function POST(req: NextRequest) {
 
     // ─── 1. Match obligations ────────────────────────────────────────
 
-    const { data: obligations } = await supabaseAdmin
+    // Fetch obligations: match by province/state code in applies_to_provinces array,
+    // OR obligations with empty array (federal — applies to all)
+    const { data: allObligations } = await supabaseAdmin
       .from("obligation_rules")
-      .select("slug, title, title_fr, category, risk_level, agency, penalty_min, penalty_max, penalty_description, frequency, priority_score")
-      .eq("province", province)
+      .select("slug, title, title_fr, category, risk_level, agency, penalty_min, penalty_max, penalty_description, frequency, priority_score, applies_to_provinces")
       .order("priority_score", { ascending: false });
+
+    // Filter: obligations that apply to this province/state or are federal (empty array)
+    const obligations = (allObligations || []).filter(o => {
+      const prov = o.applies_to_provinces;
+      if (!prov || prov.length === 0) return true; // federal/all
+      return prov.includes(province);
+    });
 
     // Filter obligations by business profile
     const matchedObligations = (obligations || []).filter(ob => {
@@ -90,7 +102,7 @@ export async function POST(req: NextRequest) {
     const { data: leaks } = await supabaseAdmin
       .from("provincial_leak_detectors")
       .select("slug, title, title_fr, category, severity, annual_impact_min, annual_impact_max, solution_type, detection_question, detection_question_fr, partner_slugs, program_slugs, structures, min_employees, max_employees, min_revenue, max_revenue")
-      .eq("province", province)
+      .in("province", isUS ? [province, "ALL"] : [province])
       .order("annual_impact_max", { ascending: false });
 
     // Filter leaks by relevance to this business
@@ -112,81 +124,147 @@ export async function POST(req: NextRequest) {
     const highLeaks = matchedLeaks.filter(l => l.severity === "high").length;
 
     // ─── 3. Match government programs ────────────────────────────────
-
-    const { data: programs } = await supabaseAdmin
+    // Fetch all government programs, then filter by province/state or federal (empty array)
+    const { data: allPrograms } = await supabaseAdmin
       .from("affiliate_partners")
-      .select("slug, name, category, sub_category, description, url, priority_score")
+      .select("slug, name, category, sub_category, description, url, priority_score, provinces")
       .eq("is_government_program", true)
-      .contains("provinces", [province])
-      .order("priority_score", { ascending: false })
-      .limit(15);
+      .order("priority_score", { ascending: false });
 
-    const matchedPrograms = programs || [];
+    const matchedPrograms = (allPrograms || []).filter(p => {
+      if (!p.provinces || p.provinces.length === 0) return true; // federal/all
+      return p.provinces.includes(province);
+    }).slice(0, 15);
 
     // ─── 4. Calculate business-specific insights ─────────────────────
 
     const insights: { type: string; title: string; title_fr: string; impact: string; severity: string }[] = [];
 
-    // Incorporation check
+    // ── Incorporation / entity structure check ──
     if (structure === "sole_proprietor" && annual_revenue > 50000) {
-      const corpRate = province === "SK" ? "9%" : province === "MB" ? "9%" : province === "AB" ? "10%" :
-        province === "QC" ? "12.2%" : province === "ON" ? "12.2%" : province === "BC" ? "11%" :
-        province === "PE" ? "10%" : province === "NL" ? "12%" : "11.5%";
-      const personalRate = province === "NL" ? "54.8%" : province === "NS" ? "54%" : province === "QC" ? "53.3%" :
-        province === "BC" ? "53.5%" : province === "ON" ? "53.5%" : province === "SK" ? "47.5%" :
-        province === "AB" ? "48%" : "50%";
-      const savings = Math.round(annual_revenue * 0.15); // Conservative 15% gap estimate
-
-      insights.push({
-        type: "structure",
-        title: `You may be overpaying taxes as a sole proprietor`,
-        title_fr: `Vous pourriez payer trop d'impôt comme travailleur autonome`,
-        impact: `$${(savings ?? 0).toLocaleString()}/yr potential savings (${corpRate} corporate vs ${personalRate} personal top rate)`,
-        severity: "critical",
-      });
+      if (isUS) {
+        const savings = Math.round(annual_revenue * 0.15);
+        insights.push({
+          type: "structure",
+          title: "You may be overpaying self-employment tax as a sole proprietor",
+          title_fr: "",
+          impact: `$${savings.toLocaleString()}/yr potential savings — S-corp election can reduce FICA exposure`,
+          severity: "critical",
+        });
+      } else {
+        const corpRate = province === "SK" ? "9%" : province === "MB" ? "9%" : province === "AB" ? "10%" :
+          province === "QC" ? "12.2%" : province === "ON" ? "12.2%" : province === "BC" ? "11%" :
+          province === "PE" ? "10%" : province === "NL" ? "12%" : "11.5%";
+        const personalRate = province === "NL" ? "54.8%" : province === "NS" ? "54%" : province === "QC" ? "53.3%" :
+          province === "BC" ? "53.5%" : province === "ON" ? "53.5%" : province === "SK" ? "47.5%" :
+          province === "AB" ? "48%" : "50%";
+        const savings = Math.round(annual_revenue * 0.15);
+        insights.push({
+          type: "structure",
+          title: "You may be overpaying taxes as a sole proprietor",
+          title_fr: "Vous pourriez payer trop d'impôt comme travailleur autonome",
+          impact: `$${savings.toLocaleString()}/yr potential savings (${corpRate} corporate vs ${personalRate} personal top rate)`,
+          severity: "critical",
+        });
+      }
     }
 
-    // No accountant check
+    // ── No accountant / CPA check ──
     if (!has_accountant && annual_revenue > 30000) {
       insights.push({
         type: "bookkeeping",
-        title: "Operating without professional bookkeeping",
+        title: isUS ? "Operating without a CPA or bookkeeper" : "Operating without professional bookkeeping",
         title_fr: "Opérer sans tenue de livres professionnelle",
-        impact: `$3,000 - $15,000/yr in missed deductions`,
+        impact: "$3,000 - $15,000/yr in missed deductions",
         severity: "high",
       });
     }
 
-    // Data privacy check
-    if (handles_data && ["QC", "AB", "BC"].includes(province)) {
-      const law = province === "QC" ? "Law 25" : province === "AB" ? "PIPA" : "PIPA BC";
-      insights.push({
-        type: "privacy",
-        title: `${law} privacy compliance required`,
-        title_fr: `Conformité ${law} obligatoire`,
-        impact: `Up to $100,000 in potential fines`,
-        severity: "critical",
-      });
+    // ── Data privacy check ──
+    if (handles_data) {
+      if (isUS && province === "CA") {
+        insights.push({
+          type: "privacy",
+          title: "CCPA / CPRA privacy compliance required",
+          title_fr: "",
+          impact: "Up to $7,500 per intentional violation",
+          severity: "critical",
+        });
+      } else if (isUS && ["NY", "CO", "CT", "VA", "UT"].includes(province)) {
+        insights.push({
+          type: "privacy",
+          title: `${province} state privacy law compliance required`,
+          title_fr: "",
+          impact: "Fines vary by state — non-compliance risk is rising",
+          severity: "high",
+        });
+      } else if (!isUS && ["QC", "AB", "BC"].includes(province)) {
+        const law = province === "QC" ? "Law 25" : province === "AB" ? "PIPA" : "PIPA BC";
+        insights.push({
+          type: "privacy",
+          title: `${law} privacy compliance required`,
+          title_fr: `Conformité ${law} obligatoire`,
+          impact: "Up to $100,000 in potential fines",
+          severity: "critical",
+        });
+      }
     }
 
-    // GST threshold
-    if (annual_revenue > 30000 && annual_revenue < 40000) {
-      insights.push({
-        type: "gst",
-        title: "You've crossed the $30K GST/HST registration threshold",
-        title_fr: "Vous avez franchi le seuil de 30K$ d'inscription TPS/TVH",
-        impact: "Must register or face penalties",
-        severity: "high",
-      });
+    // ── Sales tax / GST threshold ──
+    if (isUS) {
+      // US: sales tax nexus — relevant for e-commerce / multi-state
+      if (exports_goods || annual_revenue > 100000) {
+        insights.push({
+          type: "sales_tax",
+          title: "You may have sales tax nexus in multiple states",
+          title_fr: "",
+          impact: "Post-Wayfair, economic nexus thresholds apply — penalties for non-collection",
+          severity: "high",
+        });
+      }
+    } else {
+      if (annual_revenue > 30000 && annual_revenue < 40000) {
+        insights.push({
+          type: "gst",
+          title: "You've crossed the $30K GST/HST registration threshold",
+          title_fr: "Vous avez franchi le seuil de 30K$ d'inscription TPS/TVH",
+          impact: "Must register or face penalties",
+          severity: "high",
+        });
+      }
     }
 
-    // Employee-related
+    // ── Employee-related ──
     if (employees > 0 && employees <= 5) {
       insights.push({
         type: "payroll",
         title: "Small team compliance gaps are common",
         title_fr: "Les petites équipes ont souvent des lacunes de conformité",
-        impact: `Workers' comp, source deductions, employment standards all apply`,
+        impact: isUS
+          ? "Workers' comp, payroll taxes, FLSA, and employment standards all apply"
+          : "Workers' comp, source deductions, employment standards all apply",
+        severity: "high",
+      });
+    }
+
+    // ── US-specific: R&D credit ──
+    if (isUS && does_rd && annual_revenue > 50000) {
+      insights.push({
+        type: "rd_credit",
+        title: "You may qualify for the federal R&D tax credit",
+        title_fr: "",
+        impact: "Section 41 credit — up to 20% of qualifying R&D expenses",
+        severity: "high",
+      });
+    }
+
+    // ── US-specific: Section 199A / QBI deduction ──
+    if (isUS && structure !== "corporation" && annual_revenue > 50000 && annual_revenue < 500000) {
+      insights.push({
+        type: "qbi",
+        title: "You may be eligible for the 20% QBI deduction (Section 199A)",
+        title_fr: "",
+        impact: `Up to $${Math.round(annual_revenue * 0.04).toLocaleString()}/yr in tax savings`,
         severity: "high",
       });
     }
@@ -209,7 +287,7 @@ export async function POST(req: NextRequest) {
       // Input snapshot
       input: {
         province, industry, structure, monthly_revenue, employee_count: employees,
-        annual_revenue, tier, flags,
+        annual_revenue, tier, flags, country,
       },
       // Summary numbers
       summary: {

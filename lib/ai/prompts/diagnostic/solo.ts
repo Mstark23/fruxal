@@ -81,9 +81,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use Canadian solo operator averages for this industry"}
 
-${buildQualityBar("solo", "US")}
+${buildQualityBar("solo", "CA")}
 
-${buildSolutionMatrix("solo", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
+${buildSolutionMatrix("solo", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "CA")}
 
 STRUCTURAL RULES:
 ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Revenue is an estimate. Dollar amounts in findings must show ranges (e.g. "$4K–$12K"), not single figures. Set severity ≤ medium for revenue-dependent findings.` : ""}
@@ -137,7 +137,7 @@ ${(() => {
 })()}
 
 Return ONLY this JSON (no markdown fences):
-${buildDiagnosticSchema("solo", 5, "US")}`;
+${buildDiagnosticSchema("solo", 5, "CA")}`;
 
   return { systemPrompt, userPrompt };
 }
@@ -241,8 +241,15 @@ PROFILE:
 - Employees:      ${employees}
 ${estimatedPayroll > 0 ? `- Est. payroll:   $${estimatedPayroll.toLocaleString()}` : ""}
 - Has accountant: ${profile.has_accountant  ? "YES" : "NO"}
+- Has bookkeeper: ${profile.has_bookkeeper  ? "YES" : "NO"}
 - Does R&D:       ${profile.does_rd         ? "YES" : "NO"}
-`;
+- Physical location: ${profile.has_physical_location ? "YES" : "NO"}
+- E-commerce:     ${profile.has_ecommerce   ? "YES" : "NO"}
+- Has payroll:    ${profile.has_payroll      ? "YES" : "NO"}
+${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — estimated penalty $${penaltyExposure.toLocaleString()}` : ""}
+
+Return ONLY this JSON (no markdown fences):
+${buildDiagnosticSchema("solo", 5, "US")}`;
 
   return { systemPrompt, userPrompt };
 }

@@ -171,9 +171,9 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use Canadian enterprise averages for this industry"}
 
-${buildQualityBar("enterprise", "US")}
+${buildQualityBar("enterprise", "CA")}
 
-${buildSolutionMatrix("enterprise", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
+${buildSolutionMatrix("enterprise", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "CA")}
 
 STRUCTURAL RULES:
 1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}) and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}).
@@ -234,7 +234,7 @@ BUSINESS FLAGS
 - Handles Data:      ${profile.handles_data         ? "YES" : "NO"}
 
 Return ONLY this JSON (no markdown fences):
-${buildDiagnosticSchema("enterprise", 12, "US")}`;
+${buildDiagnosticSchema("enterprise", 12, "CA")}`;
 
   return { systemPrompt, userPrompt };
 }
@@ -349,6 +349,7 @@ RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
   const userPrompt = `Analyze this US enterprise business and return a complete JSON diagnostic report.
 
 PROFILE:
+- Business:       ${bizName}
 - Industry:       ${industry}
 - State:          ${state}
 - Structure:      ${structure}
@@ -358,10 +359,20 @@ PROFILE:
 - Employees:      ${employees}
 ${estimatedPayroll > 0 ? `- Est. payroll:   $${estimatedPayroll.toLocaleString()}` : ""}
 ${ownerSalary > 0 ? `- Owner W-2:      $${ownerSalary.toLocaleString()}` : ""}
-- Does R&D:       ${profile.does_rd ? "YES" : "NO"}
+- Has payroll:    ${profile.has_payroll          ? "YES" : "NO"}
+- Does R&D:       ${profile.does_rd              ? "YES" : "NO"}
+- Has accountant: ${profile.has_accountant       ? "YES" : "NO"}
+- Has bookkeeper: ${profile.has_bookkeeper       ? "YES" : "NO"}
+- Physical location: ${profile.has_physical_location ? "YES" : "NO"}
+- Handles data:   ${profile.handles_data         ? "YES" : "NO"}
 - Has holdco:     ${hasHoldco ? "YES" : "NO"}
 - Exit horizon:   ${exitHorizon || "not specified"}
-`;
+- Est. tax drag:  ${estimatedTaxDrag > 0 ? `$${estimatedTaxDrag.toLocaleString()}/yr` : "Not calculated"}
+- SR&ED last yr:  ${(sredLastYear ?? 0) > 0 ? `$${sredLastYear.toLocaleString()}` : "None"}
+${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — penalty exposure: $${(penaltyExposure ?? 0).toLocaleString()}` : ""}
+
+Return ONLY this JSON (no markdown fences):
+${buildDiagnosticSchema("enterprise", 9, "US")}`;
 
   return { systemPrompt, userPrompt };
 }
