@@ -152,7 +152,9 @@ export async function POST(req: NextRequest) {
             currency,
             product_data: {
               name: "Fruxal Business",
-              description: "Full AI diagnostic · 7 findings with calculation math · CPA briefing · Priority sequence · Benchmarks · Monthly re-scans",
+              description: isUS
+                ? "Full AI diagnostic · 7 findings with calculation math · CPA briefing · Priority sequence · Benchmarks · Monthly re-scans"
+                : "Full AI diagnostic · 7 findings with calculation math · Accountant briefing · Priority sequence · Benchmarks · Monthly re-scans",
             },
             unit_amount: isUS ? 11900 : 14900, // $119 USD / $149 CAD
             recurring: { interval: "month" },

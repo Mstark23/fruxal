@@ -11,7 +11,7 @@ import { DiagCtx }               from "./types";
 import { buildDiagnosticSchema } from "./schema";
 import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
-import { FRUXAL_VOICE }          from "@/lib/ai/identity";
+import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 export function buildBusinessPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
   const {
@@ -165,7 +165,7 @@ function buildUSBusinessPrompts(ctx: DiagCtx): { systemPrompt: string; userPromp
   const bizName   = profile.business_name  || "this business";
   const structure = profile.structure      || "s_corp";
 
-  const systemPrompt = `${FRUXAL_VOICE}
+  const systemPrompt = `${buildFruxalVoice("US")}
 
 You are analyzing ${bizName}, a ${industry} operating in ${state} (US).
 Revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}) | EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource})

@@ -5,6 +5,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { getCountryFromCookie } from "@/lib/country";
 
 function fmtM(n: number) {
   return n >= 1_000_000 ? "$" + (n / 1_000_000).toFixed(1) + "M"
@@ -152,7 +153,9 @@ export default function AgreementPage() {
             {[
               { icon: "✓", text: `Fruxal charges ${rate}% of confirmed savings only — nothing upfront.` },
               { icon: "✓", text: `You keep ${keep}% of every dollar we recover.` },
-              { icon: "✓", text: "Our accountant handles all CRA calls, vendor negotiations, and grant applications." },
+              { icon: "✓", text: getCountryFromCookie() === "US"
+                ? "Our CPA handles all IRS filings, vendor negotiations, and program applications."
+                : "Our accountant handles all CRA calls, vendor negotiations, and grant applications." },
               { icon: "✓", text: "Savings are only confirmed when money is in your account or obligation is formally reduced." },
               { icon: "✓", text: "You can withdraw from any individual finding at any time before submission." },
             ].map((item, i) => (

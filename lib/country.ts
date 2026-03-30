@@ -87,6 +87,16 @@ export const CA_PROVINCES = [
   { value: "PE", label: "Prince Edward Island", fr: "Île-du-Prince-Édouard" },
 ];
 
+/** Get the correct Fruxal domain for the country */
+export function getFruxalDomain(country: Country): string {
+  return country === "US" ? "fruxal.com" : "fruxal.ca";
+}
+
+/** Get the correct Fruxal base URL for the country */
+export function getFruxalUrl(country: Country): string {
+  return country === "US" ? "https://fruxal.com" : "https://fruxal.ca";
+}
+
 /** US state tax insight shown after selection (mirrors CA province insight) */
 export function getUSStateInsight(state: string): string {
   const insights: Record<string, string> = {

@@ -11,7 +11,7 @@ import { DiagCtx }            from "./types";
 import { buildDiagnosticSchema } from "./schema";
 import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
-import { FRUXAL_VOICE }          from "@/lib/ai/identity";
+import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 export function buildSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
   const {
@@ -158,7 +158,7 @@ function buildUSSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: s
   const structure = profile.structure     || "sole_proprietorship";
   const { estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct } = ctx;
 
-  const systemPrompt = `${FRUXAL_VOICE}
+  const systemPrompt = `${buildFruxalVoice("US")}
 
 You are analyzing ${bizName}, a ${industry} operating in ${state} (US) as a ${structure}.
 Annual revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}).

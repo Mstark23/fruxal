@@ -129,7 +129,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       <p style="font-size:11px;color:#B5B3AD;margin:8px 0 0">Secure payment via Stripe</p>
     </div>` : `
     <p style="font-size:13px;color:#56554F;margin:0 0 20px">
-      Please arrange payment of <strong>$${feeAmount.toLocaleString()} CAD</strong> via e-transfer to <a href="mailto:payments@fruxal.com" style="color:#1B3A2D">payments@fruxal.com</a> with reference <strong>${invoiceNum}</strong>.
+      Please arrange payment of <strong>$${feeAmount.toLocaleString()}</strong> via e-transfer to <a href="mailto:payments@fruxal.com" style="color:#1B3A2D">payments@fruxal.com</a> with reference <strong>${invoiceNum}</strong>.
     </p>`}
     <p style="font-size:12px;color:#B5B3AD;margin:0">
       Questions? Reply to this email or contact <a href="mailto:hello@fruxal.com" style="color:#B5B3AD">hello@fruxal.com</a>

@@ -187,7 +187,9 @@ export default function BusinessDashboard() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.7" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
         <p className="font-serif text-xl text-ink mb-2">{t("No diagnostic yet", "Aucun diagnostic")}</p>
-        <p className="text-sm text-ink-muted mb-6">{t("Run your first diagnostic to see your full financial picture — health score, detected leaks, and a CPA briefing.", "Lancez votre premier diagnostic pour voir votre tableau financier complet.")}</p>
+        <p className="text-sm text-ink-muted mb-6">{profile.country === "US"
+                ? "Run your first diagnostic to see your full financial picture — health score, detected leaks, and a CPA briefing."
+                : t("Run your first diagnostic to see your full financial picture — health score, detected leaks, and an accountant briefing.", "Lancez votre premier diagnostic pour voir votre tableau financier complet — score de santé, fuites détectées et briefing comptable.")}</p>
         <button onClick={() => router.push("/v2/diagnostic")} className="px-6 py-2.5 text-sm font-semibold text-white bg-brand rounded-lg hover:opacity-90 transition">
           {t("Run diagnostic →", "Lancer le diagnostic →")}
         </button>
@@ -259,7 +261,7 @@ export default function BusinessDashboard() {
               <div className="grid grid-cols-3 gap-2 mb-4">
                 {[
                   { n: "1", text: t("Complete the 5-min intake form", "Remplissez le formulaire de 5 min") },
-                  { n: "2", text: t("Get exact dollar amounts + CPA briefing", "Montants exacts + briefing comptable") },
+                  { n: "2", text: profile.country === "US" ? "Get exact dollar amounts + CPA briefing" : t("Get exact dollar amounts + accountant briefing", "Montants exacts + briefing comptable") },
                   { n: "3", text: t("Your rep gets the full picture to recover it", "Votre rep récupère le tout pour vous") },
                 ].map(s => (
                   <div key={s.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>

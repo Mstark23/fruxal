@@ -35,7 +35,8 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions): Prom
 
 // ─── Pre-built email templates ──────────────────────────────────────────────
 
-export function emailTemplate(title: string, body: string, ctaText: string, ctaUrl: string): string {
+export function emailTemplate(title: string, body: string, ctaText: string, ctaUrl: string, country: string = "CA"): string {
+  const domain = country === "US" ? "fruxal.com" : "fruxal.ca";
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
 <div style="max-width:560px;margin:0 auto;padding:40px 20px">
@@ -46,7 +47,7 @@ export function emailTemplate(title: string, body: string, ctaText: string, ctaU
     <a href="${ctaUrl}" style="display:inline-block;background:#1B3A2D;color:white;font-weight:700;font-size:13px;padding:12px 24px;border-radius:8px;text-decoration:none">${ctaText}</a>
   </div>
   <div style="text-align:center;margin-top:20px;font-size:11px;color:#B5B3AD">
-    Fruxal &nbsp;·&nbsp; <a href="https://fruxal.ca" style="color:#B5B3AD;text-decoration:none">fruxal.ca</a>
+    Fruxal &nbsp;·&nbsp; <a href="https://${domain}" style="color:#B5B3AD;text-decoration:none">${domain}</a>
   </div>
 </div></body></html>`;
 }

@@ -12,8 +12,24 @@
 // ─── Brand voice ─────────────────────────────────────────────────────────────
 // Injected into every diagnostic system prompt.
 // Keep this stable — changes here affect ALL tiers simultaneously.
-export const FRUXAL_VOICE = `
-FRUXAL DIAGNOSTIC IDENTITY:
+// Country-specific brand voice
+export function buildFruxalVoice(country: string = "CA"): string {
+  if (country === "US") {
+    return `FRUXAL DIAGNOSTIC IDENTITY:
+You are the Fruxal AI Diagnostic Engine. Fruxal is a financial leak detection platform for US businesses.
+Every finding you produce must read as if a $500/hr US CPA and CFO sat down with this specific business.
+
+VOICE RULES:
+- No generic advice. Every sentence must reference this business's actual numbers.
+- No filler ("it's important to...", "you may want to consider..."). State the dollar and the fix.
+- No hedging on calculations. Show the math; own the number.
+- No Canadian tax references. This is the US. IRS, not CRA. Sales tax, not HST/GST. Say "CPA" not "accountant". Say "state" not "province".
+- Never mention T1, T2, T4, T5, CRA, SR&ED, SBD, RRSP, CPP, CNESST, WSIB, ROE, or any Canadian tax terms.
+- Use IRS forms: Schedule C, Form 1120-S, W-2, 1099, 941, 940, Section 179, Section 199A.
+- Use the correct state's rules. Never apply Texas rules to a California business.`;
+  }
+
+  return `FRUXAL DIAGNOSTIC IDENTITY:
 You are the Fruxal AI Diagnostic Engine. Fruxal is Canada's financial leak detection platform.
 Every finding you produce must read as if a $500/hr Canadian CPA and CFO sat down with this specific business.
 
@@ -23,8 +39,11 @@ VOICE RULES:
 - No hedging on calculations. Show the math; own the number.
 - No US tax references. This is Canada. CRA, not IRS. HST/GST, not sales tax.
 - Use the correct province's rules. Never apply Ontario rules to a Quebec business.
-- In French: every word in French including the executive summary. Field keys stay English.
-`.trim();
+- In French: every word in French including the executive summary. Field keys stay English.`;
+}
+
+// Legacy export for files that import FRUXAL_VOICE directly — defaults to CA
+export const FRUXAL_VOICE = buildFruxalVoice("CA");
 
 // ─── Province tax context builder ────────────────────────────────────────────
 // Produces a compact 1–3 line tax context string injected into the system prompt.
@@ -46,7 +65,21 @@ interface TaxContextInput {
 export function buildTaxContext(p: TaxContextInput): string {
   const lines: string[] = [];
 
-  // Provincial tax rules
+  // US state tax context
+  const US_STATES = new Set(["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"]);
+  if (US_STATES.has(p.province)) {
+    const st = p.province;
+    const noIncomeTax = ["FL","TX","NV","WA","WY","SD","TN","NH","AK"].includes(st);
+    lines.push(`US state: ${st}. ${noIncomeTax ? "No state income tax." : "State income tax applies."} Federal: IRS, FICA (15.3% SE tax), Section 179, QBI deduction (Section 199A).`);
+    if (st === "CA") lines.push("California: 13.3% top marginal rate (highest in US). CCPA/CPRA privacy compliance. Franchise tax min $800.");
+    if (st === "NY") lines.push("New York: MTA surcharge 30% on franchise tax in metro area. High combined state+city burden.");
+    if (st === "TX") lines.push("Texas: No income tax but franchise (margin) tax on revenue >$2.47M. B&O-like structure.");
+    if (st === "WA") lines.push("Washington: No income tax but B&O gross receipts tax (0.471%-1.5%). Heavy on service businesses.");
+    if ((p.employees ?? 0) > 0) lines.push("Federal payroll: Form 941 quarterly, 940 FUTA annual, workers comp required in most states.");
+    return lines.join("\n");
+  }
+
+  // Provincial tax rules (Canada)
   switch (p.province) {
     case "QC":
       lines.push("QST 9.975% applies alongside GST 5%. Bill 96 French obligations on client-facing materials. RS&DE provincial credit: 30% refundable for CCPC. Desjardins dominant banking relationship.");

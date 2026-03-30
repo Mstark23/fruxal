@@ -35,6 +35,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const companyName   = eng.company_name || pipe?.company_name || "Client";
     const contactName   = pipe?.contact_name  || "Business Owner";
     const province      = pipe?.province || "Canada";
+    const US_STATES = new Set(["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"]);
+    const isUS = US_STATES.has(province);
+    const domain = isUS ? "fruxal.com" : "fruxal.ca";
     const industry      = pipe?.industry || "";
     const feePercent    = eng.fee_percentage || 12;
     const dateStr       = new Date().toLocaleDateString("en-CA", { year:"numeric", month:"long", day:"numeric" });
@@ -131,7 +134,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       doc.text("Date: _______________", sigX, y+70);
 
       y += 100;
-      doc.fontSize(7).fillColor("#aaa").text(`Agreement \${agreementNum} · Fruxal Diagnostic Inc. · fruxal.ca · privacy@fruxal.ca`, M, y, { width:CW, align:"center" });
+      doc.fontSize(7).fillColor("#aaa").text(`Agreement \${agreementNum} · Fruxal Diagnostic Inc. · ${domain} · privacy@${domain}`, M, y, { width:CW, align:"center" });
 
       doc.end();
     });

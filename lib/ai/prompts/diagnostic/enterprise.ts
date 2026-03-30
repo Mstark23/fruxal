@@ -12,7 +12,7 @@ import { DiagCtx }               from "./types";
 import { buildDiagnosticSchema } from "./schema";
 import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
-import { FRUXAL_VOICE }          from "@/lib/ai/identity";
+import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
   const {
@@ -260,7 +260,7 @@ function buildUSEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPro
   const evLow  = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * 4) : Math.round(annualRevenue * 0.5);
   const evHigh = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * 8) : Math.round(annualRevenue * 0.9);
 
-  const systemPrompt = `${FRUXAL_VOICE}
+  const systemPrompt = `${buildFruxalVoice("US")}
 
 You are analyzing ${bizName}, a ${industry} in ${state} (US) generating $${(annualRevenue ?? 0).toLocaleString()} revenue.
 Structure: ${structure} | EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}) | Gross margin: ${grossMarginPct}%
