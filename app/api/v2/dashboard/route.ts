@@ -339,16 +339,19 @@ export async function GET(req: NextRequest) {
       }
     } catch { /* non-fatal */ }
 
-    // Programs count — use affiliate_partners with is_government_program flag
+    // Programs count — filter by user's province (includes federal programs with empty provinces)
     let programsAvailable = 0;
+    const userProvince = profile?.province || "";
     try {
-      const { count } = await supabaseAdmin
+      const { data: allProgs } = await supabaseAdmin
         .from("affiliate_partners")
-        .select("*", { count: "exact", head: true })
+        .select("provinces")
         .eq("is_government_program", true)
         .eq("active", true);
-      programsAvailable = count || 7; // fallback to known count
-    } catch { programsAvailable = 7; }
+      programsAvailable = (allProgs || []).filter((p: any) =>
+        !p.provinces || p.provinces.length === 0 || p.provinces.includes(userProvince)
+      ).length || 5;
+    } catch { programsAvailable = 5; }
 
     // Health score — use prescan BHS as base when available, adjust live
     // Pull rep-confirmed recovery total from user_progress (set by rep confirmation flow)

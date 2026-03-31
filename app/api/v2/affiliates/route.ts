@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
 
     // Try to get user context for better matching
     let userProvince = province;
+    let userCountry = searchParams.get("country") || null;
     let userIndustry = industry;
 
     try {
@@ -30,11 +31,12 @@ export async function GET(req: NextRequest) {
         const userId = (session.user as any).id;
         const { data: profile } = await supabaseAdmin
           .from("business_profiles")
-          .select("province, industry")
+          .select("province, country, industry")
           .eq("user_id", userId)
           .maybeSingle();
         if (profile) {
           userProvince = userProvince || profile.province;
+          userCountry = userCountry || profile.country;
           userIndustry = userIndustry || profile.industry;
         }
       }
@@ -60,20 +62,23 @@ export async function GET(req: NextRequest) {
       query = query.eq("category", category);
     }
 
-    // Filter by province if specified (or null = national)
-    if (userProvince) {
-      query = query.or(`province.is.null,province.eq.${userProvince}`);
-    }
-
-    const { data: partners, error } = await query;
+    const { data: allPartners, error } = await query;
 
     if (error) throw error;
 
-    const allPartners = partners || [];
+    // Filter by province/country: include programs that match user's province
+    // OR have empty provinces array (federal/national programs)
+    let filtered = allPartners || [];
+    if (userProvince) {
+      filtered = filtered.filter((p: any) => {
+        if (!p.provinces || p.provinces.length === 0) return true; // federal/national
+        return p.provinces.includes(userProvince);
+      });
+    }
 
     // Group by category for the programs page
     const byCategory: Record<string, any[]> = {};
-    for (const p of allPartners) {
+    for (const p of filtered) {
       const cat = p.category || "other";
       if (!byCategory[cat]) byCategory[cat] = [];
       byCategory[cat].push({
@@ -95,8 +100,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success:    true,
       total:      allPartners.length,
-      affiliates: allPartners,     // flat list (programs page uses this)
-      data:       allPartners,     // alias
+      affiliates: filtered,        // flat list (programs page uses this)
+      data:       filtered,        // alias
       by_category: byCategory,
     });
 
