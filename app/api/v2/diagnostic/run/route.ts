@@ -384,6 +384,7 @@ export async function POST(req: NextRequest) {
     let aiResult: any;
 
     try {
+      console.log(`[Diagnostic:Run] tier=${tier} country=${country} province=${province} sysPromptLen=${systemPrompt.length} userPromptLen=${userPrompt.length}`);
       const response = await getAnthropic().messages.create({
         model:      "claude-sonnet-4-20250514",
         max_tokens: tierMaxTokens(tier),
@@ -391,14 +392,30 @@ export async function POST(req: NextRequest) {
         messages:   [{ role: "user", content: userPrompt }],
       });
 
+      // Check for stop reason — if stopped due to length, response may be truncated
+      if (response.stop_reason === "end_turn" || response.stop_reason === "stop_sequence") {
+        // Normal completion
+      } else if (response.stop_reason === "max_tokens") {
+        console.warn(`[Diagnostic:Run] Claude hit max_tokens (${tierMaxTokens(tier)}) for tier ${tier} — output truncated`);
+      }
+
       const textBlock = response.content.find((b: any) => b.type === "text") as { type: "text"; text: string } | undefined;
       const rawText   = textBlock?.text || "";
+
+      if (!rawText || rawText.length < 50) {
+        console.error("[Diagnostic:Run] Claude returned empty/short response:", rawText.substring(0, 200));
+        throw new Error("AI returned an incomplete response. Please try again.");
+      }
+
       // Strip markdown fences, extract just the JSON object
       let jsonStr = rawText.replace(/```json\n?|```\n?/g, "").trim();
       // If Claude added text before/after the JSON, extract the {...} block
       const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
       if (jsonMatch) jsonStr = jsonMatch[0];
-      try { aiResult = JSON.parse(jsonStr); } catch { throw new Error('AI returned invalid JSON — not parseable'); }
+      try { aiResult = JSON.parse(jsonStr); } catch {
+        console.error("[Diagnostic:Run] JSON parse failed. First 300 chars:", rawText.substring(0, 300));
+        throw new Error('AI returned invalid JSON — not parseable');
+      }
 
       // Schema validation: if Claude returned empty or schema-invalid output, retry once
       const hasValidScores = aiResult?.scores && typeof aiResult.scores.overall === 'number';
