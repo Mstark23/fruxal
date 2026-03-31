@@ -45,10 +45,14 @@ export async function POST(req: NextRequest) {
         created_at: new Date().toISOString(),
       }, { onConflict: "user_id" });
 
-      const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+      // Use request host so US users get fruxal.com links, CA gets fruxal.ca
+      const host = req.headers.get("host") || "";
+      const appUrl = host.includes("fruxal.com") ? "https://fruxal.com"
+        : host.includes("fruxal.ca") ? "https://fruxal.ca"
+        : process.env.NEXTAUTH_URL || "https://fruxal.ca";
       const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
-      await sendEmail({
+      const sent = await sendEmail({
         to: norm,
         subject: "Reset your Fruxal password",
         html: emailTemplate(
@@ -65,6 +69,7 @@ export async function POST(req: NextRequest) {
           resetUrl
         ),
       });
+      if (!sent) console.error("[ForgotPassword] Email send failed for:", norm);
     }
 
     // Always return success
