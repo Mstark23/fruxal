@@ -23,17 +23,21 @@ import bcrypt from "bcryptjs";
 // ─── Auto-detect production URL ─────────────────────────────────────────
 // Priority: NEXTAUTH_URL (if not localhost) > VERCEL_PROJECT_PRODUCTION_URL > VERCEL_URL
 // Without this, cookies get set for wrong domain → session drops on page navigation.
-const needsUrlFix = !process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes("localhost");
-if (needsUrlFix) {
-  // Prefer the stable production domain over the per-deploy URL
-  const productionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL; // e.g. "fruxal.com"
-  const vercelUrl = process.env.VERCEL_URL; // e.g. "fruxal-abc123.vercel.app"
+// NEXTAUTH_URL handling for dual-domain setup (fruxal.ca + fruxal.com):
+// With trustHost: true, NextAuth v4 reads the Host header and uses it as
+// the base URL. This means cookies are set for the correct domain automatically.
+// We only need NEXTAUTH_URL as fallback for local dev or if trustHost fails.
+if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes("localhost")) {
+  const productionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const vercelUrl = process.env.VERCEL_URL;
   const bestUrl = productionUrl || vercelUrl;
   if (bestUrl) {
     process.env.NEXTAUTH_URL = `https://${bestUrl}`;
-    process.env.NODE_ENV !== "production" && console.log(`[Auth] Auto-set NEXTAUTH_URL to ${process.env.NEXTAUTH_URL}`);
   }
 }
+// On Vercel with trustHost: true, the actual request Host header takes
+// priority over NEXTAUTH_URL for cookie domain and callback URLs.
+// This is what makes both fruxal.ca and fruxal.com work with one deployment.
 
 export const authOptions: NextAuthOptions = {
   // ─── Providers ──────────────────────────────────────────────────
@@ -216,8 +220,23 @@ export const authOptions: NextAuthOptions = {
 
   // ─── Cookie Safety ──────────────────────────────────────────────
   // useSecureCookies in production ensures session cookies persist properly.
-  // Without this, cookies can get lost on HTTPS → HTTP transitions.
   useSecureCookies: process.env.NODE_ENV === "production",
+
+  // Explicit cookie config — do NOT lock to a specific domain.
+  // This ensures cookies work on BOTH fruxal.ca and fruxal.com
+  // since they're different TLDs and can't share cookies.
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        // No 'domain' set — cookie is scoped to the current origin automatically
+      },
+    },
+  },
 
   // Trust the host header on Vercel (behind proxy/load balancer)
   // Prevents CSRF false positives that kill sessions
