@@ -48,7 +48,7 @@ function RegisterForm() {
       });
 
       if (loginResult?.error) {
-        window.location.href = "/login";
+        router.push("/login");
         return;
       }
 
@@ -104,7 +104,9 @@ function RegisterForm() {
       const dest = prescanRunId
         ? dashBase + "?prescanRunId=" + prescanRunId + (intent === "download" ? "&autoDownload=1" : "")
         : dashBase;
-      window.location.href = dest;
+      // Use router.push for SPA navigation (keeps session in same context)
+      // Fallback to window.location.href if router fails
+      try { router.push(dest); } catch { window.location.href = dest; }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally { setLoading(false); }

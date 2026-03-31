@@ -99,8 +99,8 @@ function LoginForm() {
       } catch { /* non-fatal */ }
       const dest = redirectTo || callbackUrl || dashBase;
       const safeDest = dest.startsWith("/") ? dest : dashBase;
-      // Hard redirect so fresh session cookie is sent with the next request
-      window.location.href = safeDest;
+      // Use router.push for SPA navigation — keeps session in same context
+      try { router.push(safeDest); } catch { window.location.href = safeDest; }
     }
   };
 
