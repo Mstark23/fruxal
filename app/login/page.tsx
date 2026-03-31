@@ -99,8 +99,19 @@ function LoginForm() {
       } catch { /* non-fatal */ }
       const dest = redirectTo || callbackUrl || dashBase;
       const safeDest = dest.startsWith("/") ? dest : dashBase;
-      // Use router.push for SPA navigation — keeps session in same context
-      try { router.push(safeDest); } catch { window.location.href = safeDest; }
+      // Verify session is readable before navigating
+      let verified = false;
+      for (let i = 0; i < 5; i++) {
+        const s = await fetch("/api/auth/session").then(r => r.json()).catch(() => null);
+        if (s?.user) { verified = true; break; }
+        await new Promise(r => setTimeout(r, 300));
+      }
+      if (!verified) {
+        setError("Session not established. Please try again.");
+        setLoading(false);
+        return;
+      }
+      window.location.href = safeDest;
     }
   };
 
