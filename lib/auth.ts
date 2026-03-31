@@ -23,21 +23,15 @@ import bcrypt from "bcryptjs";
 // ─── Auto-detect production URL ─────────────────────────────────────────
 // Priority: NEXTAUTH_URL (if not localhost) > VERCEL_PROJECT_PRODUCTION_URL > VERCEL_URL
 // Without this, cookies get set for wrong domain → session drops on page navigation.
-// NEXTAUTH_URL handling for dual-domain setup (fruxal.ca + fruxal.com):
-// With trustHost: true, NextAuth v4 reads the Host header and uses it as
-// the base URL. This means cookies are set for the correct domain automatically.
-// We only need NEXTAUTH_URL as fallback for local dev or if trustHost fails.
-if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes("localhost")) {
-  const productionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  const vercelUrl = process.env.VERCEL_URL;
-  const bestUrl = productionUrl || vercelUrl;
-  if (bestUrl) {
-    process.env.NEXTAUTH_URL = `https://${bestUrl}`;
-  }
+// DUAL-DOMAIN AUTH (fruxal.ca + fruxal.com):
+// Do NOT set NEXTAUTH_URL on Vercel — it locks cookies to one domain.
+// With trustHost: true (below), NextAuth reads the Host header from each
+// request and sets cookies for THAT domain. This is the only way to make
+// auth work on two different TLDs from one deployment.
+// NEXTAUTH_URL is only needed for local dev (localhost:3000).
+if (!process.env.NEXTAUTH_URL && !process.env.VERCEL) {
+  process.env.NEXTAUTH_URL = "http://localhost:3000";
 }
-// On Vercel with trustHost: true, the actual request Host header takes
-// priority over NEXTAUTH_URL for cookie domain and callback URLs.
-// This is what makes both fruxal.ca and fruxal.com work with one deployment.
 
 export const authOptions: NextAuthOptions = {
   // ─── Providers ──────────────────────────────────────────────────
