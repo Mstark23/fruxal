@@ -9,6 +9,7 @@ export interface AdvisorContext {
   businessName:   string;
   industry:       string;
   province:       string;
+  country:        string;
   plan:           string;
   annualRevenue:  number;
   totalLeaking:   number;
@@ -17,7 +18,8 @@ export interface AdvisorContext {
 }
 
 export function buildAdvisorSystemPrompt(ctx: AdvisorContext): string {
-  const { businessName, industry, province, plan, annualRevenue, totalLeaking, topFindings, isFr } = ctx;
+  const { businessName, industry, province, country, plan, annualRevenue, totalLeaking, topFindings, isFr } = ctx;
+  const isUS = country === "US";
 
   const leakSummary = topFindings.slice(0, 5)
     .map((f, i) => `${i + 1}. ${f.title} — $${(f.annualImpact ?? 0).toLocaleString()}/yr [${f.category}/${f.severity}]`)
@@ -44,13 +46,13 @@ RULES:
 - Never give generic advice. Reference their actual business, province, and numbers.
 - If they ask about a finding, explain the calculation behind it in plain language.
 - If they ask "what should I do first?" — direct them to the highest-impact finding.
-- If they ask about tools or solutions — recommend specific Canadian tools for their tier.
+- If they ask about tools or solutions — recommend specific ${isUS ? "US" : "Canadian"} tools for their tier.
 - Keep responses concise. They're business owners, not students.
-- ${province === "QC" ? "This is a Quebec business — QST, CNESST, and French obligations apply." : `This is a ${province} business — apply correct provincial rules.`}
+- ${isUS ? `This is a US business in ${province}. Use IRS terms (W-2, 1099, Schedule C, Section 179). Say "CPA" not "accountant". Never use Canadian terms.` : province === "QC" ? "This is a Quebec business — QST, CNESST, and French obligations apply." : `This is a ${province} business — apply correct provincial rules.`}
 ${isFr ? "- Respond in French. Use 'vous' not 'tu'." : ""}
 
 WHAT YOU DO NOT DO:
 - Do not give legal or licensed financial advice.
-- Do not make promises about specific tax savings without noting they should confirm with their accountant.
+- Do not make promises about specific tax savings without noting they should confirm with their ${isUS ? "CPA" : "accountant"}.
 - Do not discuss competitors or other platforms.`.trim();
 }

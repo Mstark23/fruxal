@@ -122,12 +122,14 @@ function buildSoloPrompt(ctx: BusinessContext): string {
     ? `~${fmt(b.monthly_revenue)}/month`
     : "not yet calculated";
 
-  return `You are a financial advisor for ${b.name}, a ${b.industry} business in ${b.province}.
+  const isUS = b.country === "US";
+  return `You are a financial advisor for ${b.name}, a ${b.industry} business in ${b.province}${isUS ? " (US)" : ""}.
+${isUS ? "This is a US business. Use IRS terminology, US tax forms (Schedule C, 1120-S, W-2, 1099), and say 'CPA' not 'accountant'. Never mention CRA, GST, HST, T1, T2, RRSP, CPP, CNESST, or any Canadian terms." : "This is a Canadian business. Use CRA terminology, Canadian tax forms (T1, T2, T4), and provincial rules."}
 
 ABOUT THIS BUSINESS:
 - Revenue: ${revenueBlock}
 - Industry: ${b.industry}
-- Province: ${b.province}${b.province === "QC" || b.province === "Quebec" ? " — you know Quebec-specific rules: QST, CNESST, Revenu Québec" : ""}
+- ${isUS ? "State" : "Province"}: ${b.province}${!isUS && (b.province === "QC" || b.province === "Quebec") ? " — you know Quebec-specific rules: QST, CNESST, Revenu Québec" : ""}
 - Tier: Solo operator
 
 CURRENT FINANCIAL SITUATION:
@@ -237,11 +239,13 @@ function buildBusinessPrompt(ctx: BusinessContext): string {
       ).join("\n")
     : "No upcoming deadlines.";
 
-  return `You are a financial analyst and business advisor for ${b.name}, a ${b.industry} business in ${b.province}.
+  const isUS = b.country === "US";
+  return `You are a financial analyst and business advisor for ${b.name}, a ${b.industry} business in ${b.province}${isUS ? " (US)" : ""}.
+${isUS ? "This is a US business. Use IRS terminology (W-2, 1099, Form 941, Section 179, 199A). Say 'CPA' not 'accountant'. Never use Canadian tax terms." : "This is a Canadian business. Use CRA terminology and provincial rules."}
 
 BUSINESS PROFILE:
 - Revenue: ~${b.monthly_revenue > 0 ? fmt(b.monthly_revenue) + "/month" : "not calculated"} | Employees: ${b.employees || "unknown"}
-- Province: ${b.province}${b.province === "QC" || b.province === "Quebec" ? " (QST, CNESST, Revenu Québec rules apply)" : ""}
+- ${isUS ? "State" : "Province"}: ${b.province}${!isUS && (b.province === "QC" || b.province === "Quebec") ? " (QST, CNESST, Revenu Québec rules apply)" : ""}
 - Structure: ${b.structure || "not specified"}
 
 LATEST DIAGNOSTIC${r ? ` (${formatDate(r.completed_at)})` : ""}:
@@ -353,11 +357,13 @@ function buildEnterprisePrompt(ctx: BusinessContext): string {
       ).join("\n")
     : "No upcoming deadlines in the next 60 days.";
 
-  return `You are a virtual CFO advisor for ${b.name}, a ${b.industry} business in ${b.province}.
+  const isUS = b.country === "US";
+  return `You are a virtual CFO advisor for ${b.name}, a ${b.industry} business in ${b.province}${isUS ? " (US)" : ""}.
+${isUS ? "US business. Use IRS terminology (Form 1120-S, W-2, QSBS, Section 199A/179). Say 'CPA'. Never use Canadian terms (CRA, T2, RDTOH, LCGE, etc.)." : "Canadian business. Use CRA terminology. Apply provincial rules."}
 
 BUSINESS PROFILE:
 - Revenue: ~${b.monthly_revenue > 0 ? fmt(b.monthly_revenue) + "/month" : "not calculated"} | Employees: ${b.employees || "unknown"}
-- Province: ${b.province} | Structure: ${b.structure || "not specified"}
+- ${isUS ? "State" : "Province"}: ${b.province} | Structure: ${b.structure || "not specified"}
 
 DIAGNOSTIC SUMMARY${r ? ` (${formatDate(r.completed_at)})` : ""}:
 ${r ? `Health score: ${r.score}/100` : "No completed enterprise diagnostic."}

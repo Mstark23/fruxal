@@ -113,6 +113,7 @@ export interface BusinessContext {
     name: string;
     industry: string;
     province: string;
+    country: string;
     monthly_revenue: number;
     annual_revenue: number;
     employees: number;
@@ -146,7 +147,7 @@ export interface BusinessContext {
 // Minimal context for when DB queries fail
 function emptyContext(businessId: string): BusinessContext {
   return {
-    business: { id: businessId, name: "this business", industry: "small business", province: "Canada", monthly_revenue: 0, annual_revenue: 0, employees: 0, structure: "" },
+    business: { id: businessId, name: "this business", industry: "small business", province: "", country: "CA", monthly_revenue: 0, annual_revenue: 0, employees: 0, structure: "" },
     latest_report: null,
     assignedRep: null,
     open_tasks: [],
@@ -176,7 +177,7 @@ export async function buildBusinessContext(
       // 1. Business profile
       supabaseAdmin
         .from("business_profiles")
-        .select("business_name, industry, industry_label, province, annual_revenue, exact_annual_revenue, employee_count, business_structure")
+        .select("business_name, industry, industry_label, province, country, annual_revenue, exact_annual_revenue, employee_count, business_structure")
         .eq("business_id", businessId)
         .eq("user_id", userId)
         .maybeSingle()
@@ -433,7 +434,8 @@ export async function buildBusinessContext(
         id: businessId,
         name: profile?.business_name || "your business",
         industry: profile?.industry_label || profile?.industry || "small business",
-        province: profile?.province || "Canada",
+        province: profile?.province || "",
+        country: profile?.country || "CA",
         monthly_revenue: monthlyRevenue,
         annual_revenue: annualRevenue,
         employees: (profile?.employee_count) ?? 0,
