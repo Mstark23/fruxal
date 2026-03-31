@@ -32,6 +32,7 @@ export default function AdminUsersPage() {
   const [error, setError]           = useState("");
   const [search, setSearch]         = useState("");
   const [plan, setPlan]             = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
   const [sort, setSort]             = useState("newest");
   const [page, setPage]             = useState(1);
   const [selected, setSelected]     = useState<User|null>(null);
@@ -47,13 +48,17 @@ export default function AdminUsersPage() {
       const params = new URLSearchParams({ page: String(page), limit: "50", plan, sort, ...(q !== undefined ? { search: q } : search ? { search } : {}) });
       const r = await fetch(`/api/admin/users?${params}`);
       const j = await r.json();
-      if (j.success) { setUsers(j.users); setStats(j.stats); setPagination(j.pagination); }
+      if (j.success) {
+        let filtered = j.users;
+        if (countryFilter !== "all") filtered = filtered.filter((u: User) => u.country === countryFilter);
+        setUsers(filtered); setStats(j.stats); setPagination(j.pagination);
+      }
       else setError(j.error || "Failed");
     } catch { setError("Network error"); }
     finally { setLoading(false); }
-  }, [page, plan, sort, search]);
+  }, [page, plan, sort, search, countryFilter]);
 
-  useEffect(() => { load(); }, [page, plan, sort]);
+  useEffect(() => { load(); }, [page, plan, sort, countryFilter]);
 
   const onSearch = (v: string) => {
     setSearch(v);
@@ -117,6 +122,7 @@ export default function AdminUsersPage() {
             className="px-3 py-2 bg-white border border-[#E8E6E1] rounded-lg text-sm text-[#1A1A18] placeholder-[#B5B3AD] focus:outline-none focus:ring-1 focus:ring-[#1B3A2D] w-64" />
           {[
             { val: plan, set: (v:string)=>{setPlan(v);setPage(1);}, opts: [["all","All Plans"],["paid","Paid"],["free","Free"]] },
+            { val: countryFilter, set: (v:string)=>{setCountryFilter(v);setPage(1);}, opts: [["all","All Countries"],["US","US Only"],["CA","Canada Only"]] },
             { val: sort, set: (v:string)=>{setSort(v);setPage(1);}, opts: [["newest","Newest"],["oldest","Oldest"],["last_active","Last Active"],["health_score","Health Score"]] },
           ].map((sel, i) => (
             <select key={i} value={sel.val} onChange={e => sel.set(e.target.value)}

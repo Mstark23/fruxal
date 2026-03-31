@@ -45,6 +45,7 @@ export default function AdminTier3Page() {
   const [drawerRepId, setDrawerRepId]   = useState("");
   const [toast,     setToast]     = useState("");
   const [search, setSearch]   = useState("");
+  const [countryFilter, setCountryFilter] = useState("all");
   const [selected, setSelected] = useState<PipelineEntry|null>(null);
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
@@ -167,8 +168,16 @@ export default function AdminTier3Page() {
 
         {/* Controls */}
         <div className="flex items-center justify-between mb-4">
-          <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search company…"
-            className="px-3 py-2 bg-white border border-[#E8E6E1] rounded-lg text-sm text-[#1A1A18] placeholder-[#B5B3AD] focus:outline-none focus:ring-1 focus:ring-[#1B3A2D] w-56" />
+          <div className="flex gap-2">
+            <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search company…"
+              className="px-3 py-2 bg-white border border-[#E8E6E1] rounded-lg text-sm text-[#1A1A18] placeholder-[#B5B3AD] focus:outline-none focus:ring-1 focus:ring-[#1B3A2D] w-56" />
+            <select value={countryFilter} onChange={e => setCountryFilter(e.target.value)}
+              className="px-3 py-2 bg-white border border-[#E8E6E1] rounded-lg text-sm text-[#1A1A18] focus:outline-none focus:ring-1 focus:ring-[#1B3A2D]">
+              <option value="all">All Countries</option>
+              <option value="US">US Only</option>
+              <option value="CA">Canada Only</option>
+            </select>
+          </div>
           <div className="flex rounded-lg overflow-hidden border border-[#E8E6E1]">
             {(["kanban","table"] as const).map(v => (
               <button key={v} onClick={() => setView(v)}
@@ -184,7 +193,7 @@ export default function AdminTier3Page() {
           <div className="overflow-x-auto pb-4">
             <div className="flex gap-3 min-w-max">
               {STAGES.map(stage => {
-                const cards = entries.filter(e => e.stage === stage);
+                const cards = entries.filter(e => e.stage === stage && (countryFilter === "all" || e.country === countryFilter));
                 const stageVal = cards.reduce((a,c) => a + c.estimatedHigh, 0);
                 return (
                   <div key={stage} className="w-[220px] bg-[#F0EFEB] border border-[#EEECE8] rounded-xl p-3 flex flex-col">
@@ -231,7 +240,7 @@ export default function AdminTier3Page() {
                 <span key={h} className="text-[10px] font-bold text-[#B5B3AD] uppercase tracking-wider">{h}</span>
               ))}
             </div>
-            {entries.map(e => (
+            {entries.filter(e => countryFilter === "all" || e.country === countryFilter).map(e => (
               <div key={e.pipelineId} onClick={() => setSelected(e)}
                 className="grid grid-cols-[1fr_100px_80px_100px_120px_80px_80px_70px] px-4 py-3 border-b border-[#EEECE8] last:border-0 hover:bg-[#F8F7F5] transition-colors items-center cursor-pointer">
                 <span className="text-sm font-semibold text-[#1A1A18] truncate">{e.companyName}</span>
