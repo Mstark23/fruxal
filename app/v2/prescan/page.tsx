@@ -67,6 +67,7 @@ const CA_STRUCTS = [
   { value: "sole_proprietor", label: "Sole Proprietor / Self-employed", fr: "Travailleur autonome / Propriétaire unique" },
   { value: "corporation", label: "Incorporated (Inc. / Ltd.)", fr: "Incorporé (Inc. / Ltée)" },
   { value: "partnership", label: "Partnership", fr: "Société de personnes" },
+  { value: "cooperative", label: "Cooperative", fr: "Coopérative" },
 ];
 const US_STRUCTS = [
   { value: "sole_proprietor", label: "Sole Proprietor / Self-employed", fr: "Sole Proprietor" },

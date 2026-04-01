@@ -76,11 +76,11 @@ export const US_STATES = [
 // ── CA Provinces ───────────────────────────────────────────────────────────
 export const CA_PROVINCES = [
   { value: "QC", label: "Quebec", fr: "Québec" },
-  { value: "ON", label: "Ontario" },
+  { value: "ON", label: "Ontario", fr: "Ontario" },
   { value: "BC", label: "British Columbia", fr: "Colombie-Britannique" },
-  { value: "AB", label: "Alberta" },
-  { value: "MB", label: "Manitoba" },
-  { value: "SK", label: "Saskatchewan" },
+  { value: "AB", label: "Alberta", fr: "Alberta" },
+  { value: "MB", label: "Manitoba", fr: "Manitoba" },
+  { value: "SK", label: "Saskatchewan", fr: "Saskatchewan" },
   { value: "NS", label: "Nova Scotia", fr: "Nouvelle-Écosse" },
   { value: "NB", label: "New Brunswick", fr: "Nouveau-Brunswick" },
   { value: "NL", label: "Newfoundland & Labrador", fr: "Terre-Neuve-et-Labrador" },

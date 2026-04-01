@@ -536,6 +536,13 @@ export default function DiagnosticIntakePage() {
                   className="w-full px-3 py-2.5 text-sm bg-white border border-border rounded-lg focus:outline-none focus:border-brand/50" />
                 <p className="text-[9px] text-ink-faint mt-1">{t("Leave blank if unknown", "Laisser vide si inconnu")}</p>
               </div>
+              {data.province === "QC" && data.country !== "US" && (
+                <div>
+                  <label className="block text-[11px] font-semibold text-ink-secondary mb-1">{t("QST registration date", "Date d'inscription TVQ")}</label>
+                  <input type="date" value={(data as any).qst_registration_date || ""} onChange={e => setData(d => ({ ...d, qst_registration_date: e.target.value }))}
+                    className="w-full px-3 py-2.5 text-sm bg-white border border-border rounded-lg focus:outline-none focus:border-brand/50" />
+                </div>
+              )}
             </div>
 
             {/* Warning if no structure */}

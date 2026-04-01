@@ -109,7 +109,7 @@ export default function LandingPage() {
         { role: "assistant", content: data.rawMessage || data.message },
       ]);
     } catch {
-      setMessages([{ id: "err", role: "assistant", content: "Something went wrong. Please refresh." }]);
+      setMessages([{ id: "err", role: "assistant", content: isFR ? "Une erreur est survenue. Veuillez rafraîchir la page." : "Something went wrong. Please refresh." }]);
     } finally {
       setChatLoading(false);
     }
@@ -158,7 +158,7 @@ export default function LandingPage() {
         setMessages(prev => [...prev, { id: `a-${Date.now()}`, role: "assistant", content: data.message }]);
       }
     } catch {
-      setMessages(prev => [...prev, { id: "err2", role: "assistant", content: "Something went wrong." }]);
+      setMessages(prev => [...prev, { id: "err2", role: "assistant", content: isFR ? "Une erreur est survenue." : "Something went wrong." }]);
     } finally {
       setChatLoading(false);
     }

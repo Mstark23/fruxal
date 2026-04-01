@@ -346,7 +346,7 @@ export default function OnboardingPage() {
                   <select value={data.province} onChange={e => update("province", e.target.value)} className="input-field">
                     <option value="">{isFr ? "Sélectionner..." : "Select..."}</option>
                     {(data.country === "US" ? US_STATES : CA_PROVINCES).map(p => (
-                      <option key={p.value} value={p.value}>{isFr && "labelFr" in p ? (p as any).labelFr : p.label}</option>
+                      <option key={p.value} value={p.value}>{isFr && "fr" in p ? (p as any).fr : p.label}</option>
                     ))}
                   </select>
                 </Field>
