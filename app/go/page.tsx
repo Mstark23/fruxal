@@ -302,7 +302,7 @@ export default function GoPage() {
               {[
                 {label:t("Health Score","Score santé"), val:`${result.analysis.fhScore}/100`, color:"#1A1A18"},
                 {label:t("Est. Annual Leak","Fuite annuelle est."), val:`$${(result.analysis.totalLeak ?? 0).toLocaleString()}`, color:"#B34040"},
-                {label:t("Leaks Found","Fuites trouvées"), val:String(result.analysis.leaks.length), color:"#1A1A18"},
+                {label:t("Leaks Found","Fuites trouvées"), val:String((result.analysis.leaks || []).length), color:"#1A1A18"},
               ].map(s => (
                 <div key={s.label} style={{background:"white",padding:"16px 14px",textAlign:"center"}}>
                   <p className="sans" style={{fontSize:9,fontWeight:700,color:"#B5B3AD",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6}}>{s.label}</p>
@@ -313,7 +313,7 @@ export default function GoPage() {
 
             {/* Top leaks */}
             <div style={{marginBottom:20}}>
-              {result.analysis.leaks.slice(0,3).map((leak:any,i:number) => (
+              {(result.analysis.leaks || []).slice(0,3).map((leak:any,i:number) => (
                 <div key={i} style={{padding:"12px 0",borderBottom:"1px solid #EEECE8",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
                   <div style={{flex:1}}>
                     <p className="sans" style={{fontSize:13,fontWeight:600,color:"#1A1A18",marginBottom:3}}>{isFR?leak.title_fr:leak.title}</p>
@@ -322,9 +322,9 @@ export default function GoPage() {
                   <p className="serif" style={{fontSize:16,fontWeight:700,color:"#B34040",whiteSpace:"nowrap"}}>${(leak.amount ?? 0).toLocaleString()}<span className="sans" style={{fontSize:10,color:"#B5B3AD",fontWeight:400}}>{t("/yr","/an")}</span></p>
                 </div>
               ))}
-              {result.analysis.leaks.length > 3 && (
+              {(result.analysis.leaks || []).length > 3 && (
                 <p className="sans" style={{fontSize:12,color:"#8E8C85",textAlign:"center",paddingTop:10}}>
-                  {t(`+ ${result.analysis.leaks.length - 3} more leaks in your full report`,`+ ${result.analysis.leaks.length - 3} autres fuites dans votre rapport complet`)}
+                  {t(`+ ${(result.analysis.leaks || []).length - 3} more leaks in your full report`,`+ ${(result.analysis.leaks || []).length - 3} autres fuites dans votre rapport complet`)}
                 </p>
               )}
             </div>
@@ -337,7 +337,7 @@ export default function GoPage() {
               <p className="sans" style={{fontSize:12,color:"rgba(255,255,255,0.6)",marginBottom:16,lineHeight:1.6}}>
                 {t("Free account. See every leak with exact dollar amounts — your rep handles the recovery.","Compte gratuit. Voyez chaque fuite avec les montants exacts — votre rep s'occupe de la récupération.")}
               </p>
-              <button onClick={() => router.push(`/register?prescanRunId=${result.prescanRunId}`)} className="sans"
+              <button onClick={() => router.push(`/register?prescanRunId=${result.prescanRunId || ""}`)} className="sans"
                 style={{padding:"12px 28px",fontSize:14,fontWeight:600,color:"#1B3A2D",background:"white",border:"none",borderRadius:8,cursor:"pointer",width:"100%"}}>
                 {t("Create free account & see dashboard →","Créer un compte gratuit et voir le tableau de bord →")}
               </button>

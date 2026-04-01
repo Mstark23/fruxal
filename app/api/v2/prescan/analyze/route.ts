@@ -347,9 +347,7 @@ export async function POST(req: NextRequest) {
       .select("id")
       .single();
 
-    if (storeErr) throw storeErr;
-
-    const aiInsight = ""; // AI-enhanced insight placeholder
+    if (storeErr || !stored?.id) throw storeErr || new Error("Failed to store prescan result");
 
     return NextResponse.json({
       success: true,

@@ -387,11 +387,11 @@ export default function LandingPage() {
               </div>
               <div className="bg-white p-6">
                 <div className="text-xs text-ink-muted uppercase tracking-wider font-semibold mb-2">{t("Leaks Found", "Fuites trouvées")}</div>
-                <div className="font-serif text-[40px] text-ink tracking-tight">{result.analysis.leaks.length}</div>
+                <div className="font-serif text-[40px] text-ink tracking-tight">{(result.analysis.leaks || []).length}</div>
               </div>
             </div>
 
-            {result.analysis.leaks.length === 0 && (
+            {(result.analysis.leaks || []).length === 0 && (
               <div className="mb-8 p-6 bg-positive/5 border border-positive/20 rounded-2xl text-center">
                 <svg className="w-8 h-8 mx-auto mb-3 text-positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                 <p className="font-semibold text-ink mb-1">{t("No major leaks detected from your answers", "Aucune fuite majeure détectée selon vos réponses")}</p>
@@ -399,10 +399,10 @@ export default function LandingPage() {
               </div>
             )}
 
-            {result.analysis.leaks.length > 0 && (() => {
+            {(result.analysis.leaks || []).length > 0 && (() => {
               const VISIBLE = 5;
-              const visibleLeaks = result.analysis.leaks.slice(0, VISIBLE);
-              const hiddenCount = result.analysis.leaks.length - VISIBLE;
+              const visibleLeaks = (result.analysis.leaks || []).slice(0, VISIBLE);
+              const hiddenCount = (result.analysis.leaks || []).length - VISIBLE;
 
               return (
                 <div className="mb-8">
@@ -436,7 +436,7 @@ export default function LandingPage() {
                           {leak.affiliates && leak.affiliates.length > 0 && (
                             <div className="mt-3 flex flex-wrap gap-2">
                               {leak.affiliates.map((aff: any, j: number) => (
-                                <a key={j} href={aff.url} target="_blank" rel="noopener noreferrer"
+                                <a key={j} href={aff.url || "#"} target="_blank" rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand/5 border border-brand/15 rounded-sm text-xs font-medium text-brand hover:bg-brand/10 transition">
                                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{display:"inline",marginRight:4,verticalAlign:"middle"}}><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>{aff.name}
                                 </a>
@@ -453,7 +453,7 @@ export default function LandingPage() {
                     <div className="relative mt-4">
                       {/* Blurred ghost cards */}
                       <div className="space-y-3 pointer-events-none select-none" aria-hidden="true">
-                        {result.analysis.leaks.slice(VISIBLE, VISIBLE + 3).map((_: any, i: number) => (
+                        {(result.analysis.leaks || []).slice(VISIBLE, VISIBLE + 3).map((_: any, i: number) => (
                           <div key={i} className="bg-bg rounded-card border border-border-light overflow-hidden blur-[6px] opacity-60 p-5 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-border-light" />
@@ -476,12 +476,12 @@ export default function LandingPage() {
                           </div>
                           <p className="text-sm text-ink-secondary mb-4">
                             {t(
-                              `${hiddenCount} additional leaks worth $${result.analysis.leaks.slice(VISIBLE).reduce((s: number, l: any) => s + (l.amount ?? 0), 0).toLocaleString()}/yr are waiting. Create a free account to unlock them.`,
-                              `${hiddenCount} fuites supplémentaires valant $${result.analysis.leaks.slice(VISIBLE).reduce((s: number, l: any) => s + (l.amount ?? 0), 0).toLocaleString()}/an vous attendent. Créez un compte gratuit pour les débloquer.`
+                              `${hiddenCount} additional leaks worth $${(result.analysis.leaks || []).slice(VISIBLE).reduce((s: number, l: any) => s + (l.amount ?? 0), 0).toLocaleString()}/yr are waiting. Create a free account to unlock them.`,
+                              `${hiddenCount} fuites supplémentaires valant $${(result.analysis.leaks || []).slice(VISIBLE).reduce((s: number, l: any) => s + (l.amount ?? 0), 0).toLocaleString()}/an vous attendent. Créez un compte gratuit pour les débloquer.`
                             )}
                           </p>
                           <button
-                            onClick={() => router.push(`/register?prescanRunId=${result!.prescanRunId}`)}
+                            onClick={() => router.push(`/register?prescanRunId=${result?.prescanRunId || ""}`)}
                             className="w-full px-6 py-3 text-[15px] font-semibold text-white bg-brand rounded-sm hover:bg-brand-light transition">
                             {t("Unlock all leaks — Free →", "Débloquer toutes les fuites — Gratuit →")}
                           </button>
@@ -496,12 +496,12 @@ export default function LandingPage() {
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
-                onClick={() => router.push(`/register?prescanRunId=${result!.prescanRunId}`)}
+                onClick={() => router.push(`/register?prescanRunId=${result?.prescanRunId || ""}`)}
                 className="flex-1 px-7 py-3.5 text-[15px] font-semibold text-white bg-brand rounded-sm hover:bg-brand-light transition text-center">
                 {t("Create free account & get a recovery expert →", "Créer un compte gratuit et obtenir un expert en récupération →")}
               </button>
               <button
-                onClick={() => window.open(`/api/prescan/report?prescanRunId=${result!.prescanRunId}&lang=${lang}`, "_blank")}
+                onClick={() => window.open(`/api/prescan/report?prescanRunId=${result?.prescanRunId || ""}&lang=${lang}`, "_blank")}
                 className="px-6 py-3.5 text-[15px] font-medium text-ink-secondary bg-white border border-border rounded-sm hover:border-border-focus transition flex items-center justify-center gap-2">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{display:"inline",marginRight:6,verticalAlign:"middle"}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>{t("Download report", "Télécharger le rapport")}
               </button>
