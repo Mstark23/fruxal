@@ -485,7 +485,7 @@ export default function OnboardingPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <ToggleCard active={data.has_accountant} onClick={() => toggleBool("has_accountant")}
-                  label={isFr ? "J'ai un comptable" : "I have an accountant"} icon="🧮" />
+                  label={isFr ? "J'ai un comptable" : data.country === "US" ? "I have a CPA" : "I have an accountant"} icon="🧮" />
                 <ToggleCard active={data.has_bookkeeper} onClick={() => toggleBool("has_bookkeeper")}
                   label={isFr ? "J'ai un teneur de livres" : "I have a bookkeeper"} icon="📒" />
                 <ToggleCard active={data.uses_payroll_software} onClick={() => toggleBool("uses_payroll_software")}
