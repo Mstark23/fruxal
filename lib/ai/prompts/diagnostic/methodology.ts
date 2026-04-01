@@ -242,17 +242,111 @@ Exit readiness assessment:
 ` : ""}
 
 ══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 11: CASCADE EFFECTS — How findings compound each other
+══════════════════════════════════════════════════════════════════════════════
+
+Big 4 firms always show how fixes COMPOUND. You must do the same.
+
+After identifying all findings, map the cascade:
+  - Fixing entity structure → unlocks ${isUS ? "QBI deduction" : "SBD rate"} → additional saving
+  - Fixing payroll classification → reduces workers comp premium → additional saving
+  - Renegotiating vendors → improves cash flow → reduces credit line usage → interest saving
+  - Improving collections (DSO) → frees cash → earns interest or reduces line draws
+
+CALCULATE the compound effect:
+  Sum of individual findings: $X
+  Cascade bonus (findings that unlock other savings): $Y
+  Total recoverable: $X + $Y
+  → This goes in savings_anchor.headline as the TOTAL number
+
+══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 12: COST OF DELAY — Quantify urgency for every finding
+══════════════════════════════════════════════════════════════════════════════
+
+For EVERY finding, calculate: what does each month of inaction cost?
+
+  Finding amount ÷ 12 = monthly cost of delay
+  Example: $14,280/yr FICA saving ÷ 12 = $1,190/mo being wasted
+
+  Compliance findings: penalty accrues. Calculate:
+    penalty_per_month = (annual_penalty × probability) ÷ 12
+
+  Use this to set the PRIORITY SEQUENCE:
+    Rank 1 = highest monthly cost of delay
+    Rank 2 = second highest
+    etc.
+
+  The priority_sequence in your JSON must be ordered by cost of delay, NOT by total size.
+  A $5,000 finding with a filing deadline NEXT MONTH outranks a $15,000 finding with no deadline.
+
+══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 13: PEER POSITIONING — Where does this business stand?
+══════════════════════════════════════════════════════════════════════════════
+
+For benchmark_comparisons, position this business against peers:
+
+Revenue: $${rev.toLocaleString()} in ${industry}
+  → This puts them at approximately P${rev < 100000 ? "25" : rev < 300000 ? "40" : rev < 500000 ? "50" : rev < 1000000 ? "65" : "80"} for revenue in this industry
+
+For each benchmark metric:
+  - State the business's value (calculated or from data)
+  - State the industry median (P50)
+  - State the top quartile (P25 for costs, P75 for margins)
+  - Calculate the dollar gap: (their_value − top_quartile) × revenue
+  - Frame it: "Closing this gap to top quartile = $X/yr additional"
+
+Metrics to ALWAYS include:
+  1. Gross margin % (MANDATORY — primary profitability indicator)
+  2. EBITDA margin % (MANDATORY — operational efficiency)
+  3. Revenue per employee (if employees > 0)
+  4. ${/restaurant|retail/.test(i) ? "Prime cost % (food + labor)" : /saas|tech/.test(i) ? "CAC payback months" : /consult|professional/.test(i) ? "Utilization rate %" : "Operating expense ratio %"}
+  5. Effective tax rate (actual tax paid ÷ pre-tax income)
+  6. ${tier === "enterprise" ? "Working capital ratio (current assets ÷ current liabilities)" : "Owner compensation as % of revenue"}
+
+══════════════════════════════════════════════════════════════════════════════
+RED FLAG DETECTOR — Identify issues that need IMMEDIATE attention
+══════════════════════════════════════════════════════════════════════════════
+
+Before writing JSON, scan for these RED FLAGS. If any are true, they MUST
+be the highest-severity finding regardless of dollar amount:
+
+${isUS ? `
+□ Operating as sole prop above $80K net income (SE tax bleeding)
+□ No workers comp insurance with employees (criminal liability)
+□ Form 941 deposits potentially late (trust fund penalty = 100%)
+□ Selling across state lines without sales tax registration (Wayfair nexus)
+□ 1099 contractors who should be W-2 (IRS misclassification = 3yr back taxes)
+□ No business entity formed (unlimited personal liability)
+□ Revenue >$600K and no retirement plan (missing $15K-$69K/yr tax shelter)
+` : `
+□ Operating as sole prop above $80K (missing CCPC SBD rate gap)
+□ No WSIB/CNESST/WCB with employees (operating illegally)
+□ Revenue >$30K and not registered for GST/HST (mandatory threshold)
+□ Source deductions not remitted on time (director personal liability)
+□ ${province === "QC" ? "No Law 25 privacy officer designated (up to $25M fine)" : "PIPEDA non-compliance with customer data"}
+□ SR&ED eligible work being done but no claim filed (leaving 35% on table)
+□ Revenue >$500K sole prop not incorporated (massive rate gap)
+`}
+
+If a red flag is detected, it becomes a CRITICAL finding with compliance_risk
+prominently featured, regardless of its dollar amount.
+
+══════════════════════════════════════════════════════════════════════════════
 CROSS-VALIDATION — DO NOT OUTPUT JSON UNTIL ALL PASS
 ══════════════════════════════════════════════════════════════════════════════
 
 □ MATH: Sum of finding impact_max = totals.annual_leaks (±10%)
-□ CAP: No single finding > 30% of revenue (unrealistic)
+□ CAP: No single finding > 30% of $${rev.toLocaleString()} revenue
 □ OVERLAP: No two findings share the same root cause
-□ CONSISTENCY: Same revenue figure used across all findings
-□ ARITHMETIC: Every calculation_shown can be verified by a ${isUS ? "CPA" : "accountant"}
-□ SOLUTIONS: Every URL in solutions[] is a real website
-□ FORMS: Every ${isUS ? "IRS" : "CRA"} form number is real and applicable
-□ CONFIDENCE: Findings from estimates = "medium", exact data = "high"
+□ CONSISTENCY: Revenue $${rev.toLocaleString()} used consistently in all calculations
+□ ARITHMETIC: Every calculation_shown verifiable by a ${isUS ? "CPA" : "accountant"} in 30 seconds
+□ SOLUTIONS: Every URL is a real, active website (not a guess)
+□ FORMS: Every ${isUS ? "IRS" : "CRA"} form number is real and applies to this situation
+□ CONFIDENCE: Exact data → "high". Estimates → "medium". Assumptions → "low"
+□ CASCADE: At least 2 findings have cascade_unlocks showing compound benefits
+□ URGENCY: priority_sequence ordered by monthly_cost_of_delay, NOT by total amount
+□ RED FLAGS: Any detected red flag is severity "critical" regardless of dollar size
+□ BENCHMARKS: All benchmark_comparisons use real industry data, not invented numbers
 `.trim();
 }
 

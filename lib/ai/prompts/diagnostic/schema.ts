@@ -112,9 +112,11 @@ ${ccpcFields}
       "rank":                         <1-${minSeq}>,
       "action":                       "<specific action title — English>",
       "action_fr":                    "<French>",
-      "why_first":                    "<why this rank — what it unlocks — English>",
+      "why_first":                    "<why this rank — what it unlocks + cost of each month of delay — English>",
       "why_first_fr":                 "<French>",
-      "expected_result":              "<measurable outcome with dollar amount — English>",
+      "expected_result":              "<measurable outcome: 'File Form 2553 → saves $1,190/mo starting next quarter' — English>",
+      "monthly_cost_of_delay":        <number — what this inaction costs per month>,
+      "deadline":                     "<specific deadline if applicable, e.g. 'March 15 for calendar year S-corp election' or null>",
       "ebitda_improvement":           <number>,
       "enterprise_value_improvement": <number>
     }
@@ -144,6 +146,10 @@ ${ccpcFields}
       "second_order_effects_fr": "<plain string — French>",
       "confidence_level":   "<high|medium|low — based on data quality>",
       "data_source":        "<which input fields drove this finding>",
+      "cost_of_inaction_monthly": <number — impact_max ÷ 12 = dollars lost per month of delay>,
+      "cost_of_inaction_90_days": <number — 3 months of inaction cost, used for urgency display>,
+      "is_red_flag":        <true|false — true if this triggers a red flag from the detector>,
+      "cascade_unlocks":    "<what additional savings become possible after fixing this — or null>",
       "timeline":  "<immediate|30days|90days|6months|12months>",
       "solutions": [
         {
