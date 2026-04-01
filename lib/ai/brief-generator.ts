@@ -371,7 +371,7 @@ body_text: plain text version`;
     if (!res) return null;
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
-      console.error(`[Brief] Claude API error: ${res.status}`, errText.slice(0, 100));
+      console.error(`[Brief] Claude API error: ${res.status}`);
       return null;
     }
 

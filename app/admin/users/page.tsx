@@ -58,7 +58,14 @@ export default function AdminUsersPage() {
     finally { setLoading(false); }
   }, [page, plan, sort, search, countryFilter]);
 
-  useEffect(() => { load(); }, [page, plan, sort, countryFilter]);
+  useEffect(() => { load(); }, [load]);
+
+  // Fetch available reps for assignment dropdown
+  useEffect(() => {
+    fetch("/api/admin/tier3/reps").then(r => r.json()).then(j => {
+      if (j.success && j.reps) setReps(j.reps.filter((r: any) => r.status === "active").map((r: any) => ({ id: r.id, name: r.name, email: r.email })));
+    }).catch(() => {});
+  }, []);
 
   const onSearch = (v: string) => {
     setSearch(v);
@@ -67,7 +74,11 @@ export default function AdminUsersPage() {
   };
 
   const patchUser = async (id: string, body: object) => {
-    await fetch(`/api/admin/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const j = await res.json();
+      if (!j.success) setError(j.error || "Update failed");
+    } catch { setError("Network error"); }
     load();
   };
 
@@ -167,7 +178,7 @@ export default function AdminUsersPage() {
                 {u.plan.toUpperCase()}
               </span>
               <span className="text-xs text-[#56554F] truncate">{u.businessName || "—"}</span>
-              <span className="text-xs text-[#8E8C85]">{u.province || "—"} <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: u.country === "US" ? "#EFF6FF" : "#F0FDF4", color: u.country === "US" ? "#2563EB" : "#16A34A" }}>{u.country || ""}</span></span>
+              <span className="text-xs text-[#8E8C85]">{u.province || "—"} {u.country && <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: u.country === "US" ? "#EFF6FF" : "#F0FDF4", color: u.country === "US" ? "#2563EB" : "#16A34A" }}>{u.country}</span>}</span>
               <span className="text-xs text-[#1A1A18] font-medium text-center">{u.prescanCount}</span>
               <span className="text-xs text-[#1A1A18] font-medium text-center">{u.diagnosticCount}</span>
               <span className="text-xs font-bold" style={{ color: scoreColor(u.healthScore) }}>

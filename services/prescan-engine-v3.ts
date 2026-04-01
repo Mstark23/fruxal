@@ -25,7 +25,8 @@ import type { BHSResult } from './bhs-engine';
 export interface PrescanInput {
   businessType: string;           // Raw: "barber", "restaurant", "uber", etc.
   industrySlug: string;            // Normalized: "barber_shop", "restaurant", "rideshare_driver"
-  province: string;                // "QC", "ON", etc.
+  province: string;                // "QC", "ON", "TX", "CA", etc.
+  country?: string;                // "CA" or "US" — for country-specific logic
   revenueBand: string;             // "under_100k", "100k_500k", "500k_2m", "2m_plus"
   annualRevenue: number | null;    // Actual number if provided
   paymentMix: string;              // "mostly_cash", "mixed", "mostly_card"
@@ -73,6 +74,7 @@ export interface PrescanTags {
   business_type?: string;
   industry_slug?: string;
   province?: string;
+  country?: string;              // "CA" or "US" — for country-specific leak detection
   
   // Revenue (can be monthly, annual, or generic)
   set_revenue?: number;
@@ -595,6 +597,7 @@ export function buildPrescanInputFromTags(tags: PrescanTags): PrescanInput {
     businessType,
     industrySlug,
     province: normalizeProvince(tags.province || ''),
+    country: tags.country || undefined,
     revenueBand,
     annualRevenue,
     paymentMix,
@@ -871,12 +874,13 @@ function detectRentLeak(
   }
   if (!rentBenchmark) return null;
   
-  // Use tier-specific quartile as assumed, p25 as target (best performers)
-  // SOLO→p75 (worst), SMALL→p50, GROWTH→p25 (they should be optimized)
-  const assumedRatio = input.tier === 'solo' ? rentBenchmark.p75 :
-                       input.tier === 'small' ? rentBenchmark.p50 :
+  // Use conservative estimates — prescan has limited data, don't exaggerate
+  // SOLO→p50 (median, not worst), SMALL→midpoint(p25,p50), GROWTH→p25
+  const assumedRatio = input.tier === 'solo' ? rentBenchmark.p50 :
+                       input.tier === 'small' ? (rentBenchmark.p25 + rentBenchmark.p50) / 2 :
                        rentBenchmark.p25;
-  const targetRatio = rentBenchmark.p25 || rentBenchmark.p50;
+  // Target = midpoint between p25 and p50 (realistic, not theoretical best)
+  const targetRatio = (rentBenchmark.p25 + rentBenchmark.p50) / 2 || rentBenchmark.p25;
   
   const deltaRatio = Math.max(0, assumedRatio - targetRatio);
   const estimatedLeak = input.annualRevenue * deltaRatio;
@@ -928,17 +932,17 @@ function detectTaxLeak(
   const doesRD = (input as any).doesRD === 'yes';
   
   const bench = benchmarks.find(b => b.metric_key === 'deduction_miss_rate');
-  // Use p50 by default — p75 is too aggressive without knowing their expense structure
-  // Apply to estimated expenses (~40% of revenue) not to gross revenue
-  const missRate = bench ? bench.p50 : 0.05;
-  const estimatedExpenses = input.annualRevenue * 0.40; // expenses ~40% of revenue
+  // Conservative: use midpoint between p25 and p50 as miss rate
+  // Apply to estimated expenses (~35% of revenue — conservative)
+  const missRate = bench ? (bench.p25 + bench.p50) / 2 : 0.035;
+  const estimatedExpenses = input.annualRevenue * 0.35;
   const estimatedLeak = estimatedExpenses * missRate;
-  
+
   if (estimatedLeak < 200) return null;
-  
+
   const impactScore = calculateImpactScore(estimatedLeak);
-  const severity = 0.7 * impactScore + 0.3 * 20;
-  const confidence = 70 * (50 / 100);
+  const severity = 0.7 * impactScore + 0.3 * 15;
+  const confidence = (doesRD ? 55 : 45) * (50 / 100); // Higher if R&D (SR&ED commonly missed)
   
   return {
     leak_type_code: 'tax_optimization_gap',
@@ -969,9 +973,10 @@ function detectPayrollLeak(
   const bench = benchmarks.find(b => b.metric_key === 'payroll_ratio');
   if (!bench) return null;
   
-  // Solo → assume p75 (worst performers); growth → assume p50 (average)
-  const assumed = input.tier === 'solo' ? bench.p75 : bench.p50;
-  const target  = bench.p25 || bench.p50;
+  // Conservative: Solo → assume p50 (median); growth → midpoint(p25,p50)
+  const assumed = input.tier === 'solo' ? bench.p50 :
+                  (bench.p25 + bench.p50) / 2;
+  const target  = (bench.p25 + bench.p50) / 2 || bench.p25;
 
   const delta = Math.max(0, assumed - target);
   const estimatedLeak = input.annualRevenue * delta;
@@ -1015,9 +1020,10 @@ function detectInsuranceLeak(
   const bench = benchmarks.find(b => b.metric_key === 'insurance_cost_ratio');
   if (!bench) return null;
   
-  // Solo → p75 (worst case), growth → p50 (average — they likely have some coverage)
-  const assumed = input.tier === 'solo' ? bench.p75 : bench.p50;
-  const target  = bench.p25 || bench.p50;
+  // Conservative: Solo → p50 (median), growth → midpoint(p25,p50)
+  const assumed = input.tier === 'solo' ? bench.p50 :
+                  (bench.p25 + bench.p50) / 2;
+  const target  = (bench.p25 + bench.p50) / 2 || bench.p25;
 
   const delta = Math.max(0, assumed - target);
   const estimatedLeak = input.annualRevenue * delta;
@@ -1027,7 +1033,7 @@ function detectInsuranceLeak(
   const impactScore    = calculateImpactScore(estimatedLeak);
   const deviationScore = calculateDeviationScore(assumed, bench.p25, bench.p75);
   const severity = 0.5 * impactScore + 0.3 * deviationScore + 0.2 * 20;
-  const confidence = 50 * (50 / 100);
+  const confidence = 45 * (50 / 100); // Lower — we don't know their actual premiums
 
   return {
     leak_type_code: 'insurance_overpayment',
@@ -1062,12 +1068,12 @@ function detectFuelLeak(
   if (fuelMonthly && fuelMonthly > 0) {
     actualRatio = (fuelMonthly * 12) / input.annualRevenue;
   } else {
-    actualRatio = input.tier === 'solo' ? bench.p75 :
-                  input.tier === 'small' ? bench.p50 :
-                  bench.p75;
+    // Conservative: use median, not worst quartile
+    actualRatio = input.tier === 'solo' ? bench.p50 :
+                  (bench.p25 + bench.p50) / 2;
   }
-  
-  const target = bench.p25 || bench.p50;
+
+  const target = (bench.p25 + bench.p50) / 2 || bench.p25;
   const delta = Math.max(0, actualRatio - target);
   const estimatedLeak = input.annualRevenue * delta;
   
@@ -1261,17 +1267,17 @@ function detectCashShrinkage(
   if (input.paymentMix !== 'mostly_cash' && input.paymentMix !== 'mixed') return null;
   if (!input.annualRevenue) return null;
   
-  const cashShare = input.paymentMix === 'mostly_cash' ? 0.75 : 0.40;
+  const cashShare = input.paymentMix === 'mostly_cash' ? 0.70 : 0.35;
   const cashVolume = input.annualRevenue * cashShare;
-  // Industry data: cash businesses lose 2-4% to errors, miscounts, theft
-  const shrinkRate = input.tier === 'solo' ? 0.03 : 0.02;
+  // Conservative: industry average is 2-4%, but we use low end without proof
+  const shrinkRate = input.tier === 'solo' ? 0.015 : 0.01;
   const estimatedLeak = cashVolume * shrinkRate;
-  
+
   if (estimatedLeak < 300) return null;
-  
+
   const impactScore = calculateImpactScore(estimatedLeak);
-  const severity = 0.5 * impactScore + 0.3 * 25 + 0.2 * 20;
-  const confidence = 40 * (50 / 100);
+  const severity = 0.5 * impactScore + 0.3 * 20 + 0.2 * 15;
+  const confidence = 25 * (50 / 100); // Low — we don't know actual cash handling
   
   return {
     leak_type_code: 'cash_shrinkage',
@@ -1345,14 +1351,15 @@ function detectRevenuePricingLeak(
   // Only flag if user indicated they haven't reviewed pricing recently
   // If tax was reviewed this year, assume pricing was too
   if ((input as any).taxLastReviewed === 'this_year') return null;
-  const inflationGap = input.tier === 'solo' ? 0.03 : 0.02;
+  // Conservative: most businesses adjust prices somewhat — use modest gap
+  const inflationGap = input.tier === 'solo' ? 0.015 : 0.01;
   const estimatedLeak = input.annualRevenue * inflationGap;
-  
+
   if (estimatedLeak < 500) return null;
-  
+
   const impactScore = calculateImpactScore(estimatedLeak);
-  const severity = 0.5 * impactScore + 0.3 * 20 + 0.2 * 15;
-  const confidence = 30 * (50 / 100);
+  const severity = 0.5 * impactScore + 0.3 * 15 + 0.2 * 10;
+  const confidence = 20 * (50 / 100); // Very low — pure estimate without pricing data
   
   return {
     leak_type_code: 'revenue_underpricing',
@@ -1379,16 +1386,16 @@ function detectReceivablesLeak(
   // Only fire for known service businesses — don't assume invoicing for mixed-payment retail
   if (!isService) return null;
   
-  // 5-8% of invoiced revenue is typically collected late or written off
-  const writeOffRate = input.tier === 'solo' ? 0.05 : 0.03;
-  const invoicedShare = isService ? 0.7 : 0.3;
+  // Conservative: use low end of industry range (2-5%) without actual collection data
+  const writeOffRate = input.tier === 'solo' ? 0.025 : 0.015;
+  const invoicedShare = isService ? 0.65 : 0.25;
   const estimatedLeak = input.annualRevenue * invoicedShare * writeOffRate;
-  
+
   if (estimatedLeak < 500) return null;
-  
+
   const impactScore = calculateImpactScore(estimatedLeak);
-  const severity = 0.5 * impactScore + 0.3 * 30 + 0.2 * 20;
-  const confidence = 30 * (50 / 100);
+  const severity = 0.5 * impactScore + 0.3 * 20 + 0.2 * 15;
+  const confidence = 20 * (50 / 100); // Very low — no actual AR data
   
   return {
     leak_type_code: 'receivables_leakage',
@@ -1479,17 +1486,17 @@ function detectTurnoverLeak(
   if (input.employeeCount < 3) return null;
   if (!input.annualRevenue) return null;
   
-  // Average turnover in Canadian SMBs: ~20%/yr. Cost per replacement: 30-50% of annual salary
-  const avgSalary = input.annualRevenue * 0.06; // rough per-employee estimate
-  const turnoverRate = 0.20;
-  const replacementCost = 0.35; // 35% of salary per replacement
+  // Conservative estimate: 15% turnover (low end), 20% replacement cost (low end)
+  const avgSalary = input.annualRevenue * 0.05; // conservative per-employee estimate
+  const turnoverRate = 0.15;
+  const replacementCost = 0.20; // 20% of salary (low end of 20-50% range)
   const estimatedLeak = input.employeeCount * turnoverRate * avgSalary * replacementCost;
-  
+
   if (estimatedLeak < 500) return null;
-  
+
   const impactScore = calculateImpactScore(estimatedLeak);
-  const severity = 0.5 * impactScore + 0.3 * 25 + 0.2 * 20;
-  const confidence = 25 * (50 / 100);
+  const severity = 0.5 * impactScore + 0.3 * 20 + 0.2 * 15;
+  const confidence = 20 * (50 / 100); // Low — no actual turnover data
   
   return {
     leak_type_code: 'employee_turnover_cost',
@@ -1545,12 +1552,10 @@ function detectDebtInterestLeak(
   if (!input.annualRevenue || input.annualRevenue < 150000) return null;
   // Only flag for growth+ tier — solo businesses rarely have business credit facilities
   if (input.tier === 'solo') return null;
-  // Most SMBs carry some business debt (LOC, equipment loan, credit card float)
-  // Average business debt: 15-25% of annual revenue
-  const debtRatio = (input.tier as string) === 'solo' ? 0.15 : 0.22;
+  // Conservative: assume modest debt (15% of revenue) and small rate gap (1.5%)
+  const debtRatio = 0.15;
   const estimatedDebt = input.annualRevenue * debtRatio;
-  // Rate optimization gap: 2-3% rate difference between best and worst SMB rates
-  const rateGap = 0.025;
+  const rateGap = 0.015; // 1.5% — conservative gap without knowing actual rates
   const estimatedLeak = estimatedDebt * rateGap;
   
   if (estimatedLeak < 300) return null;
@@ -1571,7 +1576,7 @@ function detectDebtInterestLeak(
 }
 
 // ============================================================================
-// LEAK 20: GST/HST Filing Inefficiency
+// LEAK 20: GST/HST / Sales Tax Filing Inefficiency
 // ============================================================================
 function detectTaxFilingLeak(
   input: PrescanInput,
@@ -1580,6 +1585,9 @@ function detectTaxFilingLeak(
   if (!input.annualRevenue || input.annualRevenue < 100000) return null;
   if (input.usesAccountingSoftware) return null;
   if (input.tier === 'solo') return null; // Already covered by detectTaxLeak
+  // US states without sales tax — skip
+  const noSalesTaxStates = new Set(["AK","DE","MT","NH","OR"]);
+  if (input.country === "US" && noSalesTaxStates.has(input.province)) return null;
   
   // Without proper ITCs tracking, businesses lose 1-2% to unclaimed input tax credits
   const itcLossRate = (input.tier as string) === 'solo' ? 0.015 : 0.01;
@@ -2036,21 +2044,21 @@ export async function insertPrescanRun(
   const LEAK_DESCRIPTIONS: Record<string, { en: string; fr: string }> = {
     processing_rate_high: { en: 'Your card processing rate is above the industry median. Renegotiating or switching processors could save you significantly.', fr: 'Votre taux de traitement est au-dessus de la médiane. Renégocier ou changer de fournisseur pourrait vous faire économiser.' },
     rent_or_chair_high: { en: 'Your rent-to-revenue ratio is higher than similar businesses. Consider renegotiating your lease at renewal.', fr: 'Votre ratio loyer/revenus est plus élevé que des entreprises similaires. Renégociez votre bail au renouvellement.' },
-    tax_optimization_gap: { en: 'Without proper accounting software, businesses typically miss 5-10% in eligible deductions.', fr: 'Sans logiciel de comptabilité, les entreprises manquent typiquement 5-10% des déductions admissibles.' },
-    payroll_ratio_high: { en: 'Your payroll costs are above benchmark. Review overtime, worker classifications, workers comp rates, and WOTC screening.', fr: 'Vos coûts de paie sont au-dessus du benchmark. Révisez le temps supplémentaire et l\'optimisation CNESST.' },
+    tax_optimization_gap: { en: 'Without proper accounting software, businesses often miss 3-5% in eligible deductions.', fr: 'Sans logiciel de comptabilité, les entreprises manquent souvent 3-5% des déductions admissibles.' },
+    payroll_ratio_high: { en: 'Your payroll costs are above benchmark. Review overtime, worker classifications, and workers comp rates.', fr: 'Vos coûts de paie sont au-dessus du benchmark. Révisez le temps supplémentaire, les classifications et les cotisations.' },
     insurance_overpayment: { en: 'Businesses that haven\'t compared insurance in 2+ years typically overpay by 15-25%.', fr: 'Les entreprises qui n\'ont pas comparé leurs assurances depuis 2+ ans surpaient de 15-25%.' },
     fuel_vehicle_high: { en: 'Your fuel costs are above average. Route optimization and fuel card programs could help.', fr: 'Vos coûts de carburant sont au-dessus de la moyenne. L\'optimisation des trajets pourrait aider.' },
     software_bloat: { en: 'Businesses at your level often accumulate overlapping subscriptions. An audit could eliminate waste.', fr: 'Les entreprises accumulent souvent des abonnements redondants. Un audit pourrait éliminer le gaspillage.' },
     banking_fees_high: { en: 'Comparing commercial account packages from multiple banks could reduce your fees.', fr: 'Comparer les forfaits bancaires de plusieurs banques pourrait réduire vos frais.' },
     inventory_cogs_high: { en: 'Your cost of goods is above benchmark. Review supplier pricing and waste reduction.', fr: 'Votre coût des marchandises est au-dessus du benchmark. Révisez les prix fournisseurs.' },
     marketing_waste: { en: 'Your marketing spend may not be optimized. Tracking ROI by channel could redirect budget effectively.', fr: 'Vos dépenses marketing ne sont peut-être pas optimisées. Le suivi du ROI par canal pourrait aider.' },
-    cash_shrinkage: { en: 'Cash-heavy businesses lose 2-4% to counting errors, miscounts, and shrinkage. POS systems reduce this dramatically.', fr: 'Les entreprises en comptant perdent 2-4% en erreurs de comptage et pertes. Les systèmes POS réduisent ceci considérablement.' },
+    cash_shrinkage: { en: 'Cash-heavy businesses can lose 1-2% to counting errors and shrinkage. POS systems and cash management tools reduce this.', fr: 'Les entreprises au comptant peuvent perdre 1-2% en erreurs de comptage et pertes. Les systèmes POS réduisent ceci.' },
     utilities_overspend: { en: 'Your utility costs are above benchmark for your industry and size. Energy audits and rate comparisons can help.', fr: 'Vos coûts de services publics sont au-dessus de la référence. Des audits énergétiques et comparaisons de tarifs peuvent aider.' },
-    revenue_underpricing: { en: 'Most small businesses don\'t raise prices annually to match inflation, losing 2-3% of revenue purchasing power each year.', fr: 'La plupart des PME n\'augmentent pas leurs prix annuellement pour suivre l\'inflation, perdant 2-3% de pouvoir d\'achat chaque année.' },
-    receivables_leakage: { en: 'Service businesses typically write off 3-5% of invoiced revenue due to late or uncollected payments.', fr: 'Les entreprises de services radient typiquement 3-5% des revenus facturés en raison de paiements en retard ou non collectés.' },
+    revenue_underpricing: { en: 'Businesses that haven\'t reviewed pricing recently may be losing 1-2% of revenue to inflation erosion.', fr: 'Les entreprises qui n\'ont pas révisé leurs prix récemment peuvent perdre 1-2% de revenus à l\'érosion inflationniste.' },
+    receivables_leakage: { en: 'Service businesses often lose 1-3% of invoiced revenue to late or uncollected payments.', fr: 'Les entreprises de services perdent souvent 1-3% des revenus facturés en paiements en retard ou non collectés.' },
     late_payment_penalties: { en: 'Without payment tracking, businesses average $500-2000/yr in avoidable late fees on suppliers, taxes, and utilities.', fr: 'Sans suivi des paiements, les entreprises paient en moyenne 500-2000$/an en frais de retard évitables.' },
-    equipment_depreciation_gap: { en: 'Businesses without accounting software often miss depreciation deductions (Section 179 / CCA) on equipment purchases.', fr: 'Les entreprises sans logiciel de comptabilité manquent souvent les déductions DPA sur les achats d\'équipement.' },
-    employee_turnover_cost: { en: 'Each employee replacement costs 30-50% of their annual salary. Reducing turnover by even 5% saves significantly.', fr: 'Chaque remplacement d\'employé coûte 30-50% de leur salaire annuel. Réduire le roulement de 5% économise considérablement.' },
+    equipment_depreciation_gap: { en: 'Businesses without accounting software often miss depreciation deductions on equipment purchases.', fr: 'Les entreprises sans logiciel de comptabilité manquent souvent les déductions d\'amortissement sur les achats d\'équipement.' },
+    employee_turnover_cost: { en: 'Employee replacement typically costs 20-30% of their annual salary. Even modest retention improvements save meaningfully.', fr: 'Le remplacement d\'un employé coûte typiquement 20-30% de son salaire annuel. Même de modestes améliorations de rétention comptent.' },
     supplier_discount_missed: { en: 'Most suppliers offer 2-5% early payment discounts that go unclaimed. Negotiating terms could save thousands.', fr: 'La plupart des fournisseurs offrent des rabais de 2-5% pour paiement rapide qui ne sont pas réclamés.' },
     debt_interest_high: { en: 'SMB interest rates vary by 2-3% between lenders. Refinancing or consolidating could reduce your interest burden.', fr: 'Les taux d\'intérêt PME varient de 2-3% entre prêteurs. Refinancer ou consolider pourrait réduire votre fardeau.' },
     tax_filing_inefficiency: { en: 'Without proper tracking, 1-2% of eligible sales tax credits go unclaimed each year.', fr: 'Sans suivi adéquat, 1-2% des crédits de taxe sur intrants admissibles ne sont pas réclamés chaque année.' },

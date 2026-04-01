@@ -87,12 +87,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const { diagnosticId, pipelineId, stageAtAssignment, notes } = body;
       if (!diagnosticId) return NextResponse.json({ success: false, error: "diagnosticId required" }, { status: 400 });
 
-      // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
-    await supabaseAdmin.from("tier3_rep_assignments").insert({
+      const { error: assignErr } = await supabaseAdmin.from("tier3_rep_assignments").insert({
         id: crypto.randomUUID(), rep_id: id,
         diagnostic_id: diagnosticId, pipeline_id: pipelineId || null,
         stage_at_assignment: stageAtAssignment || null, notes: notes || null,
       });
+      if (assignErr) return NextResponse.json({ success: false, error: assignErr.message }, { status: 500 });
       return NextResponse.json({ success: true, action: "assigned" });
     }
 

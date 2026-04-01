@@ -75,19 +75,24 @@ export default function EnterpriseDashboard() {
   const [analysisFailed, setAnalysisFailed] = useState(false);
 
  // Dashboard / profile data
-  const [profile, setProfile] = useState<any>({
-    intake_quality_score: 0,
-    exact_annual_revenue: null,
-    gross_margin_pct: null,
-    net_income_last_year: null,
-    ebitda_estimate: null,
-    exact_payroll_total: null,
-    owner_salary: null,
-    has_holdco: false,
-    passive_income_over_50k: false,
-    exit_horizon: null,
-    lcge_eligible: null,
-    shareholder_agreements: false,
+  const [profile, setProfile] = useState<any>(() => {
+    let cookieCountry = "";
+    try { cookieCountry = document.cookie.match(/fruxal_country=(\w+)/)?.[1] || ""; } catch {}
+    return {
+      country: cookieCountry,
+      intake_quality_score: 0,
+      exact_annual_revenue: null,
+      gross_margin_pct: null,
+      net_income_last_year: null,
+      ebitda_estimate: null,
+      exact_payroll_total: null,
+      owner_salary: null,
+      has_holdco: false,
+      passive_income_over_50k: false,
+      exit_horizon: null,
+      lcge_eligible: null,
+      shareholder_agreements: false,
+    };
   });
   const [deadlines, setDeadlines]       = useState<any[]>([]);
   const [overdue, setOverdue]           = useState(0);

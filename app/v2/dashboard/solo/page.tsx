@@ -33,7 +33,12 @@ export default function SoloDashboard() {
   const [leaks, setLeaks] = useState<Leak[]>([]);
   const [tier, setTier] = useState("solo");
   const [recommendedPlan, setRecommendedPlan] = useState("solo");
-  const [profile, setProfile] = useState({ province: "", country: "", industry: "Small Business", structure: "" });
+  const [profile, setProfile] = useState(() => {
+    // Read country from cookie as early default (before API loads)
+    let cookieCountry = "";
+    try { cookieCountry = document.cookie.match(/fruxal_country=(\w+)/)?.[1] || ""; } catch {}
+    return { province: "", country: cookieCountry, industry: "Small Business", structure: "" };
+  });
   const [overdue, setOverdue] = useState(0);
   const [penaltyExposure, setPenaltyExposure] = useState(0);
   const [obligationsTotal, setObligationsTotal] = useState(0);

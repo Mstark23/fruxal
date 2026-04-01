@@ -108,7 +108,7 @@ export default function AdminOverviewPage() {
           {[
             { label: "Revenue This Month",    value: fmt(d.revenue.thisMonth),          sub: `vs ${fmt(d.revenue.lastMonth)} last month`, green: true },
             { label: "Contingency Fees",      value: fmt(d.revenue.tier3FeesEarned),    sub: `earned from confirmed savings`, green: true },
-            { label: "Confirmed Fees",    value: fmt(d.revenue.tier3FeesEarned),    sub: `${fmt(d.revenue.tier3FeePending)} pending`, green: false },
+            { label: "Pending Fees",       value: fmt(d.revenue.tier3FeePending),    sub: `awaiting confirmation`, green: false },
             { label: "Affiliate Commissions", value: fmt(d.revenue.affiliateCommissions),sub: "total earned", green: false },
             { label: "Activation Rate",          value: (d.activation?.rate ?? 0) + "%",         sub: `${d.activation?.usersWithDiagnostic ?? 0} users ran diagnostic`, green: (d.activation?.rate ?? 0) >= 40 },
           ].map(c => (
@@ -203,6 +203,8 @@ export default function AdminOverviewPage() {
                 { label: "New This Week", val: fmtNum(d.users.newThisWeek) },
                 { label: "New This Month",val: fmtNum(d.users.newThisMonth) },
                 { label: "Active Today",  val: fmtNum(d.users.activeToday) },
+                { label: "US Users",      val: fmtNum(d.users.byCountry?.US ?? 0) },
+                { label: "CA Users",      val: fmtNum(d.users.byCountry?.CA ?? 0) },
               ].map(u => (
                 <div key={u.label} className="bg-[#FAFAF8] border border-[#EEECE8] rounded-lg p-3 text-center">
                   <p className="text-[9px] font-bold text-[#B5B3AD] uppercase tracking-wider mb-1">{u.label}</p>
@@ -290,10 +292,10 @@ export default function AdminOverviewPage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
               {[
-                { label: "Unassigned",   val: exec.unassigned,      warn: exec.unassigned > 0,  color: exec.unassigned > 0 ? "#B34040" : "#1A1A18" },
-                { label: "In Queue",     val: exec.queued,           color: "#C4841D" },
-                { label: "In Progress",  val: exec.in_progress,      color: "#0369a1" },
-                { label: "Confirmed",    val: exec.confirmed_count,  color: "#2D7A50" },
+                { label: "Unassigned",   val: exec.unassigned ?? 0,      warn: (exec.unassigned ?? 0) > 0,  color: (exec.unassigned ?? 0) > 0 ? "#B34040" : "#1A1A18" },
+                { label: "In Queue",     val: exec.queued ?? 0,           color: "#C4841D" },
+                { label: "In Progress",  val: exec.in_progress ?? 0,      color: "#0369a1" },
+                { label: "Confirmed",    val: exec.confirmed_count ?? 0,  color: "#2D7A50" },
               ].map(kpi => (
                 <div key={kpi.label} className="text-center px-3 py-3 rounded-xl" style={{ background: "rgba(27,58,45,0.04)" }}>
                   <div className="text-[22px] font-bold" style={{ color: kpi.color }}>{kpi.val}</div>

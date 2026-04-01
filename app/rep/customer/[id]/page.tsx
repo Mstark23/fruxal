@@ -67,6 +67,8 @@ export default function RepCustomerPage() {
   const [debriefSubmitting, setDebriefSubmitting] = useState(false);
   const [debriefDone, setDebriefDone] = useState(false);
   const [repInfo, setRepInfo] = useState<any>(null);
+  const [recommending, setRecommending] = useState<string|null>(null);
+  const [recommendedSlugs, setRecommendedSlugs] = useState<Set<string>>(new Set());
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -263,6 +265,45 @@ ${repInfo?.name || 'Your Fruxal rep'}`
     load();
   };
 
+  const recommendSolution = async (partnerSlug: string, findingId?: string, category?: string) => {
+    setRecommending(partnerSlug);
+    try {
+      const r = await fetch(`/api/rep/customer/${diagId}/recommend`, {
+        credentials: "include", method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ partner_slug: partnerSlug, finding_id: findingId, category }),
+      });
+      const j = await r.json();
+      if (j.success) {
+        // Store both slug and name so matching works on reload
+        setRecommendedSlugs(prev => new Set([...prev, partnerSlug, j.recommendation.partner_name]));
+        showToast(`Recommended ${j.recommendation.partner_name} — tracked link created`);
+      } else {
+        showToast("Error: " + (j.error || "Failed"));
+      }
+    } catch { showToast("Failed to recommend"); }
+    setRecommending(null);
+  };
+
+  // Load existing recommendations on mount
+  // NOTE: GET /recommend returns partner NAME (not slug) in the `partner` field.
+  // We store both names and slugs so the UI can match either way.
+  useEffect(() => {
+    fetch(`/api/rep/customer/${diagId}/recommend`, { credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.recommendations) {
+          const known = new Set<string>();
+          for (const rec of d.recommendations) {
+            if (rec.partner) known.add(rec.partner); // name
+            if (rec.partner_slug) known.add(rec.partner_slug); // slug (if returned)
+          }
+          setRecommendedSlugs(prev => new Set([...prev, ...known]));
+        }
+      })
+      .catch(() => {});
+  }, [diagId]);
+
   if (loading) return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
       <div className="w-6 h-6 border-2 border-[#E5E3DD] border-t-[#1B3A2D] rounded-full animate-spin" />
@@ -440,6 +481,48 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                 </button>
               </div>
             </div>
+            {/* ═══ ACTIVITY TIMELINE ═══ */}
+            <div className="bg-white border border-[#E5E3DD] rounded-xl px-5 py-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
+              <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">Activity Timeline</p>
+              {(() => {
+                const events: { date: string; type: string; label: string; color: string }[] = [];
+                // Assignment
+                if (client.pipeline?.updatedAt) {
+                  events.push({ date: client.pipeline.updatedAt, type: "stage", label: `Stage: ${(client.pipeline.stage||"lead").replace(/_/g," ")}`, color: "#0369a1" });
+                }
+                // Documents
+                for (const doc of (client.documents || [])) {
+                  if (doc.received_at) events.push({ date: doc.received_at, type: "doc", label: `Document received: ${doc.label || doc.document_type}`, color: "#2D7A50" });
+                  else if (doc.created_at) events.push({ date: doc.created_at, type: "doc", label: `Document requested: ${doc.label || doc.document_type}`, color: "#C4841D" });
+                }
+                // Confirmed findings
+                for (const f of (client.confirmedFindings || [])) {
+                  events.push({ date: f.confirmed_at || f.created_at || new Date().toISOString(), type: "saving", label: `Saving confirmed: ${f.leak_name} — $${(f.confirmed_amount??0).toLocaleString()}`, color: "#2D7A50" });
+                }
+                // Messages
+                for (const m of messages) {
+                  events.push({ date: m.created_at, type: "msg", label: `${m.author || m.role}: ${(m.text||"").slice(0,60)}${(m.text||"").length>60?"…":""}`, color: "#8E8C85" });
+                }
+                events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                if (events.length === 0) return <p className="text-[11px] text-[#B5B3AD] text-center py-3">No activity yet</p>;
+                return (
+                  <div className="space-y-2">
+                    {events.slice(0, 12).map((e, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="flex flex-col items-center mt-1">
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: e.color }} />
+                          {i < Math.min(events.length, 12) - 1 && <div className="w-px flex-1 min-h-[16px] bg-[#E5E3DD]" />}
+                        </div>
+                        <div className="flex-1 min-w-0 pb-2">
+                          <p className="text-[11px] text-[#56554F] leading-snug">{e.label}</p>
+                          <p className="text-[9px] text-[#B5B3AD]">{new Date(e.date).toLocaleDateString("en-CA", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         )}
 
@@ -485,18 +568,41 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                         </div>
                       )}
 
-                      {/* Affiliate / tool recommendations */}
+                      {/* Affiliate / tool recommendations — with tracked Recommend button */}
                       {f.affiliates && f.affiliates.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-[9px] font-bold text-[#8E8C85] uppercase tracking-wider mb-1.5">Recommended Tools</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {f.affiliates.map((a: any, ai: number) => (
-                              <a key={ai} href={a.url} target="_blank" rel="noopener noreferrer"
-                                className="text-[10px] font-semibold px-2.5 py-1 rounded-full border transition hover:opacity-80"
-                                style={{ color: "#1B3A2D", borderColor: "rgba(27,58,45,0.2)", background: "rgba(27,58,45,0.04)" }}>
-                                {a.name}
-                              </a>
-                            ))}
+                        <div className="mt-3 p-3 rounded-xl" style={{ background: "rgba(45,122,80,0.03)", border: "1px solid rgba(45,122,80,0.10)" }}>
+                          <p className="text-[9px] font-bold text-[#8E8C85] uppercase tracking-wider mb-2">Solutions</p>
+                          <div className="space-y-2">
+                            {f.affiliates.map((a: any, ai: number) => {
+                              const alreadyRecommended = recommendedSlugs.has(a.slug) || recommendedSlugs.has(a.name);
+                              return (
+                                <div key={ai} className="flex items-center gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] font-semibold text-[#1A1A18]">{a.name}</p>
+                                    {a.description && <p className="text-[10px] text-[#8E8C85] truncate">{a.description}</p>}
+                                    {a.commission_type && (
+                                      <p className="text-[9px] text-[#2D7A50]">
+                                        {a.commission_type === "percentage" ? `${a.commission_value}% commission` : `$${a.commission_value} per referral`}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {alreadyRecommended ? (
+                                    <span className="text-[9px] font-semibold px-2.5 py-1 rounded-full shrink-0"
+                                      style={{ color: "#2D7A50", background: "rgba(45,122,80,0.08)" }}>
+                                      Recommended
+                                    </span>
+                                  ) : (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); recommendSolution(a.slug, f.id, f.category); }}
+                                      disabled={recommending === a.slug}
+                                      className="text-[10px] font-semibold px-3 py-1.5 rounded-lg text-white shrink-0 disabled:opacity-40 transition hover:opacity-90"
+                                      style={{ background: "#1B3A2D" }}>
+                                      {recommending === a.slug ? "Sending…" : "Recommend →"}
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -737,6 +843,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                     setDebriefSubmitting(true);
                     const debriefPipeId = (client?.pipeline?.id as string) || diagId;
                     await fetch(`/api/rep/customer/${debriefPipeId}/debrief`, {
+                      credentials: "include",
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
@@ -756,7 +863,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                 </button>
                 {debriefOutcome === "ready_to_sign" && (
                   <p className="text-center text-[11px] text-[#8E8C85] mt-2">
-                    Signature link will be emailed to {(client?.contactEmail as string) || "client"} automatically.
+                    Signature link will be emailed to {(client?.pipeline?.contactEmail as string) || "client"} automatically.
                   </p>
                 )}
               </div>
@@ -811,6 +918,49 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {tab === "messages" && (
+          <div className="space-y-3">
+            <div className="bg-white border border-[#E5E3DD] rounded-xl overflow-hidden" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
+              {messages.length === 0 ? (
+                <div className="px-5 py-8 text-center">
+                  <p className="text-[12px] text-[#8E8C85]">No messages yet. Start the conversation below.</p>
+                </div>
+              ) : (
+                <div className="px-5 py-4 max-h-[400px] overflow-y-auto space-y-3">
+                  {messages.map((m: any, i: number) => (
+                    <div key={i} className={`flex ${m.role === "rep" ? "justify-end" : "justify-start"}`}>
+                      <div className="max-w-[75%] rounded-xl px-3.5 py-2.5"
+                        style={{
+                          background: m.role === "rep" ? "rgba(27,58,45,0.08)" : "#F0EFEB",
+                        }}>
+                        <p className="text-[9px] font-semibold mb-0.5" style={{ color: m.role === "rep" ? "#1B3A2D" : "#8E8C85" }}>
+                          {m.author || (m.role === "rep" ? "You" : "Client")}
+                        </p>
+                        <p className="text-[12px] text-[#1A1A18] leading-relaxed">{m.text}</p>
+                        <p className="text-[8px] text-[#B5B3AD] mt-1">{new Date(m.created_at).toLocaleDateString("en-CA", { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" })}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="border-t border-[#E5E3DD] px-4 py-3 flex gap-2">
+                <input
+                  value={msgText}
+                  onChange={e => setMsgText(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                  placeholder="Type a message…"
+                  className="flex-1 text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-2 bg-[#FAFAF8] focus:outline-none focus:border-[#1B3A2D]"
+                />
+                <button onClick={sendMessage} disabled={msgSending || !msgText.trim()}
+                  className="px-4 py-2 text-[11px] font-semibold text-white rounded-lg disabled:opacity-40 transition"
+                  style={{ background: "#1B3A2D" }}>
+                  {msgSending ? "…" : "Send"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

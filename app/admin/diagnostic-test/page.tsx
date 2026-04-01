@@ -69,10 +69,10 @@ export default function DiagnosticTestPage() {
       if (!json.success) throw new Error(json.error || "Test failed");
       setResult(json.report);
       setActiveTab("findings");
-    setIsLoading(false);
     } catch (e: any) {
       setError(e.message);
     } finally {
+      setIsLoading(false);
       setRunning(false);
     }
   }, [businessName, industry, province, structure, monthlyRevenue, employees, hasAccountant, hasPayroll, handlesData, doesConstruction, doesRD, handlesFood, sellsAlcohol, language]);

@@ -96,6 +96,9 @@ export async function GET(req: NextRequest) {
     prescanIndustries,
     prescanProvinces,
 
+    // Users by country
+    usersByCountry,
+
     // Tier 3
     tier3All,
     tier3Agreements,
@@ -177,6 +180,15 @@ export async function GET(req: NextRequest) {
         .slice(0, 5)
         .map(([province, count]) => ({ province, count }));
     }, [] as Array<{ province: string; count: number }>),
+
+    // ─── PRESCAN BY COUNTRY ───
+    safeQuery(async () => {
+      const { data } = await supabaseAdmin.from("business_profiles").select("country").not("country", "is", null);
+      if (!data) return { US: 0, CA: 0 };
+      const counts: Record<string, number> = { US: 0, CA: 0 };
+      for (const r of data) { const c = r.country || "CA"; counts[c] = (counts[c] || 0) + 1; }
+      return counts;
+    }, { US: 0, CA: 0 } as Record<string, number>),
 
     // ─── TIER 3 ───
     safeQuery(async () => {
@@ -375,6 +387,7 @@ export async function GET(req: NextRequest) {
       newThisWeek: usersNewWeek,
       newThisMonth: usersNewMonth,
       activeToday: usersActiveToday,
+      byCountry: usersByCountry,
     },
     tier3: {
       totalDiagnostics: tier3Total,

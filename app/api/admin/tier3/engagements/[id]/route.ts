@@ -114,8 +114,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       if (status === "received") update.received_at = new Date().toISOString();
       if (notes !== undefined) update.notes = notes;
 
-      // NOTE: Multi-step write — not atomic. Partial failure leaves inconsistent state.
-    await supabaseAdmin.from("tier3_engagement_documents").update(update).eq("id", documentId);
+      const { error: docErr } = await supabaseAdmin.from("tier3_engagement_documents").update(update).eq("id", documentId);
+      if (docErr) return NextResponse.json({ success: false, error: docErr.message }, { status: 500 });
       const totals = await getTotals(id);
       return NextResponse.json({ success: true, ...totals });
     }

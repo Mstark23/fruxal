@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
 
 interface PipelineEntry {
-  pipelineId:string|null; diagnosticId:string|null; reportId:string|null;
+  pipelineId:string|null; diagnosticId:string|null; reportId:string|null; userId?:string|null;
   companyName:string; industry:string; province:string; country?:string|null; revenueBracket:string;
   estimatedLow:number; estimatedHigh:number; highConfidenceCount:number; confirmedSavings?:number;
   stage:string; notes:string|null; followUpDate:string|null;
@@ -24,7 +24,8 @@ const STAGE_LABELS: Record<string,string> = {
   lead:"New Lead", contacted:"Contacted", called:"Called", call_booked:"Call Booked",
   diagnostic_sent:"Diagnostic Sent",
   agreement_out:"Agreement Out", signed:"Signed", in_engagement:"In Engagement",
-  fee_collected:"Fee Collected", lost:"Lost"
+  recovery_tracking:"Recovery Tracking", fee_collected:"Fee Collected",
+  completed:"Completed", lost:"Lost"
 };
 
 function fmt(n:number) { return n >= 1000000 ? "$"+(n/1000000).toFixed(1)+"M" : n >= 1000 ? "$"+Math.round(n/1000)+"K" : "$"+n.toLocaleString(); }
@@ -341,7 +342,7 @@ export default function AdminTier3Page() {
                       {reps.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
                     </select>
                     <button
-                      onClick={() => { if (drawerRepId && selected?.pipelineId && (selected as any).userId) assignRep(selected.pipelineId, (selected as any).userId, drawerRepId); setDrawerRepId(""); }}
+                      onClick={() => { if (drawerRepId && selected?.pipelineId && selected.userId) assignRep(selected.pipelineId, selected.userId, drawerRepId); setDrawerRepId(""); }}
                       disabled={!drawerRepId || saving}
                       className="px-4 py-2 bg-[#1B3A2D] text-white text-xs font-semibold rounded-lg hover:bg-[#2A5A44] transition disabled:opacity-40">
                       Assign

@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 
       // Detect country from prescan data, request host, or cookie
       if (!country) {
-        const host = req.headers.get("host") || "";
+        const host = request.headers.get("host") || "";
         if (host.includes("fruxal.com") && !host.includes("fruxal.ca")) country = "US";
         else country = "CA";
       }

@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useLang } from "@/hooks/useLang";
 
 interface Action {
   id: string;
@@ -66,6 +67,7 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
   onTriggerDeepScan?: () => void;
 }) {
   const router = useRouter();
+  const { t } = useLang();
   const [actions, setActions] = useState<GroupedActions | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,7 +120,7 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-[#00c853] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <div className="text-sm text-gray-400">Loading your dashboard...</div>
+          <div className="text-sm text-gray-400">{t("Loading your dashboard...", "Chargement de votre tableau de bord...")}</div>
         </div>
       </div>
     );
@@ -129,15 +131,15 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
       <div className="flex items-center justify-center h-full px-4">
         <div className="text-center max-w-md">
           <div className="text-5xl mb-4">🔍</div>
-          <h2 className="text-xl font-bold text-white mb-2">No scan results yet</h2>
+          <h2 className="text-xl font-bold text-white mb-2">{t("No scan results yet", "Aucun résultat de scan")}</h2>
           <p className="text-gray-400 text-sm mb-6">
-            Take your free scan to find where your business is leaking money.
+            {t("Take your free scan to find where your business is leaking money.", "Faites votre scan gratuit pour trouver où votre entreprise perd de l'argent.")}
           </p>
           <button
             onClick={() => router.push("/prescan")}
             className="bg-[#00c853] text-black font-bold px-8 py-3 rounded-xl hover:bg-[#00e676] transition-all"
           >
-            Find My Leaks →
+            {t("Find My Leaks →", "Trouver mes fuites →")}
           </button>
         </div>
       </div>
@@ -153,11 +155,11 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
       {/* ═══ HERO STATS ═══ */}
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
         <div className="text-sm text-gray-400 mb-1">
-          {userName ? `Hey ${userName},` : "Hey,"} you have
+          {userName ? `${t("Hey", "Salut")} ${userName},` : `${t("Hey,", "Salut,")}`} {t("you have", "vous avez")}
         </div>
         <div className="text-3xl sm:text-4xl font-black text-white mb-1">
           ${Math.round(stats.total_leak - stats.total_recovered).toLocaleString()}
-          <span className="text-lg text-gray-400 font-normal"> left to recover</span>
+          <span className="text-lg text-gray-400 font-normal"> {t("left to recover", "à récupérer")}</span>
         </div>
         {stats.total_recovered > 0 && (
           <div className="text-sm text-[#00c853] font-medium">
@@ -173,14 +175,14 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
               style={{ width: progressPct + "%" }}
             />
           </div>
-          <span className="text-xs text-gray-400 whitespace-nowrap">{progressPct}% done</span>
+          <span className="text-xs text-gray-400 whitespace-nowrap">{progressPct}% {t("done", "complété")}</span>
         </div>
 
         {/* Quick stats */}
         <div className="mt-3 flex gap-4 text-xs text-gray-400">
-          <span>✅ {stats.actions_completed} fixed</span>
-          <span>🔄 {stats.actions_in_progress} in progress</span>
-          <span>⬚ {stats.actions_remaining} remaining</span>
+          <span>✅ {stats.actions_completed} {t("fixed", "corrigées")}</span>
+          <span>🔄 {stats.actions_in_progress} {t("in progress", "en cours")}</span>
+          <span>⬚ {stats.actions_remaining} {t("remaining", "restantes")}</span>
         </div>
       </div>
 
@@ -190,8 +192,8 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
             <div>
-              <div className="text-sm font-bold text-blue-300">Analyzing your QuickBooks data...</div>
-              <div className="text-xs text-gray-400 mt-0.5">Scanning invoices, expenses, and transactions for verified leaks</div>
+              <div className="text-sm font-bold text-blue-300">{t("Analyzing your QuickBooks data...", "Analyse de vos données QuickBooks...")}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{t("Scanning invoices, expenses, and transactions for verified leaks", "Analyse des factures, dépenses et transactions")}</div>
             </div>
           </div>
         </div>
@@ -223,7 +225,7 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
           <div className="flex items-start gap-3">
             <span className="text-xl">🔗</span>
             <div className="flex-1">
-              <div className="text-sm font-bold text-blue-300">Find hidden leaks with exact numbers</div>
+              <div className="text-sm font-bold text-blue-300">{t("Find hidden leaks with exact numbers", "Trouvez les fuites cachées avec les montants exacts")}</div>
               <div className="text-xs text-gray-400 mt-1">
                 Connect your accounts to find 2-3x more savings with exact dollar amounts from real data.
               </div>
@@ -345,7 +347,7 @@ export function SimpleDashboard({ userId, userName, deepScanning, scanResult, on
           className="w-full bg-[#00c853] text-black font-bold py-4 rounded-2xl hover:bg-[#00e676] transition-all shadow-lg shadow-[#00c853]/20 flex items-center justify-center gap-2"
         >
           <span>💬</span>
-          <span>Talk to AI Advisor</span>
+          <span>{t("Talk to AI Advisor", "Parler au conseiller IA")}</span>
         </button>
       </div>
     </div>
@@ -458,40 +460,20 @@ function ActionItem({
               {action.verified ? "✓ " : "~"}${Math.round(action.estimated_value).toLocaleString()}/yr
             </span>
 
-            {isSwitch && action.affiliate_url && (
-              <a
-                href={action.affiliate_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-md hover:bg-emerald-500/30 transition-colors"
-              >
-                {action.recommended_tool || "See alternative"} →
-              </a>
-            )}
-
-            {action.fix_tool_url && (
-              <a
-                href={action.fix_tool_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-md hover:bg-blue-500/30 transition-colors"
-              >
-                {action.fix_tool_name || "See tool"} →
-              </a>
-            )}
+            {/* Solutions/affiliate links are rep-only — customer books recovery call */}
 
             <button
               onClick={onChat}
               className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
             >
-              💬 Ask AI
+              💬 {t("Ask AI", "Demander à l'IA")}
             </button>
 
             <button
               onClick={onSkip}
               className="text-xs text-gray-600 hover:text-gray-400 ml-auto transition-colors"
             >
-              Skip
+              {t("Skip", "Passer")}
             </button>
           </div>
         </div>

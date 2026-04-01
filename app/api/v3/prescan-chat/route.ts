@@ -146,7 +146,9 @@ export async function POST(request: NextRequest) {
     allAssistantTexts.push(responseText); // Add current response
     
     const tags = parseTags(allAssistantTexts.join('\n'));
-    
+    // Inject country into tags so it propagates to the prescan engine
+    if (country && !tags.country) tags.country = country;
+
     // Check if analysis should run
     const shouldRunAnalysis = /<run_analysis\s*\/>/.test(responseText);
     

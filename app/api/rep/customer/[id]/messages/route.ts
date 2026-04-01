@@ -17,8 +17,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       .from("tier3_pipeline")
       .select("messages_json, company_name")
       .eq("id", params.id)
-      .single();
+      .maybeSingle();
 
+    if (!pipe) return NextResponse.json({ success: true, messages: [] });
     const messages = (pipe as any)?.messages_json || [];
     return NextResponse.json({ success: true, messages });
   } catch (err: any) {
@@ -39,8 +40,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       .from("tier3_pipeline")
       .select("messages_json")
       .eq("id", params.id)
-      .single();
+      .maybeSingle();
 
+    if (!pipe) return NextResponse.json({ error: "Pipeline not found" }, { status: 404 });
     const existing: any[] = (pipe as any)?.messages_json || [];
     const newMsg = {
       id:         crypto.randomUUID(),

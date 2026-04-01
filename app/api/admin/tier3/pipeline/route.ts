@@ -125,7 +125,7 @@ export async function GET(req: NextRequest) {
       const userIds = t1t2Leads.map((p: any) => p.user_id).filter(Boolean);
       const { data: t1t2Profiles } = await supabaseAdmin
         .from("business_profiles")
-        .select("user_id, business_name, industry, province, annual_revenue")
+        .select("user_id, business_name, industry, province, country, annual_revenue")
         .in("user_id", userIds);
       const pm2: Record<string,any> = {};
       for (const prof of t1t2Profiles || []) pm2[prof.user_id] = prof;

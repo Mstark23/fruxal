@@ -4,8 +4,18 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { generateMagicToken } from "@/lib/accountant-auth";
 import { sendEmail } from "@/services/email/service";
 
+const _rl = new Map<string, { c: number; r: number }>();
+function rlCheck(ip: string): boolean {
+  const now = Date.now(), e = _rl.get(ip);
+  if (!e || e.r < now) { _rl.set(ip, { c: 1, r: now + 3600000 }); return true; }
+  return ++e.c <= 5; // 5 per hour per IP
+}
+
 export async function POST(req: NextRequest) {
   try {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!rlCheck(ip)) return NextResponse.json({ success: false, error: "Too many requests" }, { status: 429 });
+
   const { email } = await req.json().catch(() => ({ email: null }));
   if (!email) return NextResponse.json({ success: false, error: "Email required" }, { status: 400 });
 
@@ -21,7 +31,8 @@ export async function POST(req: NextRequest) {
   }
 
   const token  = generateMagicToken(accountant.id, accountant.email);
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const host = req.headers.get("host") || "";
+  const appUrl = process.env.NEXTAUTH_URL || (host.includes("fruxal.com") && !host.includes("fruxal.ca") ? "https://fruxal.com" : "https://fruxal.ca");
   const link   = `${appUrl}/accountant/verify?token=${encodeURIComponent(token)}`;
 
   const sent = await sendEmail({

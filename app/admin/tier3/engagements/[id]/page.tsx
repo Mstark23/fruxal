@@ -38,11 +38,14 @@ export default function EngagementDetailPage() {
 
   const load = useCallback(async () => {
     if (!id) return;
+    setError(null);
     try {
       const r = await fetch(`/api/admin/tier3/engagements/${id}`);
       const j = await r.json();
       if (j.success) setEng(j.engagement);
-    } finally { setLoading(false); }
+      else setError(j.error || "Failed to load engagement");
+    } catch { setError("Network error"); }
+    finally { setLoading(false); }
   }, [id]);
 
   useEffect(() => { load(); }, [load]);

@@ -6,6 +6,11 @@ import { verifyToken } from "@/lib/rep-auth";
 const COOKIE = "fruxal_rep_session";
 
 export async function GET(req: NextRequest) {
+  // Block in production — debug endpoint only available in development
+  if (process.env.NODE_ENV === "production") {
+    return new Response(JSON.stringify({ error: "Not available" }), { status: 404, headers: { "Content-Type": "application/json" } });
+  }
+
   const rawCookieHeader = req.headers.get("cookie") || "(none)";
 
   const cookieMap: Record<string, string> = {};

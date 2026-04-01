@@ -28,11 +28,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!token?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { error } = await supabaseAdmin
-    .from("tier3_notes")
-    .insert({ engagement_id: params.id, author_id: token.id as string, ...body, created_at: new Date().toISOString() });
+  const { followUpDate, note, ...rest } = body;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  // Save the note text
+  if (note) {
+    const { error } = await supabaseAdmin
+      .from("tier3_notes")
+      .insert({ engagement_id: params.id, author_id: token.id as string, note, ...rest, created_at: new Date().toISOString() });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Also update follow-up date + notes on the pipeline (params.id is pipeline_id)
+  const pipelineUpdate: Record<string, any> = { updated_at: new Date().toISOString() };
+  if (followUpDate !== undefined) pipelineUpdate.follow_up_date = followUpDate || null;
+  if (note) pipelineUpdate.notes = note;
+  await supabaseAdmin.from("tier3_pipeline").update(pipelineUpdate).eq("id", params.id);
+
   return NextResponse.json({ success: true });  } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

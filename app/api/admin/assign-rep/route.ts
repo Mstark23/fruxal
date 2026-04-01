@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
         company_name:  profile?.business_name || null,
         industry:      profile?.industry || null,
         province:      profile?.province || null,
+        country:       profile?.country || null,
         annual_revenue: profile?.annual_revenue || null,
         stage:         "contacted",
         notes:         notes || null,

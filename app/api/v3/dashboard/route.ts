@@ -188,24 +188,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "businessId is required" }, { status: 400 });
   }
 
-  // ── 1. Load business ──
-  const { data: biz } = await supabase
-    .from("businesses")
-    .select("id, name, industry, province, annual_revenue, tier")
-    .eq("id", businessId)
-    .single();
+  // ── 1. Load business + snapshots in parallel ──
+  const [{ data: biz }, { data: snapshots }] = await Promise.all([
+    supabase
+      .from("businesses")
+      .select("id, name, industry, province, annual_revenue, tier")
+      .eq("id", businessId)
+      .single(),
+    supabase
+      .from("financial_snapshots")
+      .select("*")
+      .eq("business_id", businessId)
+      .order("snapshot_month", { ascending: false })
+      .limit(12),
+  ]);
 
   if (!biz) {
     return NextResponse.json({ error: "Business not found" }, { status: 404 });
   }
-
-  // ── 2. Try real financial_snapshots first ──
-  const { data: snapshots } = await supabase
-    .from("financial_snapshots")
-    .select("*")
-    .eq("business_id", businessId)
-    .order("snapshot_month", { ascending: false })
-    .limit(12);
 
   if (snapshots && snapshots.length > 0) {
     // Real data path — Phase 2 (live monitoring)
@@ -213,28 +213,26 @@ export async function GET(request: NextRequest) {
     // For now, this path returns the same shape but from real data
     const latest = snapshots[0];
 
-    // Load real leaks
-    const { data: realLeaks } = await supabase
-      .from("leaks")
-      .select("*")
-      .eq("business_id", businessId)
-      .eq("status", "active")
-      .order("priority_score", { ascending: false });
-
-    // Load real alerts
-    const { data: realAlerts } = await supabase
-      .from("alerts")
-      .select("*")
-      .eq("business_id", businessId)
-      .in("status", ["open", "acknowledged"])
-      .order("first_triggered_at", { ascending: false })
-      .limit(20);
-
-    // Load cost breakdown
-    const { data: costs } = await supabase
-      .from("snapshot_cost_breakdown")
-      .select("*, cost_categories(label_en, benchmark_metric_key)")
-      .eq("snapshot_id", latest.id);
+    // Load leaks, alerts, and cost breakdown in parallel
+    const [{ data: realLeaks }, { data: realAlerts }, { data: costs }] = await Promise.all([
+      supabase
+        .from("leaks")
+        .select("*")
+        .eq("business_id", businessId)
+        .eq("status", "active")
+        .order("priority_score", { ascending: false }),
+      supabase
+        .from("alerts")
+        .select("*")
+        .eq("business_id", businessId)
+        .in("status", ["open", "acknowledged"])
+        .order("first_triggered_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("snapshot_cost_breakdown")
+        .select("*, cost_categories(label_en, benchmark_metric_key)")
+        .eq("snapshot_id", latest.id),
+    ]);
 
     return NextResponse.json({
       source: "live",

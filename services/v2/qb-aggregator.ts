@@ -19,10 +19,12 @@ const QBO_BASE = process.env.QUICKBOOKS_ENVIRONMENT === "sandbox"
   : "https://quickbooks.api.intuit.com";
 
 const INTUIT_TOKEN_URL = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer";
-const ENC_KEY = Buffer.from(process.env.QB_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || "", "hex");
+const ENC_KEY_RAW = process.env.QB_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || "";
+const ENC_KEY = ENC_KEY_RAW ? Buffer.from(ENC_KEY_RAW, "hex") : Buffer.alloc(0);
 
 // ── Encryption helpers ────────────────────────────────────────────────────────
 export function encryptToken(plain: string): string {
+  if (ENC_KEY.length < 16) throw new Error("QB_ENCRYPTION_KEY or ENCRYPTION_KEY not configured — cannot encrypt tokens");
   const iv  = randomBytes(16);
   const key = ENC_KEY.length === 32 ? ENC_KEY : Buffer.alloc(32, ENC_KEY);
   const c   = createCipheriv("aes-256-cbc", key, iv);

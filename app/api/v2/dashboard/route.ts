@@ -339,44 +339,64 @@ export async function GET(req: NextRequest) {
       }
     } catch { /* non-fatal */ }
 
-    // Programs count — filter by user's province (includes federal programs with empty provinces)
-    let programsAvailable = 0;
+    // ── Batch independent queries ─────────────────────────────
     const userProvince = profile?.province || "";
-    try {
-      const { data: allProgs } = await supabaseAdmin
-        .from("affiliate_partners")
-        .select("provinces")
-        .eq("is_government_program", true)
-        .eq("active", true);
-      programsAvailable = (allProgs || []).filter((p: any) =>
+    const [progsResult, progressResult, healthResult, pipelineResult] = await Promise.all([
+      // Programs count
+      Promise.resolve(
+        supabaseAdmin
+          .from("affiliate_partners")
+          .select("provinces")
+          .eq("is_government_program", true)
+          .eq("active", true)
+      ).then(r => r.data).catch(() => null),
+      // User progress (rep-confirmed recovery)
+      Promise.resolve(
+        supabaseAdmin
+          .from("user_progress")
+          .select("total_recovered")
+          .eq("user_id", userId)
+          .maybeSingle()
+      ).then(r => r.data).catch(() => null),
+      // Health score from latest prescan
+      Promise.resolve(
+        supabaseAdmin
+          .from("prescan_runs")
+          .select("health_score")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single()
+      ).then(r => r.data).catch(() => null),
+      // Pipeline + rep assignment
+      Promise.resolve(
+        supabaseAdmin
+          .from("tier3_pipeline")
+          .select("id, stage")
+          .eq("user_id", userId)
+          .in("stage", ["contacted", "called", "diagnostic_sent", "agreement_out",
+                         "signed", "in_engagement", "recovery_tracking", "engaged",
+                         "onboarding", "active", "closed_won"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      ).then(r => r.data).catch(() => null),
+    ]);
+
+    // Programs count
+    let programsAvailable = 5;
+    if (progsResult) {
+      programsAvailable = progsResult.filter((p: any) =>
         !p.provinces || p.provinces.length === 0 || p.provinces.includes(userProvince)
       ).length || 5;
-    } catch { programsAvailable = 5; }
+    }
 
-    // Health score — use prescan BHS as base when available, adjust live
-    // Pull rep-confirmed recovery total from user_progress (set by rep confirmation flow)
-    let repConfirmedRecovered = 0;
-    try {
-      const { data: prog } = await supabaseAdmin
-        .from("user_progress")
-        .select("total_recovered")
-        .eq("user_id", userId)
-        .maybeSingle();
-      repConfirmedRecovered = prog?.total_recovered ?? 0;
-    } catch { /* non-fatal */ }
+    // Rep-confirmed recovery
+    const repConfirmedRecovered = progressResult?.total_recovered ?? 0;
 
+    // Health score
     const struct = profile.business_structure || "";
-    let score = 72;
-    try {
-      const { data: latestRun } = await supabaseAdmin
-        .from("prescan_runs")
-        .select("health_score")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-      if (latestRun?.health_score) score = latestRun.health_score;
-    } catch { /* use default 72 */ }
+    let score = healthResult?.health_score ?? 72;
     score -= Math.min(20, (obligations.overdue ?? 0) * 4);
     score += Math.min(8, fixed.length * 2);
     score = Math.max(8, Math.min(95, score));
@@ -385,29 +405,14 @@ export async function GET(req: NextRequest) {
     // 4. RESPONSE
     // ═══════════════════════════════════════════════════════════
 
-    // Fetch assigned rep (non-fatal)
-    // Lookup path: user_id → tier3_pipeline(user_id) → pipeline_id
-    //              → tier3_rep_assignments(pipeline_id) → rep_id → tier3_reps
+    // Resolve rep assignment from batched pipeline result
     let assigned_rep: { name: string; calendly_url: string | null; contingency_rate: number; pipeline_stage: string | null } | null = null;
-    try {
-      // Step 1: find the user's active pipeline entry
-      const { data: pipeline } = await supabaseAdmin
-        .from("tier3_pipeline")
-        .select("id, stage")
-        .eq("user_id", userId)
-        .in("stage", ["contacted", "called", "diagnostic_sent", "agreement_out",
-                       "signed", "in_engagement", "recovery_tracking", "engaged",
-                       "onboarding", "active", "closed_won"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (pipeline?.id) {
-        // Step 2: find rep assignment for this pipeline entry
+    if (pipelineResult?.id) {
+      try {
         const { data: assignment } = await supabaseAdmin
           .from("tier3_rep_assignments")
           .select("rep_id, call_booked_at, tier3_reps(name, calendly_url, contingency_rate)")
-          .eq("pipeline_id", pipeline.id)
+          .eq("pipeline_id", pipelineResult.id)
           .maybeSingle();
 
         if (assignment?.rep_id) {
@@ -416,11 +421,11 @@ export async function GET(req: NextRequest) {
             name: rep?.name || "Your Fruxal Rep",
             calendly_url: rep?.calendly_url || null,
             contingency_rate: rep?.contingency_rate ?? 12,
-            pipeline_stage: pipeline.stage || null,
+            pipeline_stage: pipelineResult.stage || null,
           };
         }
-      }
-    } catch { /* non-fatal — rep assignment is optional */ }
+      } catch { /* non-fatal */ }
+    }
 
     return NextResponse.json({
       success: true,

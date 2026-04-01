@@ -29,3 +29,38 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  const auth = await requireRep(req);
+  if (!auth.authorized) return auth.error!;
+
+  try {
+    const body = await req.json();
+    const updates: Record<string, any> = {};
+
+    if (typeof body.calendly_url === "string") {
+      const url = body.calendly_url.trim();
+      if (url && !url.startsWith("https://")) {
+        return NextResponse.json({ success: false, error: "Calendly URL must start with https://" }, { status: 400 });
+      }
+      updates.calendly_url = url || null;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ success: false, error: "No valid fields to update" }, { status: 400 });
+    }
+
+    updates.updated_at = new Date().toISOString();
+
+    const { error } = await supabaseAdmin
+      .from("tier3_reps")
+      .update(updates)
+      .eq("id", auth.rep!.id);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}

@@ -31,8 +31,8 @@ export default function LandingPage() {
   }, []);
 
 
-  const [lang, setLang] = useState<"en" | "fr">("en");
-  const isFR = lang === "fr";
+  const lang = "en" as const; // US is English-only
+  const isFR = false;
 
   // Chat state
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -48,13 +48,7 @@ export default function LandingPage() {
   const chatBodyRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("fruxal_lang");
-      if (stored === "fr" || stored === "en") { setLang(stored); return; }
-    } catch { /* non-fatal */ }
-    if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("fr")) setLang("fr");
-  }, []);
+  // US is English-only — no language detection needed
 
   // ─── Restore prescan state from sessionStorage (survives page navigation) ───
   useEffect(() => {
@@ -72,8 +66,7 @@ export default function LandingPage() {
       if (savedSid) setSessionId(savedSid);
       const savedHist = sessionStorage.getItem("lg_prescan_rawHistory");
       try { if (savedHist) setRawHistory(JSON.parse(savedHist)); } catch { /* non-fatal */ }
-      const savedLang = sessionStorage.getItem("lg_prescan_lang");
-      if (savedLang === "fr" || savedLang === "en") setLang(savedLang);
+      // US is English-only — skip language restore
     } catch { /* sessionStorage read failed — start fresh */ }
   }, []);
 
@@ -111,7 +104,7 @@ export default function LandingPage() {
       setSessionId(data.sessionId);
       setMessages([{ id: "a-0", role: "assistant", content: data.message }]);
       setRawHistory([
-        { role: "user", content: isFR ? "Bonjour, je suis prêt à commencer." : "Hi, I'm ready to start." },
+        { role: "user", content: "Hi, I'm ready to start." },
         { role: "assistant", content: data.rawMessage || data.message },
       ]);
     } catch {
@@ -192,16 +185,8 @@ export default function LandingPage() {
           <a href="/roi" className="text-sm font-medium text-ink-secondary hover:text-ink transition">{t("ROI Calculator", "Calculateur ROI")}</a>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-border-light rounded-[7px] p-[3px] gap-[2px]">
-            {(["en", "fr"] as const).map(l => (
-              <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch { /* non-fatal */ } }}
-                className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wide rounded-[5px] transition-all ${lang === l ? "bg-white text-ink shadow-sm" : "text-ink-muted hover:text-ink bg-transparent"}`}>
-                {l}
-              </button>
-            ))}
-          </div>
-          <button onClick={() => router.push("/login")} className="px-4 py-2 text-sm font-medium text-ink-secondary hover:text-ink transition">{t("Sign in", "Connexion")}</button>
-          <button onClick={startPrescan} className="px-5 py-2 text-sm font-semibold text-white bg-brand rounded-sm hover:bg-brand-light transition">{t("Get started", "Commencer")}</button>
+          <button onClick={() => router.push("/login")} className="px-4 py-2 text-sm font-medium text-ink-secondary hover:text-ink transition">Sign in</button>
+          <button onClick={startPrescan} className="px-5 py-2 text-sm font-semibold text-white bg-brand rounded-sm hover:bg-brand-light transition">Get started</button>
         </div>
       </nav>
 
@@ -259,14 +244,7 @@ export default function LandingPage() {
                 <div className="text-[11.5px] text-ink-muted font-medium">{t("Quick chat · takes ~3 min", "Chat rapide · environ 3 min")}</div>
               </div>
             </div>
-            <div className="flex items-center bg-white/10 rounded-[7px] p-[3px] gap-[2px]">
-              {(["en", "fr"] as const).map(l => (
-                <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("fruxal_lang", l); } catch { /* non-fatal */ } }}
-                  className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wide rounded-[5px] transition-all ${lang === l ? "bg-white text-brand shadow-sm" : "text-white/60 hover:text-white bg-transparent"}`}>
-                  {l}
-                </button>
-              ))}
-            </div>
+            {/* US is English-only — no language toggle */}
           </div>
 
           {/* Chat body — green background */}
@@ -433,16 +411,7 @@ export default function LandingPage() {
                             <svg className="w-3 h-3 text-positive mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                             <p className="text-xs text-ink-secondary leading-relaxed"><strong className="text-ink font-medium">{t("What you can do:", "Ce que vous pouvez faire :")}</strong> {isFR ? leak.action_fr : leak.action}</p>
                           </div>
-                          {leak.affiliates && leak.affiliates.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {leak.affiliates.map((aff: any, j: number) => (
-                                <a key={j} href={aff.url || "#"} target="_blank" rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand/5 border border-brand/15 rounded-sm text-xs font-medium text-brand hover:bg-brand/10 transition">
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{display:"inline",marginRight:4,verticalAlign:"middle"}}><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>{aff.name}
-                                </a>
-                              ))}
-                            </div>
-                          )}
+                          {/* Affiliate links hidden from landing page — only visible to reps */}
                         </div>
                       </div>
                     ))}

@@ -35,26 +35,30 @@ export default function EngagementsPage() {
   const [creating, setCreating]       = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    setLoading(true); setError(null);
     try {
       const r = await fetch("/api/admin/tier3/engagements");
       const j = await r.json();
       if (j.success) { setEngagements(j.engagements); setStats(j.stats); }
-    } finally { setLoading(false); }
+      else setError(j.error || "Failed to load engagements");
+    } catch { setError("Network error"); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, []);
 
   const create = async () => {
     if (!form.diagnosticId.trim()) return;
-    setCreating(true);
+    setCreating(true); setError(null);
     try {
       const r = await fetch("/api/admin/tier3/engagements", {
         method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(form)
       });
       const j = await r.json();
       if (j.success) { setShowModal(false); setForm({diagnosticId:"",feePercentage:12,targetCompletion:""}); load(); }
-    } finally { setCreating(false); }
+      else setError(j.error || "Failed to create engagement");
+    } catch { setError("Network error"); }
+    finally { setCreating(false); }
   };
 
   return (

@@ -39,7 +39,11 @@ export default function BusinessDashboard() {
   const [score, setScore] = useState(0);
   const [totalLeak, setTotalLeak] = useState(0);
   const [leaks, setLeaks] = useState<Leak[]>([]);
-  const [profile, setProfile] = useState({ province: "", country: "", industry: "Small Business", structure: "" });
+  const [profile, setProfile] = useState(() => {
+    let cookieCountry = "";
+    try { cookieCountry = document.cookie.match(/fruxal_country=(\w+)/)?.[1] || ""; } catch {}
+    return { province: "", country: cookieCountry, industry: "Small Business", structure: "" };
+  });
   const [overdue, setOverdue] = useState(0);
   const [penaltyExposure, setPenaltyExposure] = useState(0);
   const [obligationsTotal, setObligationsTotal] = useState(0);

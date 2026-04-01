@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
 
     // ─── 2. Match leak detectors ─────────────────────────────────────
 
-    console.log(`[Prescan:Analyze] country=${country} province=${province} obligations=${matchedObligations.length} allObs=${(allObligations||[]).length}`);
+    if (process.env.NODE_ENV !== "production") console.log(`[Prescan:Analyze] country=${country} province=${province} obligations=${matchedObligations.length} allObs=${(allObligations||[]).length}`);
     const { data: leaks, error: leakErr } = await supabaseAdmin
       .from("provincial_leak_detectors")
       .select("slug, title, title_fr, category, severity, annual_impact_min, annual_impact_max, solution_type, detection_question, detection_question_fr, partner_slugs, program_slugs, structures, min_employees, max_employees, min_revenue, max_revenue")

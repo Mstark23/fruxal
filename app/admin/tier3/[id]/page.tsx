@@ -31,7 +31,11 @@ export default function AdminTier3DetailPage() {
     if (!id) return;
     fetch(`/api/admin/tier3/pipeline/${id}`)
       .then(r => r.json())
-      .then(j => { if (j.success) setData(j); })
+      .then(j => {
+        if (j.success) setData(j);
+        else setError(j.error || "Failed to load entry");
+      })
+      .catch(() => setError("Network error"))
       .finally(() => setLoading(false));
   }, [id]);
 

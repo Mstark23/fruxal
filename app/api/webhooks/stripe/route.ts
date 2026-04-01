@@ -67,19 +67,19 @@ export async function POST(req: NextRequest) {
     let event: Stripe.Event;
 
     // ── Signature verification ────────────────────────────────────────────
-    if (process.env.STRIPE_WEBHOOK_SECRET && sig) {
+    if (process.env.STRIPE_WEBHOOK_SECRET) {
+      if (!sig) return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
       try {
         event = getStripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
       } catch (err: any) {
         console.error("[Webhook] Signature verification failed:", err.message);
         return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
       }
+    } else if (process.env.NODE_ENV === "production") {
+      console.error("[Webhook] STRIPE_WEBHOOK_SECRET not set in production!");
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
     } else {
-      // Dev fallback — no secret configured
-      if (process.env.NODE_ENV === "production") {
-        console.error("[Webhook] STRIPE_WEBHOOK_SECRET not set in production!");
-        return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
-      }
+      // Dev fallback — no secret configured, parse raw body
       try { event = JSON.parse(body); } catch { return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 }); }
     }
 

@@ -18,18 +18,29 @@ export default function RepsAnalyticsPage() {
   const router = useRouter();
   const [analytics, setAnalytics] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string|null>(null);
   const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => {
     fetch("/api/admin/tier3/reps/analytics")
       .then(r => r.json())
-      .then(d => { if (d.success) setAnalytics(d.analytics); })
+      .then(d => { if (d.success) setAnalytics(d.analytics); else setError(d.error || "Failed to load"); })
+      .catch(() => setError("Network error"))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
       <div className="w-6 h-6 border-2 border-[#E5E3DD] border-t-[#1B3A2D] rounded-full animate-spin"/>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen bg-[#FAFAF8] px-6 py-8 max-w-7xl mx-auto">
+      <AdminNav />
+      <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
+        <p className="text-sm text-red-600">{error}</p>
+      </div>
     </div>
   );
 

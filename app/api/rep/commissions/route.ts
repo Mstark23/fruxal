@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
 
     // Summary stats
     const totalRecommendations = enriched.length;
-    const totalConversions = enriched.filter(r => r.status === "converted").length;
+    const totalConversions = enriched.filter(r => r.status === "converted" || r.status === "CONVERTED").length;
     const totalCommission = enriched.reduce((s, r) => s + r.commission_earned, 0);
     const conversionRate = totalRecommendations > 0 ? Math.round((totalConversions / totalRecommendations) * 100) : 0;
 
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
     for (const r of enriched) {
       if (!byPartner[r.partner]) byPartner[r.partner] = { recs: 0, conversions: 0, commission: 0 };
       byPartner[r.partner].recs++;
-      if (r.status === "converted") byPartner[r.partner].conversions++;
+      if (r.status === "converted" || r.status === "CONVERTED") byPartner[r.partner].conversions++;
       byPartner[r.partner].commission += r.commission_earned;
     }
     const topPartners = Object.entries(byPartner)

@@ -139,12 +139,18 @@ export async function POST(req: NextRequest) {
       }
     }
     if (docRows.length > 0) {
-      await supabaseAdmin.from("tier3_engagement_documents").insert(docRows);
+      const { error: docErr } = await supabaseAdmin.from("tier3_engagement_documents").insert(docRows);
+      if (docErr) {
+        // Rollback: delete the engagement we just created
+        await supabaseAdmin.from("tier3_engagements").delete().eq("id", engId);
+        throw new Error("Failed to seed documents: " + docErr.message);
+      }
     }
 
     // Update pipeline stage if pipelineId provided
     if (pipelineId) {
-      await supabaseAdmin.from("tier3_pipeline").update({ stage: "in_engagement", updated_at: new Date().toISOString() }).eq("id", pipelineId);
+      const { error: pipeErr } = await supabaseAdmin.from("tier3_pipeline").update({ stage: "in_engagement", updated_at: new Date().toISOString() }).eq("id", pipelineId);
+      if (pipeErr) console.error("[Engagements] Pipeline stage update failed:", pipeErr.message);
     }
 
     process.env.NODE_ENV !== "production" && console.log(`[Engagements] Created for "${diag.company_name}" — ${docRows.length} documents seeded from ${scopeCategories.length} categories`);

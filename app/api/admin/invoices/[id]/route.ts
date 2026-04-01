@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         stage: "completed", updated_at: new Date().toISOString(),
       }).eq("id", inv.pipeline_id);
 
-      // Create rep commission (20% of Fruxal fee = ~2.4% of savings)
+      // Create rep commission using rep's actual commission_rate
       const { data: pipe } = await supabaseAdmin
         .from("tier3_pipeline")
         .select("rep_id")
@@ -35,14 +35,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         .single();
 
       if (pipe?.rep_id) {
-        const commissionAmount = Math.round((inv.fee_amount || 0) * 0.20);
-        await supabaseAdmin.from("tier3_rep_commissions").insert({
+        // Fetch rep's commission rate (default 20% if not set)
+        const { data: rep } = await supabaseAdmin.from("tier3_reps").select("commission_rate").eq("id", pipe.rep_id).single();
+        const rate = rep?.commission_rate ?? 20;
+        const commissionAmount = Math.round((inv.fee_amount || 0) * (rate / 100));
+        const { error: commErr } = await supabaseAdmin.from("tier3_rep_commissions").insert({
           rep_id:            pipe.rep_id,
           pipeline_id:       inv.pipeline_id,
           commission_amount: commissionAmount,
+          commission_rate:   rate,
           status:            "pending",
           created_at:        new Date().toISOString(),
-        }).then(({ error }: any) => { if (error) console.warn("[Invoices] commission insert failed:", error.message); });
+        });
+        if (commErr) console.error("[Invoices] Commission insert failed:", commErr.message);
       }
     }
   }

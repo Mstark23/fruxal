@@ -29,13 +29,13 @@ export async function GET(req: NextRequest) {
       .eq("user_id", userId)
       .single();
 
-    // No profile at all — user just registered, let them through to dashboard
-    // Dashboard will show empty state with data it has
+    // No profile at all — user just registered, needs onboarding
     if (!profile || error) {
       return NextResponse.json({
         success: true,
-        onboarding_completed: true,
-        tour_completed: true,
+        onboarding_completed: false,
+        tour_completed: false,
+        businessId: null,
       });
     }
 

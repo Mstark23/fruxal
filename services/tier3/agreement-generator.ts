@@ -27,7 +27,23 @@ const CONTENT_W = PAGE_W - MARGIN * 2;
 
 const PROVINCE_NAMES: Record<string, string> = {
   ON: "Ontario", QC: "Quebec", BC: "British Columbia", AB: "Alberta", MB: "Manitoba",
+  SK: "Saskatchewan", NB: "New Brunswick", NS: "Nova Scotia", PE: "Prince Edward Island",
+  NL: "Newfoundland and Labrador", NT: "Northwest Territories", YT: "Yukon", NU: "Nunavut",
 };
+
+const US_STATE_NAMES: Record<string, string> = {
+  AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",
+  CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",
+  IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",
+  ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",
+  MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",
+  NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",
+  OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",
+  TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",
+  WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"District of Columbia",
+};
+
+const US_STATES_SET = new Set(Object.keys(US_STATE_NAMES));
 
 const CAT_LABELS: Record<string, string> = {
   tax_structure: "Tax Structure",
@@ -99,7 +115,10 @@ export async function generateContingencyAgreement(data: AgreementData): Promise
     doc.on("error", reject);
 
     let pageNum = 0;
-    const provinceName = PROVINCE_NAMES[data.province] || data.province;
+    const isUS = US_STATES_SET.has(data.province);
+    const provinceName = isUS
+      ? (US_STATE_NAMES[data.province] || data.province)
+      : (PROVINCE_NAMES[data.province] || data.province);
     const dateObj = new Date(data.generatedAt);
     const dateStr = dateObj.toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" });
     const refNum = `FRX-${dateObj.getFullYear()}-${data.diagnosticId.slice(0, 8).toUpperCase()}`;
@@ -172,7 +191,7 @@ export async function generateContingencyAgreement(data: AgreementData): Promise
     // Opening paragraph
     doc.y = divY + 16;
     bodyText(
-      `This Contingency Engagement Agreement ("Agreement") is entered into between Fruxal Diagnostic Inc. ("Fruxal"), a corporation incorporated under the laws of Canada, and ${data.companyName} ("Client"), effective as of the date of last signature below.`
+      `This Contingency Engagement Agreement ("Agreement") is entered into between Fruxal Diagnostic Inc. ("Fruxal"), a corporation incorporated under the laws of ${isUS ? "the State of Delaware, United States" : "Canada"}, and ${data.companyName} ("Client"), effective as of the date of last signature below.`
     );
     spacer(6);
 
@@ -288,7 +307,9 @@ export async function generateContingencyAgreement(data: AgreementData): Promise
     // ─── SECTION 9: Governing Law ───
     doc.y = sectionTitle("GOVERNING LAW");
     bodyText(
-      `This Agreement is governed by and construed in accordance with the laws of the Province of ${provinceName}, Canada, and the federal laws of Canada applicable therein. Any disputes arising under this Agreement shall be subject to the exclusive jurisdiction of the courts of ${provinceName}.`
+      isUS
+        ? `This Agreement is governed by and construed in accordance with the laws of the State of ${provinceName}, United States. Any disputes arising under this Agreement shall be subject to the exclusive jurisdiction of the state and federal courts located in ${provinceName}.`
+        : `This Agreement is governed by and construed in accordance with the laws of the Province of ${provinceName}, Canada, and the federal laws of Canada applicable therein. Any disputes arising under this Agreement shall be subject to the exclusive jurisdiction of the courts of ${provinceName}.`
     );
     spacer(30);
 

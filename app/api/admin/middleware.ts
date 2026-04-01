@@ -13,8 +13,12 @@ export async function requireAdmin(req: NextRequest): Promise<{
   email?: string;
   error?: NextResponse;
 }> {
-  // DEV BYPASS — add ADMIN_DEV_BYPASS=true to .env.local to skip auth locally
-  if (process.env.NODE_ENV === "development" && process.env.ADMIN_DEV_BYPASS === "true") {
+  // DEV BYPASS — .env.local only, never on Vercel/production
+  if (
+    process.env.NODE_ENV === "development" &&
+    process.env.ADMIN_DEV_BYPASS === "true" &&
+    !process.env.VERCEL
+  ) {
     return { authorized: true, userId: "dev", email: "dev@localhost" };
   }
 

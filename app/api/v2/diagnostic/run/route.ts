@@ -143,7 +143,13 @@ export async function POST(req: NextRequest) {
 
     const tier     = resolveTier(profile, business);
     const isFr     = language === "fr";
-    const country  = (profile.country || "CA") as "CA" | "US";
+    // Country: profile > request body > host header > default CA
+    const bodyCountry = body?.country;
+    const hostHeader = req.headers.get("host") || "";
+    const detectedCountry = profile.country
+      || bodyCountry
+      || (hostHeader.includes("fruxal.com") && !hostHeader.includes("fruxal.ca") ? "US" : "CA");
+    const country  = (detectedCountry === "US" ? "US" : "CA") as "CA" | "US";
     const province = profile.province || (country === "US" ? "TX" : "ON");
     const employees = profile.employee_count ?? 0;
 
@@ -404,7 +410,7 @@ export async function POST(req: NextRequest) {
     let aiResult: any;
 
     try {
-      console.log(`[Diagnostic:Run] tier=${tier} country=${country} province=${province} sysPromptLen=${systemPrompt.length} userPromptLen=${userPrompt.length}`);
+      if (process.env.NODE_ENV !== "production") console.log(`[Diagnostic:Run] tier=${tier} country=${country} province=${province} sysPromptLen=${systemPrompt.length} userPromptLen=${userPrompt.length}`);
       const response = await getAnthropic().messages.create({
         model:      "claude-sonnet-4-20250514",
         max_tokens: tierMaxTokens(tier),
@@ -423,7 +429,7 @@ export async function POST(req: NextRequest) {
       const rawText   = textBlock?.text || "";
 
       if (!rawText || rawText.length < 50) {
-        console.error("[Diagnostic:Run] Claude returned empty/short response:", rawText.substring(0, 200));
+        console.error("[Diagnostic:Run] Claude returned empty/short response (len=" + rawText.length + ")");
         throw new Error("AI returned an incomplete response. Please try again.");
       }
 
@@ -433,14 +439,14 @@ export async function POST(req: NextRequest) {
       const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
       if (jsonMatch) jsonStr = jsonMatch[0];
       try { aiResult = JSON.parse(jsonStr); } catch {
-        console.error("[Diagnostic:Run] JSON parse failed. First 300 chars:", rawText.substring(0, 300));
+        console.error("[Diagnostic:Run] JSON parse failed (rawLen=" + rawText.length + ")");
         throw new Error('AI returned invalid JSON — not parseable');
       }
 
       // Schema validation: if Claude returned empty or schema-invalid output, retry once
       const hasValidScores = aiResult?.scores && typeof aiResult.scores.overall === 'number';
       if (!hasValidScores || !Array.isArray(aiResult?.findings) || aiResult.findings.length === 0) {
-        console.error("[Diagnostic] AI returned invalid schema:", JSON.stringify(aiResult).slice(0, 200));
+        console.error("[Diagnostic] AI returned invalid schema (scores:", !!aiResult?.scores, "findings:", aiResult?.findings?.length ?? 0, ")");
         await supabaseAdmin.from("diagnostic_reports")
           .update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", reportId);
         return NextResponse.json(
@@ -450,7 +456,7 @@ export async function POST(req: NextRequest) {
       }
 
     } catch (aiErr: any) {
-      console.error("[Diagnostic] AI error:", aiErr);
+      console.error("[Diagnostic] AI error:", aiErr.message);
       await supabaseAdmin
         .from("diagnostic_reports")
         .update({ status: "failed", updated_at: new Date().toISOString() })

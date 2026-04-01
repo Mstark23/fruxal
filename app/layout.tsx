@@ -3,22 +3,22 @@ import Providers from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Fruxal — Financial Diagnostics for Canadian Small Business",
-  description: "Fruxal finds invisible revenue leaks in Canadian businesses and recovers the money for you — no upfront cost, 12% of confirmed savings only.",
-  keywords: "Canadian small business finance, financial diagnostic, business health score, SMB financial tools, Quebec business, free financial analysis",
-  metadataBase: new URL("https://fruxal.ca"),
+  title: "Fruxal — Financial Diagnostics for Small Business",
+  description: "Fruxal finds invisible revenue leaks in your business and recovers the money for you — no upfront cost, 12% of confirmed savings only.",
+  keywords: "small business finance, financial diagnostic, business health score, SMB financial tools, free financial analysis, revenue leaks",
+  metadataBase: new URL("https://fruxal.com"),
   openGraph: {
-    title: "Fruxal — Free Financial Diagnostics for Canadian SMBs",
-    description: "AI-powered financial diagnostics for Canadian small businesses. We find the leaks and recover the money — 12% of confirmed savings only.",
-    url: "https://fruxal.ca",
+    title: "Fruxal — Free Financial Diagnostics for SMBs",
+    description: "AI-powered financial diagnostics for small businesses. We find the leaks and recover the money — 12% of confirmed savings only.",
+    url: "https://fruxal.com",
     siteName: "Fruxal",
     type: "website",
-    locale: "en_CA",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fruxal — Free Financial Diagnostics for Canadian SMBs",
-    description: "Financial leak detection and recovery for Canadian SMBs. No upfront cost.",
+    title: "Fruxal — Free Financial Diagnostics for SMBs",
+    description: "Financial leak detection and recovery for SMBs. No upfront cost.",
   },
   icons: {
     icon:  [{ url: "/icon.png", sizes: "32x32" }],

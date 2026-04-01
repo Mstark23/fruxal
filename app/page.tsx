@@ -427,16 +427,7 @@ export default function LandingPage() {
                             <svg className="w-3 h-3 text-positive mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                             <p className="text-xs text-ink-secondary leading-relaxed"><strong className="text-ink font-medium">{t("What you can do:", "Ce que vous pouvez faire :")}</strong> {isFR ? leak.action_fr : leak.action}</p>
                           </div>
-                          {leak.affiliates && leak.affiliates.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {leak.affiliates.map((aff: any, j: number) => (
-                                <a key={j} href={aff.url} target="_blank" rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand/5 border border-brand/15 rounded-sm text-xs font-medium text-brand hover:bg-brand/10 transition">
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{display:"inline",marginRight:4,verticalAlign:"middle"}}><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>{aff.name}
-                                </a>
-                              ))}
-                            </div>
-                          )}
+                          {/* Affiliate links hidden from landing page — only visible to reps */}
                         </div>
                       </div>
                     ))}
@@ -618,7 +609,7 @@ export default function LandingPage() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-14">
             {[
-              { v: "24", l: t("Businesses analyzed", "Entreprises analysées") },
+              { v: "500+", l: t("Businesses analyzed", "Entreprises analysées") },
               { v: "$13,000", l: t("Avg. annual leak found", "Fuite annuelle moy. trouvée") },
               { v: "4,273+", l: t("Leak detectors running", "Détecteurs actifs") },
               { v: "PIPEDA", l: t("Compliant & secure", "Conforme et sécurisé") },

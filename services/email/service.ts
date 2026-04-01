@@ -7,6 +7,15 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Fruxal <noreply@fruxal.com>";
 
+// Helper: resolve app URL based on country (US → fruxal.com, CA → fruxal.ca)
+function getAppUrl(country?: string): string {
+  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
+  return country === "US" ? "https://fruxal.com" : "https://fruxal.ca";
+}
+function getDomain(country?: string): string {
+  return country === "US" ? "fruxal.com" : "fruxal.ca";
+}
+
 interface EmailOptions {
   to: string;
   subject: string;
@@ -60,7 +69,7 @@ export function caslFooter(appUrl: string, email: string, source: string = "gene
   </p>`;
 }
 
-export async function sendScanComplete(to: string, businessName: string, totalLeaking: number, leakCount: number, urgentCount: number): Promise<boolean> {
+export async function sendScanComplete(to: string, businessName: string, totalLeaking: number, leakCount: number, urgentCount: number, country?: string): Promise<boolean> {
   return sendEmail({
     to,
     subject: `We found $${(totalLeaking ?? 0).toLocaleString()} leaking from ${businessName}`,
@@ -68,12 +77,13 @@ export async function sendScanComplete(to: string, businessName: string, totalLe
       `$${(totalLeaking ?? 0).toLocaleString()}/yr leaking from ${businessName}`,
       `We found <strong>${leakCount} leaks</strong> in your business — <strong>${urgentCount} urgent</strong>. Run your full intake so your rep can start recovering this money.`,
       "See Your Leaks →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/dashboard`
+      `${getAppUrl(country)}/v2/dashboard`,
+      country
     ),
   });
 }
 
-export async function sendLeakFixed(to: string, leakTitle: string, savings: number): Promise<boolean> {
+export async function sendLeakFixed(to: string, leakTitle: string, savings: number, country?: string): Promise<boolean> {
   return sendEmail({
     to,
     subject: `${leakTitle} confirmed — $${(savings ?? 0).toLocaleString()}/yr recovered`,
@@ -81,12 +91,13 @@ export async function sendLeakFixed(to: string, leakTitle: string, savings: numb
       `💰 $${(savings ?? 0).toLocaleString()}/yr recovered`,
       `Your rep confirmed the recovery on <strong>${leakTitle}</strong>. That's <strong>$${(savings ?? 0).toLocaleString()}/yr</strong> back in your business.<br><br>Check your recovery timeline to see confirmed amounts and what's still in progress.`,
       "View My Recovery →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/recovery`
+      `${getAppUrl(country)}/v2/recovery`,
+      country
     ),
   });
 }
 
-export async function sendWeeklyDigest(to: string, businessName: string, openLeaks: number, totalLeaking: number, fixedThisWeek: number): Promise<boolean> {
+export async function sendWeeklyDigest(to: string, businessName: string, openLeaks: number, totalLeaking: number, fixedThisWeek: number, country?: string): Promise<boolean> {
   return sendEmail({
     to,
     subject: `Weekly: ${openLeaks} leaks open, $${(totalLeaking ?? 0).toLocaleString()}/yr still leaking`,
@@ -94,12 +105,13 @@ export async function sendWeeklyDigest(to: string, businessName: string, openLea
       `Weekly update for ${businessName}`,
       `<strong>${openLeaks} leaks</strong> still open · <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> still leaking${fixedThisWeek > 0 ? ` · <strong>$${fixedThisWeek.toLocaleString()}</strong> recovered this week 🎉` : ""}<br><br>Your rep is working on the highest-value items. Check your recovery status for updates.`,
       "View Recovery Status →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/recovery`
+      `${getAppUrl(country)}/v2/recovery`,
+      country
     ),
   });
 }
 
-export async function sendNudge(to: string, totalLeaking: number): Promise<boolean> {
+export async function sendNudge(to: string, totalLeaking: number, country?: string): Promise<boolean> {
   const daily = Math.round(totalLeaking / 365);
   return sendEmail({
     to,
@@ -108,7 +120,8 @@ export async function sendNudge(to: string, totalLeaking: number): Promise<boole
       `$${daily} lost today. And yesterday. And the day before.`,
       `Your scan found <strong>$${(totalLeaking ?? 0).toLocaleString()}/yr</strong> in leaks. Every day costs <strong>$${daily}</strong>.<br><br>Your recovery expert is waiting. Book a free call — we handle everything, and you only pay when money is actually recovered.`,
       "See My Leaks →",
-      `${process.env.NEXTAUTH_URL || "https://fruxal.ca"}/v2/leaks`
+      `${getAppUrl(country)}/v2/leaks`,
+      country
     ),
   });
 }
@@ -126,13 +139,14 @@ interface MilestoneEmailArgs {
   annualized: number;
   top_tasks: { title: string; savings_monthly: number }[];
   next_task: { title: string; savings_monthly: number } | null;
+  country?: string;
 }
 
 export async function sendMilestoneEmail({
   to, milestone, savings_recovered, savings_available,
-  annualized, top_tasks, next_task,
+  annualized, top_tasks, next_task, country,
 }: MilestoneEmailArgs): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const appUrl = getAppUrl(country);
   const recoveryUrl = `${appUrl}/v2/recovery`;
 
   const taskLines = top_tasks
@@ -163,7 +177,7 @@ export async function sendMilestoneEmail({
       View My Recovery →
     </a>
   </div>
-  <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">Fruxal · fruxal.ca</div>
+  <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">Fruxal · fruxal.com</div>
 </div></body></html>`;
 
   return sendEmail({
@@ -231,7 +245,7 @@ export function renderMonthlyBrief({
   </div>
 
   <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">
-    Fruxal Business Intelligence · fruxal.ca
+    Fruxal Business Intelligence · fruxal.com
   </div>
 </div>
 </body>
@@ -251,17 +265,19 @@ interface GoalCompletedEmailArgs {
   goalTitle:     string;
   recoveredMo:   number;
   daysAhead:     number;   // how many days before deadline
+  country?:      string;
 }
 
 export async function sendGoalCompletedEmail({
-  to, goalTitle, recoveredMo, daysAhead,
+  to, goalTitle, recoveredMo, daysAhead, country,
 }: GoalCompletedEmailArgs): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const appUrl = getAppUrl(country);
   const html = emailTemplate(
     `🏆 Goal achieved: ${goalTitle}`,
     `You hit your goal${daysAhead > 0 ? ` <strong>${daysAhead} days early</strong>` : ""}! You recovered <strong>$${(recoveredMo ?? 0).toLocaleString()}/month</strong> — that's <strong>$${((recoveredMo ?? 0) * 12).toLocaleString()}/year</strong> staying in your business.<br><br>Set your next 90-day goal and keep the momentum going.`,
     "Set your next goal →",
-    `${appUrl}/v2/dashboard`
+    `${appUrl}/v2/dashboard`,
+    country
   );
   return sendEmail({ to, subject: `🏆 Goal achieved — ${goalTitle}`, html });
 }
@@ -283,13 +299,14 @@ interface RescanEmailArgs {
   netMonthly:       number;
   daysBetween:      number;
   newReportId:      string;
+  country?:         string;
 }
 
 export async function sendRescanEmail({
   to, headline, narrative, scoreDelta, prevScore, newScore,
-  savingsRecovered, newIssuesCount, netMonthly, daysBetween, newReportId,
+  savingsRecovered, newIssuesCount, netMonthly, daysBetween, newReportId, country,
 }: RescanEmailArgs): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const appUrl = getAppUrl(country);
   const reportUrl = `${appUrl}/v2/diagnostic/${newReportId}`;
   const scoreLine = scoreDelta > 0
     ? `<span style="color:#2D7A50;font-weight:700">↑ ${prevScore} → ${newScore} (+${scoreDelta})</span>`
@@ -326,7 +343,7 @@ export async function sendRescanEmail({
       <a href="${appUrl}/v2/recovery" style="display:inline-block;background:#f0f0f0;color:#1B3A2D;font-weight:700;font-size:13px;padding:10px 20px;border-radius:10px;text-decoration:none">View my recovery →</a>
     </div>
   </div>
-  <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">Fruxal Business Intelligence · fruxal.ca</div>
+  <div style="text-align:center;margin-top:16px;font-size:10px;color:#c5c2bb">Fruxal Business Intelligence · fruxal.com</div>
 </div>
 </body></html>`;
 
@@ -341,15 +358,16 @@ export async function sendRescanEmail({
 // =============================================================================
 // PAYMENT FAILED EMAIL
 // =============================================================================
-interface PaymentFailedArgs { to: string; plan: string; }
+interface PaymentFailedArgs { to: string; plan: string; country?: string; }
 
-export async function sendPaymentFailedEmail({ to, plan }: PaymentFailedArgs): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+export async function sendPaymentFailedEmail({ to, plan, country }: PaymentFailedArgs): Promise<boolean> {
+  const appUrl = getAppUrl(country);
   const html = emailTemplate(
     "Action required — payment failed",
     `Your payment for Fruxal ${plan} failed.<br><br>You have <strong>3 days of continued access</strong> while we retry.<br><br>To update your payment method, visit your billing settings. If payment is not updated within 3 days, your account will be downgraded to the free tier. <strong>Your data is never deleted for billing reasons</strong> — it will be waiting when you return.`,
     "Update payment method →",
-    `${appUrl}/v2/settings#billing`
+    `${appUrl}/v2/settings#billing`,
+    country
   );
   return sendEmail({ to, subject: `Action required — payment failed for your Fruxal ${plan}`, html });
 }
@@ -365,12 +383,13 @@ interface WelcomeEmailArgs {
   qualifiedPlan?: string;
   teaserLeaks?: Array<{ title?: string; title_fr?: string; impact_min?: number; category?: string }>;
   lang?:        "en" | "fr";
+  country?:     string;
 }
 
 export async function sendWelcomeEmail({
-  to, name, industry, province, qualifiedPlan, teaserLeaks, lang = "en", hasRep = false,
+  to, name, industry, province, qualifiedPlan, teaserLeaks, lang = "en", hasRep = false, country,
 }: WelcomeEmailArgs & { hasRep?: boolean }): Promise<boolean> {
-  const appUrl  = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const appUrl  = getAppUrl(country);
   const isFR    = lang === "fr" || (province === "QC" && lang !== "en");
   const greeting = name ? (isFR ? `Bonjour ${name}` : `Hi ${name}`) : (isFR ? "Bonjour" : "Hi there");
   const topLeaks = (teaserLeaks ?? []).slice(0, 3);
@@ -454,8 +473,9 @@ export async function sendRepAssigned(
   calendlyUrl: string | null,
   totalLeak: number,
   contingencyRate = 12,
+  country?: string,
 ): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const appUrl = getAppUrl(country);
   const keep = 100 - contingencyRate;
   const keepAmount = Math.round(totalLeak * (keep / 100));
   const ctaUrl = calendlyUrl || `${appUrl}/v2/dashboard`;
@@ -474,7 +494,7 @@ export async function sendRepAssigned(
       You just need to show up for one call.
     </p>
   `;
-  return sendEmail({ to, subject: `${repName} has been assigned to your Fruxal recovery`, html: emailTemplate(`Your recovery expert is ready`, body, ctaText, ctaUrl) });
+  return sendEmail({ to, subject: `${repName} has been assigned to your Fruxal recovery`, html: emailTemplate(`Your recovery expert is ready`, body, ctaText, ctaUrl, country) });
 }
 
 /** Sent to rep when a new client is assigned */
@@ -507,8 +527,9 @@ export async function sendSavingConfirmed(
   confirmedAmount: number,
   totalConfirmedToDate: number,
   repName: string,
+  country?: string,
 ): Promise<boolean> {
-  const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+  const appUrl = getAppUrl(country);
   const body = `
     <p style="font-size:15px;color:#1a1a2e;margin:0 0 16px">Hi ${businessName},</p>
     <p style="color:#3d3d4e;margin:0 0 16px">
@@ -522,5 +543,5 @@ export async function sendSavingConfirmed(
     ${totalConfirmedToDate > confirmedAmount ? `<p style="color:#3d3d4e;margin:0 0 16px">Total recovered to date: <strong>$${totalConfirmedToDate.toLocaleString()}</strong></p>` : ''}
     <p style="color:#3d3d4e;margin:0 0 24px">This has been added to your dashboard. Your rep continues working on the remaining items.</p>
   `;
-  return sendEmail({ to, subject: `$${confirmedAmount.toLocaleString()} recovered — ${leakName}`, html: emailTemplate(`Saving confirmed`, body, `View Your Dashboard →`, `${appUrl}/v2/dashboard`) });
+  return sendEmail({ to, subject: `$${confirmedAmount.toLocaleString()} recovered — ${leakName}`, html: emailTemplate(`Saving confirmed`, body, `View Your Dashboard →`, `${appUrl}/v2/dashboard`, country) });
 }

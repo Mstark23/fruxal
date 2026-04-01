@@ -37,3 +37,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireRep(req);
+  if (!auth.authorized) return auth.error!;
+  try {
+    const { findingId } = await req.json();
+    if (!findingId) return NextResponse.json({ error: "findingId required" }, { status: 400 });
+
+    const { error } = await supabaseAdmin
+      .from("tier3_confirmed_findings")
+      .delete()
+      .eq("id", findingId);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}

@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import {
   getObligations,
   getObligationDashboard,
@@ -32,6 +33,20 @@ export async function GET(req: NextRequest) {
         { success: false, error: "businessId is required" },
         { status: 400 }
       );
+    }
+
+    // IDOR check: verify the business belongs to the authenticated user
+    const userId = (token as any).id || token.sub;
+    if (userId) {
+      const { data: profile } = await supabaseAdmin
+        .from("business_profiles")
+        .select("business_id")
+        .eq("user_id", userId)
+        .eq("business_id", businessId)
+        .maybeSingle();
+      if (!profile) {
+        return NextResponse.json({ success: false, error: "Access denied" }, { status: 403 });
+      }
     }
 
     if (detail) {
@@ -76,6 +91,20 @@ export async function POST(req: NextRequest) {
         { success: false, error: "businessId is required" },
         { status: 400 }
       );
+    }
+
+    // IDOR check: verify the business belongs to the authenticated user
+    const userId = (token as any).id || token.sub;
+    if (userId) {
+      const { data: profile } = await supabaseAdmin
+        .from("business_profiles")
+        .select("business_id")
+        .eq("user_id", userId)
+        .eq("business_id", body.businessId)
+        .maybeSingle();
+      if (!profile) {
+        return NextResponse.json({ success: false, error: "Access denied" }, { status: 403 });
+      }
     }
 
     const result = await syncObligations(body.businessId);

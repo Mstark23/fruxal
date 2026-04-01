@@ -1,20 +1,25 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 const fmtM = (n: number) =>
   n >= 1_000_000 ? `$${(n/1_000_000).toFixed(1)}M` : n >= 1_000 ? `$${Math.round(n/1_000)}K` : `$${n.toLocaleString()}`;
 
-const STAGE_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  lead:              { label:"Lead",           color:"#8E8C85", bg:"rgba(142,140,133,0.08)" },
-  contacted:         { label:"Contacted",       color:"#0369a1", bg:"rgba(3,105,161,0.07)"  },
-  diagnostic_sent:   { label:"Diagnostic Sent", color:"#7C3AED", bg:"rgba(124,58,237,0.07)" },
-  call_booked:       { label:"Call Booked",     color:"#C4841D", bg:"rgba(196,132,29,0.08)" },
-  engaged:           { label:"Engaged",         color:"#1B3A2D", bg:"rgba(27,58,45,0.08)"   },
-  in_engagement:     { label:"Active",          color:"#2D7A50", bg:"rgba(45,122,80,0.08)"  },
-  recovery_tracking: { label:"Recovery",        color:"#3D7A5E", bg:"rgba(61,122,94,0.08)"  },
-  completed:         { label:"Completed",       color:"#B5B3AD", bg:"rgba(181,179,173,0.08)" },
+const STAGE_LABEL: Record<string, { label: string; color: string; bg: string; order: number }> = {
+  lead:              { label:"Lead",           color:"#8E8C85", bg:"rgba(142,140,133,0.08)", order:0 },
+  contacted:         { label:"Contacted",       color:"#0369a1", bg:"rgba(3,105,161,0.07)",  order:1 },
+  diagnostic_sent:   { label:"Diagnostic Sent", color:"#7C3AED", bg:"rgba(124,58,237,0.07)", order:2 },
+  call_booked:       { label:"Call Booked",     color:"#C4841D", bg:"rgba(196,132,29,0.08)", order:3 },
+  engaged:           { label:"Engaged",         color:"#1B3A2D", bg:"rgba(27,58,45,0.08)",   order:4 },
+  in_engagement:     { label:"Active",          color:"#2D7A50", bg:"rgba(45,122,80,0.08)",  order:4 },
+  agreement_out:     { label:"Agreement Out",   color:"#7C3AED", bg:"rgba(124,58,237,0.07)", order:3 },
+  signed:            { label:"Signed",          color:"#2D7A50", bg:"rgba(45,122,80,0.08)",  order:4 },
+  recovery_tracking: { label:"Recovery",        color:"#3D7A5E", bg:"rgba(61,122,94,0.08)",  order:5 },
+  fee_collected:     { label:"Fee Collected",   color:"#2D7A50", bg:"rgba(45,122,80,0.08)",  order:6 },
+  completed:         { label:"Completed",       color:"#B5B3AD", bg:"rgba(181,179,173,0.08)", order:7 },
 };
+
+type SortKey = "newest" | "leak_desc" | "follow_up" | "stage";
 
 export default function RepDashboard() {
   const router = useRouter();
@@ -23,6 +28,7 @@ export default function RepDashboard() {
   const [loading, setLoading] = useState(true);
   const [search,  setSearch]  = useState("");
   const [filter,  setFilter]  = useState("all");
+  const [sort,    setSort]    = useState<SortKey>("newest");
   const [showCalendlyEdit, setShowCalendlyEdit] = useState(false);
   const [calendlyInput, setCalendlyInput] = useState("");
   const [savingCalendly, setSavingCalendly] = useState(false);
@@ -55,19 +61,67 @@ export default function RepDashboard() {
     setSavingCalendly(false);
   };
 
-  const filtered = clients.filter(c => {
-    const q = search.toLowerCase();
-    const matchSearch = !q || c.companyName?.toLowerCase().includes(q) || c.industry?.toLowerCase().includes(q);
-    const matchFilter =
-      filter === "active"   ? !!c.engagement :
-      filter === "pipeline" ? (!c.engagement && !!c.pipeline) :
-      filter === "followup" ? (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)) : true;
-    return matchSearch && matchFilter;
-  });
+  const filtered = useMemo(() => {
+    const base = clients.filter(c => {
+      const q = search.toLowerCase();
+      const matchSearch = !q || c.companyName?.toLowerCase().includes(q) || c.industry?.toLowerCase().includes(q);
+      const matchFilter =
+        filter === "active"   ? !!c.engagement :
+        filter === "pipeline" ? (!c.engagement && !!c.pipeline) :
+        filter === "followup" ? (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)) : true;
+      return matchSearch && matchFilter;
+    });
+    // Sort
+    return base.sort((a, b) => {
+      if (sort === "leak_desc") return (b.annualLeak ?? 0) - (a.annualLeak ?? 0);
+      if (sort === "follow_up") {
+        const af = a.pipeline?.followUpDate ? new Date(a.pipeline.followUpDate).getTime() : Infinity;
+        const bf = b.pipeline?.followUpDate ? new Date(b.pipeline.followUpDate).getTime() : Infinity;
+        return af - bf;
+      }
+      if (sort === "stage") {
+        return (STAGE_LABEL[a.pipeline?.stage||"lead"]?.order ?? 0) - (STAGE_LABEL[b.pipeline?.stage||"lead"]?.order ?? 0);
+      }
+      return new Date(b.assignedAt||0).getTime() - new Date(a.assignedAt||0).getTime();
+    });
+  }, [clients, search, filter, sort]);
 
   const activeCount   = clients.filter(c => c.engagement).length;
   const followUpCount = clients.filter(c => c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)).length;
   const isNewRep = clients.length === 0 && !loading;
+
+  // Today's Actions — urgent items the rep should handle right now
+  const todayActions = useMemo(() => {
+    const actions: { type: string; label: string; sub: string; color: string; clientId: string }[] = [];
+    const now = Date.now();
+    for (const c of clients) {
+      const id = c.pipelineId || c.diagnosticId;
+      // Overdue follow-ups
+      if (c.pipeline?.followUpDate) {
+        const fuDate = new Date(c.pipeline.followUpDate).getTime();
+        if (fuDate <= now) {
+          actions.push({ type:"overdue", label:`Overdue: ${c.companyName}`, sub:`Follow-up was ${new Date(c.pipeline.followUpDate).toLocaleDateString("en-CA",{month:"short",day:"numeric"})}`, color:"#B34040", clientId:id });
+        } else if (fuDate <= now + 86400000) {
+          actions.push({ type:"today", label:`Follow up today: ${c.companyName}`, sub:`Scheduled for today`, color:"#C4841D", clientId:id });
+        }
+      }
+      // New leads untouched >2 days
+      if ((c.pipeline?.stage === "lead") && c.assignedAt && (now - new Date(c.assignedAt).getTime()) > 86400000 * 2) {
+        actions.push({ type:"stale", label:`New lead waiting: ${c.companyName}`, sub:`Assigned ${Math.floor((now - new Date(c.assignedAt).getTime())/86400000)}d ago — no contact yet`, color:"#C4841D", clientId:id });
+      }
+      // Calls booked (need prep)
+      if (c.pipeline?.stage === "call_booked") {
+        actions.push({ type:"call", label:`Call booked: ${c.companyName}`, sub:`Prepare call script before dialing`, color:"#0369a1", clientId:id });
+      }
+      // New assignment (< 24h)
+      if (c.assignedAt && (now - new Date(c.assignedAt).getTime()) < 86400000 && c.pipeline?.stage === "lead") {
+        actions.push({ type:"new", label:`New client: ${c.companyName}`, sub:`Just assigned — make first contact`, color:"#2D7A50", clientId:id });
+      }
+    }
+    // Priority: overdue > today > stale > call > new
+    const priority: Record<string,number> = { overdue:0, today:1, stale:2, call:3, new:4 };
+    return actions.sort((a,b) => (priority[a.type]??5) - (priority[b.type]??5));
+  }, [clients]);
 
   if (loading) return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
@@ -83,6 +137,11 @@ export default function RepDashboard() {
             <span className="text-[17px] font-bold text-[#1B3A2D] tracking-tight">Fruxal</span>
             <span className="text-[10px] font-semibold text-[#8E8C85] uppercase tracking-wider bg-[#F0EFEB] px-2 py-0.5 rounded-full">Rep Portal</span>
             <div className="hidden sm:flex items-center gap-1 ml-2">
+              <button onClick={() => router.push("/rep/commissions")}
+                className="text-[11px] font-semibold px-3 py-1 rounded-lg hover:bg-[#F0EFEB] transition"
+                style={{ color: "#1B3A2D" }}>
+                Commissions
+              </button>
               <button onClick={() => router.push("/rep/training")}
                 className="text-[11px] font-semibold px-3 py-1 rounded-lg hover:bg-[#F0EFEB] transition"
                 style={{ color: "#1B3A2D" }}>
@@ -99,7 +158,7 @@ export default function RepDashboard() {
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <p className="text-[12px] font-semibold text-[#1A1A18]">{rep.name}</p>
-                <p className="text-[10px] text-[#8E8C85]">{rep.province} · {rep.commission_rate ?? 12}% contingency</p>
+                <p className="text-[10px] text-[#8E8C85]">{rep.province || "—"} · {rep.commission_rate ?? 12}% contingency</p>
                 {rep.calendly_url && (
                   <a href={rep.calendly_url} target="_blank" rel="noopener noreferrer"
                     className="text-[9px] text-[#2D7A50] font-semibold hover:underline mt-0.5 block truncate max-w-[180px]">
@@ -122,7 +181,8 @@ export default function RepDashboard() {
             { label:"Active",           value:activeCount,                               sub:"engagements" },
             { label:"Commissions Paid", value:fmtM(rep?.stats?.commissions_paid||0),    sub:"earned"      },
             { label:"Pending",          value:fmtM(rep?.stats?.commissions_pending ?? 0), sub:"to collect"  },
-            { label:"Pipeline Value",   value:fmtM(clients.filter((c:any) => c.engagement).reduce((s:number,c:any) => s+(c.annualLeak??0)*((rep?.commission_rate||20)/100),0)), sub:"if all close" },
+            { label:"Conversion",      value: clients.length > 0 ? `${Math.round((activeCount / clients.length) * 100)}%` : "—", sub:"engaged rate" },
+            { label:"Pipeline Value",   value:fmtM(clients.filter((c:any) => c.engagement).reduce((s:number,c:any) => s+(c.annualLeak??0)*((rep?.commission_rate??12)/100),0)), sub:"if all close" },
           ].map(s => (
             <div key={s.label} className="bg-white border border-[#E5E3DD] rounded-xl px-4 py-3" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.03)"}}>
               <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">{s.label}</p>
@@ -131,6 +191,27 @@ export default function RepDashboard() {
             </div>
           ))}
         </div>
+
+        {/* ═══ TODAY'S ACTIONS ═══ */}
+        {todayActions.length > 0 && (
+          <div className="mb-5">
+            <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-2">Today&apos;s Actions</p>
+            <div className="space-y-1.5">
+              {todayActions.slice(0, 6).map((a, i) => (
+                <button key={i} onClick={() => router.push(`/rep/customer/${a.clientId}`)}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white border border-[#E5E3DD] hover:border-[#1B3A2D]/30 hover:shadow-sm transition-all text-left group"
+                  style={{ boxShadow:"0 1px 2px rgba(0,0,0,0.02)" }}>
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: a.color }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-semibold text-[#1A1A18] truncate group-hover:text-[#1B3A2D]">{a.label}</p>
+                    <p className="text-[10px] text-[#8E8C85]">{a.sub}</p>
+                  </div>
+                  <span className="text-[10px] font-semibold text-[#1B3A2D] shrink-0 opacity-0 group-hover:opacity-100 transition">Open →</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ═══ CALENDLY SETUP BANNER ═══ */}
         {!rep?.calendly_url && !showCalendlyEdit && (
@@ -209,8 +290,17 @@ export default function RepDashboard() {
               </button>
             ))}
           </div>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search clients…"
-            className="sm:ml-auto text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#1B3A2D] w-full sm:w-48"/>
+          <div className="flex items-center gap-2 sm:ml-auto">
+            <select value={sort} onChange={e => setSort(e.target.value as SortKey)}
+              className="text-[10px] font-semibold border border-[#E5E3DD] rounded-lg px-2 py-1.5 bg-white text-[#56554F] focus:outline-none focus:border-[#1B3A2D] cursor-pointer">
+              <option value="newest">Newest first</option>
+              <option value="leak_desc">Biggest leak</option>
+              <option value="follow_up">Follow-up date</option>
+              <option value="stage">Pipeline stage</option>
+            </select>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search clients…"
+              className="text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#1B3A2D] w-full sm:w-48"/>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
@@ -232,14 +322,14 @@ export default function RepDashboard() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-semibold text-[#1A1A18] truncate group-hover:text-[#1B3A2D]">{c.companyName}</p>
-                      <p className="text-[10px] text-[#8E8C85] mt-0.5">{c.industry} · {c.province}</p>
+                      <p className="text-[10px] text-[#8E8C85] mt-0.5">{c.industry || "—"} · {c.province || "—"}</p>
                     </div>
                     <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full ml-2 shrink-0" style={{color:stage.color,background:stage.bg}}>{stage.label}</span>{isNew && <span className="text-[9px] font-black px-1.5 py-0.5 rounded ml-1" style={{background:"rgba(45,122,80,0.15)",color:"#2D7A50"}}>NEW</span>}
                   </div>
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     <div className="bg-[#F0EFEB] rounded-lg px-2.5 py-2">
                       <p className="text-[9px] text-[#8E8C85] uppercase font-semibold">Annual Leak</p>
-                      <p className="text-[13px] font-bold text-[#1A1A18]">{fmtM(c.annualLeak)}</p>
+                      <p className="text-[13px] font-bold text-[#1A1A18]">{fmtM(c.annualLeak ?? 0)}</p>
                     </div>
                     <div className="bg-[#F0EFEB] rounded-lg px-2.5 py-2">
                       <p className="text-[9px] text-[#8E8C85] uppercase font-semibold">Findings</p>
