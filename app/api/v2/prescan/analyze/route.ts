@@ -75,10 +75,12 @@ export async function POST(req: NextRequest) {
 
     // Fetch obligations: match by province/state code in applies_to_provinces array,
     // OR obligations with empty array (federal — applies to all)
-    const { data: allObligations } = await supabaseAdmin
+    const { data: allObligations, error: obErr } = await supabaseAdmin
       .from("obligation_rules")
       .select("slug, title, title_fr, category, risk_level, agency, penalty_min, penalty_max, penalty_description, frequency, priority_score, applies_to_provinces")
+      .eq("active", true)
       .order("priority_score", { ascending: false });
+    if (obErr) console.error("[Prescan:Analyze] obligation_rules query error:", obErr.message);
 
     // Filter: obligations that apply to this province/state or are federal (empty array)
     const obligations = (allObligations || []).filter(o => {
@@ -99,7 +101,8 @@ export async function POST(req: NextRequest) {
 
     // ─── 2. Match leak detectors ─────────────────────────────────────
 
-    const { data: leaks } = await supabaseAdmin
+    console.log(`[Prescan:Analyze] country=${country} province=${province} obligations=${matchedObligations.length} allObs=${(allObligations||[]).length}`);
+    const { data: leaks, error: leakErr } = await supabaseAdmin
       .from("provincial_leak_detectors")
       .select("slug, title, title_fr, category, severity, annual_impact_min, annual_impact_max, solution_type, detection_question, detection_question_fr, partner_slugs, program_slugs, structures, min_employees, max_employees, min_revenue, max_revenue")
       .in("province", isUS ? [province, "ALL"] : [province])
@@ -352,7 +355,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       resultId: stored.id,
-      aiInsight,
     });
 
   } catch (err: any) {
