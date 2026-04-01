@@ -39,13 +39,13 @@ export function buildDiagnosticSchema(tier: DiagnosticTier, maxFindings: number,
   },
 
   "savings_anchor": {
-    "headline":       "<punchy string e.g. '$127K in recoverable value'>",
-    "description":    "<one sentence English — the single biggest lever>",
+    "headline":       "<e.g. '$47,200/yr recoverable from 5 leaks' — must be the exact sum from findings>",
+    "description":    "<name the #1 finding and its dollar amount — e.g. 'S-Corp election alone saves $14,280/yr in FICA'>",
     "description_fr": "<French>"
   },
 
-  "executive_summary":    "<2-4 sentences. MUST open with the biggest dollar figure found (e.g. 'Your business is losing $47,200/yr to 3 fixable leaks.'). Name the top 2 findings by category. End with the single most important action. Never a generic opener like 'Based on our analysis'. Write as if texting the owner — direct, specific, no filler.>",
-  "executive_summary_fr": "<French — same structure, same specificity>",
+  "executive_summary":    "<3-4 sentences. Sentence 1: 'Your [industry] in [province/state] is losing $[exact total]/yr across [N] fixable leaks.' Sentence 2: Name the two biggest findings with their dollar amounts. Sentence 3: 'The most urgent: [finding] — costs you $X for every month you wait.' Sentence 4: '[Form/action] this week starts the recovery.' NEVER open with 'Based on our analysis' or any filler. NEVER use the word 'consider'. This reads like a text message from a $500/hr CFO to the owner.>",
+  "executive_summary_fr": "<French — SAME structure, SAME specificity, SAME urgency. Quebec French. Vous not tu.>",
 
   "totals": {
     "annual_leaks":            <sum of all finding impact_max>,
