@@ -1,14 +1,14 @@
 // =============================================================================
 // lib/ai/prompts/diagnostic/methodology.ts
 //
-// THE FRUXAL FORENSIC METHODOLOGY — 10-Layer Deep Analysis
+// THE FRUXAL FORENSIC ENGINE — World-Class Financial Leak Detection
 //
-// This is the core intellectual property of Fruxal. It defines HOW Claude
-// analyzes a business — not just what to look for, but the exact analytical
-// framework that produces Big 4-grade findings from intake data.
+// This is NOT a checklist. This is an EXECUTION FRAMEWORK that tells Claude
+// exactly WHAT to calculate, HOW to calculate it, and WHAT the output number
+// must be — for this specific business, at this specific revenue, in this
+// specific industry, in this specific jurisdiction.
 //
-// Think of this as the "operating manual" for the most powerful AI-powered
-// financial leak detection engine in the world.
+// Every instruction produces a NUMBER. Every number produces a FINDING.
 // =============================================================================
 
 export type Country = "CA" | "US";
@@ -26,312 +26,410 @@ export function buildMethodology(
   doesRd: boolean,
 ): string {
   const isUS = country === "US";
-  const prof = isUS ? "CPA" : "accountant";
-  const agency = isUS ? "IRS" : "CRA";
   const i = industry.toLowerCase();
+  const rev = annualRevenue;
+  const emp = Math.max(employees, 0);
+  const margin = grossMarginPct || 0;
+  const ebitdaEst = Math.round(rev * (margin / 100) * 0.6); // rough EBITDA
+  const monthlyRev = Math.round(rev / 12);
 
-  // Revenue context
-  const revBand = annualRevenue >= 5_000_000 ? "enterprise ($5M+)" :
-    annualRevenue >= 1_000_000 ? "mid-market ($1M-$5M)" :
-    annualRevenue >= 500_000 ? "growth ($500K-$1M)" :
-    annualRevenue >= 150_000 ? "established ($150K-$500K)" :
-    "micro ($0-$150K)";
-
-  // Industry-specific metrics to check
-  const industryChecks = getIndustryChecks(i, isUS);
+  // Pre-computed targets Claude must use
+  const targets = getIndustryTargets(i);
+  const taxCalc = getTaxCalculations(isUS, rev, emp, structure, province, ebitdaEst);
+  const complianceCalc = getComplianceExposure(isUS, rev, emp, province, hasPayroll);
 
   return `
 ══════════════════════════════════════════════════════════════════════════════
-FRUXAL FORENSIC METHODOLOGY — 10-LAYER DEEP ANALYSIS
+FRUXAL FORENSIC ENGINE — WORLD-CLASS LEAK DETECTION
 ══════════════════════════════════════════════════════════════════════════════
 
-You are performing the most thorough AI-powered financial diagnostic available.
-Your analysis must be MORE specific than what a $50,000 Big 4 engagement produces.
-Why? Because you have the business's exact numbers AND you can cross-reference
-against thousands of industry benchmarks instantaneously.
+YOU ARE NOT WRITING ADVICE. YOU ARE CALCULATING LOSSES.
 
-BUSINESS CONTEXT:
-- Revenue band: ${revBand}
-- Industry: ${industry}
-- Structure: ${structure}
-- Employees: ${employees}
-- Gross margin: ${grossMarginPct}%
-- Location: ${province} (${country})
+For this business:
+  Revenue: $${rev.toLocaleString()}/yr ($${monthlyRev.toLocaleString()}/mo)
+  Industry: ${industry} | Structure: ${structure} | Location: ${province} (${country})
+  Employees: ${emp} | Gross margin: ${margin}% | Est. EBITDA: ~$${ebitdaEst.toLocaleString()}
+
+Your job: find every dollar leaving this business that shouldn't be.
+Every finding = a specific calculation with a specific dollar result.
 
 ══════════════════════════════════════════════════════════════════════════════
-LAYER 1: ENTITY & TAX STRUCTURE OPTIMIZATION
+ANALYSIS 1: TAX STRUCTURE — Calculate the exact optimal structure
 ══════════════════════════════════════════════════════════════════════════════
-Goal: Is this business in the OPTIMAL legal structure for its revenue level?
+
+${taxCalc}
+
+DO THIS NOW: Calculate the EXACT annual tax difference between current
+structure and optimal structure. This number becomes a finding if > $${tier === "solo" ? "500" : "2,000"}.
+
+══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 2: COST vs BENCHMARK — Calculate the gap on every line
+══════════════════════════════════════════════════════════════════════════════
+
+For ${industry} at $${rev.toLocaleString()}:
+
+${targets.map(t => `  ${t.category}: This business = estimate from data. Target = ${t.target}.
+    → If above target: gap = (actual% − ${t.targetPct}%) × $${rev.toLocaleString()} = finding amount
+    → Minimum gap to report: $${tier === "solo" ? "500" : "2,000"}/yr`).join("\n")}
+
+DO THIS NOW: For each category above, calculate the dollar gap.
+Only report categories where the gap exceeds the minimum.
+
+══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 3: PAYROLL — Calculate the exact cost of inefficiency
+══════════════════════════════════════════════════════════════════════════════
+
+${emp > 0 ? `
+Revenue per employee: $${rev.toLocaleString()} ÷ ${emp} = $${Math.round(rev/Math.max(emp,1)).toLocaleString()}
+Industry target for ${industry}: $${targets.find(t => t.category === "Revenue/Employee")?.target || "$80K-$150K"}
 
 ${isUS ? `
-US ENTITY ANALYSIS:
-- Sole prop → LLC → S-corp → C-corp decision tree
-- At $${annualRevenue.toLocaleString()}: ${annualRevenue >= 60_000 ? "S-corp election likely beneficial — model the FICA savings" : "Below S-corp breakeven — focus on deduction optimization"}
-- SE tax: 15.3% on first $176,100 (2025) + 2.9% Medicare above
-- S-corp reasonable compensation: IRS targets W-2 below 40% of net profit
-- QBI deduction (Section 199A): 20% of QBI for pass-throughs — check W-2 wage limitation
-- ${structure === "sole_proprietor" || structure === "llc" ? "CRITICAL: Model sole prop vs S-corp — this is usually the #1 finding for this revenue level" : "Already structured — optimize W-2/distribution split"}
+FICA calculation for owner:
+  Current owner W-2: [from data or estimate based on structure]
+  Optimal W-2 (if S-corp): ~40% of net profit = $${Math.round(ebitdaEst * 0.4).toLocaleString()}
+  FICA on current W-2: [amount] × 15.3% (up to $176,100) = $X
+  FICA on optimal W-2: $${Math.round(ebitdaEst * 0.4).toLocaleString()} × 15.3% = $${Math.round(Math.min(ebitdaEst * 0.4, 176100) * 0.153).toLocaleString()}
+  Annual FICA saving: $X - $${Math.round(Math.min(ebitdaEst * 0.4, 176100) * 0.153).toLocaleString()} = finding amount
+
+Workers comp: Is the NAICS/classification code correct? Wrong code = 15-40% premium overpayment.
+  At estimated payroll of $${Math.round(rev * 0.25).toLocaleString()}, 15% overpayment = $${Math.round(rev * 0.25 * 0.03 * 0.15).toLocaleString()}/yr
 ` : `
-CANADIAN ENTITY ANALYSIS:
-- Sole prop → Incorporation (CCPC) decision tree
-- At $${annualRevenue.toLocaleString()}: ${annualRevenue >= 80_000 ? "Incorporation likely beneficial — model T4/dividend split" : "Below incorporation breakeven — focus on deductions"}
-- Federal SBD: 9% on first $500K active business income (CCPC)
-- Provincial rate varies: ${province === "AB" ? "8% (lowest)" : province === "QC" ? "3.2% (with federal = 12.2%)" : province === "ON" ? "3.2% (with federal = 12.2%)" : "check provincial rate"}
-- Personal vs corporate rate gap: key to quantifying incorporation savings
-- ${structure === "sole_proprietor" ? "CRITICAL: Model sole prop vs CCPC — this is usually the #1 finding" : "Already incorporated — optimize T4 vs eligible dividend split, check SBD grind-down"}
+CPP calculation for owner:
+  T4 salary above YMPE ($71,300 2025): triggers 11.9% combined CPP1
+  CPP2: 4% on earnings $71,300–$81,900
+  Optimal T4: balance CPP cost vs RRSP room generation vs dividend tax integration
+
+Workers comp (${province === "QC" ? "CNESST" : province === "ON" ? "WSIB" : "WCB"}): classification code audit
+  At estimated payroll of $${Math.round(rev * 0.25).toLocaleString()}, wrong class = $${Math.round(rev * 0.25 * 0.03 * 0.15).toLocaleString()}/yr overpayment
+`}
+` : `
+Solo operator — no employees.
+${isUS
+  ? `SE tax on $${ebitdaEst.toLocaleString()} net: $${Math.round(Math.min(ebitdaEst, 176100) * 0.153).toLocaleString()}/yr
+S-corp election would reduce to: ~$${Math.round(Math.min(ebitdaEst * 0.4, 176100) * 0.153).toLocaleString()}/yr
+Potential saving: ~$${Math.round(Math.min(ebitdaEst, 176100) * 0.153 - Math.min(ebitdaEst * 0.4, 176100) * 0.153).toLocaleString()}/yr (if revenue supports S-corp costs)`
+  : `Sole prop tax on $${ebitdaEst.toLocaleString()}: at marginal rate ~${rev > 200000 ? "48-53%" : rev > 100000 ? "35-43%" : "25-33%"}
+If incorporated (CCPC): ${rev > 500000 ? "15% combined on first $500K + provincial" : "9% federal SBD + provincial"}
+Potential annual tax saving: calculate exact delta between personal and corporate rates on this income`}
 `}
 
 ══════════════════════════════════════════════════════════════════════════════
-LAYER 2: COST STRUCTURE FORENSIC — LINE-BY-LINE P75 COMPARISON
+ANALYSIS 4: GOVERNMENT MONEY LEFT ON TABLE — Calculate exact amounts
 ══════════════════════════════════════════════════════════════════════════════
-Goal: Identify EVERY cost line where this business exceeds the industry P75.
-
-For each major cost category, calculate:
-  gap = (this_business_% − industry_P50_%) × annual_revenue
-
-Flag categories where gap > $${tier === "enterprise" ? "5,000" : tier === "business" ? "2,000" : "500"}/yr.
-
-KEY COST CATEGORIES TO ANALYZE:
-${industryChecks}
-
-GENERAL (all industries):
-- Rent/occupancy: target ${/restaurant|retail/.test(i) ? "6-10%" : "3-8%"} of revenue
-- Insurance premiums: compare against 3 competitive quotes
-- Professional fees (${prof}, legal): should be ${annualRevenue < 500_000 ? "2-4%" : "1-2%"} of revenue
-- Banking fees: commercial accounts should cost <$50/mo for <$1M revenue
-- Software/subscriptions: audit for overlap and unused seats
-- Marketing/advertising: track ROI per channel — eliminate <2x ROAS channels
-
-══════════════════════════════════════════════════════════════════════════════
-LAYER 3: PAYROLL & HUMAN CAPITAL EFFICIENCY
-══════════════════════════════════════════════════════════════════════════════
-Goal: Is every dollar of payroll generating maximum return?
-
-${employees > 0 ? `
-With ${employees} employees:
-- Revenue per employee: $${Math.round(annualRevenue / Math.max(employees, 1)).toLocaleString()} — industry target?
-- Payroll as % of revenue: should be ${/restaurant|food/.test(i) ? "25-32%" : /consult|professional/.test(i) ? "40-55%" : "20-35%"}
-- ${isUS ? "FICA optimization: are owner draws vs W-2 optimized?" : "CPP optimization: T4 salary at optimal level?"}
-- ${isUS ? "WOTC screening: $2,400-$9,600 per eligible hire — is Form 8850 filed within 28 days?" : "Hiring credits: provincial wage subsidies being claimed?"}
-- Workers comp classification: wrong NAICS/industry code = overpayment by 15-40%
-- Overtime policy: are overtime costs tracked and managed?
-- ${isUS ? "1099 vs W-2 classification: IRS 20-factor test — misclassification = back taxes + penalties" : "Contractor vs employee: CRA tests — misclassification = source deduction liability"}
-` : `
-Solo operator — no employees:
-- Owner compensation optimization is the primary lever
-- ${isUS ? "SE tax reduction through S-corp election" : "Salary vs dividend mix if incorporated"}
-- Contractor engagement: are all 1099s/${isUS ? "W-9s" : "T4As"} issued?
-`}
-
-══════════════════════════════════════════════════════════════════════════════
-LAYER 4: TAX CREDIT & GOVERNMENT PROGRAM MAXIMIZATION
-══════════════════════════════════════════════════════════════════════════════
-Goal: Identify EVERY credit, grant, and program this business qualifies for.
 
 ${isUS ? `
-US PROGRAMS TO CHECK:
-- R&D Tax Credit (Section 41): ${doesRd ? "R&D flagged YES — calculate QREs: wages (65%), supplies (35%), contract research (65% of external). 14% ASC method vs 20% incremental." : `Does this ${industry} do ANY process improvement, custom software, or technical development?`}
-- Section 179 expensing: $1,250,000 limit (2025) — any equipment/software purchases?
-- Bonus depreciation: 60% first-year (2025) on qualifying assets
-- WOTC: up to $9,600 per eligible hire (veterans, SNAP, ex-felons, long-term unemployed)
-- SBA programs: 7(a), 504, microloans — does this business qualify?
-- State-specific: check ${province} state credits and incentives
+Section 179: Any equipment/software purchases? At $${rev.toLocaleString()}, typical annual capex = $${Math.round(rev * 0.03).toLocaleString()}-$${Math.round(rev * 0.08).toLocaleString()}
+  → If not expensing under §179: tax saving = capex × marginal rate (~${rev > 200000 ? "32-37%" : "22-24%"}) = $${Math.round(rev * 0.05 * 0.25).toLocaleString()}/yr
+
+QBI Deduction (§199A): Is this business claiming the 20% pass-through deduction?
+  → At $${ebitdaEst.toLocaleString()} QBI: deduction = $${Math.round(ebitdaEst * 0.2).toLocaleString()} × marginal rate = $${Math.round(ebitdaEst * 0.2 * 0.25).toLocaleString()}/yr tax saving
+
+${doesRd ? `R&D Credit (§41): Qualifying research expenses (wages, supplies, contract research)
+  → Estimated QREs: $${Math.round(rev * 0.12).toLocaleString()} (12% of revenue for tech, 5% for others)
+  → Credit: 14% ASC method = $${Math.round(rev * 0.12 * 0.14).toLocaleString()}/yr` : ""}
+
+WOTC: ${emp > 0 ? `With ${emp} employees, each eligible hire = $2,400-$9,600 credit
+  → If 20% of hires eligible: ${Math.max(1, Math.round(emp * 0.2))} × $4,000 avg = $${Math.round(Math.max(1, emp * 0.2) * 4000).toLocaleString()}/yr` : "No employees — N/A"}
 ` : `
-CANADIAN PROGRAMS TO CHECK:
-- SR&ED: ${doesRd ? "R&D flagged YES — 35% refundable federal ITC on first $3M eligible for CCPCs." : `Does this ${industry} do ANY process improvement, custom software, or technical development?`}
-  ${province === "QC" ? "QC: additional 30% provincial refundable credit." : ""}
-- CDAP: $15K grant + $100K interest-free loan for digital adoption
-- CSBFP: government-backed loans up to $1.15M
-- Canada Job Grant: up to $10K/employee for training
-- Provincial: check ${province}-specific credits and programs
+SR&ED: ${doesRd ? `R&D flagged. Eligible expenditures: salaries, materials, overhead, contractors.
+  → Estimated eligible: $${Math.round(rev * 0.12).toLocaleString()} (12% of revenue)
+  → Federal ITC: 35% refundable (CCPC) = $${Math.round(rev * 0.12 * 0.35).toLocaleString()}/yr
+  ${province === "QC" ? `→ QC provincial: additional 30% = $${Math.round(rev * 0.12 * 0.30).toLocaleString()}/yr` : ""}` :
+  `Does this ${industry} do ANY process improvement, custom software, technical problem-solving?
+  → Even 5% of revenue qualifying = $${Math.round(rev * 0.05 * 0.35).toLocaleString()}/yr in SR&ED credits`}
+
+HST Quick Method: ${rev < 400000 && !isUS ? `Revenue $${rev.toLocaleString()} < $400K — eligible.
+  → Current: ${province === "QC" ? "GST 5%" : province === "AB" ? "GST 5%" : "HST 13%"} collected less ITCs
+  → Quick Method rate: ~${/service|consult|professional/.test(i) ? "8.8%" : "4.4%"} on revenue
+  → Estimated saving: $${Math.round(rev * (0.13 - (/service|consult/.test(i) ? 0.088 : 0.044))).toLocaleString()}/yr` : "Revenue above $400K or not applicable"}
 `}
 
 ══════════════════════════════════════════════════════════════════════════════
-LAYER 5: COMPLIANCE & PENALTY EXPOSURE MAPPING
+ANALYSIS 5: COMPLIANCE EXPOSURE — Calculate penalty × probability × years
 ══════════════════════════════════════════════════════════════════════════════
-Goal: Calculate EXACT penalty exposure using: probability × max_penalty × years_at_risk
+
+${complianceCalc}
+
+══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 6: CASH LEAKAGE — Calculate exact trapped cash
+══════════════════════════════════════════════════════════════════════════════
+
+Accounts Receivable:
+  Monthly revenue: $${monthlyRev.toLocaleString()}
+  Daily revenue: $${Math.round(rev / 365).toLocaleString()}
+  Industry DSO target: ${/consult|professional/.test(i) ? "35-45" : /construct/.test(i) ? "45-60" : "25-35"} days
+  Each 10 days excess DSO = $${Math.round(rev / 365 * 10).toLocaleString()} trapped
+  → If DSO is 15 days above target: $${Math.round(rev / 365 * 15).toLocaleString()} freed by fixing
+
+Vendor Contracts:
+  Estimated recurring vendor spend: $${Math.round(rev * 0.15).toLocaleString()}/yr (15% of revenue typical)
+  Contracts >2 years old save 8-15% when renegotiated
+  → Conservative 10% on half of vendor spend: $${Math.round(rev * 0.15 * 0.5 * 0.10).toLocaleString()}/yr
+
+Payment Processing:
+  If accepting cards: revenue × card % × (current_rate − benchmark_rate)
+  Benchmark: ${/restaurant|retail/.test(i) ? "2.3-2.6% card-present" : "2.7-3.1% card-not-present"}
+  → At $${rev.toLocaleString()} and 0.3% excess rate: $${Math.round(rev * 0.003 * (/restaurant|retail/.test(i) ? 0.7 : 0.4)).toLocaleString()}/yr
+
+Banking Fees:
+  Commercial accounts should cost <$${rev < 500000 ? "30" : "50"}/mo
+  → Excess: compare against Relay Financial (free) or Mercury (free) benchmarks
+
+══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 7: INSURANCE — Calculate the overpayment
+══════════════════════════════════════════════════════════════════════════════
+
+Businesses that haven't compared insurance in 2+ years overpay 15-25%.
+  Estimated annual premium (${industry}): $${Math.round(rev * (/construct|transport/.test(i) ? 0.04 : /health|professional/.test(i) ? 0.025 : 0.015)).toLocaleString()}
+  → 15% overpayment = $${Math.round(rev * (/construct|transport/.test(i) ? 0.04 : /health|professional/.test(i) ? 0.025 : 0.015) * 0.15).toLocaleString()}/yr recoverable
+
+Missing coverage gaps = unquantified but flag as compliance risk:
+  ${/tech|saas|health/.test(i) ? "Cyber liability: CRITICAL for this industry" : ""}
+  ${rev >= 500000 ? "Key person insurance: if owner incapacitated, business value = $0" : ""}
+  ${/consult|professional|legal/.test(i) ? "E&O / professional liability: CRITICAL" : ""}
+
+══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 8: PRICING EROSION — Calculate lost revenue
+══════════════════════════════════════════════════════════════════════════════
+
+Inflation erodes 2-3% of revenue purchasing power annually.
+  If no price increase in 2 years: lost revenue = $${rev.toLocaleString()} × 5% = $${Math.round(rev * 0.05).toLocaleString()}/yr
+  If no price increase in 3 years: $${Math.round(rev * 0.08).toLocaleString()}/yr
+
+Revenue per customer optimization:
+  Average transaction size — can it increase 5-10% with bundling/upsell?
+  → 5% of $${rev.toLocaleString()} = $${Math.round(rev * 0.05).toLocaleString()}/yr additional revenue
+
+══════════════════════════════════════════════════════════════════════════════
+ANALYSIS 9: DEDUCTIONS BEING MISSED — Calculate exact tax savings
+══════════════════════════════════════════════════════════════════════════════
 
 ${isUS ? `
-US COMPLIANCE MATRIX:
-- Federal income tax (1120/1120-S/Schedule C): filed on time? Estimated payments current?
-- Payroll (Form 941 quarterly, 940 annual): deposits on time? Trust fund risk?
-- W-2/1099 (January 31 deadline): penalty $60-$310 per form, $630 intentional disregard
-- Sales tax nexus: economic nexus in all states where >$100K or 200 transactions?
-- ${province} state filings: annual report, franchise tax, state income tax
-- BOI report (FinCEN): filed? $500/day civil penalty
-- Workers comp: coverage current? Operating without = criminal misdemeanor in most states
+Home office: ${emp === 0 || structure === "sole_proprietor" ? `$5/sq ft × 300 sq ft = $1,500 simplified deduction
+  → Tax saving at marginal rate: $1,500 × ${rev > 200000 ? "32%" : "22%"} = $${Math.round(1500 * (rev > 200000 ? 0.32 : 0.22)).toLocaleString()}/yr (minimum)
+  → Actual method often 2-3x higher` : "N/A (corporate structure)"}
+Vehicle: ${/construct|real.estate|transport|consult/.test(i) ? `$0.70/mile (2025) × estimated business miles
+  → 15,000 business miles × $0.70 = $10,500 deduction = $${Math.round(10500 * 0.25).toLocaleString()} tax saving` : "Assess business use percentage"}
+Health insurance: ${structure !== "corporation" && structure !== "c_corp" ? `100% deductible for self-employed
+  → Average $7,200/yr family premium × marginal rate = $${Math.round(7200 * 0.25).toLocaleString()} tax saving` : "Deductible through corporation"}
+Retirement: ${structure === "sole_proprietor" || structure === "llc" ? `SEP-IRA: 25% of net × marginal rate
+  → SEP contribution $${Math.round(Math.min(ebitdaEst * 0.25, 69000)).toLocaleString()} × ${rev > 200000 ? "32%" : "22%"} = $${Math.round(Math.min(ebitdaEst * 0.25, 69000) * (rev > 200000 ? 0.32 : 0.22)).toLocaleString()} tax saving` :
+  `Solo 401(k): employee ($23,500) + employer (25% comp) = up to $69,000 sheltered`}
 ` : `
-CANADIAN COMPLIANCE MATRIX:
-- T2 corporate return: filed within 6 months of fiscal year-end? 5% + 1%/month penalty
-- GST/HST: registered if revenue >$30K? Filing on time? ITCs claimed?
-  ${province === "QC" ? "QST: separate filing with Revenu Québec" : ""}
-- Payroll: source deductions remitted? T4s filed by Feb 28? ROEs issued?
-- ${province === "ON" ? "WSIB: registered? Rate class correct?" : province === "QC" ? "CNESST: registered? Classification correct? CCQ if construction?" : "Provincial WCB: registered and current?"}
-- ${province === "QC" ? "Law 25 privacy compliance: privacy officer designated? Privacy policy published?" : "PIPEDA compliance: privacy policy current?"}
+Home office: ${emp === 0 || structure === "sole_proprietor" ? "Deductible as business-use-of-home. Calculate actual costs × business use %" : "N/A"}
+Vehicle: CRA rate $0.70/km first 5,000km, $0.64 after. Log required.
+  → 20,000 business km ≈ $13,200 deduction × marginal rate = $${Math.round(13200 * (rev > 200000 ? 0.45 : 0.30)).toLocaleString()} tax saving
+RRSP/IPP: ${rev > 100000 ? `At this income, RRSP room = 18% of earned income up to $32,490 (2025)
+  → IPP: can exceed RRSP limits significantly for owners 45+` : "RRSP: 18% of prior year earned income"}
+Meals: 50% deductible. Are all business meals tracked?
 `}
 
 ══════════════════════════════════════════════════════════════════════════════
-LAYER 6: CASH FLOW & WORKING CAPITAL OPTIMIZATION
+ANALYSIS 10: ENTERPRISE VALUE IMPACT — Multiply everything
 ══════════════════════════════════════════════════════════════════════════════
-Goal: Free trapped cash and reduce the cash conversion cycle.
 
-- Accounts receivable DSO: industry average is ${/consult|professional/.test(i) ? "35-45" : /construct/.test(i) ? "45-60" : "25-35"} days — what's this business at?
-- At $${annualRevenue.toLocaleString()} revenue, each 10 days excess DSO = ~$${Math.round(annualRevenue / 365 * 10).toLocaleString()} tied up
-- Vendor payment terms: are early payment discounts being captured? (2/10 net 30 = 36% annualized return)
-- ${annualRevenue >= 500_000 ? "Credit facility: is the business using a line of credit optimally? What's the rate vs market?" : "Banking: is the business earning interest on idle cash? High-yield business accounts available at 4%+"}
-- Payment processing: current rate vs interchange-plus benchmark (should be 2.2-2.6% for card-present, 2.7-3.1% for card-not-present)
-- Vendor contract age: contracts >2 years old are typically 8-15% above market — renegotiation opportunity
+Every $1 of EBITDA improvement at industry multiple (${/saas|software/.test(i) ? "6-12×" : /professional|consult/.test(i) ? "5-9×" : /construct|transport/.test(i) ? "3-5×" : "4-6×"}):
 
-══════════════════════════════════════════════════════════════════════════════
-LAYER 7: INSURANCE & RISK TRANSFER OPTIMIZATION
-══════════════════════════════════════════════════════════════════════════════
-Goal: Ensure adequate coverage at competitive premiums.
-
-- General liability: adequate limits for this industry?
-- Professional liability / E&O: ${/consult|professional|legal|tech/.test(i) ? "CRITICAL for this industry — verify limits" : "assess need based on client contracts"}
-- Cyber liability: ${/tech|saas|health|legal/.test(i) ? "HIGH PRIORITY — data breach exposure" : "assess based on data handling"}
-- Key person insurance: ${annualRevenue >= 500_000 ? "if owner incapacitated, what happens to the business? Quantify the risk." : "assess need"}
-- Business interruption: coverage adequate? Many policies exclude pandemics/cyber
-- Premium comparison: businesses that haven't compared in 2+ years overpay 15-25%
-
-══════════════════════════════════════════════════════════════════════════════
-LAYER 8: VENDOR & CONTRACT LEVERAGE
-══════════════════════════════════════════════════════════════════════════════
-Goal: Renegotiate every recurring cost that hasn't been reviewed in 12+ months.
-
-- Rent/lease: when does it renew? What's the market rate? Leverage: vacancy rates in area
-- Telecom/internet: business plans overcharge by 20-40% vs competitive offers
-- Software licenses: are all seats used? Annual vs monthly pricing delta?
-- Supplier costs: 3 competitive quotes on top 5 suppliers typically saves 8-15%
-- Professional fees: ${prof} and legal fees should be benchmarked annually
-- ${/restaurant|retail/.test(i) ? "Food/supply distributors: GPO (group purchasing) savings of 5-12%" : ""}
-
-══════════════════════════════════════════════════════════════════════════════
-LAYER 9: GROWTH & REVENUE OPTIMIZATION
-══════════════════════════════════════════════════════════════════════════════
-Goal: Identify revenue being left on the table.
-
-- Pricing: when was the last price increase? Inflation alone erodes 2-3%/yr
-- Revenue per customer: can average transaction size be increased?
-- Customer retention: what's the churn/attrition rate vs industry?
-- Underutilized capacity: ${/restaurant/.test(i) ? "seat utilization during off-peak" : /consult|professional/.test(i) ? "billable utilization rate" : "production capacity utilization"}
-- Cross-sell/upsell: are existing customers buying the full product/service range?
-- Referral program: structured referral incentives typically increase leads 20-35%
-
-══════════════════════════════════════════════════════════════════════════════
-LAYER 10: EXIT READINESS & ENTERPRISE VALUE
-══════════════════════════════════════════════════════════════════════════════
-Goal: Every operational improvement has an enterprise value multiplier effect.
+Sum all findings' EBITDA impact × midpoint multiple = total EV impact.
+This number goes in totals.enterprise_value_impact.
 
 ${tier === "enterprise" ? `
-- Current EV estimate at industry EBITDA multiple
-- Value killers: owner dependency, customer concentration, key person risk, pending litigation
-- Value builders: recurring revenue %, documented processes, management team, IP
-- ${isUS ? "QSBS (Section 1202): if C-corp + held 5yrs + original issue → up to $10M exclusion" : "LCGE: $1.25M lifetime capital gains exemption for QSBC shares"}
-- Every finding's EBITDA improvement × EV multiple = enterprise value impact
-` : `
-- Even for ${revBand} businesses: bankability score affects loan terms, insurance rates, and future exit options
-- Every $1 of EBITDA improvement = $3-6× enterprise value at exit
-- Document processes now — reduces owner dependency (biggest value killer)
-`}
+Exit readiness assessment:
+  - Owner dependency: is this business sellable without the owner? (biggest value killer)
+  - Customer concentration: >20% from one customer = discount
+  - Recurring revenue %: higher = higher multiple
+  - ${isUS ? "QSBS eligibility (Section 1202): if C-corp, held 5yr, original issue → $10M exclusion" : "LCGE: $1.25M lifetime exemption for QSBC shares — run purification test"}
+` : ""}
 
 ══════════════════════════════════════════════════════════════════════════════
-CROSS-VALIDATION PROTOCOL
+CROSS-VALIDATION — DO NOT OUTPUT JSON UNTIL ALL PASS
 ══════════════════════════════════════════════════════════════════════════════
 
-Before finalizing your JSON output, verify:
-
-1. MATH CHECK: Sum of all finding impact_max ≈ totals.annual_leaks (±10%)
-2. REVENUE CHECK: No finding's impact exceeds 30% of annual revenue (unrealistic)
-3. OVERLAP CHECK: No two findings address the same root cause
-4. CONSISTENCY CHECK: If finding A references $X revenue, all other findings use same $X
-5. BENCHMARK CHECK: Every benchmark_comparison uses a real industry metric, not invented
-6. SOLUTION CHECK: Every solution URL is a real website that exists
-7. ${isUS ? "FORM CHECK: Every IRS form referenced is real and applicable" : "FORM CHECK: Every CRA form referenced is real and applicable"}
-8. CONFIDENCE CHECK: findings based on estimates get confidence_level "medium", exact data gets "high"
+□ MATH: Sum of finding impact_max = totals.annual_leaks (±10%)
+□ CAP: No single finding > 30% of revenue (unrealistic)
+□ OVERLAP: No two findings share the same root cause
+□ CONSISTENCY: Same revenue figure used across all findings
+□ ARITHMETIC: Every calculation_shown can be verified by a ${isUS ? "CPA" : "accountant"}
+□ SOLUTIONS: Every URL in solutions[] is a real website
+□ FORMS: Every ${isUS ? "IRS" : "CRA"} form number is real and applicable
+□ CONFIDENCE: Findings from estimates = "medium", exact data = "high"
 `.trim();
 }
 
 
-function getIndustryChecks(i: string, isUS: boolean): string {
-  if (/restaurant|food|cafe|bar/.test(i)) return `
-RESTAURANT/FOOD SERVICE:
-- Food cost: target 28-32% of food revenue (check COGS detail)
-- Labor cost: target 25-32% of revenue (include benefits + taxes)
-- Liquor cost: target 18-22% of liquor revenue (if applicable)
-- Prime cost (food + labor): should be <65% of revenue
-- Occupancy: target 6-10% of revenue
-- CC processing: should be <2.8% blended rate
-- Tip compliance: ${isUS ? "FICA tip credit (Section 45B) being claimed?" : "gratuity reporting compliant?"}
-- Waste/shrinkage: industry benchmark 2-4% of food cost`;
+// ─── Pre-computed industry targets ──────────────────────────────────────────
+interface Target { category: string; target: string; targetPct: number }
 
-  if (/construct|contractor|trade|plumb|electric|hvac/.test(i)) return `
-CONSTRUCTION/TRADES:
-- Gross margin: target 25-40% (varies by trade)
-- Material cost: target 25-35% (are supplier discounts being captured?)
-- Subcontractor markup: are sub costs competitive? 3 bids minimum?
-- Equipment: ${isUS ? "Section 179 on all qualifying equipment" : "CCA schedule optimized?"}
-- Job costing: is every project tracked for profitability?
-- Change orders: are all scope changes documented and billed?
-- Workers comp: classification code correct? Wrong code = 15-40% overpayment
-- ${isUS ? "" : "Holdback: 10% statutory holdback being managed for cash flow?"}`;
+function getIndustryTargets(i: string): Target[] {
+  if (/restaurant|food|cafe|bar/.test(i)) return [
+    { category: "Food Cost (COGS)", target: "28-32%", targetPct: 30 },
+    { category: "Labor Cost", target: "25-32%", targetPct: 28 },
+    { category: "Occupancy", target: "6-10%", targetPct: 8 },
+    { category: "CC Processing", target: "2.3-2.8%", targetPct: 2.5 },
+    { category: "Marketing", target: "2-5%", targetPct: 3 },
+    { category: "Insurance", target: "1.5-3%", targetPct: 2 },
+    { category: "Revenue/Employee", target: "$45K-$65K", targetPct: 0 },
+  ];
+  if (/construct|contractor|trade/.test(i)) return [
+    { category: "Materials/COGS", target: "25-35%", targetPct: 30 },
+    { category: "Labor (direct)", target: "30-40%", targetPct: 35 },
+    { category: "Equipment", target: "5-10%", targetPct: 7 },
+    { category: "Insurance", target: "3-5%", targetPct: 4 },
+    { category: "Subcontractor Cost", target: "10-25%", targetPct: 15 },
+    { category: "Revenue/Employee", target: "$100K-$200K", targetPct: 0 },
+  ];
+  if (/saas|software|tech/.test(i)) return [
+    { category: "Hosting/Infra", target: "5-15%", targetPct: 10 },
+    { category: "R&D/Engineering", target: "15-25%", targetPct: 20 },
+    { category: "Sales & Marketing", target: "15-30%", targetPct: 22 },
+    { category: "G&A", target: "10-15%", targetPct: 12 },
+    { category: "CC Processing", target: "2.5-3.2%", targetPct: 2.8 },
+    { category: "Revenue/Employee", target: "$150K-$300K", targetPct: 0 },
+  ];
+  if (/consult|professional|legal|account/.test(i)) return [
+    { category: "Staff/Associate Cost", target: "40-55%", targetPct: 47 },
+    { category: "Occupancy", target: "3-8%", targetPct: 5 },
+    { category: "Professional Development", target: "1-3%", targetPct: 2 },
+    { category: "Technology/Software", target: "2-5%", targetPct: 3 },
+    { category: "Insurance", target: "2-4%", targetPct: 3 },
+    { category: "Revenue/Employee", target: "$120K-$250K", targetPct: 0 },
+  ];
+  if (/retail|ecommerce|store/.test(i)) return [
+    { category: "COGS/Inventory", target: "45-60%", targetPct: 52 },
+    { category: "Occupancy/Rent", target: "5-10%", targetPct: 7 },
+    { category: "Labor", target: "10-18%", targetPct: 14 },
+    { category: "Shrinkage/Waste", target: "<2%", targetPct: 2 },
+    { category: "CC Processing", target: "2.2-2.8%", targetPct: 2.5 },
+    { category: "Marketing", target: "3-8%", targetPct: 5 },
+  ];
+  if (/health|medical|dental/.test(i)) return [
+    { category: "Staff Cost", target: "25-35%", targetPct: 30 },
+    { category: "Supplies/Materials", target: "5-12%", targetPct: 8 },
+    { category: "Occupancy", target: "5-10%", targetPct: 7 },
+    { category: "Equipment Depreciation", target: "3-8%", targetPct: 5 },
+    { category: "Insurance (Professional)", target: "2-5%", targetPct: 3 },
+    { category: "Revenue/Employee", target: "$100K-$200K", targetPct: 0 },
+  ];
+  if (/transport|trucking|logistics/.test(i)) return [
+    { category: "Fuel", target: "25-35%", targetPct: 30 },
+    { category: "Maintenance", target: "8-12%", targetPct: 10 },
+    { category: "Insurance", target: "5-8%", targetPct: 6 },
+    { category: "Labor/Drivers", target: "25-35%", targetPct: 30 },
+    { category: "Equipment/Lease", target: "10-15%", targetPct: 12 },
+    { category: "Revenue/Truck", target: "$150K-$250K", targetPct: 0 },
+  ];
+  // Generic
+  return [
+    { category: "COGS/Direct Costs", target: "30-60%", targetPct: 45 },
+    { category: "Labor", target: "20-35%", targetPct: 28 },
+    { category: "Occupancy", target: "3-10%", targetPct: 6 },
+    { category: "Insurance", target: "1.5-4%", targetPct: 2.5 },
+    { category: "Marketing", target: "2-8%", targetPct: 4 },
+    { category: "Revenue/Employee", target: "$80K-$150K", targetPct: 0 },
+  ];
+}
 
-  if (/saas|software|tech|digital|app/.test(i)) return `
-SAAS/TECHNOLOGY:
-- Gross margin: target 70-85% (below 65% = structural problem)
-- Customer acquisition cost (CAC): payback period should be <18 months
-- Churn rate: target <5% annual for B2B, <7% for B2C
-- Hosting/infrastructure: right-sized? Cloud costs optimized?
-- ${isUS ? "R&D credit (Section 41): ALL qualifying development is eligible — wages, cloud, contractors" : "SR&ED: ALL qualifying development eligible — salaries, materials, overhead. 35% refundable for CCPCs."}
-- Contractor vs employee: ${isUS ? "IRS 20-factor test" : "CRA tests"} — misclassification is the #1 audit trigger in tech
-- Revenue recognition: ARR vs MRR accuracy, deferred revenue accounting`;
 
-  if (/consult|professional|legal|account|engineer|architect/.test(i)) return `
-PROFESSIONAL SERVICES:
-- Utilization rate: target 65-75% of available hours billed
-- Effective hourly rate: actual collected ÷ hours worked (not list rate)
-- Realization rate: collected ÷ billed (target >92%)
-- WIP (work in progress): is unbilled WIP growing? Cash flow risk
-- Partner/owner compensation: ${isUS ? "W-2/distribution split optimized?" : "T4/dividend mix optimized?"}
-- Professional liability (E&O): limits adequate for engagement sizes?
-- Retirement: ${isUS ? "defined benefit plan can shelter $200K+/yr for owners 50+" : "IPP can significantly exceed RRSP limits for owners with T4 income"}`;
+// ─── Tax calculations pre-computed for Claude ───────────────────────────────
+function getTaxCalculations(isUS: boolean, rev: number, emp: number, structure: string, province: string, ebitda: number): string {
+  if (isUS) {
+    const isPassThrough = ["sole_proprietor","llc","s_corp","partnership"].includes(structure);
+    const seRate = 0.153;
+    const seCap = 176100;
+    const currentSE = isPassThrough && structure !== "s_corp" ? Math.round(Math.min(ebitda, seCap) * seRate) : 0;
+    const optimalW2 = Math.round(ebitda * 0.4);
+    const optimalSE = Math.round(Math.min(optimalW2, seCap) * seRate);
+    const seSaving = currentSE - optimalSE;
 
-  if (/retail|ecommerce|store|shop/.test(i)) return `
-RETAIL/E-COMMERCE:
-- Gross margin: target 40-55% (varies by category)
-- Inventory turnover: target 4-8x/year (low = dead stock, high = stockouts)
-- Shrinkage: target <2% of revenue
-- Markdown rate: track clearance losses
-- CC processing: interchange-plus should be 2.2-2.8% (watch for tiered/flat rate traps)
-- ${isUS ? "Sales tax nexus: economic nexus in all states where >$100K or 200 transactions" : "HST/GST Quick Method: eligible if <$400K revenue, saves 2-4% on tax remittance"}
-- Return rate: industry average 8-10% for e-commerce, 5-8% for brick-and-mortar`;
+    return `
+CURRENT STRUCTURE: ${structure}
+Revenue: $${rev.toLocaleString()} | Est. EBITDA: $${ebitda.toLocaleString()}
 
-  if (/health|medical|dental|clinic|pharmacy/.test(i)) return `
-HEALTHCARE:
-- Collections rate: target 92-97% of billed amounts
-- Overhead ratio: target 55-65% of revenue
-- Staff cost: target 25-35% of revenue
-- Equipment depreciation: ${isUS ? "Section 179 on all qualifying medical equipment" : "CCA schedule — accelerated depreciation available?"}
-- Insurance reimbursement optimization: are all eligible codes being billed?
-- ${isUS ? "HIPAA compliance: risk assessment current? Breach insurance adequate?" : "PHIPA/provincial privacy compliance"}
-- Associate compensation: production-based vs salary — which is optimal?`;
+${structure === "sole_proprietor" || structure === "llc" ? `
+EXACT SE TAX CALCULATION:
+  Current SE tax: $${Math.min(ebitda, seCap).toLocaleString()} × 15.3% = $${currentSE.toLocaleString()}/yr
+  If S-corp with $${optimalW2.toLocaleString()} W-2 (40% of EBITDA):
+    FICA on W-2: $${optimalW2.toLocaleString()} × 15.3% = $${optimalSE.toLocaleString()}/yr
+    FICA on distribution ($${(ebitda - optimalW2).toLocaleString()}): $0
+    Annual FICA saving: $${seSaving.toLocaleString()}/yr
+    Minus S-corp admin cost (~$1,500/yr): NET SAVING = $${Math.max(0, seSaving - 1500).toLocaleString()}/yr
+  ${seSaving > 3000 ? "→ THIS IS LIKELY YOUR #1 FINDING" : "→ Below S-corp breakeven — focus on deductions"}
+` : structure === "s_corp" ? `
+S-CORP ALREADY — OPTIMIZE THE SPLIT:
+  Is owner W-2 at the optimal level? IRS "reasonable compensation" = ~40-60% of net.
+  Optimal W-2: $${optimalW2.toLocaleString()} (40% of $${ebitda.toLocaleString()})
+  Check: is current W-2 too high (wasting FICA) or too low (audit risk)?
+` : `
+CORPORATION (${structure}):
+  ${structure === "c_corp" ? "Double taxation risk: corporate + dividend tax. Is S-corp election beneficial?" : ""}
+  Reasonable compensation analysis required.
+`}
 
-  if (/transport|trucking|logistics|freight/.test(i)) return `
-TRANSPORTATION/TRUCKING:
-- Operating ratio: target 85-95% (>95% = trouble)
-- Fuel cost: target 25-35% of revenue (${isUS ? "$0.67/mile standard deduction vs actual" : "per-km tracking for CCA and fuel tax credits"})
-- Deadhead percentage: target <15% (empty miles = pure cost)
-- Maintenance: target 8-12% of revenue (predictive maintenance reduces this)
-- Insurance: classification code drives 30%+ of premium — verify correct class
-- ${isUS ? "Per diem: $69/day (2024) for DOT drivers — 80% deductible" : "Meal allowance: $23/meal CRA rate — track every trip"}
-- ELD/compliance: ${isUS ? "FMCSA compliance current?" : "Hours of service compliance?"}`;
+QBI DEDUCTION (Section 199A):
+  ${isPassThrough ? `QBI: ~$${ebitda.toLocaleString()} × 20% = $${Math.round(ebitda * 0.2).toLocaleString()} deduction
+  Tax saving at marginal rate: $${Math.round(ebitda * 0.2 * (rev > 200000 ? 0.32 : 0.22)).toLocaleString()}/yr
+  Check: W-2 wage limitation applies above $${rev > 200000 ? "191,950 (single) / $383,900 (joint)" : "threshold"}` : "N/A — C-corp not eligible"}
+`;
+  } else {
+    // Canadian tax context
+    const personalRate = rev > 200000 ? 0.50 : rev > 100000 ? 0.40 : 0.30;
+    const corpRate = province === "AB" ? 0.11 : province === "SK" ? 0.12 : province === "QC" ? 0.122 : 0.122; // SBD rate
+    const taxGap = personalRate - corpRate;
+    const incorpSaving = structure === "sole_proprietor" ? Math.round(ebitda * taxGap * 0.5) : 0; // conservative 50% of gap
 
-  // Generic for all other industries
-  return `
-INDUSTRY-SPECIFIC (${i}):
-- Gross margin: compare against industry P50 and P75
-- Largest 3 cost lines: compare each against benchmark
-- Revenue per employee: $${Math.round(100000).toLocaleString()} is typical SMB baseline — how does this compare?
-- Customer concentration: >20% revenue from one customer = risk
-- Pricing power: when was last price increase? Inflation erodes 2-3%/yr`;
+    return `
+CURRENT STRUCTURE: ${structure}
+Revenue: $${rev.toLocaleString()} | Est. EBITDA: $${ebitda.toLocaleString()}
+
+${structure === "sole_proprietor" ? `
+INCORPORATION ANALYSIS:
+  Current marginal rate (${province}): ~${Math.round(personalRate * 100)}%
+  CCPC SBD rate (${province}): ~${Math.round(corpRate * 100)}% on first $500K
+  Rate gap: ${Math.round(taxGap * 100)}%
+  Potential annual deferral on $${ebitda.toLocaleString()} EBITDA: ~$${incorpSaving.toLocaleString()}/yr
+  ${rev >= 80000 ? "→ INCORPORATION IS LIKELY BENEFICIAL — model T4 vs dividend split" : "→ Below incorporation breakeven (~$80K) — focus on deductions"}
+  Incorporation cost: ~$1,500-$3,000 setup + ~$2,000/yr maintenance
+` : `
+ALREADY INCORPORATED — OPTIMIZE:
+  T4 salary vs eligible dividend split
+  CPP: T4 above $71,300 (2025 YMPE) triggers 11.9% combined
+  RRSP room: generated by T4 income (18% of earned income, max $32,490)
+  SBD: is the $500K threshold being maximized?
+`}
+
+HST/GST:
+  ${rev < 400000 ? `Quick Method eligible: revenue $${rev.toLocaleString()} < $400K
+  Potential saving: estimate based on service vs goods mix` : "Above $400K — Quick Method not available. Focus on ITC optimization."}
+  ${province === "QC" ? "QST separate: 9.975% + GST 5%. Dual filing with Revenu Québec." : ""}
+`;
+  }
+}
+
+
+// ─── Compliance exposure pre-computed ───────────────────────────────────────
+function getComplianceExposure(isUS: boolean, rev: number, emp: number, province: string, hasPayroll: boolean): string {
+  if (isUS) {
+    const penalties: string[] = [];
+    penalties.push(`Income tax filing: penalty 5%/mo up to 25% of tax owing. At est. $${Math.round(rev * 0.05).toLocaleString()} tax: max penalty $${Math.round(rev * 0.05 * 0.25).toLocaleString()}`);
+    if (emp > 0) {
+      penalties.push(`Form 941 (payroll): trust fund recovery penalty = 100% of unpaid employment taxes. Personal liability for responsible persons.`);
+      penalties.push(`W-2 filing: $60-$310 per form × ${emp} employees = $${60 * emp}-$${310 * emp} penalty range`);
+      penalties.push(`Workers comp: operating without = misdemeanor, fines up to $100K, personal injury liability`);
+    }
+    if (rev > 100000) penalties.push(`Sales tax nexus: if selling across state lines without registration = back taxes + 25% penalty + interest`);
+    penalties.push(`BOI report (FinCEN): $500/day civil penalty. Criminal: up to $10K + 2yr imprisonment.`);
+    return penalties.map((p, idx) => `  ${idx + 1}. ${p}`).join("\n");
+  } else {
+    const penalties: string[] = [];
+    penalties.push(`T2 corporate/T1 personal: late filing 5% + 1%/month up to 12 months. At est. $${Math.round(rev * 0.04).toLocaleString()} tax: max $${Math.round(rev * 0.04 * 0.17).toLocaleString()}`);
+    if (rev > 30000) penalties.push(`GST/HST: must be registered. Late filing penalty + interest at prescribed rate + 6%`);
+    if (emp > 0) {
+      penalties.push(`Source deductions: failure to remit = 10-20% penalty + director personal liability`);
+      penalties.push(`T4/ROE: $100-$7,500 penalty per failure. Must issue T4 by Feb 28, ROE within 5 days of interruption.`);
+      if (province === "QC") penalties.push(`CNESST: must register. Late = penalties + retroactive premiums + no coverage if injury.`);
+      else if (province === "ON") penalties.push(`WSIB: must register if in mandatory industry. Operating without = fines + retroactive premiums.`);
+    }
+    if (province === "QC") penalties.push(`Law 25 privacy: privacy officer must be designated. Fines up to $25M or 4% of global revenue.`);
+    return penalties.map((p, idx) => `  ${idx + 1}. ${p}`).join("\n");
+  }
 }
