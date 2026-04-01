@@ -205,21 +205,24 @@ export default function SoloDashboard() {
           </svg>
         </div>
         <h2 className="text-[20px] font-bold text-ink mb-2">
-          {t("Run your first diagnostic", "Lancez votre premier diagnostic")}
+          {t("Let's find your leaks", "Trouvons vos fuites")}
         </h2>
-        <p className="text-[14px] text-ink-muted mb-2">
-          {t("Get your financial health score and every detected leak with exact dollar amounts — in 5 minutes. Your rep handles the rest.", "Obtenez votre score de santé financière et chaque fuite avec les montants exacts — en 5 minutes. Votre rep s'occupe du reste.")}
+        <p className="text-[14px] text-ink-muted mb-6">
+          {profile.country === "US"
+            ? "Answer a few questions about your business and get your financial health score with exact dollar amounts — takes about 5 minutes. No CPA needed."
+            : t("Answer a few questions about your business and get your financial health score with exact dollar amounts — takes about 5 minutes. No accountant needed.",
+                "Répondez à quelques questions sur votre entreprise et obtenez votre score de santé financière avec les montants exacts — environ 5 minutes. Sans comptable.")}
         </p>
-        <p className="text-[12px] text-ink-faint mb-6">
-          {profile.country === "US" ? "Takes about 5 minutes · No CPA needed" : t("Takes about 5 minutes · No accountant needed", "Environ 5 minutes · Sans comptable")}
-        </p>
-        <button onClick={() => router.push("/v2/diagnostic")}
-          className="px-7 py-3 text-[14px] font-bold text-white bg-brand rounded-xl hover:bg-brand/90 transition">
-          {t("Run my diagnostic →", "Lancer mon diagnostic →")}
-        </button>
-        <p className="text-[11px] text-ink-faint mt-4">
-          {t("Complete the prescan on the home page first, then come back.", "Faites d'abord le préscan sur la page d'accueil, puis revenez.")}
-        </p>
+        <div className="flex flex-col gap-3">
+          <button onClick={() => router.push("/v2/diagnostic")}
+            className="px-7 py-3 text-[14px] font-bold text-white bg-brand rounded-xl hover:bg-brand/90 transition">
+            {t("Run my diagnostic →", "Lancer mon diagnostic →")}
+          </button>
+          <button onClick={() => router.push("/")}
+            className="px-7 py-2.5 text-[13px] font-semibold text-ink-muted bg-white border border-border-light rounded-xl hover:bg-bg-section transition">
+            {t("Or try the free prescan first →", "Ou essayer le préscan gratuit →")}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -252,12 +255,19 @@ export default function SoloDashboard() {
 
         {/* ANALYZING BANNER */}
         {isAnalyzing && (
-          <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+          <div className="w-full rounded-xl mb-4 overflow-hidden"
             style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)", ...fadeDelay(0.01) }}>
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-            <div className="flex-1">
-              <p className="text-[12px] font-semibold text-white">{t("Diagnostic in progress…", "Diagnostic en cours…")}</p>
-              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("This takes 30–60 seconds. Page will refresh automatically.", "Cela prend 30 à 60 secondes. La page se rafraîchira automatiquement.")}</p>
+            <div className="px-4 py-3 flex items-center gap-3">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+              <div className="flex-1">
+                <p className="text-[12px] font-semibold text-white">{t("Diagnostic in progress…", "Diagnostic en cours…")}</p>
+                <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("Analyzing your business against 4,273 leak patterns…", "Analyse de votre entreprise avec 4 273 détecteurs de fuites…")}</p>
+              </div>
+            </div>
+            <div className="px-4 pb-3">
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-400 rounded-full animate-pulse" style={{ width: "65%", transition: "width 2s ease" }} />
+              </div>
             </div>
           </div>
         )}
@@ -485,6 +495,17 @@ export default function SoloDashboard() {
           </button>
         </div>
 
+        {/* Rerun diagnostic button */}
+        {diagFindings.length > 0 && !isAnalyzing && (
+          <div className="flex items-center gap-3 mb-4" style={fadeDelay(0.06)}>
+            <button onClick={() => router.push("/v2/diagnostic")}
+              className="h-8 px-4 text-[11px] font-bold text-brand border border-brand/20 rounded-lg hover:bg-brand/5 transition">
+              {t("Rerun Diagnostic →", "Relancer le diagnostic →")}
+            </button>
+            <span className="text-[10px] text-ink-faint">{t("Updated data = more accurate findings", "Données mises à jour = résultats plus précis")}</span>
+          </div>
+        )}
+
         {/* MAIN 3-COL */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_280px] gap-3" style={fadeDelay(0.1)}>
 
@@ -643,6 +664,12 @@ export default function SoloDashboard() {
                 <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Government Programs", "Programmes gouvernementaux")}</span>
                 <button onClick={() => router.push("/v2/programs")} className="text-[11px] font-semibold text-brand hover:underline">{t("All", "Tout")}</button>
               </div>
+              {diagPrograms.length === 0 && programsAvailable > 0 && (
+                <div className="px-4 py-3">
+                  <p className="text-[11px] text-ink-muted mb-2">{programsAvailable} {t("programs available for your region", "programmes disponibles pour votre région")}</p>
+                  <button onClick={() => router.push("/v2/programs")} className="text-[11px] font-semibold text-brand hover:underline">{t("View programs →", "Voir les programmes →")}</button>
+                </div>
+              )}
               {diagPrograms.length > 0 ? (
                 <>
                   {diagPrograms.slice(0, 3).map((p, i) => (
