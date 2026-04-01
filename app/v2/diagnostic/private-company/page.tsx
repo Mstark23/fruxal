@@ -235,7 +235,7 @@ export default function PrivateCompanyPage() {
               <Field label="EBITDA" hint="if known">
                 <MoneyInput value={form.ebitda_estimate} onChange={v => set("ebitda_estimate", v)} placeholder="350,000" />
               </Field>
-              <Field label="Owner T4 Salary" hint="if known">
+              <Field label={_country === "US" ? "Owner W-2 Salary" : "Owner T4 Salary"} hint="if known">
                 <MoneyInput value={form.owner_salary} onChange={v => set("owner_salary", v)} placeholder="180,000" />
               </Field>
             </div>

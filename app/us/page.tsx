@@ -565,7 +565,7 @@ export default function LandingPage() {
       {/* ══════ FEATURES ══════ */}
       <section id="features" className="py-24 px-6 lg:px-12 max-w-[1200px] mx-auto">
         <div className="text-label uppercase text-brand font-semibold mb-3.5">{t("Capabilities", "Fonctionnalités")}</div>
-        <h2 className="font-serif text-h2 text-ink font-normal max-w-[520px] mb-3.5">{t("What your accountant charges $300/hr to find — we find free", "Ce que votre comptable facture 300 $/h pour trouver — on le trouve gratuitement")}</h2>
+        <h2 className="font-serif text-h2 text-ink font-normal max-w-[520px] mb-3.5">{"What your CPA charges $300/hr to find — we find free"}</h2>
         <p className="text-[16px] leading-relaxed text-ink-secondary max-w-[460px] mb-14">{t("Compared against 4,000+ US industry benchmarks. Specific dollar amounts. Real solutions. No subscription required.", "Compared against 4,000+ US industry benchmarks. Specific dollar amounts. Real solutions. No subscription required.")}</p>
 
         <div className="grid md:grid-cols-3 gap-px bg-border-light border border-border-light rounded-card overflow-hidden">

@@ -32,7 +32,9 @@ const SECTIONS = [
       },
       {
         q: "Do I need accounting software or financial documents to start?",
-        a: "No. The prescan and standard diagnostic only need numbers you likely know off the top of your head — annual revenue, rough payroll, and province. You can optionally upload documents (T2, financial statements, bank statements) for a more precise analysis, but this is only available on the Enterprise tier and never required to start.",
+        a: isUS
+          ? "No. The prescan and standard diagnostic only need numbers you likely know off the top of your head — annual revenue, rough payroll, and state. You can optionally upload documents (Form 1120, financial statements, bank statements) for a more precise analysis, but this is only available on the Enterprise tier and never required to start."
+          : "No. The prescan and standard diagnostic only need numbers you likely know off the top of your head — annual revenue, rough payroll, and province. You can optionally upload documents (T2, financial statements, bank statements) for a more precise analysis, but this is only available on the Enterprise tier and never required to start.",
       },
     ],
   },
@@ -49,7 +51,9 @@ const SECTIONS = [
       },
       {
         q: "How accurate are the dollar estimates?",
-        a: "Dollar estimates are based on your actual inputs combined with industry benchmarks. They're estimates — not guarantees — because they depend on the completeness of your intake data. Findings show a range (e.g. $280–$420/month) to reflect this. The more accurately you fill in your financials, the more precise the numbers. Enterprise users who upload their T2, financial statements, or bank statements get verified figures rather than estimates.",
+        a: isUS
+          ? "Dollar estimates are based on your actual inputs combined with industry benchmarks. They're estimates — not guarantees — because they depend on the completeness of your intake data. Findings show a range (e.g. $280–$420/month) to reflect this. The more accurately you fill in your financials, the more precise the numbers. Enterprise users who upload their Form 1120, financial statements, or bank statements get verified figures rather than estimates."
+          : "Dollar estimates are based on your actual inputs combined with industry benchmarks. They're estimates — not guarantees — because they depend on the completeness of your intake data. Findings show a range (e.g. $280–$420/month) to reflect this. The more accurately you fill in your financials, the more precise the numbers. Enterprise users who upload their T2, financial statements, or bank statements get verified figures rather than estimates.",
       },
       {
         q: "How often should I run a diagnostic?",
