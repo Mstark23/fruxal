@@ -11,6 +11,7 @@ import { DiagCtx }               from "./types";
 import { buildDiagnosticSchema } from "./schema";
 import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
+import { buildMethodology }      from "./methodology";
 import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 export function buildBusinessPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
@@ -34,7 +35,9 @@ Employees: ${employees} | Gross margin: ${grossMarginPct}%${ownerSalary > 0 ? ` 
 
 ${taxCtx}
 
-─── THINK BEFORE YOU WRITE JSON ───────────────────────────────────────────────
+${buildMethodology("CA", "business", industry, annualRevenue, employees, province, structure, grossMarginPct ?? 0, profile.has_payroll ?? false, profile.does_rd ?? false)}
+
+─── ADDITIONAL TIER-SPECIFIC CHECKS ──────────────────────────────────────────
 Reason through every check below before producing any output. State a finding only if you
 have calculated a real dollar impact from this business's actual numbers.
 
@@ -183,7 +186,9 @@ Employees: ${employees} | Gross margin: ${grossMarginPct}%${ownerSalary > 0 ? ` 
 
 ${taxCtx}
 
-─── THINK BEFORE YOU WRITE JSON ───────────────────────────────────────────────
+${buildMethodology("US", "business", industry, annualRevenue, employees, state, structure, grossMarginPct ?? 0, profile.has_payroll ?? false, profile.does_rd ?? false)}
+
+─── ADDITIONAL TIER-SPECIFIC CHECKS ──────────────────────────────────────────
 
 1. OWNER COMPENSATION STRUCTURE
    Owner W-2: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "not provided"} | EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()}

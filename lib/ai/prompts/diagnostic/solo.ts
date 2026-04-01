@@ -11,6 +11,7 @@ import { DiagCtx }            from "./types";
 import { buildDiagnosticSchema } from "./schema";
 import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
+import { buildMethodology }      from "./methodology";
 import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 function industryBenchmarks(industry: string, revenue: number): string {
@@ -47,9 +48,9 @@ Employees: ${employees}.
 
 ${taxCtx}
 
-─── THINK BEFORE YOU WRITE JSON ───────────────────────────────────────────────
-Before producing any JSON, reason through these questions in order:
+${buildMethodology("CA", "solo", industry, annualRevenue, employees, province, structure, grossMarginPct ?? 0, profile.has_payroll ?? false, profile.does_rd ?? false)}
 
+ADDITIONAL CHECKS:
 1. HST/GST THRESHOLD
    Revenue is $${(annualRevenue ?? 0).toLocaleString()}. The mandatory registration threshold is $30,000.
    ${annualRevenue < 30_000
@@ -192,7 +193,9 @@ Employees: ${employees}.
 
 ${taxCtx}
 
-─── THINK BEFORE YOU WRITE JSON ───────────────────────────────────────────────
+${buildMethodology("US", "solo", industry, annualRevenue, employees, state, structure, grossMarginPct ?? 0, profile.has_payroll ?? false, profile.does_rd ?? false)}
+
+ADDITIONAL CHECKS:
 
 1. SELF-EMPLOYMENT TAX
    SE tax is 15.3% on net earnings up to $168,600, then 2.9% Medicare above.

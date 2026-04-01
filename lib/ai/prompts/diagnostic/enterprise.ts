@@ -12,6 +12,7 @@ import { DiagCtx }               from "./types";
 import { buildDiagnosticSchema } from "./schema";
 import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
+import { buildMethodology }      from "./methodology";
 import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
@@ -89,8 +90,10 @@ Employees: ${employees}${ownerSalary > 0 ? ` | Owner salary: $${ownerSalary.toLo
 
 ${taxCtx}
 
-─── THINK BEFORE YOU WRITE JSON ───────────────────────────────────────────────
-Reason through ALL 10 checks before writing any output. State findings only for items where
+${buildMethodology("CA", "enterprise", industry, annualRevenue, employees, province, structure, grossMarginPct ?? 0, profile.has_payroll ?? false, profile.does_rd ?? false)}
+
+─── ADDITIONAL ENTERPRISE-SPECIFIC CHECKS ────────────────────────────────────
+Reason through ALL 10 checks below. State findings only for items where
 you can calculate a real dollar impact from this business's actual numbers.
 
 1. SALARY vs DIVIDEND MIX
@@ -277,7 +280,9 @@ Enterprise value range: $${(evLow ?? 0).toLocaleString()}–$${(evHigh ?? 0).toL
 
 ${taxCtx}
 
-─── THINK BEFORE YOU WRITE JSON — 10 CHECKS ───────────────────────────────────
+${buildMethodology("US", "enterprise", industry, annualRevenue, employees, state, structure, grossMarginPct ?? 0, profile.has_payroll ?? false, profile.does_rd ?? false)}
+
+─── ADDITIONAL US ENTERPRISE CHECKS ──────────────────────────────────────────
 
 1. OWNER COMPENSATION & ENTITY STRUCTURE
    Owner W-2: $${ownerSalary > 0 ? ownerSalary.toLocaleString() : "unknown"} | EBITDA: ~$${estimatedEBITDA.toLocaleString()}
