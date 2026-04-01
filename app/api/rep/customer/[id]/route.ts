@@ -50,7 +50,29 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           .eq("business_id", profile?.business_id || "")
           .order("annual_impact_max", { ascending: false });
 
-        const findings = (leakRows || []).map((l: any) => ({
+        // Match affiliate partners for each leak category (rep needs these for recommendations)
+        const { data: allPartners } = await supabaseAdmin
+          .from("affiliate_partners")
+          .select("name, slug, category, referral_url, website_url, commission_type, commission_value, quality_score, description")
+          .eq("active", true)
+          .order("quality_score", { ascending: false })
+          .limit(100);
+
+        const findings = (leakRows || []).map((l: any) => {
+          // Match top 3 partners for this leak's category
+          const catPartners = (allPartners || [])
+            .filter((p: any) => p.category === l.category || p.category === "general")
+            .slice(0, 3)
+            .map((p: any) => ({
+              name: p.name,
+              slug: p.slug,
+              url: p.referral_url || p.website_url || "#",
+              description: p.description,
+              commission_type: p.commission_type,
+              commission_value: p.commission_value,
+            }));
+
+          return {
           id:          l.id || l.slug || l.leak_type_code,
           title:       l.title || l.leak_type_code,
           title_fr:    l.title_fr || l.title,
@@ -61,9 +83,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           status:      l.status || "detected",
           recommendation: null,
           action_items:   [],
-          solutions:      l.solutions || [],
-          affiliates:     l.affiliates || [],
-        }));
+          solutions:      catPartners,
+          affiliates:     catPartners,
+        };
+        });
 
         const totalLeak = findings.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
 
