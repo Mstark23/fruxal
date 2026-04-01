@@ -65,7 +65,17 @@ Before producing any JSON, reason through these questions in order:
    Review the program list below. Which apply to this specific ${industry} in ${province}?
    What is the realistic total program value?
 
-5. BIGGEST LEVER
+5. INDUSTRY-SPECIFIC LEAKS
+   For ${industry} businesses at $${(annualRevenue ?? 0).toLocaleString()} revenue:
+   ${/restaurant|food|cafe|bar/.test(industry.toLowerCase()) ? "→ Check: food cost % (target 28-32%), labor cost % (target 25-30%), liquor cost (target 18-22%), tip reporting, POS optimization" : ""}
+   ${/construct|contractor|trade|plumb|electric/.test(industry.toLowerCase()) ? "→ Check: job costing accuracy, material waste %, subcontractor markup, equipment CCA, insurance classification, CCQ/CNESST rates" : ""}
+   ${/saas|software|tech|digital/.test(industry.toLowerCase()) ? "→ Check: gross margin (target 70-80%), CAC, churn rate, SR&ED eligibility, contractor vs employee classification" : ""}
+   ${/consult|professional|legal|account/.test(industry.toLowerCase()) ? "→ Check: utilization rate (target 65-75%), effective hourly rate, scope creep, professional liability, RRSP vs IPP" : ""}
+   ${/retail|ecommerce|store/.test(industry.toLowerCase()) ? "→ Check: inventory turnover, shrinkage %, markup consistency, return rate, HST Quick Method eligibility" : ""}
+   ${/health|medical|dental|clinic/.test(industry.toLowerCase()) ? "→ Check: collections rate, insurance reimbursement, equipment CCA, PHIPA/privacy compliance, professional liability" : ""}
+   ${/transport|trucking|logistics/.test(industry.toLowerCase()) ? "→ Check: fuel cost per km, deadhead %, maintenance cost, insurance classification, meal allowance deductions" : ""}
+
+6. BIGGEST LEVER
    Given all of the above, what is the single highest-dollar opportunity for this business?
    State it as a number before writing any JSON.
 
@@ -201,7 +211,17 @@ ${taxCtx}
    Review programs below. Which apply to this ${industry} in ${state}?
    WOTC, SBA microloans, Section 179, R&D credit, STEP grants — what is realistic total?
 
-6. BIGGEST LEVER
+6. INDUSTRY-SPECIFIC LEAKS
+   For ${industry} businesses at $${(annualRevenue ?? 0).toLocaleString()} revenue:
+   ${/restaurant|food|cafe|bar/.test(industry.toLowerCase()) ? "→ Check: food cost % (target 28-32%), labor cost % (target 25-30%), liquor cost (target 18-22%), tip reporting compliance, POS optimization" : ""}
+   ${/construct|contractor|trade|plumb|electric/.test(industry.toLowerCase()) ? "→ Check: job costing accuracy, material waste %, subcontractor markup, equipment depreciation, insurance classification, bonding" : ""}
+   ${/saas|software|tech|digital/.test(industry.toLowerCase()) ? "→ Check: gross margin (target 70-80%), customer acquisition cost, churn rate, hosting costs, R&D credit eligibility, contractor vs employee" : ""}
+   ${/consult|professional|legal|account/.test(industry.toLowerCase()) ? "→ Check: utilization rate (target 65-75%), effective hourly rate, scope creep, professional liability coverage, retirement plan optimization" : ""}
+   ${/retail|ecommerce|store/.test(industry.toLowerCase()) ? "→ Check: inventory turnover, shrinkage %, markup consistency, return rate, sales tax nexus compliance, credit card processing fees" : ""}
+   ${/health|medical|dental|clinic/.test(industry.toLowerCase()) ? "→ Check: collections rate, insurance reimbursement optimization, equipment depreciation, HIPAA compliance costs, professional liability" : ""}
+   ${/transport|trucking|logistics/.test(industry.toLowerCase()) ? "→ Check: fuel cost per mile, deadhead %, maintenance cost per mile, insurance classification, per diem deductions, ELD compliance" : ""}
+
+7. BIGGEST LEVER
    Single highest-dollar opportunity stated as a number before JSON.
 
 Only after this reasoning, produce the JSON report.

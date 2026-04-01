@@ -77,6 +77,7 @@ have calculated a real dollar impact from this business's actual numbers.
    State the dollar amount before writing any JSON.
 
 Only after this reasoning, produce the JSON report.
+
 ───────────────────────────────────────────────────────────────────────────────
 
 GOVERNMENT PROGRAMS — include applicable slugs in program_slugs:
@@ -212,7 +213,15 @@ ${taxCtx}
    → At $${annualRevenue.toLocaleString()} revenue, every 10 extra days DSO = ~$${Math.round(annualRevenue / 365 * 10).toLocaleString()} tied up.
    → Bad debt reserve: is write-off methodology consistent with accrual accounting?
 
-7. BIGGEST LEVER
+7. INDUSTRY-SPECIFIC LEAKS
+   For ${industry} businesses at $${(annualRevenue ?? 0).toLocaleString()} with ${employees} employees in ${state}:
+   ${/restaurant|food|cafe|bar/.test(industry.toLowerCase()) ? "→ Food cost 28-32%, labor 25-30%, tip credit compliance, POS optimization, supplier renegotiation" : ""}
+   ${/construct|contractor|trade/.test(industry.toLowerCase()) ? "→ Job costing, material waste, sub markup, Section 179 on equipment, workers comp classification" : ""}
+   ${/saas|software|tech/.test(industry.toLowerCase()) ? "→ Gross margin 70-80%, CAC payback, churn, R&D credit (Section 41), contractor misclassification, QSBS" : ""}
+   ${/consult|professional|legal|account/.test(industry.toLowerCase()) ? "→ Utilization 65-75%, realization rate, partner W-2/distribution split, E&O insurance" : ""}
+   ${/health|medical|dental/.test(industry.toLowerCase()) ? "→ Collections rate, insurance reimbursement, equipment Section 179, HIPAA compliance, staff overtime" : ""}
+
+8. BIGGEST LEVER
    State the single highest-dollar opportunity as a number before writing JSON.
 
 Only after this reasoning, produce the JSON report.

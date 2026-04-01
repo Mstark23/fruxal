@@ -70,12 +70,22 @@ export function buildTaxContext(p: TaxContextInput): string {
   if (US_STATES.has(p.province)) {
     const st = p.province;
     const noIncomeTax = ["FL","TX","NV","WA","WY","SD","TN","NH","AK"].includes(st);
-    lines.push(`US state: ${st}. ${noIncomeTax ? "No state income tax." : "State income tax applies."} Federal: IRS, FICA (15.3% SE tax), Section 179, QBI deduction (Section 199A).`);
-    if (st === "CA") lines.push("California: 13.3% top marginal rate (highest in US). CCPA/CPRA privacy compliance. Franchise tax min $800.");
-    if (st === "NY") lines.push("New York: MTA surcharge 30% on franchise tax in metro area. High combined state+city burden.");
-    if (st === "TX") lines.push("Texas: No income tax but franchise (margin) tax on revenue >$2.47M. B&O-like structure.");
-    if (st === "WA") lines.push("Washington: No income tax but B&O gross receipts tax (0.471%-1.5%). Heavy on service businesses.");
-    if ((p.employees ?? 0) > 0) lines.push("Federal payroll: Form 941 quarterly, 940 FUTA annual, workers comp required in most states.");
+    // 2025 federal tax parameters
+    lines.push(`US state: ${st}. ${noIncomeTax ? "No state income tax — strong structural advantage." : "State income tax applies — layer state deductions."}`);
+    lines.push("2025 Federal: SE tax 15.3% on first $176,100 + 2.9% Medicare above. FICA employer/employee split at same threshold. Section 179: $1,250,000 limit. QBI deduction (Section 199A): 20% of qualified business income for pass-throughs.");
+    if (st === "CA") lines.push("California: 13.3% top marginal rate (highest in US). CCPA/CPRA privacy. Franchise tax min $800. CA R&D credit 24% on QREs above base.");
+    else if (st === "NY") lines.push("New York: top rate 10.9%. MTA surcharge 30% on franchise tax in metro. Combined state+city can exceed 14%.");
+    else if (st === "TX") lines.push("Texas: No income tax. Franchise (margin) tax on revenue >$2.47M (no tax below $1.23M). No tax on first $1.23M.");
+    else if (st === "FL") lines.push("Florida: No personal income tax. 5.5% corporate tax (C-corps only). S-corps/LLCs pass through tax-free at state level.");
+    else if (st === "WA") lines.push("Washington: No income tax. B&O gross receipts tax 0.471% (retail) to 1.5% (service). Heavy on service businesses.");
+    else if (st === "IL") lines.push("Illinois: Flat 4.95% income tax + 9.5% combined corporate rate. High property taxes.");
+    else if (st === "NJ") lines.push("New Jersey: top rate 10.75%. Corporate 11.5% (>$1M). One of the highest combined tax states.");
+    else if (st === "PA") lines.push("Pennsylvania: 8.99% corporate net income tax (phasing to 4.99% by 2031). Flat 3.07% personal.");
+    else if (st === "OH") lines.push("Ohio: No traditional corporate income tax. Commercial Activity Tax (CAT) 0.26% on gross receipts >$1M.");
+    else if (st === "GA") lines.push("Georgia: 5.49% flat income tax (phasing to 4.99%). Job tax credits $1,250-$4,000 per new job by county tier.");
+    else if (st === "CO") lines.push("Colorado: 4.4% flat income tax. Advanced Industries grants up to $250K for tech/bioscience.");
+    else if (st === "MA") lines.push("Massachusetts: 5% flat income tax + 4% surtax on income >$1M. High-value state R&D credit.");
+    if ((p.employees ?? 0) > 0) lines.push(`Federal payroll: Form 941 quarterly, 940 FUTA annual ($420/yr/ee max), workers comp required in most states. WOTC up to $9,600/eligible hire.`);
     return lines.join("\n");
   }
 
