@@ -44,8 +44,8 @@ export function buildDiagnosticSchema(tier: DiagnosticTier, maxFindings: number,
     "description_fr": "<French>"
   },
 
-  "executive_summary":    "<2-4 sentences. MUST open with the biggest dollar figure. Owner-focused language. Never a generic opener like 'Based on our analysis'.>",
-  "executive_summary_fr": "<French>",
+  "executive_summary":    "<2-4 sentences. MUST open with the biggest dollar figure found (e.g. 'Your business is losing $47,200/yr to 3 fixable leaks.'). Name the top 2 findings by category. End with the single most important action. Never a generic opener like 'Based on our analysis'. Write as if texting the owner — direct, specific, no filler.>",
+  "executive_summary_fr": "<French — same structure, same specificity>",
 
   "totals": {
     "annual_leaks":            <sum of all finding impact_max>,

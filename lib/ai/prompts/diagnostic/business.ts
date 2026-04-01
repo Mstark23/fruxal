@@ -72,7 +72,16 @@ have calculated a real dollar impact from this business's actual numbers.
    ${profile.does_rd ? "→ R&D flagged YES. Is ALL eligible work being claimed? Software dev, process improvement, prototyping?" : `→ R&D not flagged. Does this ${industry} do ANY process improvement, custom software, or technical development that could qualify?`}
    → CCPC refundable rate: 35% federal on first $3M eligible. ${province === "QC" ? "QC adds 30% provincial refundable." : ""}
 
-7. BIGGEST LEVER
+7. INDUSTRY-SPECIFIC LEAKS
+   For ${industry} at $${(annualRevenue ?? 0).toLocaleString()} with ${employees} employees in ${province}:
+   ${/restaurant|food|cafe|bar/.test(industry.toLowerCase()) ? "→ Food cost 28-32%, labor 25-30%, liquor 18-22%, tip compliance, POS, supplier renegotiation, HST Quick Method" : ""}
+   ${/construct|contractor|trade/.test(industry.toLowerCase()) ? "→ Job costing, material waste, sub markup, CCA on equipment, WCB/CNESST class, holdback, SR&ED for process innovation" : ""}
+   ${/saas|software|tech/.test(industry.toLowerCase()) ? "→ Gross margin 70-80%, CAC payback, churn, SR&ED eligibility, contractor misclassification, PST on SaaS (BC/SK)" : ""}
+   ${/consult|professional|legal|account/.test(industry.toLowerCase()) ? "→ Utilization 65-75%, realization rate, WIP, partner T4/dividend mix, E&O, RRSP vs IPP at this salary" : ""}
+   ${/health|medical|dental/.test(industry.toLowerCase()) ? "→ Collections rate, insurance reimbursement, equipment CCA, PHIPA/privacy, professional liability, associate compensation" : ""}
+   ${/transport|trucking|logistics/.test(industry.toLowerCase()) ? "→ Fuel per km, deadhead %, maintenance per km, insurance class, meal allowance ($23/meal CRA), IFTA compliance" : ""}
+
+8. BIGGEST LEVER
    Given the above, what is the single highest-dollar opportunity?
    State the dollar amount before writing any JSON.
 
@@ -107,7 +116,7 @@ ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Reven
 10. REQUIRED — priority_sequence: exactly 5 entries using rank/action/action_fr/why_first/why_first_fr/expected_result/ebitda_improvement/enterprise_value_improvement.
 11. MANDATORY WRITE ORDER: scores → savings_anchor → executive_summary → totals → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence → findings.
     If tight on tokens: trim finding descriptions. NEVER skip earlier sections.
-${isFr ? "12. All text fields in French. JSON keys stay in English." : ""}
+${isFr ? "12. CRITICAL — FRENCH: Every user-facing text field MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Analyze this small business and return a complete JSON diagnostic report.

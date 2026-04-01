@@ -159,7 +159,15 @@ you can calculate a real dollar impact from this business's actual numbers.
     → Director liability: overdue source deductions expose directors personally.
     → Key person risk: if owner is incapacitated, what happens to the business and estate?
 
-After reasoning through all 10: identify the 8–12 highest-impact findings and write the JSON.
+INDUSTRY-SPECIFIC ENTERPRISE LEAKS (${industry} at $${(annualRevenue ?? 0).toLocaleString()}):
+${/restaurant|food|hospitality/.test(industry.toLowerCase()) ? "→ Multi-unit: per-location P&L variance, centralized purchasing leverage, franchise fee optimization, labor scheduling across locations" : ""}
+${/construct|contractor|trade/.test(industry.toLowerCase()) ? "→ Enterprise construction: bonding capacity optimization, equipment fleet CCA, sub-trade margin analysis, project-level profitability, holdback cash flow" : ""}
+${/saas|software|tech/.test(industry.toLowerCase()) ? "→ Tech enterprise: ARR/MRR metrics, gross margin >70%, SR&ED on all eligible R&D, IP holdco structure, stock option plan (ESOP), QSBC test for LCGE" : ""}
+${/manufactur|industrial/.test(industry.toLowerCase()) ? "→ Manufacturing: COGS optimization, inventory turns, equipment CCA schedule, SR&ED on process improvement, export programs (EDC), duty drawback" : ""}
+${/professional|consult|legal|account|engineer/.test(industry.toLowerCase()) ? "→ Professional services: partner compensation optimization, WIP management, associate/partner leverage ratio, IPP vs RRSP at this income, key person insurance" : ""}
+${/real.estate|property/.test(industry.toLowerCase()) ? "→ Real estate: cost segregation, CCA optimization, passive income grind-down, holdco for surplus stripping, estate freeze timing" : ""}
+
+After reasoning through all checks: identify the 8–12 highest-impact findings and write the JSON.
 ───────────────────────────────────────────────────────────────────────────────
 
 GOVERNMENT PROGRAMS — include applicable slugs in program_slugs:
@@ -189,7 +197,7 @@ STRUCTURAL RULES:
 11. REQUIRED — priority_sequence: exactly 6 entries. Each needs rank/action/action_fr/why_first/why_first_fr/expected_result/ebitda_improvement/enterprise_value_improvement.
 12. MANDATORY WRITE ORDER: scores → savings_anchor → executive_summary → totals → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence → findings.
     If token budget is tight: reduce to 8 findings, shorten descriptions. NEVER skip or truncate earlier sections.
-${isFr ? "13. All text fields in French. JSON keys stay in English." : ""}
+${isFr ? "13. CRITICAL — FRENCH: Every user-facing text field MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Conduct a full CCPC financial diagnostic. Return a complete JSON report.
@@ -318,6 +326,14 @@ ${taxCtx}
 
 9. HOLDING COMPANY / IP STRUCTURE
    ${hasHoldco ? "Holdco confirmed. Assess: management fees (must be arm's-length), IP holding (royalty deductibility), captive insurance (Section 831(b) micro-captive)." : `At $${annualRevenue.toLocaleString()}, evaluate: separate IP holding entity (royalty stream), captive insurance, real estate segregation.`}
+
+INDUSTRY-SPECIFIC ENTERPRISE LEAKS (${industry} at $${(annualRevenue ?? 0).toLocaleString()} in ${state}):
+${/restaurant|food|hospitality/.test(industry.toLowerCase()) ? "→ Multi-unit: per-location P&L variance, centralized purchasing, tip credit optimization, liquor license leverage" : ""}
+${/construct|contractor|trade/.test(industry.toLowerCase()) ? "→ Enterprise construction: bonding, fleet Section 179, sub-trade margins, prevailing wage compliance, OSHA" : ""}
+${/saas|software|tech/.test(industry.toLowerCase()) ? "→ Tech: ARR/MRR, gross margin >70%, R&D credit (Section 41) on all qualifying work, QSBS strategy, stock option plan" : ""}
+${/manufactur|industrial/.test(industry.toLowerCase()) ? "→ Manufacturing: COGS optimization, inventory turns, cost segregation study, R&D credit on process improvement, export incentives" : ""}
+${/professional|consult|legal|account|engineer/.test(industry.toLowerCase()) ? "→ Professional services: partner W-2/distribution split, WIP management, retirement plan (defined benefit + 401k), key person insurance" : ""}
+${/real.estate|property/.test(industry.toLowerCase()) ? "→ Real estate: cost segregation (reclassify to 5/7/15-yr), 1031 exchange planning, opportunity zone, QBI deduction on rental income" : ""}
 
 10. BIGGEST LEVER
     State the single highest-dollar opportunity (quantified) before writing JSON.

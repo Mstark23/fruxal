@@ -13,6 +13,20 @@ import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
 import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
+function industryBenchmarks(industry: string, revenue: number): string {
+  const i = industry.toLowerCase();
+  if (/restaurant|food|cafe/.test(i)) return "Industry benchmarks: COGS 28-35%, Labor 25-32%, Rent 6-10%, Net margin 3-9%, CC processing 2.5-3.2%";
+  if (/construct|contractor|trade/.test(i)) return "Industry benchmarks: Gross margin 25-40%, Labor 30-40% of revenue, Material 25-35%, Net margin 5-12%";
+  if (/saas|software|tech/.test(i)) return "Industry benchmarks: Gross margin 70-85%, CAC payback 12-18mo, Churn <5%/yr, R&D 15-25% of revenue";
+  if (/consult|professional|legal|account/.test(i)) return "Industry benchmarks: Gross margin 50-70%, Utilization 65-75%, Effective rate $150-400/hr, Overhead 25-35%";
+  if (/retail|ecommerce|store/.test(i)) return "Industry benchmarks: Gross margin 40-55%, Inventory turns 4-8x/yr, Shrinkage <2%, CC processing 2.2-3.0%";
+  if (/health|medical|dental/.test(i)) return "Industry benchmarks: Collections rate 92-97%, Overhead 55-65%, Net margin 10-20%, Staff cost 25-35%";
+  if (/transport|trucking|logistics/.test(i)) return "Industry benchmarks: Operating ratio 85-95%, Fuel 25-35% of revenue, Maintenance 8-12%, Net margin 3-8%";
+  if (/real.estate|property/.test(i)) return "Industry benchmarks: Cap rate 5-8%, Operating expense ratio 35-50%, Vacancy 3-8%, NOI margin 50-65%";
+  if (revenue < 100000) return "Industry benchmarks: Typical sole proprietor — gross margin varies widely by industry, target 40-60% for service, 30-50% for product";
+  return "Industry benchmarks: Typical SMB — gross margin 40-60%, overhead ratio 20-35%, net margin 8-15%";
+}
+
 export function buildSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
   const {
     profile, province, country, annualRevenue, revenueSource,
@@ -109,12 +123,14 @@ ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Reven
 10. REQUIRED — priority_sequence: at least 3 entries using rank/action/action_fr/why_first/why_first_fr/expected_result/ebitda_improvement/enterprise_value_improvement.
 11. MANDATORY WRITE ORDER: scores → savings_anchor → executive_summary → totals → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence → findings.
     If token budget is tight: shorten finding descriptions. NEVER skip or truncate earlier sections.
-${isFr ? "12. All text fields in French. JSON keys stay in English." : ""}
+${isFr ? "12. CRITICAL — FRENCH: Every user-facing text field (title, title_fr, description, description_fr, executive_summary_fr, recommendation_fr, etc.) MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const { estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct } = ctx;
 
   const userPrompt = `Analyze this solo/micro business and return a complete JSON diagnostic report.
+
+${industryBenchmarks(industry, annualRevenue)}
 
 PROFILE:
 - Industry:          ${industry}
@@ -250,6 +266,8 @@ STRUCTURAL RULES:
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Analyze this US solo/micro business and return a complete JSON diagnostic report.
+
+${industryBenchmarks(industry, annualRevenue)}
 
 PROFILE:
 - Industry:       ${industry}

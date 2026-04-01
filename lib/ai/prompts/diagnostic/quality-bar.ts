@@ -62,5 +62,8 @@ HARD RULES FOR EVERY FINDING:
 5. recommendation must be 2-3 numbered steps. First step = something they can do today or this week.
 6. No finding under ${minImpact} annual impact. Better ${Math.max(3, maxFindings - 2)} excellent findings than ${maxFindings} mediocre ones.
 7. second_order_effects is a PLAIN STRING — one sentence about the cascade effect — NEVER an array.
+8. NO DUPLICATE FINDINGS. Each finding must address a DIFFERENT leak. Do not produce two findings about the same issue from different angles. If tax structure and entity optimization overlap — combine them.
+9. solutions[] must contain REAL products with REAL URLs. Never invent a product name or URL. If unsure, use the category leader.
+10. benchmark_comparisons must use REAL industry averages. For metrics you know (EBITDA margin, gross margin by industry), use actual data. For metrics you don't know precisely, state "estimated" in the gap field.
 `.trim();
 }
