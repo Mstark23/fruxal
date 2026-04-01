@@ -196,8 +196,8 @@ export default function SettingsPage() {
         body: JSON.stringify({ confirm: true }),
       });
       if (res.ok) { router.push("/?deleted=1"); }
-      else { const d = await res.json(); setDeleteError(d.error || "Deletion failed — contact privacy@fruxal.ca"); }
-    } catch { setDeleteError("Deletion failed — contact privacy@fruxal.ca"); }
+      else { const d = await res.json(); setDeleteError(d.error || "Deletion failed — contact privacy@fruxal.com"); }
+    } catch { setDeleteError("Deletion failed — contact privacy@fruxal.com"); }
     setDeleting(false);
   }
 

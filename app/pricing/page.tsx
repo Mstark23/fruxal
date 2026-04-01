@@ -26,9 +26,9 @@ const FAQS = [
     aFR: "Si votre expert récupère 50 000$, vous payez 6 000$ et gardez 44 000$. S'ils ne récupèrent rien, vous ne payez rien. C'est aussi simple que ça.",
   },
   {
-    q:   "How is this different from hiring an accountant?",
+    q:   isUS ? "How is this different from hiring a CPA?" : "How is this different from hiring an accountant?",
     qFR: "En quoi est-ce différent d'un comptable?",
-    a:   "Accountants charge by the hour whether or not they find savings. Fruxal only earns when you do. We're incentivized to find every dollar.",
+    a:   isUS ? "CPAs charge by the hour whether or not they find savings. Fruxal only earns when you do. We're incentivized to find every dollar." : "Accountants charge by the hour whether or not they find savings. Fruxal only earns when you do. We're incentivized to find every dollar.",
     aFR: "Les comptables facturent à l'heure qu'ils trouvent des économies ou non. Fruxal ne gagne que quand vous gagnez. Nous sommes incités à trouver chaque dollar.",
   },
   {
