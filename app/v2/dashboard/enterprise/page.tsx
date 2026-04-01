@@ -448,10 +448,12 @@ export default function EnterpriseDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => { const nl = lang === "fr" ? "en" : "fr"; setLang(nl); try { localStorage.setItem("fruxal_lang", nl); sessionStorage.setItem("lg_prescan_lang", nl); } catch { /* non-fatal */ } }}
-              className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">
-              {isFr ? "EN" : "FR"}
-            </button>
+            {profile.country !== "US" && (
+              <button onClick={() => { const nl = lang === "fr" ? "en" : "fr"; setLang(nl); try { localStorage.setItem("fruxal_lang", nl); sessionStorage.setItem("lg_prescan_lang", nl); } catch { /* non-fatal */ } }}
+                className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">
+                {isFr ? "EN" : "FR"}
+              </button>
+            )}
             {reportId && (
               <button onClick={() => router.push(`/v2/diagnostic/${reportId}`)}
                 className="h-6 px-2.5 text-[11px] font-bold text-brand bg-brand/5 border border-brand/15 rounded-md hover:bg-brand/10 transition">
@@ -592,7 +594,10 @@ export default function EnterpriseDashboard() {
                   <div className="w-4 h-4 mt-0.5 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
                   <div className="flex-1">
                     <p className="text-[13px] font-bold text-white mb-1">{t("Enterprise analysis in progress…", "Analyse enterprise en cours…")}</p>
-                    <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("This takes 30–90 seconds. This page will refresh automatically when ready.", "Cela prend 30 à 90 secondes. La page se rafraîchira automatiquement.")}</p>
+                    <p className="text-[11px] mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>{t("Analyzing your business against 4,273 leak patterns across 10 financial dimensions…", "Analyse de votre entreprise avec 4 273 détecteurs sur 10 dimensions financières…")}</p>
+                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-400 rounded-full animate-pulse" style={{ width: "55%", transition: "width 2s ease" }} />
+                    </div>
                   </div>
                   {(() => { try { const id = localStorage.getItem("fruxal_analyzing_report"); if (id) return (
                     <button onClick={() => router.push(`/v2/diagnostic/${id}`)}
