@@ -4,8 +4,12 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getCountryFromCookie } from "@/lib/country";
 
 const lang = () => { try { return localStorage.getItem("fruxal_lang") === "fr"; } catch { return false; } };
+const isUS = typeof document !== "undefined" && getCountryFromCookie() === "US";
+const prof = isUS ? "CPA" : "accountant";
+const agency = isUS ? "IRS" : "CRA";
 function t(en: string, fr: string, isFr: boolean) { return isFr ? fr : en; }
 
 const FAQS = [
@@ -30,13 +34,13 @@ const FAQS = [
   {
     q:   "What kinds of savings do you find?",
     qFR: "Quel type d'économies trouvez-vous?",
-    a:   "Tax structure gaps, unclaimed SR&ED credits, government grants, vendor overcharges, payroll optimizations, CRA payment plans, insurance gaps, and more. Across 245 industries.",
+    a:   isUS ? "Tax structure gaps, unclaimed R&D credits, government programs, vendor overcharges, payroll optimizations, IRS payment plans, insurance gaps, and more. Across 245 industries." : "Tax structure gaps, unclaimed SR&ED credits, government grants, vendor overcharges, payroll optimizations, CRA payment plans, insurance gaps, and more. Across 245 industries.",
     aFR: "Écarts de structure fiscale, crédits SR&ED non réclamés, subventions gouvernementales, surcharges fournisseurs, optimisations de paie, plans de paiement ARC, lacunes d'assurance, et plus. Dans 245 secteurs.",
   },
   {
     q:   "Who is assigned as my recovery expert?",
     qFR: "Qui est désigné comme mon expert en récupération?",
-    a:   "A Fruxal-trained financial recovery expert matched to your province and industry. They have direct experience with CRA processes and Canadian business finance.",
+    a:   isUS ? "A Fruxal-trained financial recovery expert matched to your state and industry. They have direct experience with IRS processes and US business finance." : "A Fruxal-trained financial recovery expert matched to your province and industry. They have direct experience with CRA processes and Canadian business finance.",
     aFR: "Un expert en récupération financière formé par Fruxal, adapté à votre province et secteur. Ils ont une expérience directe des processus de l'ARC et des finances d'entreprise canadiennes.",
   },
   {
@@ -126,8 +130,8 @@ export default function PricingPage() {
               <ul className="space-y-3 mb-8">
                 {[
                   "Dedicated recovery expert assigned",
-                  "CRA calls and correspondence handled",
-                  "SR&ED + grant applications filed",
+                  isUS ? "IRS filings and correspondence handled" : "CRA calls and correspondence handled",
+                  isUS ? "R&D credit + program applications filed" : "SR&ED + grant applications filed",
                   "Vendor renegotiation support",
                   "Tax structure optimization",
                   "Insurance + payroll gaps fixed",

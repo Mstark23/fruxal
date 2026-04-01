@@ -22,7 +22,9 @@ const SECTIONS = [
       },
       {
         q: "Who is Fruxal built for?",
-        a: "Fruxal is built for Canadian businesses from solo operators to mid-market companies across 245+ industries. Whether you're a restaurant owner in Quebec, a contractor in Ontario, or a professional services firm in BC — Fruxal is designed for your situation, including province-specific tax rules and government programs.",
+        a: isUS
+          ? "Fruxal is built for US businesses from solo operators to mid-market companies across 245+ industries. Whether you're a restaurant owner in Texas, a contractor in California, or a professional services firm in New York — Fruxal is designed for your situation, including state-specific tax rules and government programs."
+          : "Fruxal is built for Canadian businesses from solo operators to mid-market companies across 245+ industries. Whether you're a restaurant owner in Quebec, a contractor in Ontario, or a professional services firm in BC — Fruxal is designed for your situation, including province-specific tax rules and government programs.",
       },
       {
         q: "How do I get started?",
@@ -39,7 +41,7 @@ const SECTIONS = [
     items: [
       {
         q: "What is a diagnostic and how does it work?",
-        a: "The diagnostic is a full AI-powered financial analysis of your business. You fill in an intake form (about 5 minutes) with your revenue, payroll, margins, and other financials. Fruxal's AI engine analyzes your data against 4,273+ leak detectors, industry benchmarks, and Canadian tax rules. It generates a health score out of 100, ranked findings with exact dollar amounts, a compliance risk matrix, and government grant matches. The analysis runs in about 60–90 seconds. Your assigned rep reviews these results with you on a call.",
+        a: `The diagnostic is a full AI-powered financial analysis of your business. You fill in an intake form (about 5 minutes) with your revenue, payroll, margins, and other financials. Fruxal's AI engine analyzes your data against 4,273+ leak detectors, industry benchmarks, and ${isUS ? "US" : "Canadian"} tax rules. It generates a health score out of 100, ranked findings with exact dollar amounts, a compliance risk matrix, and government program matches. The analysis runs in about 60–90 seconds. Your assigned rep reviews these results with you on a call.`,
       },
       {
         q: "What is the health score?",
@@ -90,7 +92,9 @@ const SECTIONS = [
     items: [
       {
         q: "How does Fruxal recommend tools and services?",
-        a: "Fruxal matches each finding to the most relevant tool or service from a database of 33,000+ solutions, filtered by your industry, province, and business size. For example, a payment processing leak for a Quebec restaurant would surface Helcim (Canadian processor, 1–2% savings) and Moneris (French support). Your rep uses these matches when executing your recovery.",
+        a: isUS
+          ? "Fruxal matches each finding to the most relevant tool or service from a database of 33,000+ solutions, filtered by your industry, state, and business size. For example, a payment processing leak for a Texas restaurant would surface processors with lower interchange rates. Your rep uses these matches when executing your recovery."
+          : "Fruxal matches each finding to the most relevant tool or service from a database of 33,000+ solutions, filtered by your industry, province, and business size. For example, a payment processing leak for a Quebec restaurant would surface Helcim (Canadian processor, 1–2% savings) and Moneris (French support). Your rep uses these matches when executing your recovery.",
       },
       {
         q: "Does Fruxal have affiliate relationships with recommended solutions?",
@@ -106,8 +110,10 @@ const SECTIONS = [
         a: `Yes. Every diagnostic includes a government programs section that matches your business to federal and ${region} grants, subsidies, and tax credits you may be eligible for. This includes programs like ${programs}. Fruxal shows the maximum funding amount and eligibility summary for each program.`,
       },
       {
-        q: "What is SR&ED and do I qualify?",
-        a: "SR&ED (Scientific Research & Experimental Development) is Canada's largest R&D tax incentive — worth up to 35% of eligible expenditures for Canadian-controlled private corporations. It's far broader than most business owners realize: software development, process improvement, and problem-solving activities often qualify. Fruxal's Enterprise diagnostic specifically checks for SR&ED eligibility and flags it if your activities may qualify. You'll still need a qualified SR&ED consultant to file, but Fruxal will tell you if it's worth looking into.",
+        q: isUS ? "What is the R&D Tax Credit and do I qualify?" : "What is SR&ED and do I qualify?",
+        a: isUS
+          ? "The federal R&D Tax Credit (Section 41) provides 14-20% credit on qualified research expenses — wages, supplies, and contract research. It's far broader than most business owners realize: software development, process improvement, and technical uncertainty work often qualify. Startups under $5M gross receipts can apply up to $500K against payroll taxes. Fruxal's diagnostic specifically checks for R&D credit eligibility."
+          : "SR&ED (Scientific Research & Experimental Development) is Canada's largest R&D tax incentive — worth up to 35% of eligible expenditures for Canadian-controlled private corporations. It's far broader than most business owners realize: software development, process improvement, and problem-solving activities often qualify. Fruxal's Enterprise diagnostic specifically checks for SR&ED eligibility and flags it if your activities may qualify. You'll still need a qualified SR&ED consultant to file, but Fruxal will tell you if it's worth looking into.",
       },
       {
         q: "Are the government programs up to date?",
@@ -141,7 +147,9 @@ const SECTIONS = [
     items: [
       {
         q: "How does billing work?",
-        a: "All tools are free, no credit card required. If you qualify for a recovery engagement, you sign an agreement confirming the 12% contingency fee. When your rep confirms a saving — for example, a $15,000 SR&ED refund — you receive the money first, then we invoice our 12% fee ($1,800 in this example). You never pay before recovery. All amounts are in Canadian dollars.",
+        a: isUS
+          ? "All tools are free, no credit card required. If you qualify for a recovery engagement, you sign an agreement confirming the 12% contingency fee. When your rep confirms a saving — for example, a $15,000 R&D credit — you receive the money first, then we invoice our 12% fee ($1,800 in this example). You never pay before recovery."
+          : "All tools are free, no credit card required. If you qualify for a recovery engagement, you sign an agreement confirming the 12% contingency fee. When your rep confirms a saving — for example, a $15,000 SR&ED refund — you receive the money first, then we invoice our 12% fee ($1,800 in this example). You never pay before recovery. All amounts are in Canadian dollars.",
       },
       {
         q: "Can I end an engagement early?",
@@ -162,11 +170,15 @@ const SECTIONS = [
     items: [
       {
         q: "Is my financial data safe?",
-        a: "Your data is stored in a Canadian-region PostgreSQL database with row-level security — your data is only accessible by you and your assigned rep. Financial data you enter is used only to generate your diagnostic and recovery plan, and is never shared or sold. Documents uploaded by Enterprise users are used only for your analysis. Fruxal does not display advertising and does not share user data with third parties for marketing purposes.",
+        a: isUS
+          ? "Your data is stored in a secure PostgreSQL database with row-level security — your data is only accessible by you and your assigned rep. Financial data you enter is used only to generate your diagnostic and recovery plan, and is never shared or sold. Documents uploaded by Enterprise users are used only for your analysis. Fruxal does not display advertising and does not share user data with third parties for marketing purposes."
+          : "Your data is stored in a Canadian-region PostgreSQL database with row-level security — your data is only accessible by you and your assigned rep. Financial data you enter is used only to generate your diagnostic and recovery plan, and is never shared or sold. Documents uploaded by Enterprise users are used only for your analysis. Fruxal does not display advertising and does not share user data with third parties for marketing purposes.",
       },
       {
         q: "Does Fruxal connect to my accounting software or bank?",
-        a: "Not automatically. You enter your financials manually in the intake form. Enterprise users can upload PDF documents (T2 corporate returns, financial statements, GST/HST returns, T4 summaries, bank statements) and Fruxal's AI extracts and verifies the data. Direct accounting software integrations (QuickBooks, Xero) are on the roadmap but not yet available.",
+        a: isUS
+          ? "Not automatically. You enter your financials manually in the intake form. Enterprise users can upload PDF documents (Form 1120/1120-S, financial statements, sales tax returns, W-2 summaries, bank statements) and Fruxal's AI extracts and verifies the data. Direct accounting software integrations (QuickBooks, Xero) are on the roadmap but not yet available."
+          : "Not automatically. You enter your financials manually in the intake form. Enterprise users can upload PDF documents (T2 corporate returns, financial statements, GST/HST returns, T4 summaries, bank statements) and Fruxal's AI extracts and verifies the data. Direct accounting software integrations (QuickBooks, Xero) are on the roadmap but not yet available.",
       },
     ],
   },

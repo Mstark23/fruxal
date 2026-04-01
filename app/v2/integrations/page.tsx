@@ -433,7 +433,7 @@ export default function IntegrationsPage() {
             {[
               { name: "Gusto / Humi",    desc: "Exact payroll & benefits"     },
               { name: "Shopify",         desc: "GMV, returns, abandoned cart"  },
-              { name: "CRA My Business", desc: "Tax balances & filing history" },
+              { name: typeof document !== "undefined" && document.cookie.includes("fruxal_country=US") ? "IRS Online Account" : "CRA My Business", desc: "Tax balances & filing history" },
             ].map(i => (
               <div key={i.name} className="bg-white border border-border-light rounded-xl px-4 py-3 opacity-50">
                 <p className="text-[12px] font-semibold text-ink-secondary">{i.name}</p>
