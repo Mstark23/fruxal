@@ -970,13 +970,49 @@ export default function DiagnosticIntakePage() {
               </div>
             )}
 
+            {/* Progress overlay during analysis */}
+            {saving && (
+              <div className="bg-white border border-border-light rounded-2xl p-6 shadow-sm">
+                {/* Progress bar */}
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
+                  <div className="h-full bg-brand rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPct}%` }} />
+                </div>
+
+                {/* Current step */}
+                <p className="text-sm font-semibold text-ink mb-1">
+                  {isFr ? PROGRESS_STEPS[progressStep]?.labelFR : PROGRESS_STEPS[progressStep]?.label}
+                </p>
+                <p className="text-[11px] text-ink-faint mb-4">{progressPct}% complete</p>
+
+                {/* Step checklist */}
+                <div className="space-y-2">
+                  {PROGRESS_STEPS.slice(0, progressStep + 1).map((s, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${i < progressStep ? "bg-brand" : "bg-brand/20 animate-pulse"}`}>
+                        {i < progressStep ? (
+                          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        ) : (
+                          <div className="w-1.5 h-1.5 bg-brand rounded-full" />
+                        )}
+                      </div>
+                      <span className={`text-[11px] ${i < progressStep ? "text-ink-faint line-through" : "text-ink font-medium"}`}>
+                        {isFr ? s.labelFR : s.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-[10px] text-ink-faint mt-4 text-center">Analysis takes 60–120 seconds. Your data has been saved.</p>
+              </div>
+            )}
+
             {/* Launch button */}
-            <button onClick={launchDiagnostic} disabled={saving}
-              className="w-full py-4 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-60 shadow-lg shadow-brand/20">
-              {saving
-                ? (isFr ? "Lancement en cours..." : "Launching analysis...")
-                : (isFr ? "Lancer le diagnostic →" : "Launch Diagnostic →")}
-            </button>
+            {!saving && (
+              <button onClick={launchDiagnostic} disabled={saving}
+                className="w-full py-4 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-60 shadow-lg shadow-brand/20">
+                {isFr ? "Lancer le diagnostic →" : "Launch Diagnostic →"}
+              </button>
+            )}
             <p className="text-center text-[10px] text-ink-faint">
               {t("Analysis takes 60–120 seconds", "L'analyse prend 60–120 secondes")}
             </p>
