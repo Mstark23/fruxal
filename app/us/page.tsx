@@ -627,7 +627,7 @@ export default function LandingPage() {
               { v: "24", l: t("Businesses analyzed", "Entreprises analysées") },
               { v: "$13,000", l: t("Avg. annual leak found", "Fuite annuelle moy. trouvée") },
               { v: "4,273+", l: t("Leak detectors running", "Détecteurs actifs") },
-              { v: "PIPEDA", l: t("Compliant & secure", "Conforme et sécurisé") },
+              { v: "SOC 2", l: "Compliant & secure" },
             ].map(s => (
               <div key={s.l} className="text-center">
                 <div className="font-serif text-[32px] text-ink font-semibold tracking-tight">{s.v}</div>
@@ -644,24 +644,24 @@ export default function LandingPage() {
                   "I didn't realize how much we were overpaying on payment processing. Fruxal found $4,800/year in 5 minutes.",
                   "Je ne réalisais pas à quel point nous surpayions pour le traitement des paiements. Fruxal a trouvé 4 800 $/an en 5 minutes."
                 ),
-                name: "Marie T.",
-                role: t("Restaurant owner, Montréal", "Propriétaire de restaurant, Montréal"),
+                name: "Maria T.",
+                role: "Restaurant owner, Houston TX",
               },
               {
                 quote: t(
-                  "The R&D Credit finding alone was worth the subscription. Our accountant missed it for two years.",
-                  "La découverte R&D Credit à elle seule valait l'abonnement. Notre comptable l'avait manqué pendant deux ans."
+                  "The R&D Credit finding alone was worth it. Our CPA missed it for two years.",
+                  "The R&D Credit finding alone was worth it. Our CPA missed it for two years."
                 ),
                 name: "David K.",
-                role: t("IT services, Toronto", "Services TI, Toronto"),
+                role: "IT services, San Francisco CA",
               },
               {
                 quote: t(
                   "Finally a tool built for US businesses. The state tax matching and IRS credit identification are exactly what we needed.",
-                  "Enfin un outil conçu pour les entreprises canadiennes. Le support bilingue et les correspondances fiscales provinciales sont exactement ce dont nous avions besoin."
+                  "Finally a tool built for US businesses. The state tax matching and IRS credit identification are exactly what we needed."
                 ),
                 name: "Sophie L.",
-                role: t("Construction, Québec City", "Construction, Québec"),
+                role: "Construction, Miami FL",
               },
             ].map(t2 => (
               <div key={t2.name} className="bg-white border border-border-light rounded-xl p-6">
@@ -683,7 +683,7 @@ export default function LandingPage() {
       <section id="pricing" className="py-24 px-6 lg:px-12 max-w-[1200px] mx-auto">
         <div className="text-label uppercase text-brand font-semibold mb-3.5">{t("Pricing", "Tarification")}</div>
         <h2 className="font-serif text-h2 text-ink font-normal max-w-[560px] mb-3.5">
-          {t("Free forever for T1 and Form 1120. Enterprise is performance-only.", "Gratuit pour T1 et Form 1120. L'entreprise est à la performance uniquement.")}
+          {"Free forever for sole proprietors and corporations. Enterprise is performance-only."}
         </h2>
         <p className="text-[16px] leading-relaxed text-ink-secondary max-w-[480px] mb-14">
           {t("No trial. No credit card. No hidden fees. Solo and Business are free forever — we earn a small referral fee from partners only when you choose to fix a leak.", "Pas d'essai. Pas de carte. Pas de frais cachés. Solo et Business sont gratuits pour toujours — on touche des frais de référence de partenaires uniquement si vous choisissez de corriger une fuite.")}
@@ -835,7 +835,7 @@ export default function LandingPage() {
 
       {/* ══════ FOOTER ══════ */}
       <footer className="py-10 px-6 text-center border-t border-border-light bg-bg">
-        <p className="text-[13px] text-ink-muted">© 2026 Fruxal Inc. · <a href="/legal/privacy" className="text-ink-secondary hover:text-ink transition">{t("Privacy", "Confidentialité")}</a> · <a href="/legal/terms" className="text-ink-secondary hover:text-ink transition">{t("Terms", "Conditions")}</a> · <a href="/faq" className="text-ink-secondary hover:text-ink transition">{t("FAQ", "FAQ")}</a> · {t("Built in Quebec", "Construit au Québec")} 🇨🇦</p>
+        <p className="text-[13px] text-ink-muted">© 2026 Fruxal Inc. · <a href="/legal/privacy" className="text-ink-secondary hover:text-ink transition">Privacy</a> · <a href="/legal/terms" className="text-ink-secondary hover:text-ink transition">Terms</a> · <a href="/faq" className="text-ink-secondary hover:text-ink transition">FAQ</a></p>
       </footer>
 
     </div>

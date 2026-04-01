@@ -336,7 +336,7 @@ export default function PrescanPage() {
                   <FlagToggle
                     on={answers.uses_payroll_software}
                     onClick={() => set("uses_payroll_software", !answers.uses_payroll_software)}
-                    label="I use payroll software (Ceridian, ADP, Payworks, etc.)"
+                    label={answers.country === "US" ? "I use payroll software (ADP, Gusto, Paychex, etc.)" : "I use payroll software (Ceridian, ADP, Payworks, etc.)"}
                     
                   />
                 )}
