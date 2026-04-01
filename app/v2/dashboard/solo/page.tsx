@@ -518,22 +518,64 @@ export default function SoloDashboard() {
 
             {(() => { return (
               <>
-                {displayLeaks.slice(0, 6).map((l, i) => (
-                  <div key={i} onClick={() => router.push("/v2/leaks")} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 hover:bg-surface-hover transition-colors cursor-pointer group" style={{ background: l.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
-                    <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors">{isFR ? (l.title_fr || l.title) : l.title}</div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[11px] text-ink-faint">{l.category}</span>
-                        {l.confidence && (<div className="flex items-center gap-1"><div className="w-5 h-[3px] bg-bg-section rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: l.confidence + "%", background: l.confidence >= 70 ? "#2D7A50" : "#C4841D" }} /></div><span className="text-[10px] text-ink-faint">{Math.round(l.confidence)}%</span></div>)}
+                {displayLeaks.slice(0, 6).map((l: any, i) => {
+                  const costMonth = Math.round((l.impact_max ?? l.impact_min ?? 0) / 12);
+                  return (
+                  <div key={i} className="px-4 py-3 border-b border-border-light last:border-0" style={{ background: l.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
+                    {/* Header row: severity dot + title + impact */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-[7px] h-[7px] rounded-full shrink-0 mt-1.5" style={{ background: SEV_DOT[l.severity] || "#8E8C85" }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[12px] font-semibold text-ink">{isFR ? (l.title_fr || l.title) : l.title}</div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
+                            style={{ background: l.severity === "critical" ? "rgba(179,64,64,0.08)" : l.severity === "high" ? "rgba(196,132,29,0.08)" : "rgba(142,140,133,0.08)", color: SEV_DOT[l.severity] || "#8E8C85" }}>
+                            {l.severity}
+                          </span>
+                          <span className="text-[10px] text-ink-faint">{l.category}</span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-serif text-[15px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
+                        <div className="text-[9px] text-ink-faint">/{t("yr", "an")}</div>
                       </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
-                      <div className="text-[10px] text-ink-faint">/{t("yr", "an")}</div>
-                    </div>
+
+                    {/* Root cause — WHY this is happening (customer needs to understand) */}
+                    {l.root_cause && (
+                      <div className="ml-[19px] mt-2 text-[11px] text-ink-muted leading-relaxed">
+                        <span className="font-semibold text-ink-secondary">{t("Why: ", "Pourquoi : ")}</span>
+                        {isFR ? (l.root_cause_fr || l.root_cause) : l.root_cause}
+                      </div>
+                    )}
+
+                    {/* Cost of inaction — URGENCY */}
+                    {costMonth > 100 && (
+                      <div className="ml-[19px] mt-1.5 flex items-center gap-1.5">
+                        <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="text-[10px] font-semibold text-amber-600">
+                          {t(`Costing you $${costMonth.toLocaleString()} every month you wait`, `Vous coûte ${costMonth.toLocaleString()} $ chaque mois d'attente`)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Compliance risk — what happens if NOT fixed */}
+                    {l.compliance_risk && l.severity === "critical" && (
+                      <div className="ml-[19px] mt-1.5 px-2.5 py-1.5 rounded-lg text-[10px]" style={{ background: "rgba(179,64,64,0.04)", border: "1px solid rgba(179,64,64,0.08)" }}>
+                        <span className="font-semibold text-negative">{t("Risk if unfixed: ", "Risque si non corrigé : ")}</span>
+                        <span className="text-negative/80">{l.compliance_risk}</span>
+                      </div>
+                    )}
+
+                    {/* Cascade — what fixing this unlocks */}
+                    {l.cascade_unlocks && (
+                      <div className="ml-[19px] mt-1.5 text-[10px] text-positive">
+                        <span className="font-semibold">{t("Bonus: ", "Bonus : ")}</span>{l.cascade_unlocks}
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
                   <span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span>

@@ -506,30 +506,61 @@ export default function BusinessDashboard() {
             {diagFindings.length > 0 ? (
               // Diagnostic view: show findings with calculation math
               <>
-                {diagFindings.slice(0, 6).map((f: any, i: number) => (
-                  <div key={i} onClick={() => router.push("/v2/leaks")} className={"px-4 py-3 border-b border-border-light last:border-0 group hover:bg-surface-hover cursor-pointer"}
+                {diagFindings.slice(0, 6).map((f: any, i: number) => {
+                  const costMonth = Math.round((f.impact_max ?? f.impact_min ?? 0) / 12);
+                  return (
+                  <div key={i} className={"px-4 py-3 border-b border-border-light last:border-0"}
                     style={{ borderLeft: `3px solid ${SEV_DOT[f.severity] || "#C5C2BB"}`, background: f.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
                     <div className="flex items-start gap-2 mb-1">
                       <div className="w-[6px] h-[6px] rounded-full shrink-0 mt-1.5" style={{ background: SEV_DOT[f.severity] || "#8E8C85" }} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className={"text-[12px] font-semibold text-ink truncate group-hover:text-brand transition-colors"}>{isFR ? (f.title_fr || f.title) : f.title}</span>
+                          <span className="text-[12px] font-semibold text-ink truncate">{isFR ? (f.title_fr || f.title) : f.title}</span>
                           <span className="font-serif text-[13px] font-bold text-negative ml-auto shrink-0">${(f.impact_max ?? f.impact_min ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[11px] text-ink-faint">{f.category}</span>
-                          {(f.cost_of_inaction_90_days ?? 0) > 0 && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(196,132,29,0.06)", color: "#C4841D" }}>⏱ 90d: ${f.cost_of_inaction_90_days.toLocaleString()}</span>}
+                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
+                            style={{ background: f.severity === "critical" ? "rgba(179,64,64,0.08)" : f.severity === "high" ? "rgba(196,132,29,0.08)" : "rgba(142,140,133,0.08)", color: SEV_DOT[f.severity] || "#8E8C85" }}>
+                            {f.severity}
+                          </span>
+                          <span className="text-[10px] text-ink-faint">{f.category}</span>
+                          {costMonth > 100 && <span className="text-[10px] font-semibold text-amber-600">⏱ ${t(`$${costMonth.toLocaleString()}/mo lost`, `${costMonth.toLocaleString()} $/mois perdu`)}</span>}
                         </div>
                       </div>
                     </div>
-                    {/* Calculation math — visible only for paid users */}
+
+                    {/* Root cause — customer context */}
+                    {f.root_cause && (
+                      <div className="ml-[14px] mt-1.5 text-[11px] text-ink-muted">
+                        <span className="font-semibold text-ink-secondary">{t("Why: ", "Pourquoi : ")}</span>
+                        {isFR ? (f.root_cause_fr || f.root_cause) : f.root_cause}
+                      </div>
+                    )}
+
+                    {/* Calculation math */}
                     {f.calculation_shown && (
                       <div className="ml-[14px] mt-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(27,58,45,0.03)", border: "1px solid rgba(27,58,45,0.06)" }}>
-                        <code className="text-[11px] text-ink-muted leading-relaxed">{f.calculation_shown}</code>
+                        <code className="text-[11px] text-ink-muted leading-relaxed">{isFR ? (f.calculation_shown_fr || f.calculation_shown) : f.calculation_shown}</code>
+                      </div>
+                    )}
+
+                    {/* Compliance risk for critical findings */}
+                    {f.compliance_risk && f.severity === "critical" && (
+                      <div className="ml-[14px] mt-1.5 px-2.5 py-1.5 rounded-lg text-[10px]" style={{ background: "rgba(179,64,64,0.04)", border: "1px solid rgba(179,64,64,0.08)" }}>
+                        <span className="font-semibold text-negative">{t("Risk: ", "Risque : ")}</span>
+                        <span className="text-negative/80">{f.compliance_risk}</span>
+                      </div>
+                    )}
+
+                    {/* Cascade bonus */}
+                    {f.cascade_unlocks && (
+                      <div className="ml-[14px] mt-1.5 text-[10px] text-positive">
+                        <span className="font-semibold">{t("Fixing this also unlocks: ", "Corriger ceci débloque aussi : ")}</span>{f.cascade_unlocks}
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
                 {/* Lock gate for unpaid users */}
                 <div className="px-4 py-2.5 bg-bg flex justify-between items-center">
                   <span className="text-[10px] font-semibold text-ink-muted">Total</span>
