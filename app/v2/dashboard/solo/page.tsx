@@ -164,7 +164,7 @@ export default function SoloDashboard() {
   const recovered = (totalSavings) ?? 0;
   const recovPct = totalLeak > 0 ? Math.min(100, Math.round((recovered / totalLeak) * 100)) : 0;
   const streak = (progress as any)?.streak;
-  const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon apres-midi") : t("Good evening", "Bonsoir"); })();
+  const greeting = (() => { const h = new Date().getHours(); return h < 12 ? t("Good morning", "Bonjour") : h < 18 ? t("Good afternoon", "Bon après-midi") : t("Good evening", "Bonsoir"); })();
 
   // fade must be declared before early returns so it is not between returns
   function fadeDelay(d: number) {
@@ -245,7 +245,9 @@ export default function SoloDashboard() {
               )}
             </div>
           </div>
-          <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
+          {profile.country !== "US" && (
+            <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
+          )}
         </div>
 
         {/* ANALYZING BANNER */}
@@ -289,7 +291,7 @@ export default function SoloDashboard() {
                   { n: "3", text: t("Your rep gets the full picture to recover it", "Votre rep récupère le tout pour vous") },
                 ].map(s => (
                   <div key={s.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <div className="text-[10px] font-black text-amber-400 mb-1">STEP {s.n}</div>
+                    <div className="text-[10px] font-black text-amber-400 mb-1">{t("STEP", "ÉTAPE")} {s.n}</div>
                     <div className="text-[11px] text-white/70 leading-tight">{s.text}</div>
                   </div>
                 ))}
@@ -357,7 +359,7 @@ export default function SoloDashboard() {
                   { n: "3", text: t(`You keep ${100 - (assignedRep.contingency_rate ?? 12)}% of what we recover`, `Vous gardez ${100 - (assignedRep.contingency_rate ?? 12)}% de ce qu'on récupère`) },
                 ].map(s => (
                   <div key={s.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <div className="text-[10px] font-black text-emerald-400 mb-1">STEP {s.n}</div>
+                    <div className="text-[10px] font-black text-emerald-400 mb-1">{t("STEP", "ÉTAPE")} {s.n}</div>
                     <div className="text-[11px] text-white/70 leading-tight">{s.text}</div>
                   </div>
                 ))}
@@ -458,13 +460,20 @@ export default function SoloDashboard() {
 
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Money Recovered", "Argent récupéré")}</div>
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
-                <div className="text-[11px] text-ink-muted mt-1.5">{leaksFixed} {t("fixed", "corriges")}</div>
+            {recovered > 0 || leaksFixed > 0 ? (
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
+                  <div className="text-[11px] text-ink-muted mt-1.5">{leaksFixed} {t("fixed", "corrigées")}</div>
+                </div>
+                <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
               </div>
-              <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
-            </div>
+            ) : (
+              <div>
+                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{t("Pending recovery", "En attente de récupération")}</div>
+              </div>
+            )}
           </div>
 
           <button onClick={() => router.push("/v2/obligations")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -482,57 +491,11 @@ export default function SoloDashboard() {
           {/* COL 1: LEAKS */}
           <div className="bg-white rounded-xl border border-border-light overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="px-4 py-3 border-b border-border-light flex justify-between items-center">
-              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Detected Leaks", "Fuites detectees")}</span>
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">{t("Detected Leaks", "Fuites détectées")}</span>
               <button onClick={() => router.push("/v2/leaks")} className="text-[11px] font-semibold text-brand hover:underline">{t("View all", "Tout voir")}</button>
             </div>
 
-            {false ? (
-              <>
-                {displayLeaks.slice(0, 1).map((l, i) => (
-                  <div key={i} className="px-4 py-3 border-b border-border-light" style={{ background: "rgba(179,64,64,0.015)" }}>
-                    <div className="flex items-start gap-3">
-                      <div className="w-[7px] h-[7px] rounded-full shrink-0 mt-1.5" style={{ background: "#B34040" }} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[11px] font-bold text-white bg-negative px-1.5 py-0.5 rounded">#1</span>
-                          <span className="text-[12px] font-semibold text-ink">{isFR ? (l.title_fr || l.title) : l.title}</span>
-                        </div>
-                        <div className="text-[11px] text-ink-muted mb-2">{l.category}</div>
-                        {(isFR ? (l.action_fr || l.action) : l.action) && (
-                          <div className="p-2 rounded-lg text-[11px] text-ink-secondary mb-2" style={{ background: "rgba(27,58,45,0.04)", border: "1px solid rgba(27,58,45,0.06)" }}>
-                            <span className="font-semibold text-brand">{t("Fix: ", "Correction : ")}</span>{isFR ? (l.action_fr || l.action) : l.action}
-                          </div>
-                        )}
-                        {l.affiliates && l.affiliates.length > 0 && (
-                          <div className="flex gap-1.5 flex-wrap">
-                            {l.affiliates.slice(0, 3).map((a, ai) => (
-                              <a key={ai} href={a.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-brand border border-brand/20 px-2 py-0.5 rounded-full hover:bg-brand/5 transition">{a.name}</a>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
-                        <div className="text-[10px] text-ink-faint">/{t("yr", "an")}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <div className="relative">
-                  {displayLeaks.slice(1, 4).map((l, i) => (
-                    <div key={i} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light" style={{ filter: "blur(5px)", userSelect: "none", pointerEvents: "none" }}>
-                      <div className="w-[7px] h-[7px] rounded-full shrink-0 bg-border" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12px] font-semibold text-ink truncate">{isFR ? (l.title_fr || l.title) : l.title}</div>
-                        <div className="text-[11px] text-ink-faint">{l.category}</div>
-                      </div>
-                      <div className="font-serif text-[14px] font-bold text-negative">${(l.impact_max ?? l.impact_min ?? 0).toLocaleString()}</div>
-                    </div>
-                  ))}
-                </div>
-                {allLeaks.length > 1 && null}
-              </>
-            ) : (
+            {(() => { return (
               <>
                 {displayLeaks.slice(0, 6).map((l, i) => (
                   <div key={i} onClick={() => router.push("/v2/leaks")} className="px-4 py-2.5 flex items-center gap-3 border-b border-border-light last:border-0 hover:bg-surface-hover transition-colors cursor-pointer group" style={{ background: l.severity === "critical" ? "rgba(179,64,64,0.02)" : "transparent" }}>
@@ -555,7 +518,7 @@ export default function SoloDashboard() {
                   <span className="font-serif text-[14px] font-bold text-negative">${(totalLeak ?? 0).toLocaleString()}/{t("yr", "an")}</span>
                 </div>
               </>
-            )}
+            ); })()}
           </div>
 
           {/* COL 2: REP STATUS + RECOVERY PROGRESS */}
