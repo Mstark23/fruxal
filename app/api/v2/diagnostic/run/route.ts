@@ -32,6 +32,7 @@ function getAnthropic() {
 export const maxDuration = 120;
 
 // Per-user rate limiter for diagnostic runs
+// Per-user rate limiter
 const _diagRl = new Map<string, { c: number; r: number }>();
 
 function diagRateCheck(userId: string): boolean {
@@ -45,6 +46,18 @@ function diagRateCheck(userId: string): boolean {
   }
   entry.c++;
   return entry.c <= max;
+}
+
+// Global hourly cost protection — prevent runaway API costs
+let _globalDiagCount = 0;
+let _globalDiagResetAt = Date.now() + 3_600_000;
+const GLOBAL_HOURLY_LIMIT = 100; // max 100 diagnostic runs per hour across all users (~$1,500/hr cap)
+
+function globalCostCheck(): boolean {
+  const now = Date.now();
+  if (now > _globalDiagResetAt) { _globalDiagCount = 0; _globalDiagResetAt = now + 3_600_000; }
+  _globalDiagCount++;
+  return _globalDiagCount <= GLOBAL_HOURLY_LIMIT;
 }
 
 // Cleanup stale entries every 15 minutes
@@ -68,6 +81,13 @@ export async function POST(req: NextRequest) {
     const language: string = body.language || "en";
     const userId = ((token as any)?.id || token?.sub) as string;
 
+    // Global cost protection — cap total API spend per hour
+    if (!globalCostCheck()) {
+      return NextResponse.json(
+        { success: false, error: "System is experiencing high demand. Please try again in a few minutes." },
+        { status: 503 }
+      );
+    }
     // Rate limit: max 3 diagnostic runs per 10 min per user
     if (!diagRateCheck(userId)) {
       return NextResponse.json(

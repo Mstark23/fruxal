@@ -121,10 +121,12 @@ export async function GET(req: NextRequest) {
       } catch { /* non-fatal */ }
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       data: { programs, total: programs.length },
     });
+    res.headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=7200");
+    return res;
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }

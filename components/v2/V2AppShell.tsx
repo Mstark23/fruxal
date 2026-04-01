@@ -96,7 +96,7 @@ export function V2AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => { router.push("/settings"); setMobileMenuOpen(false); }}
             className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-400"
           >
-            ⚙️ Settings
+            ⚙️ {t("Settings", "Paramètres")}
           </button>
         </div>
       )}
@@ -115,7 +115,7 @@ export function V2AppShell({ children }: { children: React.ReactNode }) {
           }`}
         >
           <div className="text-lg">📊</div>
-          <div className="text-[10px]">Dashboard</div>
+          <div className="text-[10px]">{t("Dashboard", "Tableau de bord")}</div>
         </button>
         <button
           onClick={() => router.push("/v2/chat")}
@@ -124,7 +124,7 @@ export function V2AppShell({ children }: { children: React.ReactNode }) {
           }`}
         >
           <div className="text-lg">💬</div>
-          <div className="text-[10px]">AI Advisor</div>
+          <div className="text-[10px]">{t("AI Advisor", "Conseiller IA")}</div>
         </button>
       </div>
     </div>

@@ -26,63 +26,62 @@ export async function GET(req: NextRequest) {
       .eq("source", "rep_recommendation")
       .order("created_at", { ascending: false });
 
-    // Enrich with referral status + partner commission data
-    const enriched = await Promise.all((recs || []).map(async (r) => {
+    // Batch fetch all related data (avoid N+1)
+    const referralIds = (recs || []).map(r => r.referral_id).filter(Boolean) as string[];
+    const pipelineIds = [...new Set((recs || []).map(r => r.pipeline_id).filter(Boolean))] as string[];
+
+    const [referralsRes, pipelinesRes] = await Promise.all([
+      referralIds.length > 0
+        ? supabaseAdmin.from("affiliate_referrals").select("id, status, converted_at, actual_savings_monthly, partner_id").in("id", referralIds)
+        : Promise.resolve({ data: [] }),
+      pipelineIds.length > 0
+        ? supabaseAdmin.from("tier3_pipeline").select("id, company_name").in("id", pipelineIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const refMap: Record<string, any> = {};
+    for (const r of referralsRes.data || []) refMap[r.id] = r;
+    const pipeMap: Record<string, string> = {};
+    for (const p of (pipelinesRes.data || []) as any[]) pipeMap[p.id] = p.company_name;
+
+    // Batch fetch partner commission data
+    const partnerIds = [...new Set(Object.values(refMap).map(r => r.partner_id).filter(Boolean))];
+    const { data: partners } = partnerIds.length > 0
+      ? await supabaseAdmin.from("affiliate_partners").select("id, commission_type, commission_value").in("id", partnerIds)
+      : { data: [] };
+    const partnerMap: Record<string, any> = {};
+    for (const p of partners || []) partnerMap[p.id] = p;
+
+    // Enrich with pre-fetched data (no more N+1)
+    const enriched = (recs || []).map((r) => {
+      const ref = r.referral_id ? refMap[r.referral_id] : null;
       let status = "recommended";
       let convertedAt = null;
       let commissionEarned = 0;
 
-      if (r.referral_id) {
-        const { data: ref } = await supabaseAdmin
-          .from("affiliate_referrals")
-          .select("status, converted_at, actual_savings_monthly, partner_id")
-          .eq("id", r.referral_id)
-          .maybeSingle();
-
-        if (ref) {
-          status = ref.status?.toLowerCase() || "recommended";
-          convertedAt = ref.converted_at;
-
-          if (ref.status === "CONVERTED" && ref.partner_id) {
-            // Get partner commission
-            const { data: partner } = await supabaseAdmin
-              .from("affiliate_partners")
-              .select("commission_type, commission_value, commission_recurring")
-              .eq("id", ref.partner_id)
-              .maybeSingle();
-
-            if (partner && ref.actual_savings_monthly) {
-              if (partner.commission_type === "percentage") {
-                commissionEarned = Math.round(ref.actual_savings_monthly * 12 * (partner.commission_value / 100));
-              } else {
-                commissionEarned = partner.commission_value;
-              }
-            }
+      if (ref) {
+        status = ref.status?.toLowerCase() || "recommended";
+        convertedAt = ref.converted_at;
+        if (ref.status === "CONVERTED" && ref.partner_id) {
+          const partner = partnerMap[ref.partner_id];
+          if (partner && ref.actual_savings_monthly) {
+            commissionEarned = partner.commission_type === "percentage"
+              ? Math.round(ref.actual_savings_monthly * 12 * (partner.commission_value / 100))
+              : partner.commission_value;
           }
         }
-      }
-
-      // Get client name from pipeline
-      let clientName = "Client";
-      if (r.pipeline_id) {
-        const { data: pipe } = await supabaseAdmin
-          .from("tier3_pipeline")
-          .select("company_name")
-          .eq("id", r.pipeline_id)
-          .maybeSingle();
-        if (pipe?.company_name) clientName = pipe.company_name;
       }
 
       return {
         partner: r.partner,
         category: r.vertical,
-        client: clientName,
+        client: r.pipeline_id ? (pipeMap[r.pipeline_id] || "Client") : "Client",
         date: r.created_at,
         status,
         converted_at: convertedAt,
         commission_earned: commissionEarned,
       };
-    }));
+    });
 
     // Summary stats
     const totalRecommendations = enriched.length;

@@ -23,8 +23,8 @@ export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
     if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
-
     const norm = email.toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(norm)) return NextResponse.json({ success: true }); // silent reject invalid format
 
     // Always return success to prevent email enumeration
     const { data: user } = await supabaseAdmin

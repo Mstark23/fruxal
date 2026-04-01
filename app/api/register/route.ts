@@ -41,6 +41,9 @@ export async function POST(request: NextRequest) {
     }
 
     const email = rawEmail.toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 });
+    }
     const sb = supabaseAdmin;
 
     const { data: existing } = await sb
