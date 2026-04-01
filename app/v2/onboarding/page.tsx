@@ -92,6 +92,7 @@ const STEPS = [
   { key: "financial", label: "Finances", labelFr: "Finances", icon: "" },
   { key: "dates", label: "Key Dates", labelFr: "Dates clés", icon: "" },
   { key: "situation", label: "Situation", labelFr: "Situation", icon: "" },
+  { key: "connect", label: "Connect", labelFr: "Connexions", icon: "" },
   { key: "confirm", label: "Launch", labelFr: "Lancement", icon: "" },
 ];
 
@@ -524,7 +525,61 @@ export default function OnboardingPage() {
           )}
 
           {/* ═══ STEP 4: Confirmation ═══ */}
-          {step === 4 && !syncing && (
+          {/* ═══ STEP 4: Connect Data Sources ═══ */}
+          {step === 4 && (
+            <div className="space-y-6" style={{ animation: "fadeUp 0.3s ease-out" }}>
+              <div>
+                <h2 className="text-lg font-bold text-ink mb-1">{isFr ? "Connectez vos données" : "Connect your data"}</h2>
+                <p className="text-xs text-ink-faint">{isFr ? "Optionnel — améliore la précision de votre diagnostic." : "Optional — improves the accuracy of your diagnostic."}</p>
+              </div>
+
+              <div className="space-y-3">
+                {/* QuickBooks */}
+                <button onClick={() => window.open("/api/quickbooks/connect", "_blank")}
+                  className="w-full flex items-center gap-4 p-4 bg-white border border-border-light rounded-xl hover:shadow-sm hover:border-brand/20 transition-all text-left">
+                  <div className="w-10 h-10 rounded-lg bg-[#2CA01C]/10 flex items-center justify-center shrink-0">
+                    <span className="text-[18px] font-black text-[#2CA01C]">QB</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-semibold text-ink">QuickBooks</div>
+                    <div className="text-[11px] text-ink-faint">{isFr ? "Importer revenus, dépenses et bilan automatiquement" : "Import revenue, expenses, and balance sheet automatically"}</div>
+                  </div>
+                  <span className="text-[11px] font-bold text-brand shrink-0">{isFr ? "Connecter →" : "Connect →"}</span>
+                </button>
+
+                {/* Plaid (Bank) */}
+                <button onClick={() => window.open("/v2/integrations", "_blank")}
+                  className="w-full flex items-center gap-4 p-4 bg-white border border-border-light rounded-xl hover:shadow-sm hover:border-brand/20 transition-all text-left">
+                  <div className="w-10 h-10 rounded-lg bg-[#0A85EA]/10 flex items-center justify-center shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A85EA" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-semibold text-ink">{isFr ? "Compte bancaire" : "Bank Account"}</div>
+                    <div className="text-[11px] text-ink-faint">{isFr ? "Connectez via Plaid pour une vue complète de vos transactions" : "Connect via Plaid for a complete view of your transactions"}</div>
+                  </div>
+                  <span className="text-[11px] font-bold text-brand shrink-0">{isFr ? "Connecter →" : "Connect →"}</span>
+                </button>
+
+                {/* Stripe */}
+                <button onClick={() => window.open("/v2/integrations", "_blank")}
+                  className="w-full flex items-center gap-4 p-4 bg-white border border-border-light rounded-xl hover:shadow-sm hover:border-brand/20 transition-all text-left">
+                  <div className="w-10 h-10 rounded-lg bg-[#635BFF]/10 flex items-center justify-center shrink-0">
+                    <span className="text-[18px] font-black text-[#635BFF]">S</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-semibold text-ink">Stripe</div>
+                    <div className="text-[11px] text-ink-faint">{isFr ? "Synchroniser vos revenus, frais de traitement et abonnements" : "Sync your revenue, processing fees, and subscriptions"}</div>
+                  </div>
+                  <span className="text-[11px] font-bold text-brand shrink-0">{isFr ? "Connecter →" : "Connect →"}</span>
+                </button>
+              </div>
+
+              <p className="text-[10px] text-ink-faint text-center">{isFr ? "Vous pouvez aussi connecter vos comptes plus tard depuis les paramètres." : "You can also connect your accounts later from settings."}</p>
+            </div>
+          )}
+
+          {/* ═══ STEP 5: Review + Launch ═══ */}
+          {step === 5 && !syncing && (
             <div className="space-y-5">
               <StepHeader
                 title={isFr ? "Tout est prêt!" : "All Set!"}
@@ -605,7 +660,7 @@ export default function OnboardingPage() {
               </button>
             ) : <div />}
 
-            {step < 4 ? (
+            {step < 5 ? (
               <button onClick={() => setStep(s => s + 1)} disabled={!canAdvance()}
                 className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                 {isFr ? "Continuer" : "Continue"} →
