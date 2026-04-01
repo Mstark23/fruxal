@@ -105,16 +105,23 @@ export async function POST(req: NextRequest) {
       };
     } catch {
       // Context fetch failed — use minimal fallback prompt, never block chat
+      // Try to get country from profile first, then cookie
+      let fallbackCountry = req.cookies.get?.("fruxal_country")?.value || "CA";
+      try {
+        const { data: fp } = await supabase.from("business_profiles").select("country").eq("user_id", userId).maybeSingle();
+        if (fp?.country) fallbackCountry = fp.country;
+      } catch { /* non-fatal */ }
+      const isUS = fallbackCountry === "US";
       systemPrompt = [
-        req.cookies.get?.("fruxal_country")?.value === "US"
+        isUS
           ? "You are the Fruxal AI Business Advisor — a no-BS financial advisor for US businesses."
           : "You are the Fruxal AI Business Advisor — a no-BS financial advisor for Canadian SMBs.",
         "Answer questions about revenue leaks, tax optimization, compliance, and business finance.",
-        req.cookies.get?.("fruxal_country")?.value === "US"
-          ? "Be specific, numbers-first, and actionable. Always cite US context (IRS, state-specific rules, FICA, W-2 vs 1099)."
+        isUS
+          ? "Be specific, numbers-first, and actionable. Always cite US context (IRS, state-specific rules, FICA, W-2 vs 1099). Say CPA not accountant. Never use Canadian terms."
           : "Be specific, numbers-first, and actionable. Always cite Canadian context (CRA, province-specific rules).",
-        "Respond in French if the user writes in French.",
-      ].join("\n");
+        !isUS ? "Respond in French if the user writes in French." : "",
+      ].filter(Boolean).join("\n");
     }
 
     // ── Conversation history (unchanged) ──────────────────────────────────────

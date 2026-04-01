@@ -798,9 +798,15 @@ export default function DiagnosticIntakePage() {
               },
               {
                 key: "gst",
-                title: t("Sales Tax Return (GST34 / Form 941)", "Déclaration TPS/TVQ (GST34)"),
-                subtitle: t("Most recent sales tax filing", "Dernière déclaration TPS/TVQ"),
-                impact: t("Total sales, ITC claims, quick method check", "Ventes totales, CTI, vérification méthode rapide"),
+                title: data.country === "US"
+                  ? "Sales Tax / Payroll Return (State Sales Tax, Form 941)"
+                  : t("Sales Tax Return (GST34)", "Déclaration TPS/TVQ (GST34)"),
+                subtitle: data.country === "US"
+                  ? "Most recent state sales tax or quarterly payroll filing"
+                  : t("Most recent sales tax filing", "Dernière déclaration TPS/TVQ"),
+                impact: data.country === "US"
+                  ? "Sales tax collected, payroll deposits, FUTA status"
+                  : t("Total sales, ITC claims, quick method check", "Ventes totales, CTI, vérification méthode rapide"),
                 priority: t("High impact", "Impact élevé"),
               },
               {
@@ -961,7 +967,7 @@ export default function DiagnosticIntakePage() {
               <div className="bg-white border border-border-light rounded-xl p-4">
                 <p className="text-[10px] font-bold text-ink uppercase mb-2">{t("Documents read by Claude", "Documents lus par Claude")}</p>
                 <div className="space-y-1">
-                  {[["t2", data.country === "US" ? "Form 1120 / 1120-S" : "T2 Corporate Return"],["financials","Financial Statements"],["gst", data.country === "US" ? "Form 941 / Sales Tax Return" : "GST/HST Return"],["t4", data.country === "US" ? "W-2 / Form 941 Summary" : "T4 Summary"],["bank","Bank Statements"]].map(([k,label]) =>
+                  {[["t2", data.country === "US" ? "Form 1120 / 1120-S" : "T2 Corporate Return"],["financials","Financial Statements"],["gst", data.country === "US" ? "State Sales Tax / Form 941" : "GST/HST Return"],["t4", data.country === "US" ? "W-2 Summary" : "T4 Summary"],["bank","Bank Statements"]].map(([k,label]) =>
                     docs[k].data ? (
                       <div key={k} className="flex items-center justify-between">
                         <span className="text-[10px] text-ink-muted">✓ {label}</span>
