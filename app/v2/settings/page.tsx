@@ -80,12 +80,20 @@ type Tab = "profile" | "dates" | "notifications" | "language" | "billing";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STRUCTURES = [
+const CA_STRUCTURES_LIST = [
   { value: "sole_proprietor", en: "Sole Proprietor", fr: "Travailleur autonome" },
   { value: "corporation", en: "Corporation (Inc.)", fr: "Société par actions (Inc.)" },
   { value: "partnership", en: "Partnership", fr: "Société en nom collectif" },
   { value: "cooperative", en: "Cooperative", fr: "Coopérative" },
   { value: "npo", en: "Non-Profit", fr: "Organisme sans but lucratif" },
+];
+const US_STRUCTURES_LIST = [
+  { value: "sole_proprietor", en: "Sole Proprietor", fr: "Sole Proprietor" },
+  { value: "llc", en: "LLC (Limited Liability Company)", fr: "LLC" },
+  { value: "s_corp", en: "S-Corporation", fr: "S-Corporation" },
+  { value: "c_corp", en: "C-Corporation", fr: "C-Corporation" },
+  { value: "partnership", en: "Partnership", fr: "Partnership" },
+  { value: "npo", en: "Non-Profit (501c3)", fr: "Non-Profit" },
 ];
 
 const PROVINCES = [
@@ -133,7 +141,7 @@ const INDUSTRIES = [
   { value: "other", en: "Other", fr: "Autre" },
 ];
 
-const TIMEZONES = [
+const CA_TIMEZONES = [
   { value: "America/St_Johns", label: "Newfoundland (UTC-3:30)" },
   { value: "America/Halifax", label: "Atlantic (UTC-4)" },
   { value: "America/Montreal", label: "Eastern (UTC-5)" },
@@ -141,6 +149,15 @@ const TIMEZONES = [
   { value: "America/Winnipeg", label: "Central (UTC-6)" },
   { value: "America/Edmonton", label: "Mountain (UTC-7)" },
   { value: "America/Vancouver", label: "Pacific (UTC-8)" },
+];
+const US_TIMEZONES = [
+  { value: "America/New_York", label: "Eastern (UTC-5)" },
+  { value: "America/Chicago", label: "Central (UTC-6)" },
+  { value: "America/Denver", label: "Mountain (UTC-7)" },
+  { value: "America/Phoenix", label: "Arizona (UTC-7, no DST)" },
+  { value: "America/Los_Angeles", label: "Pacific (UTC-8)" },
+  { value: "America/Anchorage", label: "Alaska (UTC-9)" },
+  { value: "Pacific/Honolulu", label: "Hawaii (UTC-10)" },
 ];
 
 const EMAIL_FREQ = [
@@ -372,7 +389,7 @@ export default function SettingsPage() {
                     </Field>
                     <Field label={isFr ? "Structure" : "Structure"}>
                       <select value={profile.structure} onChange={e => updateProfile("structure", e.target.value)} className="input-field">
-                        {STRUCTURES.map(s => <option key={s.value} value={s.value}>{isFr ? s.fr : s.en}</option>)}
+                        {(profile.country === "US" ? US_STRUCTURES_LIST : CA_STRUCTURES_LIST).map(s => <option key={s.value} value={s.value}>{isFr ? s.fr : s.en}</option>)}
                       </select>
                     </Field>
                   </div>
@@ -565,7 +582,7 @@ export default function SettingsPage() {
                   <Field label={isFr ? "Fuseau" : "Timezone"}>
                     <select value={notifPrefs?.timezone || "America/Montreal"}
                       onChange={e => updateNotif("timezone", e.target.value)} className="input-field">
-                      {TIMEZONES.map(tz => (
+                      {(profile.country === "US" ? US_TIMEZONES : CA_TIMEZONES).map(tz => (
                         <option key={tz.value} value={tz.value}>{tz.label}</option>
                       ))}
                     </select>

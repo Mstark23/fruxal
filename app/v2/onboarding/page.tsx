@@ -95,12 +95,20 @@ const STEPS = [
   { key: "confirm", label: "Launch", labelFr: "Lancement", icon: "" },
 ];
 
-const STRUCTURES = [
+const CA_STRUCTURES = [
   { value: "sole_proprietor", label: "Sole Proprietor", labelFr: "Travailleur autonome" },
   { value: "corporation", label: "Corporation (Inc.)", labelFr: "Société par actions (Inc.)" },
   { value: "partnership", label: "Partnership", labelFr: "Société en nom collectif" },
   { value: "cooperative", label: "Cooperative", labelFr: "Coopérative" },
   { value: "npo", label: "Non-Profit", labelFr: "Organisme sans but lucratif" },
+];
+const US_STRUCTURES = [
+  { value: "sole_proprietor", label: "Sole Proprietor", labelFr: "Sole Proprietor" },
+  { value: "llc", label: "LLC (Limited Liability Company)", labelFr: "LLC" },
+  { value: "s_corp", label: "S-Corporation", labelFr: "S-Corporation" },
+  { value: "c_corp", label: "C-Corporation", labelFr: "C-Corporation" },
+  { value: "partnership", label: "Partnership", labelFr: "Partnership" },
+  { value: "npo", label: "Non-Profit (501c3)", labelFr: "Non-Profit" },
 ];
 
 // Provinces/states loaded dynamically via CA_PROVINCES / US_STATES from lib/country
@@ -320,7 +328,7 @@ export default function OnboardingPage() {
 
               <Field label={isFr ? "Structure juridique" : "Legal structure"}>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {STRUCTURES.map(s => (
+                  {(data.country === "US" ? US_STRUCTURES : CA_STRUCTURES).map(s => (
                     <button key={s.value} onClick={() => update("structure", s.value)}
                       className={`px-3 py-2.5 rounded-lg text-xs transition-all ${
                         data.structure === s.value

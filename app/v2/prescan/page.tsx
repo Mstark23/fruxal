@@ -63,10 +63,17 @@ const INDUSTRIES = [
   { value: "other", label: "Other", fr: "Autre" },
 ];
 
-const STRUCTURES = [
+const CA_STRUCTS = [
   { value: "sole_proprietor", label: "Sole Proprietor / Self-employed", fr: "Travailleur autonome / Propriétaire unique" },
   { value: "corporation", label: "Incorporated (Inc. / Ltd.)", fr: "Incorporé (Inc. / Ltée)" },
   { value: "partnership", label: "Partnership", fr: "Société de personnes" },
+];
+const US_STRUCTS = [
+  { value: "sole_proprietor", label: "Sole Proprietor / Self-employed", fr: "Sole Proprietor" },
+  { value: "llc", label: "LLC (Limited Liability Company)", fr: "LLC" },
+  { value: "s_corp", label: "S-Corporation", fr: "S-Corporation" },
+  { value: "c_corp", label: "C-Corporation", fr: "C-Corporation" },
+  { value: "partnership", label: "Partnership", fr: "Partnership" },
 ];
 
 function getRevenueRanges(isFR: boolean) { return [
@@ -225,7 +232,7 @@ export default function PrescanPage() {
             <div className="space-y-6">
               <Question q="How is your business set up legally? (This affects which tax strategies are available to you.)" qfr="Comment votre entreprise est-elle structurée juridiquement? (Cela détermine les stratégies fiscales disponibles.)" isFR={isFR} />
               <div className="space-y-2">
-                {STRUCTURES.map(s => (
+                {(answers.country === "US" ? US_STRUCTS : CA_STRUCTS).map(s => (
                   <OptionButton selected={answers.structure === s.value}
                     onClick={() => set("structure", s.value)} label={s.label} icon="" wide />
                 ))}

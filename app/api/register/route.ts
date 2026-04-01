@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
       let province: string | null = null;
       let revenue: number | null = null;
       let employeeCount: number | null = null;
+      let country: string | null = null;
       let prescanRunExists = false;
 
       try {
@@ -124,12 +125,20 @@ export async function POST(request: NextRequest) {
             const snap = prData.input_snapshot || {};
             industry = snap.industry || prData.industry || industry;
             province = snap.province || prData.province || null;
+            country = snap.country || null;
             revenue = snap.annual_revenue || (snap.monthly_revenue ? snap.monthly_revenue * 12 : null);
             await sb.from("prescan_results").update({ user_id: userId }).eq("id", prData.id);
           }
         } catch (e: any) {
           console.warn("⚠️ Bridge source B (prescan_results):", e.message);
         }
+      }
+
+      // Detect country from prescan data, request host, or cookie
+      if (!country) {
+        const host = req.headers.get("host") || "";
+        if (host.includes("fruxal.com") && !host.includes("fruxal.ca")) country = "US";
+        else country = "CA";
       }
 
       const hasProfileData = !!(industry && industry !== "generic_small_business" && province);
@@ -176,7 +185,7 @@ export async function POST(request: NextRequest) {
           user_id: userId,
           business_name: name ? `${name}'s Business` : "My Business",
           industry, industry_slug: industry,
-          province,
+          province, country,
           monthly_revenue: revenue ? Math.round(revenue / 12) : null,
           annual_revenue: revenue || null,
           employee_count: employeeCount,
@@ -195,7 +204,7 @@ export async function POST(request: NextRequest) {
             user_id: userId,
             business_name: name ? `${name}'s Business` : "My Business",
             industry, industry_slug: industry,
-            province,
+            province, country,
             annual_revenue: revenue || null,
             onboarding_completed: hasProfileData,
             updated_at: new Date().toISOString(),
@@ -283,7 +292,7 @@ export async function POST(request: NextRequest) {
             const { data: genericLeaks } = await sb
               .from("provincial_leak_detectors")
               .select("slug, annual_impact_min")
-              .eq("province", province)
+              .in("province", province ? [province, "ALL"] : ["ALL"])
               .eq("is_active", true);
             if (genericLeaks && genericLeaks.length > 0) {
               const leakRows = genericLeaks.map((g: any) => ({

@@ -493,11 +493,20 @@ export default function DiagnosticIntakePage() {
                 <select value={data.structure} onChange={e => setData(d => ({ ...d, structure: e.target.value }))}
                   className="w-full px-3 py-2.5 text-sm bg-white border border-border rounded-lg focus:outline-none focus:border-brand/50">
                   <option value="">{t("Select...", "Choisir...")}</option>
-                  <option value="sole_proprietor">{t("Sole Proprietor", "Travailleur autonome")}</option>
-                  <option value="corporation">{t("Corporation (Inc.)", "Société par actions")}</option>
-                  <option value="partnership">{t("Partnership", "Société en nom collectif")}</option>
-                  <option value="cooperative">{t("Cooperative", "Coopérative")}</option>
-                  <option value="npo">{t("Non-Profit", "OSBL")}</option>
+                  {data.country === "US" ? (<>
+                    <option value="sole_proprietor">Sole Proprietor</option>
+                    <option value="llc">LLC (Limited Liability Company)</option>
+                    <option value="s_corp">S-Corporation</option>
+                    <option value="c_corp">C-Corporation</option>
+                    <option value="partnership">Partnership</option>
+                    <option value="npo">Non-Profit (501c3)</option>
+                  </>) : (<>
+                    <option value="sole_proprietor">{t("Sole Proprietor", "Travailleur autonome")}</option>
+                    <option value="corporation">{t("Corporation (Inc.)", "Société par actions")}</option>
+                    <option value="partnership">{t("Partnership", "Société en nom collectif")}</option>
+                    <option value="cooperative">{t("Cooperative", "Coopérative")}</option>
+                    <option value="npo">{t("Non-Profit", "OSBL")}</option>
+                  </>)}
                 </select>
               </div>
 

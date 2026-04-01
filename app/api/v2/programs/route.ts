@@ -37,7 +37,26 @@ const PROGRAMS_BC = [
   { slug: "bc-employer-training", name: "BC Employer Training Grant",              name_fr: "Subvention formation employeurs C.-B.", category: "training",     level: "provincial", max_amount: 300000,  description: "Up to $10,000 per employee for skills training to upskill your BC workforce.", url: "https://www.workbc.ca/Employer-Resources/BC-Employer-Training-Grant" },
 ];
 
-function getProgramsForProvince(province: string | undefined) {
+// US Federal Programs
+const PROGRAMS_US_FEDERAL = [
+  { slug: "us-rd-tax-credit",    name: "R&D Tax Credit (Section 41)",              name_fr: null, category: "tax_credit",   level: "federal", max_amount: 500000,  description: "Federal tax credit of 14-20% on qualified research expenses. Startups under $5M can apply up to $500K against payroll taxes.", url: "https://www.irs.gov/businesses/research-credit" },
+  { slug: "us-section-179",      name: "Section 179 Expensing",                    name_fr: null, category: "tax_deduction",level: "federal", max_amount: 1220000, description: "Immediate expensing of up to $1.22M on equipment, vehicles, software, and furniture.", url: "https://www.irs.gov/newsroom/section-179-deduction" },
+  { slug: "us-qbi-deduction",    name: "QBI Deduction (Section 199A)",             name_fr: null, category: "tax_deduction",level: "federal", max_amount: 100000,  description: "20% deduction on qualified business income for pass-through entities (S-corps, LLCs, partnerships).", url: "https://www.irs.gov/newsroom/qualified-business-income-deduction" },
+  { slug: "us-wotc",             name: "Work Opportunity Tax Credit (WOTC)",       name_fr: null, category: "tax_credit",   level: "federal", max_amount: 96000,   description: "Tax credit of $2,400-$9,600 per eligible new hire (veterans, SNAP recipients, long-term unemployed).", url: "https://www.irs.gov/businesses/small-businesses-self-employed/work-opportunity-tax-credit" },
+  { slug: "us-sba-7a-loan",      name: "SBA 7(a) Loan Program",                    name_fr: null, category: "loan",         level: "federal", max_amount: 5000000, description: "Government-guaranteed loans up to $5M for working capital, equipment, and real estate.", url: "https://www.sba.gov/funding-programs/loans/7a-loans" },
+  { slug: "us-sba-504-loan",     name: "SBA 504 Loan Program",                     name_fr: null, category: "loan",         level: "federal", max_amount: 5500000, description: "Long-term fixed-rate financing for major assets. Below-market rates. 10-20 year terms.", url: "https://www.sba.gov/funding-programs/loans/504-loans" },
+  { slug: "us-sbir-grant",       name: "SBIR/STTR Grant Program",                  name_fr: null, category: "grant",        level: "federal", max_amount: 1750000, description: "Non-dilutive R&D grants: Phase I up to $275K, Phase II up to $1.75M. 11 federal agencies.", url: "https://www.sbir.gov/" },
+  { slug: "us-disabled-access",  name: "Disabled Access Credit (Section 44)",      name_fr: null, category: "tax_credit",   level: "federal", max_amount: 5000,    description: "50% credit on accessibility expenditures between $250-$10,250 for small businesses.", url: "https://www.irs.gov/forms-pubs/about-form-8826" },
+];
+
+const US_STATES_SET = new Set(["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"]);
+
+function getProgramsForProvince(province: string | undefined, country?: string | null) {
+  // US programs
+  if (country === "US" || (province && US_STATES_SET.has(province.toUpperCase()))) {
+    return PROGRAMS_US_FEDERAL;
+  }
+  // CA programs
   const federal = PROGRAMS_FEDERAL;
   const prov = province?.toUpperCase();
   if (prov === "QC") return [...federal, ...PROGRAMS_QC];
@@ -52,26 +71,27 @@ export async function GET(req: NextRequest) {
     const userId = ((token as any)?.id || token?.sub) as string | undefined;
 
     let province: string | undefined;
+    let country: string | null = null;
 
-    // Get province from business profile
+    // Get province + country from business profile
     if (userId) {
       try {
         const { data: profile } = await supabaseAdmin
           .from("business_profiles")
-          .select("province")
+          .select("province, country")
           .eq("user_id", userId)
           .single();
         if (profile?.province) province = profile.province;
+        if (profile?.country) country = profile.country;
       } catch { /* non-fatal */ }
     }
 
     // If no province from profile, check query params
-    if (!province) {
-      province = req.nextUrl.searchParams.get("province") || undefined;
-    }
+    if (!province) province = req.nextUrl.searchParams.get("province") || undefined;
+    if (!country) country = req.nextUrl.searchParams.get("country") || null;
 
-    // Get programs for this province
-    const programs = getProgramsForProvince(province);
+    // Get programs for this province/country
+    const programs = getProgramsForProvince(province, country);
 
     // Also check if there is a completed diagnostic with AI-generated programs
     // If so, merge them (AI programs take priority)
