@@ -347,6 +347,162 @@ CROSS-VALIDATION — DO NOT OUTPUT JSON UNTIL ALL PASS
 □ URGENCY: priority_sequence ordered by monthly_cost_of_delay, NOT by total amount
 □ RED FLAGS: Any detected red flag is severity "critical" regardless of dollar size
 □ BENCHMARKS: All benchmark_comparisons use real industry data, not invented numbers
+
+══════════════════════════════════════════════════════════════════════════════
+EXACT TAX BRACKETS — USE THESE NUMBERS, DO NOT GUESS
+══════════════════════════════════════════════════════════════════════════════
+
+${isUS ? `
+2025 US FEDERAL INDIVIDUAL TAX BRACKETS (use for sole prop / pass-through):
+  $0–$11,925:       10%
+  $11,926–$48,475:  12%
+  $48,476–$103,350: 22%
+  $103,351–$197,300: 24%
+  $197,301–$250,525: 32%
+  $250,526–$626,350: 35%
+  $626,351+:         37%
+
+This business's taxable income ~$${ebitdaEst.toLocaleString()} → marginal rate: ${ebitdaEst > 626350 ? "37%" : ebitdaEst > 250525 ? "35%" : ebitdaEst > 197300 ? "32%" : ebitdaEst > 103350 ? "24%" : ebitdaEst > 48475 ? "22%" : "12%"}
+Effective rate on $${ebitdaEst.toLocaleString()}: ~${ebitdaEst > 197300 ? "26-30%" : ebitdaEst > 103350 ? "20-24%" : ebitdaEst > 48475 ? "15-18%" : "10-13%"}
+
+SE TAX: 15.3% on first $176,100 (12.4% SS + 2.9% Medicare). 2.9% Medicare only above $176,100.
+Additional 0.9% Medicare surcharge above $200K (single) / $250K (joint).
+
+CORPORATE: C-corp flat 21% federal.
+S-corp: passes through to individual rates above. No entity-level tax.
+
+${["FL","TX","NV","WA","WY","SD","TN","AK","NH"].includes(province) ? `STATE: ${province} — NO state income tax.` :
+  province === "CA" ? "STATE: California — 1-13.3% (13.3% above $1M). Franchise tax min $800." :
+  province === "NY" ? "STATE: New York — 4-10.9% + NYC 3.078-3.876% if applicable." :
+  province === "IL" ? "STATE: Illinois — flat 4.95% individual, 9.5% corporate." :
+  province === "NJ" ? "STATE: New Jersey — 1.4-10.75% (10.75% above $1M)." :
+  province === "PA" ? "STATE: Pennsylvania — flat 3.07% individual, 8.99% corporate." :
+  province === "GA" ? "STATE: Georgia — 5.49% flat (phasing to 4.99%)." :
+  province === "OH" ? "STATE: Ohio — no individual income tax on business income <$26K. CAT 0.26% on gross >$1M." :
+  province === "MA" ? "STATE: Massachusetts — 5% flat + 4% surtax above $1M." :
+  `STATE: ${province} — verify current state income tax rates.`}
+` : `
+2025 CANADIAN FEDERAL TAX BRACKETS (individual):
+  $0–$57,375:        15%
+  $57,376–$114,750:  20.5%
+  $114,751–$158,468: 26%
+  $158,469–$220,000: 29%
+  $220,001+:         33%
+
+PROVINCIAL (${province}):
+${province === "QC" ? "  15-25.75% (25.75% above $126,000). Combined top: ~53.3%." :
+  province === "ON" ? "  5.05-13.16% (13.16% above $220K). Combined top: ~53.53%. Ontario surtax applies." :
+  province === "BC" ? "  5.06-20.5% (20.5% above $252K). Combined top: ~53.5%." :
+  province === "AB" ? "  10% flat. Combined top: ~48%. Lowest combined rate in Canada." :
+  province === "SK" ? "  10.5-14.5%. Combined top: ~47.5%." :
+  province === "MB" ? "  10.8-17.4%. Combined top: ~50.4%." :
+  province === "NS" ? "  8.79-21%. Combined top: ~54%." :
+  province === "NB" ? "  9.4-19.5%. Combined top: ~52.5%." :
+  province === "NL" ? "  8.7-21.8%. Combined top: ~54.8%. Highest in Canada." :
+  province === "PE" ? "  9.65-16.7%. Combined top: ~51.37%." :
+  `  Verify ${province} rates.`}
+
+This business's taxable income ~$${ebitdaEst.toLocaleString()} → combined marginal rate: ~${ebitdaEst > 220000 ? "50-54%" : ebitdaEst > 158468 ? "45-49%" : ebitdaEst > 114750 ? "41-45%" : ebitdaEst > 57375 ? "33-38%" : "25-30%"}
+
+CCPC RATES (small business):
+  Federal SBD: 9% on first $500K active business income
+  Provincial: ${province === "AB" ? "2% (total 11%)" : province === "QC" ? "3.2% (total 12.2%)" : province === "ON" ? "3.2% (total 12.2%)" : province === "SK" ? "1% (total 10%)" : province === "MB" ? "0% (total 9%)" : "~3% (total ~12%)"}
+  General rate (above $500K): 15% federal + provincial = ~${province === "AB" ? "23%" : "26-27%"}
+
+TAX INTEGRATION:
+  Personal marginal rate: ~${Math.round((ebitdaEst > 220000 ? 0.52 : ebitdaEst > 114750 ? 0.43 : 0.35) * 100)}%
+  CCPC SBD rate: ~${province === "AB" ? "11%" : "12%"}
+  Rate gap (reason to incorporate): ~${Math.round(((ebitdaEst > 220000 ? 0.52 : ebitdaEst > 114750 ? 0.43 : 0.35) - 0.12) * 100)}%
+  Annual deferral on $${ebitdaEst.toLocaleString()}: ~$${Math.round(ebitdaEst * ((ebitdaEst > 220000 ? 0.52 : ebitdaEst > 114750 ? 0.43 : 0.35) - 0.12) * 0.5).toLocaleString()}
+`}
+
+══════════════════════════════════════════════════════════════════════════════
+TIME-SENSITIVE DEADLINES — Flag anything due within 90 days
+══════════════════════════════════════════════════════════════════════════════
+
+Current date context: early 2026. Check these deadlines:
+
+${isUS ? `
+QUARTERLY (check which is NEXT):
+  Form 941 (payroll): due Apr 30, Jul 31, Oct 31, Jan 31
+  Estimated tax (1040-ES): due Apr 15, Jun 15, Sep 15, Jan 15
+  ${province === "CA" ? "CA DE-9 (payroll): due same as 941" : ""}
+
+ANNUAL:
+  S-corp return (1120-S): due March 15 (or Sep 15 with extension)
+  C-corp return (1120): due April 15 (or Oct 15 with extension)
+  Personal (1040): due April 15 (or Oct 15 with extension)
+  W-2/1099-NEC: due January 31
+  Form 940 (FUTA): due January 31
+  S-corp election (Form 2553): March 15 for calendar year (or within 75 days)
+` : `
+QUARTERLY (check which is NEXT):
+  GST/HST return: depends on filing frequency (monthly/quarterly/annual)
+  ${province === "QC" ? "QST return: same frequency as GST" : ""}
+  Source deduction remittances: by 15th of following month (or earlier for large remitters)
+
+ANNUAL:
+  T2 corporate return: 6 months after fiscal year-end
+  T1 personal: April 30 (or June 15 if self-employed, but balance due April 30)
+  T4 summary: February 28
+  T5 summary: February 28
+  ${province === "QC" ? "Relevé 1: February 28" : ""}
+  ROE: within 5 business days of interruption of earnings
+`}
+
+If any deadline is within 90 days and the business is NOT prepared,
+flag it as a finding with high urgency and cost_of_inaction_monthly.
+
+══════════════════════════════════════════════════════════════════════════════
+ANTI-HALLUCINATION RULES — What you MUST NOT invent
+══════════════════════════════════════════════════════════════════════════════
+
+1. NEVER invent a benchmark number. If you don't know the exact industry P50/P75,
+   say "estimated based on similar industries" in the gap field.
+
+2. NEVER invent a product URL. If you're not 100% certain the URL is correct,
+   use the domain root (e.g., https://gusto.com not https://gusto.com/pricing/s-corp).
+
+3. NEVER invent a form number. Use ONLY these real forms:
+${isUS ? `
+   IRS: 1040, 1120, 1120-S, 1065, 941, 940, W-2, W-4, 1099-NEC, 1099-MISC,
+   2553, 8832, 8850 (WOTC), 6765 (R&D), 4562 (depreciation), 8829 (home office),
+   Schedule C, Schedule SE, Schedule K-1, 1040-ES, 8995 (QBI)
+   State: varies — reference the state form number only if you know it exactly.
+` : `
+   CRA: T1, T2, T4, T4A, T5, T5013, T661 (SR&ED), RC4288, RC7004 (Quick Method),
+   GST34, QST return, ROE, NR4
+   Provincial: Relevé 1 (QC), Ontario Annual Return, ${province === "QC" ? "CNESST registration form" : "WCB registration"}
+`}
+
+4. NEVER invent a tax rate. Use the exact brackets provided above.
+
+5. NEVER invent an employee count or revenue figure. Use ONLY $${rev.toLocaleString()}
+   and ${emp} employees as provided. If a finding needs data you don't have,
+   set confidence_level to "low" and explain what data is missing in data_source.
+
+6. NEVER extrapolate beyond the data. If the business has $${rev.toLocaleString()} revenue
+   and you're calculating a cost that requires payroll data you don't have,
+   estimate conservatively and note it: "estimated at 25% of revenue = $${Math.round(rev * 0.25).toLocaleString()}"
+
+7. SOLUTIONS: Only recommend products you are confident exist as of 2025:
+${isUS ? `
+   Payroll: Gusto, ADP, Paychex, Justworks, Rippling, OnPay
+   Accounting: QuickBooks, Xero, FreshBooks, Wave, Bench
+   Tax: TurboTax, H&R Block, TaxAct
+   Insurance: Next Insurance, Hiscox, Pie Insurance, Coalition
+   Banking: Mercury, Relay, Novo, Bluevine
+   Legal: LegalZoom, ZenBusiness, Northwest Registered Agent
+   R&D Credit: Boast.ai, Clarus R+D, alliantgroup
+` : `
+   Payroll: Wagepoint, Humi, Ceridian, ADP Canada, Nethris
+   Accounting: QuickBooks Canada, Xero, Wave, Sage
+   Tax filing: TurboTax Canada, Wealthsimple Tax
+   Insurance: Zensurance, NEXT Canada, BrokerLink, HUB
+   Banking: RBC Commercial, TD Business, Desjardins (QC)
+   Legal: Ownr (RBC), BDC, MNP
+   SR&ED: Boast.ai, Swifter, Mentor Works
+`}
 `.trim();
 }
 
