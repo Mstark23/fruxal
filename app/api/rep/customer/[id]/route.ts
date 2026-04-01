@@ -61,7 +61,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           status:      l.status || "detected",
           recommendation: null,
           action_items:   [],
-          affiliates:     [],
+          solutions:      l.solutions || [],
+          affiliates:     l.affiliates || [],
         }));
 
         const totalLeak = findings.reduce((s: number, f: any) => s + (f.impact_max || f.impact_min || 0), 0);
