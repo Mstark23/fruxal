@@ -85,7 +85,7 @@ export default function SoloDashboard() {
       // Free users who qualify by revenue stay on solo and see upgrade CTAs.
       setTier(detectedTier);
       if (d.recommended_plan) setRecommendedPlan(d.recommended_plan);
-      setProfile(d.profile || { province: "QC", country: "CA", industry: "Small Business", structure: "" });
+      setProfile(d.profile || { province: "", country: "", industry: "Small Business", structure: "" });
       setObligationsTotal(d.obligations?.total ?? 0);
       setOverdue(d.obligations?.overdue ?? 0);
       setPenaltyExposure(d.obligations?.penalty_exposure ?? 0);

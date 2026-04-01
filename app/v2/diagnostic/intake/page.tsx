@@ -649,9 +649,20 @@ export default function DiagnosticIntakePage() {
               <h3 className="text-[11px] font-bold text-ink uppercase tracking-wide">{t("Financial advisors", "Conseillers financiers")}</h3>
               <Toggle label="Has a CPA / accountant" labelFr="A un comptable CPA"
                 value={data.has_accountant} onChange={v => setData(d => ({ ...d, has_accountant: v }))} isFr={isFr} />
-              <Toggle label="Has a bookkeeper" labelFr="A un teneeur de livres"
+              <Toggle label="Has a bookkeeper" labelFr="A un teneur de livres"
                 value={data.has_bookkeeper} onChange={v => setData(d => ({ ...d, has_bookkeeper: v }))} isFr={isFr} />
             </div>
+
+            {/* Quebec-specific compliance */}
+            {data.province === "QC" && data.country !== "US" && (
+              <div className="bg-white border border-border-light rounded-xl p-4 space-y-3">
+                <h3 className="text-[11px] font-bold text-ink uppercase tracking-wide">{t("Quebec compliance", "Conformité québécoise")}</h3>
+                <Toggle label="Registered with CNESST (workers comp)" labelFr="Inscrit à la CNESST"
+                  value={(data as any).has_cnesst} onChange={v => setData(d => ({ ...d, has_cnesst: v }))} isFr={isFr} />
+                <Toggle label="Compliant with Law 25 (privacy)" labelFr="Conforme à la Loi 25 (vie privée)"
+                  value={(data as any).has_law25} onChange={v => setData(d => ({ ...d, has_law25: v }))} isFr={isFr} />
+              </div>
+            )}
 
             {/* Business activities */}
             <div className="bg-white border border-border-light rounded-xl p-4 space-y-3">

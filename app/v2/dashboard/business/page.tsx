@@ -83,7 +83,7 @@ export default function BusinessDashboard() {
         if (detectedTier === "free" || detectedTier === "solo" || detectedTier === "pro") { router.replace("/v2/dashboard/solo"); return; }
         if (detectedTier === "enterprise") { router.replace("/v2/dashboard/enterprise"); return; }
       }
-      setProfile(d.profile || { province: "QC", country: "CA", industry: "Small Business", structure: "" });
+      setProfile(d.profile || { province: "", country: "", industry: "Small Business", structure: "" });
       setObligationsTotal(d.obligations?.total ?? 0);
       setOverdue(d.obligations?.overdue ?? 0);
       setPenaltyExposure(d.obligations?.penalty_exposure ?? 0);

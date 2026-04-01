@@ -10,13 +10,7 @@ import { useRouter } from "next/navigation";
 import { US_STATES, CA_PROVINCES, getCountryFromCookie } from "@/lib/country";
 
 const _country = typeof document !== "undefined" ? getCountryFromCookie() : "CA";
-const PROVINCES = _country === "US" ? US_STATES : [
-  { value:"ON", label:"Ontario"          },{ value:"QC", label:"Québec"           },
-  { value:"BC", label:"British Columbia" },{ value:"AB", label:"Alberta"          },
-  { value:"SK", label:"Saskatchewan"     },{ value:"MB", label:"Manitoba"         },
-  { value:"NS", label:"Nova Scotia"      },{ value:"NB", label:"New Brunswick"    },
-  { value:"NL", label:"Newfoundland"     },{ value:"PE", label:"PEI"              },
-];
+const PROVINCES = _country === "US" ? US_STATES : CA_PROVINCES;
 
 const STRUCTURES = [
   { value:"ccpc",        label:"CCPC (private corp)"  },
