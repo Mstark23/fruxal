@@ -142,7 +142,7 @@ export default function PublicCompanyDiagnosticPage() {
               {[
                 "Real revenue & COGS", "Actual EBITDA margin", "Effective tax rate",
                 "Free cash flow", "Debt structure", "3-year trend",
-                "R&D spend (SR&ED)", "Working capital", "Return on equity",
+                "R&D spend", "Working capital", "Return on equity",
                 "Accounts receivable", "CapEx pattern", "Peer benchmarks",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-2 text-xs text-white/50">

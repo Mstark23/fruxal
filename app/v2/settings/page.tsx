@@ -13,6 +13,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useLang } from "@/hooks/useLang";
+import { US_STATES, CA_PROVINCES, getCountryFromCookie } from "@/lib/country";
 import { LangToggle } from "@/components/ui/LangToggle";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -377,9 +378,9 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <Field label={isFr ? "Province" : "Province"}>
+                    <Field label={profile.country === "US" ? "State" : isFr ? "Province" : "Province"}>
                       <select value={profile.province} onChange={e => updateProfile("province", e.target.value)} className="input-field">
-                        {PROVINCES.map(p => <option key={p.value} value={p.value}>{isFr ? p.fr : p.en}</option>)}
+                        {(profile.country === "US" ? US_STATES : CA_PROVINCES).map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                       </select>
                     </Field>
                     <Field label={isFr ? "Ville" : "City"}>

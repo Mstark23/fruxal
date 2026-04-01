@@ -7,8 +7,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { US_STATES, CA_PROVINCES, getCountryFromCookie } from "@/lib/country";
 
-const PROVINCES = [
+const _country = typeof document !== "undefined" ? getCountryFromCookie() : "CA";
+const PROVINCES = _country === "US" ? US_STATES : [
   { value:"ON", label:"Ontario"          },{ value:"QC", label:"Québec"           },
   { value:"BC", label:"British Columbia" },{ value:"AB", label:"Alberta"          },
   { value:"SK", label:"Saskatchewan"     },{ value:"MB", label:"Manitoba"         },
@@ -193,7 +195,7 @@ export default function PrivateCompanyPage() {
                 <input className={INP} value={form.business_name}
                   onChange={e => set("business_name", e.target.value)} placeholder="Acme Corp Inc." />
               </Field>
-              <Field label="Province">
+              <Field label={_country === "US" ? "State" : "Province"}>
                 <select className={SEL} value={form.province} onChange={e => set("province", e.target.value)}>
                   {PROVINCES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
