@@ -186,13 +186,18 @@ export default function BusinessDashboard() {
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(27,58,45,0.06)" }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.7" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
-        <p className="font-serif text-xl text-ink mb-2">{t("No diagnostic yet", "Aucun diagnostic")}</p>
+        <p className="font-serif text-xl text-ink mb-2">{t("Let's find your leaks", "Trouvons vos fuites")}</p>
         <p className="text-sm text-ink-muted mb-6">{profile.country === "US"
-                ? "Run your first diagnostic to see your full financial picture — health score, detected leaks, and a CPA briefing."
-                : t("Run your first diagnostic to see your full financial picture — health score, detected leaks, and an accountant briefing.", "Lancez votre premier diagnostic pour voir votre tableau financier complet — score de santé, fuites détectées et briefing comptable.")}</p>
-        <button onClick={() => router.push("/v2/diagnostic")} className="px-6 py-2.5 text-sm font-semibold text-white bg-brand rounded-lg hover:opacity-90 transition">
-          {t("Run diagnostic →", "Lancer le diagnostic →")}
-        </button>
+                ? "Answer a few questions about your business and get your financial health score, detected leaks, CPA briefing, and recovery plan — takes about 5 minutes."
+                : t("Answer a few questions about your business and get your financial health score, detected leaks, accountant briefing, and recovery plan — takes about 5 minutes.", "Répondez à quelques questions sur votre entreprise et obtenez votre score de santé, fuites détectées, briefing comptable et plan de récupération — environ 5 minutes.")}</p>
+        <div className="flex flex-col gap-3">
+          <button onClick={() => router.push("/v2/diagnostic")} className="px-6 py-2.5 text-sm font-semibold text-white bg-brand rounded-lg hover:opacity-90 transition">
+            {t("Run diagnostic →", "Lancer le diagnostic →")}
+          </button>
+          <button onClick={() => router.push("/")} className="px-6 py-2 text-[13px] font-semibold text-ink-muted bg-white border border-border-light rounded-lg hover:bg-bg-section transition">
+            {t("Or try the free prescan first →", "Ou essayer le préscan gratuit →")}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -217,19 +222,28 @@ export default function BusinessDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
+            {profile.country !== "US" && (
+              <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
+            )}
             {reportId && <button onClick={() => router.push(`/v2/diagnostic/${reportId}`)} className="h-6 px-2.5 text-[11px] font-bold text-brand bg-brand/5 border border-brand/15 rounded-md hover:bg-brand/10 transition">{t("Full Report →", "Rapport →")}</button>}
           </div>
         </div>
 
         {/* ANALYZING BANNER */}
         {isAnalyzing && (
-          <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+          <div className="w-full rounded-xl mb-4 overflow-hidden"
             style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)", ...fade(0.01) }}>
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-            <div className="flex-1">
-              <p className="text-[12px] font-semibold text-white">{t("Business diagnostic in progress…", "Diagnostic business en cours…")}</p>
-              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("This takes 30–60 seconds. Page will refresh automatically.", "Cela prend 30 à 60 secondes. La page se rafraîchira automatiquement.")}</p>
+            <div className="px-4 py-3 flex items-center gap-3">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+              <div className="flex-1">
+                <p className="text-[12px] font-semibold text-white">{t("Business diagnostic in progress…", "Diagnostic business en cours…")}</p>
+                <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>{t("Analyzing your business against 4,273 leak patterns…", "Analyse de votre entreprise avec 4 273 détecteurs de fuites…")}</p>
+              </div>
+            </div>
+            <div className="px-4 pb-3">
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-400 rounded-full animate-pulse" style={{ width: "65%", transition: "width 2s ease" }} />
+              </div>
             </div>
           </div>
         )}
@@ -265,7 +279,7 @@ export default function BusinessDashboard() {
                   { n: "3", text: t("Your rep gets the full picture to recover it", "Votre rep récupère le tout pour vous") },
                 ].map(s => (
                   <div key={s.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <div className="text-[10px] font-black text-amber-400 mb-1">STEP {s.n}</div>
+                    <div className="text-[10px] font-black text-amber-400 mb-1">{t("STEP", "ÉTAPE")} {s.n}</div>
                     <div className="text-[11px] text-white/70 leading-tight">{s.text}</div>
                   </div>
                 ))}
@@ -321,7 +335,7 @@ export default function BusinessDashboard() {
                   { n: "3", text: t(`You keep ${100 - (assignedRep.contingency_rate ?? 12)}% of what we recover`, `Vous gardez ${100 - (assignedRep.contingency_rate ?? 12)}% de ce qu'on récupère`) },
                 ].map(s => (
                   <div key={s.n} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <div className="text-[10px] font-black text-emerald-400 mb-1">STEP {s.n}</div>
+                    <div className="text-[10px] font-black text-emerald-400 mb-1">{t("STEP", "ÉTAPE")} {s.n}</div>
                     <div className="text-[11px] text-white/70 leading-tight">{s.text}</div>
                   </div>
                 ))}
@@ -422,13 +436,20 @@ export default function BusinessDashboard() {
 
           <div className="bg-white rounded-xl p-5 border border-border-light" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Recovered", "Récupéré")}</div>
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
-                <div className="text-[11px] text-ink-muted mt-1.5">{leaksFixed} {t("fixed", "corrigés")}</div>
+            {recovered > 0 || leaksFixed > 0 ? (
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-positive">${(recovered ?? 0).toLocaleString()}</div>
+                  <div className="text-[11px] text-ink-muted mt-1.5">{leaksFixed} {t("fixed", "corrigés")}</div>
+                </div>
+                <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
               </div>
-              <div className="relative mt-1"><Ring pct={recovPct / 100} /><div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-positive">{recovPct}%</span></div></div>
-            </div>
+            ) : (
+              <div>
+                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
+                <div className="text-[11px] text-ink-muted mt-1.5">{t("Pending recovery", "En attente de récupération")}</div>
+              </div>
+            )}
           </div>
 
           <button onClick={() => router.push("/v2/obligations")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -453,6 +474,17 @@ export default function BusinessDashboard() {
             )}
           </button>
         </div>
+
+        {/* Rerun diagnostic button */}
+        {diagFindings.length > 0 && !isAnalyzing && (
+          <div className="flex items-center gap-3 mb-4" style={fade(0.06)}>
+            <button onClick={() => router.push("/v2/diagnostic")}
+              className="h-8 px-4 text-[11px] font-bold text-brand border border-brand/20 rounded-lg hover:bg-brand/5 transition">
+              {t("Rerun Diagnostic →", "Relancer le diagnostic →")}
+            </button>
+            <span className="text-[10px] text-ink-faint">{t("Updated data = more accurate findings", "Données mises à jour = résultats plus précis")}</span>
+          </div>
+        )}
 
         {/* MAIN 3-COL */}
 
