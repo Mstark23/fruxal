@@ -82,7 +82,7 @@ export default function EnterprisePage() {
     { icon: "vendor", title: t("Vendor Contracts","Contrats fournisseurs"), money: t("up to $60K/yr","jusqu'à 60\u202fK$/an") },
     { icon: "payroll", title: t("Payroll & HR","Paie & RH"), money: t("up to $45K/yr","jusqu'à 45\u202fK$/an") },
     { icon: "audit_bank", title: t("Banking & Treasury","Banque & Trésorerie"), money: t("up to $40K/yr","jusqu'à 40\u202fK$/an") },
-    { icon: "sred", title: t("SR&ED & Grants","SR&ED & Subventions"), money: t("up to $80K/yr","jusqu'à 80\u202fK$/an") },
+    { icon: "sred", title: isUS ? "R&D Credits & Programs" : t("SR&ED & Grants","SR&ED & Subventions"), money: t("up to $80K/yr","jusqu'à 80\u202fK$/an") },
     { icon: "insurance", title: t("Insurance","Assurance"), money: t("up to $35K/yr","jusqu'à 35\u202fK$/an") },
   ];
 
@@ -230,7 +230,7 @@ export default function EnterprisePage() {
                       <input value={form.phone} onChange={e => set("phone", e.target.value)}
                         autoComplete="tel" type="tel"
                         className="w-full px-3.5 py-2.5 bg-[#F9F8F6] border border-[#E8E6E1] rounded-lg text-[14px] text-[#1a1a2e] outline-none focus:border-[#1B3A2D] focus:ring-[3px] focus:ring-[#1B3A2D]/8 transition"
-                        placeholder="514-555-0100" />
+                        placeholder={isUS ? "212-555-0100" : "514-555-0100"} />
                     </div>
                     <div className="col-span-2">
                       <label className="text-[11px] font-semibold text-[#8E8C85] uppercase tracking-wider block mb-1.5">
@@ -337,7 +337,20 @@ export default function EnterprisePage() {
             {t("What businesses like yours found","Ce que des entreprises comme la vôtre ont trouvé")}
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {[
+            {(isUS ? [
+              {
+                quote: "\u201cFruxal found $67K in vendor contracts we'd been overpaying for three years. The call was 30 minutes. The savings are permanent.\u201d",
+                name: "Mark T.", role: "Construction · Dallas TX · $4.2M revenue",
+              },
+              {
+                quote: "\u201cThe R&D Credit claim alone was $94K. My CPA of 8 years never brought it up. Not once.\u201d",
+                name: "Sarah K.", role: "IT Services · San Jose CA · $2.8M revenue",
+              },
+              {
+                quote: "\u201cThey told me my three biggest leaks before I signed anything. I knew they were real.\u201d",
+                name: "David L.", role: "Manufacturing · Chicago IL · $7.1M revenue",
+              },
+            ] : [
               {
                 quote: t('"Fruxal found $67K in vendor contracts we\'d been overpaying for three years. The call was 30 minutes. The savings are permanent."','"Fruxal a trouvé 67\u202fK$ dans des contrats que nous surpayions depuis trois ans. L\'appel a duré 30 minutes. Les économies sont permanentes."'),
                 name: "Marc T.", role: t("Construction · Québec · $4.2M revenue","Construction · Québec · 4,2\u202fM$"),
@@ -350,7 +363,7 @@ export default function EnterprisePage() {
                 quote: lang === "fr" ? "«\u202fIls m\'ont dit mes trois fuites avant que je signe. C\'est là que j\'ai su.\u202f»" : "\u201cThey told me my three biggest leaks before I signed anything. I knew they were real.\u201d",
                 name: "David L.", role: lang === "fr" ? "Fabrication · Ontario · 7,1\u202fM$" : "Manufacturing · Ontario · $7.1M revenue",
               },
-            ].map(({ quote, name, role }) => (
+            ]).map(({ quote, name, role }) => (
               <div key={name} className="bg-[#F9F8F6] rounded-2xl p-6 border border-[#E8E6E1]">
                 <p className="text-[14px] text-[#1a1a2e] leading-relaxed mb-5 italic">{quote}</p>
                 <div>
@@ -371,8 +384,10 @@ export default function EnterprisePage() {
         <div className="space-y-4">
           {[
             [
-              t('"My accountant handles everything."','"Mon comptable s\'occupe de tout."'),
-              t("Your accountant files taxes and reconciles books. Hunting for savings across 7 categories and renegotiating vendor contracts isn\'t their job — and most won\'t touch it.","Votre comptable produit des déclarations et rapproche des livres. Chasser des économies sur 7 catégories et renégocier des contrats n'est pas son travail.")
+              isUS ? '"My CPA handles everything."' : t('"My accountant handles everything."','"Mon comptable s\'occupe de tout."'),
+              isUS
+                ? "Your CPA files taxes and reconciles books. Hunting for savings across 7 categories and renegotiating vendor contracts isn't their job — and most won't touch it."
+                : t("Your accountant files taxes and reconciles books. Hunting for savings across 7 categories and renegotiating vendor contracts isn\'t their job — and most won\'t touch it.","Votre comptable produit des déclarations et rapproche des livres. Chasser des économies sur 7 catégories et renégocier des contrats n'est pas son travail.")
             ],
             [
               t('"What if you find nothing?"','"Et si vous ne trouvez rien ?"'),
