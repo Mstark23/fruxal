@@ -1,77 +1,90 @@
 // app/rep/verify/page.tsx
-// Server Component — sets cookie via next/headers cookies().set()
-// then redirects via meta-refresh (NOT redirect() which throws before cookie flushes)
-import { cookies } from "next/headers";
-import { verifyToken, generateSessionToken } from "@/lib/rep-auth";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+// Client component — calls the verify API, then redirects
+"use client";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-const COOKIE   = "fruxal_rep_session";
-const TTL_DAYS = 30;
+function VerifyInner() {
+  const searchParams = useSearchParams();
+  const token = searchParams?.get("token");
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [errorMsg, setErrorMsg] = useState("");
 
-export default async function RepVerifyPage({
-  searchParams,
-}: {
-  searchParams: { token?: string };
-}) {
-  const token = searchParams.token;
+  useEffect(() => {
+    if (!token) {
+      window.location.href = "/rep/login?error=missing_token";
+      return;
+    }
 
-  if (!token) {
-    return <Redirect to="/rep/login?error=missing_token" />;
+    fetch(`/api/rep/auth/verify?token=${encodeURIComponent(token)}`)
+      .then(res => {
+        if (res.redirected) {
+          // The API set the cookie and returned a redirect
+          window.location.href = res.url;
+          return;
+        }
+        // If not redirected, check if it's HTML (the old verify route returns HTML)
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("text/html")) {
+          // Cookie was set via Set-Cookie header, redirect manually
+          setStatus("success");
+          window.location.href = "/rep/dashboard";
+          return;
+        }
+        return res.json();
+      })
+      .then(j => {
+        if (j?.error) {
+          setStatus("error");
+          setErrorMsg(j.error);
+        } else if (status !== "success") {
+          setStatus("success");
+          window.location.href = "/rep/dashboard";
+        }
+      })
+      .catch(() => {
+        // Likely a redirect happened (good) or network error
+        // Try navigating to dashboard — if cookie was set, it'll work
+        setTimeout(() => { window.location.href = "/rep/dashboard"; }, 1000);
+      });
+  }, [token]);
+
+  if (status === "error") {
+    return (
+      <div style={{ minHeight: "100vh", background: "#FAFAF8", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui, sans-serif" }}>
+        <div style={{ textAlign: "center", maxWidth: 360, padding: 32 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 24, background: "rgba(179,64,64,0.08)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+            <span style={{ color: "#B34040", fontSize: 20 }}>!</span>
+          </div>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1A1A18", margin: "0 0 8px" }}>Access Error</h2>
+          <p style={{ fontSize: 13, color: "#8E8C85", margin: 0 }}>{errorMsg || "This login link has expired. Ask your admin to resend access."}</p>
+        </div>
+      </div>
+    );
   }
 
-  const payload = verifyToken(token);
-  if (!payload || payload.type !== "magic") {
-    return <Redirect to="/rep/login?error=expired" />;
-  }
-
-  const { data: rep } = await supabaseAdmin
-    .from("tier3_reps")
-    .select("id, email, status")
-    .eq("id", payload.repId)
-    .single();
-
-  if (!rep || rep.status !== "active") {
-    return <Redirect to="/rep/login?error=inactive" />;
-  }
-
-  // cookies().set() in a Server Component is reliable — no redirect() called after
-  const sessionToken = generateSessionToken(rep.id, rep.email);
-  cookies().set(COOKIE, sessionToken, {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge:   TTL_DAYS * 24 * 60 * 60,
-    path:     "/",
-  });
-
-  // Return a page that redirects — NOT calling redirect() which throws and aborts response
-  return <Redirect to="/rep/dashboard" />;
+  return (
+    <div style={{ minHeight: "100vh", background: "#FAFAF8", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui, sans-serif" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ width: 24, height: 24, border: "2px solid #E5E3DD", borderTopColor: "#1B3A2D", borderRadius: "50%", animation: "sp .7s linear infinite", margin: "0 auto 12px" }} />
+        <p style={{ fontSize: 15, fontWeight: 700, color: "#1B3A2D" }}>Signing you in...</p>
+        <p style={{ fontSize: 13, color: "#8E8C85", marginTop: 4 }}>Redirecting to your dashboard.</p>
+        <style>{`@keyframes sp{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    </div>
+  );
 }
 
-function Redirect({ to }: { to: string }) {
+export default function RepVerifyPage() {
   return (
-    <html>
-      <head>
-        <meta charSet="utf-8" />
-        {/* meta-refresh fires after cookie is committed to the browser */}
-        <meta httpEquiv="refresh" content={`0;url=${to}`} />
-        <style>{`
-          body{background:#FAFAF8;font-family:system-ui,sans-serif;display:flex;
-          align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center}
-          .s{width:24px;height:24px;border:2px solid #E5E3DD;border-top-color:#1B3A2D;
-          border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 12px}
-          @keyframes sp{to{transform:rotate(360deg)}}
-          p{font-size:13px;color:#8E8C85;margin:8px 0 0}
-          strong{color:#1B3A2D;font-size:15px}
-        `}</style>
-      </head>
-      <body>
-        <div>
-          <div className="s" />
-          <strong>Signing you in…</strong>
-          <p>Redirecting to your dashboard.</p>
-        </div>
-      </body>
-    </html>
+    <Suspense fallback={
+      <div style={{ minHeight: "100vh", background: "#FAFAF8", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 24, height: 24, border: "2px solid #E5E3DD", borderTopColor: "#1B3A2D", borderRadius: "50%", animation: "sp .7s linear infinite" }} />
+        <style>{`@keyframes sp{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    }>
+      <VerifyInner />
+    </Suspense>
   );
 }
