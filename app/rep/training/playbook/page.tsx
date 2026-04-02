@@ -3,404 +3,536 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 // =============================================================================
-// REP PLAYBOOK — The Complete Customer Contact System
-// =============================================================================
-// Step-by-step guide: from lead assignment to fee collection.
-// Every stage has: what to do, when to do it, exactly what to say,
-// which SLP techniques to use, and what to avoid.
+// REP PLAYBOOK — Every Contact Scenario
 // =============================================================================
 
-const STAGES = [
+type Scenario = {
+  id: string;
+  title: string;
+  icon: string;
+  color: string;
+  desc: string;
+  sections: { label: string; content: string }[];
+};
+
+const SCENARIOS: Scenario[] = [
+  // ═══════════════════════════════════════════════════════════════════════
+  // SCENARIO 1: COLD OUTREACH — They've never heard of Fruxal
+  // ═══════════════════════════════════════════════════════════════════════
   {
-    id: "stage-1",
-    stage: "01",
-    title: "Lead Assigned — First 30 Minutes",
-    color: "#2D7A50",
-    timing: "Within 30 minutes of assignment",
-    goal: "Review the file + prepare your opening",
-    sections: [
-      {
-        label: "What You Do First (Before Calling)",
-        content: `1. OPEN THE CLIENT FILE → Click the client in your dashboard
-2. READ THE DIAGNOSTIC — Look at:
-   - Total annual leak (the headline number)
-   - Top 3 findings by dollar amount
-   - Their industry + province
-   - Their revenue bracket
-3. CLICK "CALL SCRIPT" → The AI generates a personalized opening using their real numbers
-4. PICK YOUR LEAD FINDING — Choose the single most impressive finding to lead with:
-   - Highest dollar amount
-   - Easiest to explain
-   - Most concrete (processing rate > "tax optimization gap")
-
-EXAMPLE: "$87K total leak. Top finding: processing fees $4,800/yr — their rate is 2.8%, median is 2.2%. Restaurant in Montreal, ~$1.2M revenue."
-
-You now know more about their finances than they do. That's your advantage.`,
-      },
-      {
-        label: "The 24-Hour Rule",
-        content: `CRITICAL: Contact within 24 hours of assignment. This is non-negotiable.
-
-WHY: Clients who hear from you within 24 hours book at 3x the rate of those who wait 3+ days.
-
-The prescan is fresh in their mind. They saw their leaks. They're curious. Every hour that passes, that curiosity fades.
-
-IF YOU CAN'T CALL: Send the booking link email immediately (use the "Send Booking Link" button in the client file). Then call within 24 hours.`,
-      },
-    ],
-  },
-  {
-    id: "stage-2",
-    stage: "02",
-    title: "The First Call — Making Contact",
+    id: "cold",
+    title: "Cold Outreach",
+    icon: "🧊",
     color: "#0369a1",
-    timing: "Within 24 hours of assignment",
-    goal: "Get them to agree to a 15-minute review call",
+    desc: "Prospect never heard of Fruxal. No prescan, no signup. You have industry data suggesting they're a fit.",
     sections: [
       {
-        label: "The Opening (First 4 Seconds)",
-        content: `EXACTLY WHAT TO SAY:
+        label: "Before the Call — Research",
+        content: `YOU NEED 3 THINGS BEFORE CALLING:
 
-"Hi [NAME], this is [YOUR NAME] from Fruxal? [up-tone] I'm calling because your business scan flagged some things worth looking at. Got a minute?" [Reasonable Man tone]
+1. THEIR INDUSTRY — What do they do? (restaurant, contractor, IT services, etc.)
+2. THEIR APPROXIMATE REVENUE — Check their website, Google, LinkedIn company size
+3. ONE INDUSTRY-SPECIFIC LEAK — The ONE thing most businesses in their industry overpay on:
+   - Restaurants: processing fees (2.9% vs 2.2% median)
+   - Contractors: insurance premiums (not requoted in 2+ years)
+   - Professional services: corporate structure (sole prop vs corp tax gap)
+   - Retail: inventory shrinkage + processing
+   - Trucking: fuel card programs + CCA on fleet
 
-WHY EACH WORD MATTERS:
-- "from Fruxal?" → Up-tone on declarative, triggers micro-agreement
-- "your business scan" → Reminds them they initiated this
-- "flagged some things" → Curiosity, not overselling
-- "Got a minute?" → Reasonable Man, implies it's quick
-
-WHAT THEY'LL SAY:
-- "Yeah, what is it?" → GOOD. Move to the pitch.
-- "I'm busy" → "Totally understand. When's a better time today? I just need 2 minutes." [I Care tone]
-- "Who?" → "Fruxal — you ran a business scan on our site recently? It found some savings worth looking at." [Question as declarative]
-- Voicemail → Leave a 15-second message (see voicemail script below)`,
+YOU DON'T NEED their exact numbers. You need ONE credible data point that gets them curious.`,
       },
       {
-        label: "The 30-Second Hook (After They Say Yes)",
-        content: `"Your scan found about [TOTAL LEAK] a year in potential savings across [NUMBER] areas. The biggest one is [TOP FINDING NAME] at roughly [TOP AMOUNT] per year.
+        label: "The Cold Open — First 10 Seconds",
+        content: `"Hi [NAME], this is [YOUR NAME] from Fruxal? [up-tone] I work with [INDUSTRY] businesses in [PROVINCE] and I had a quick question — got 30 seconds?" [Reasonable Man tone]
 
-I'd love to walk you through what we found in a quick 15-minute call. I pull up your report, explain each item in plain language, and you decide if any of it is worth pursuing. No cost, no commitment."
+IF THEY SAY YES:
+"Great — we've been working with a lot of [INDUSTRY] businesses lately and finding that most are overpaying on [ONE SPECIFIC THING] by 15-25%. I'm curious — when's the last time you looked at your [processing rates / insurance / corporate structure]?"
 
-SLP TECHNIQUES USED:
-- Lead with THEIR number (10 #3 — The Numbers)
-- Specific finding name + amount (builds certainty)
-- "15-minute call" → Minimizer (makes it seem small)
-- "You decide" → Removes pressure (lowers Action Threshold)
-- "No cost, no commitment" → Risk removal
+IF THEY SAY "WHAT DO YOU WANT?":
+"Fair enough — in a nutshell, we find money businesses are losing and recover it. No upfront cost. I'm calling because [INDUSTRY] businesses in [PROVINCE] tend to have [SPECIFIC LEAK]. Worth a 2-minute conversation?" [Absolute Certainty tone]
 
-THEN ASK:
-"Would [TOMORROW/DAY] at [TIME] work for a quick call?"
-→ Always offer a specific time. Never say "when works for you?"
-→ Specific = easy to say yes. Open-ended = easy to defer.`,
+IF THEY SAY "NOT INTERESTED":
+"Totally understand. Quick question before I go — are you paying more than 2.3% on card processing? Because if you are, you're leaving money on the table and I can prove it in 60 seconds." [Scarcity tone — this is your Hail Mary]
+
+KEY SLP PRINCIPLES:
+- First 4 seconds: Enthusiastic, Sharp as a Tack, Force to be Reckoned With
+- Ask a QUESTION, don't make a pitch — questions create engagement
+- Use their INDUSTRY to show you're not a generic cold caller
+- "Got 30 seconds?" is a Reasonable Man minimizer`,
       },
       {
-        label: "Voicemail Script (15 Seconds Max)",
-        content: `"Hi [NAME], this is [YOUR NAME] from Fruxal. Your business scan found [TOTAL LEAK] in potential annual savings — I'd love to walk you through it. No cost on your end. My number is [NUMBER] or you can book directly at [CALENDLY URL]. Talk soon."
+        label: "If They Engage — The Transition to a Scan",
+        content: `Once they're talking, your goal is to get them to run the free scan:
 
-RULES:
-- 15 seconds MAX. Longer voicemails get deleted.
-- Say the dollar amount. It's the hook.
-- Leave your number AND the booking link.
-- Sound enthusiastic but not salesy.
-- ONE voicemail only. Follow up by email next.`,
+"Here's what I'd suggest — we have a free 3-minute business scan that compares your setup against [INDUSTRY] benchmarks. It'll tell you exactly where you stand on processing, insurance, tax structure, all of it.
+
+No account needed, no commitment. Takes literally 3 minutes. If it finds nothing, we shake hands and move on. If it finds something, I'll walk you through it.
+
+Want me to send you the link?"
+
+SEND THEM: fruxal.ca?industry=[THEIR_INDUSTRY] (or fruxal.com for US)
+OR: "I can stay on the line and walk you through it right now — takes 3 minutes."
+
+WHY THE SCAN IS YOUR BEST TOOL:
+- It's free (removes all risk)
+- It's quick (3 minutes, not an hour meeting)
+- It gives you REAL NUMBERS to work with on the follow-up call
+- It moves them from "cold prospect" to "warm lead with data"`,
       },
       {
-        label: "Follow-Up Email (Send Immediately After Voicemail)",
-        content: `SUBJECT: $[TOTAL LEAK]/yr — your Fruxal scan results
+        label: "Cold Email (When You Can't Get Them on Phone)",
+        content: `SUBJECT: Quick question about your [PROCESSING FEES / INSURANCE / TAX STRUCTURE]
 
 Hi [NAME],
 
-I just tried calling — your business scan flagged [TOTAL LEAK] in potential annual savings across [NUMBER] areas.
+I work with [INDUSTRY] businesses in [PROVINCE]. Most are overpaying on [SPECIFIC THING] by 15-25% without knowing it.
 
-The biggest finding: [TOP FINDING] at roughly [TOP AMOUNT]/yr.
+Quick question: when's the last time you compared your [PROCESSING RATES / INSURANCE PREMIUMS]?
 
-I'd love to walk you through the results in a quick 15-minute call. I pull up your report, explain each item, and you decide what's worth pursuing.
+We run a free 3-minute scan that shows you exactly where you stand vs industry benchmarks. No cost, no account, no strings.
 
-No cost. No commitment. You only pay if we actually recover money.
+If it finds nothing — great, you're optimized. If it finds something — I'll walk you through it in 15 minutes.
 
-Book a time here: [CALENDLY LINK]
+Here's the link: [PRESCAN URL]
 
-Or just reply "yes" and I'll call you.
+Or reply "interested" and I'll call you.
 
 [YOUR NAME]
-Fruxal Recovery Team
+Fruxal · We find the money. You keep 88%.
 
-WHY THIS EMAIL WORKS:
-- Subject line has the dollar amount (they'll open it)
-- First line = reason for calling (context)
-- One specific finding (proof it's real)
-- "15-minute call" minimizer
-- "You decide" = no pressure
-- Three ways to respond: book, reply, or call back`,
+KEY: The subject line must be specific and relevant to their industry. Generic subjects get deleted.`,
       },
     ],
   },
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SCENARIO 2: REFERRAL INTRODUCTION
+  // ═══════════════════════════════════════════════════════════════════════
   {
-    id: "stage-3",
-    stage: "03",
-    title: "Follow-Up Sequence — No Response",
-    color: "#C4841D",
-    timing: "Day 2 to Day 14",
-    goal: "Re-engage without being pushy",
+    id: "referral",
+    title: "Referral Introduction",
+    icon: "🤝",
+    color: "#2D7A50",
+    desc: "Someone referred them. You have a warm intro — this is your highest conversion scenario.",
     sections: [
       {
-        label: "The Follow-Up Timeline",
-        content: `DAY 1: Call + voicemail + email (done in Stage 02)
-DAY 3: Second email (different angle)
-DAY 5: Second call attempt (different time of day)
-DAY 7: Third email (urgency angle)
-DAY 10: Final call + final email
-DAY 14: Move to "nurture" — stop active outreach
+        label: "The Referral Call — Opening",
+        content: `"Hi [NAME], this is [YOUR NAME] from Fruxal? [up-tone] [REFERRER NAME] suggested I reach out — they mentioned you might benefit from what we do. Got a couple of minutes?" [I Really Want to Know tone]
 
-NEVER: Call more than 3 times. It feels like harassment.
-NEVER: Send more than 4 emails. You're not a spammer.
-ALWAYS: Space contacts 2-3 days apart minimum.`,
+WHY THIS IS YOUR BEST SCENARIO:
+- 10 #1 (You) starts higher — the referrer already vouched for you
+- 10 #2 (Fruxal) starts higher — they heard a real success story
+- You just need to build 10 #3 (The Numbers) with their specific data
+
+IMMEDIATELY AFTER THEY SAY YES:
+"[REFERRER] and I worked together on recovering some money their business was losing — ended up finding about $[REFERRER AMOUNT] they didn't know about. They mentioned your business might have some similar things going on, especially around [INDUSTRY-SPECIFIC AREA].
+
+Have you ever had anyone look at your [processing fees / insurance / tax structure] specifically?"`,
       },
       {
-        label: "Day 3 Email — The Single Finding",
-        content: `SUBJECT: Quick question about your [TOP FINDING CATEGORY]
+        label: "Using the Referrer's Story",
+        content: `THE REFERRER'S RESULTS ARE YOUR STRONGEST WEAPON.
+
+"When we worked with [REFERRER], we found [AMOUNT] in [CATEGORY]. The biggest surprise was [SPECIFIC FINDING] — they had no idea they were overpaying by that much. Took us about [TIMELINE] to confirm the recovery."
+
+THEN BRIDGE TO THEM:
+"Your business is similar in [industry/size/structure], which is why [REFERRER] thought of you. Would you be open to a quick scan? It's free, takes 3 minutes, and worst case you find out you're already optimized."
+
+SLP TECHNIQUE:
+This is social proof + presupposing. You're not asking "would you like to try this?" You're saying "someone you trust already did this and it worked."
+
+NEVER:
+- Share specific dollar amounts from the referrer without their permission
+- Exaggerate the referrer's results
+- Name the referrer if they didn't give permission to be named`,
+      },
+      {
+        label: "Referral Email Template",
+        content: `SUBJECT: [REFERRER NAME] suggested I reach out
 
 Hi [NAME],
 
-I reached out a couple of days ago about your Fruxal scan.
+[REFERRER NAME] and I have been working together on recovering some money their business was losing — and they thought you might benefit from the same thing.
 
-Quick question: when's the last time you compared your [PROCESSING RATES / INSURANCE PREMIUMS / etc.]?
+We specialize in finding hidden financial leaks in [INDUSTRY] businesses — processing fees, insurance, tax structure, government programs. Most businesses are losing $8K-$15K/year without knowing it.
 
-The reason I ask — your scan shows you're paying about [AMOUNT] more than similar businesses in [INDUSTRY]. That's [MONTHLY AMOUNT] a month that doesn't need to leave your account.
+[REFERRER] suggested I send you our free business scan: [LINK]
 
-If you're curious, I can show you the exact comparison in 5 minutes. No pitch, just the numbers.
+Takes 3 minutes. No cost, no commitment. If it finds something, I'll walk you through it. If not, no harm done.
 
-[CALENDLY LINK]
-
-[YOUR NAME]
-
-WHY: This email focuses on ONE finding instead of the total. More specific = more believable. The question format creates curiosity.`,
-      },
-      {
-        label: "Day 7 Email — The Cost of Waiting",
-        content: `SUBJECT: $[MONTHLY LEAK] — that's what this month cost
-
-Hi [NAME],
-
-Since your scan on [DATE], roughly $[MONTHLY LEAK] has leaked from your business. Not because you're doing anything wrong — just because nobody's looked.
-
-The scan is still here whenever you're ready. I can walk you through it in 15 minutes.
-
-[CALENDLY LINK]
-
-No rush. But the leak doesn't pause.
+Would love to connect if you're open to it.
 
 [YOUR NAME]
+Fruxal
 
-WHY: This uses the Scarcity tonal pattern in written form. The dollar amount per month makes the cost of inaction tangible. Short = respectful of their time.`,
-      },
-      {
-        label: "Day 10 — The Breakup Message",
-        content: `SUBJECT: Should I close your file?
+P.S. — [REFERRER] said to say hi.
 
-Hi [NAME],
-
-I've reached out a few times about the $[TOTAL LEAK] your scan found. I don't want to be a pest.
-
-If now isn't the right time, no worries at all. Your results are saved and I'm here whenever you want to look at them.
-
-If you do want to see the breakdown, here's my calendar: [LINK]
-
-Either way — I hope business is going well.
-
-[YOUR NAME]
-
-WHY: The "breakup" email gets the highest response rate of any follow-up. "Should I close your file?" creates a small fear of loss. The respectful tone builds 10 #1 (You). Many people respond to this one who ignored the others.`,
+WHY THE P.S. WORKS: People always read the P.S. It re-anchors the referral relationship and adds warmth.`,
       },
     ],
   },
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SCENARIO 3: INBOUND SIGNUP — No prescan done
+  // ═══════════════════════════════════════════════════════════════════════
   {
-    id: "stage-4",
-    stage: "04",
-    title: "The Review Call — Presenting Findings",
+    id: "inbound",
+    title: "Inbound Signup (No Prescan)",
+    icon: "📥",
     color: "#7C3AED",
-    timing: "When they book a call",
-    goal: "Walk through findings → get agreement to proceed",
+    desc: "They created an account (Google or email) but never ran the prescan or diagnostic.",
     sections: [
       {
-        label: "Pre-Call Preparation (10 minutes before)",
-        content: `1. OPEN THEIR CLIENT FILE in your dashboard
-2. CLICK "CALL SCRIPT" → AI generates personalized talking points
-3. REVIEW TOP 3 FINDINGS — know the dollar amounts cold
-4. CHECK THEIR INDUSTRY — have 1-2 industry-specific examples ready
-5. CHECK DOCUMENTS TAB — know what you'll need from them
-6. HAVE THE FEE MATH READY:
-   - Total leak: $[X]
-   - At 12%: they keep $[X × 0.88], we earn $[X × 0.12]
-   - Monthly cost of doing nothing: $[X ÷ 12]
+        label: "Why They Signed Up But Didn't Scan",
+        content: `COMMON REASONS:
+1. Got distracted — opened account, phone rang, forgot
+2. Unsure — wanted to see the dashboard first before committing data
+3. Privacy concern — not ready to share business info yet
+4. Confusion — didn't understand what to do next
 
-MINDSET: You are a doctor delivering a diagnosis, not a salesperson pitching a product. You're showing them what's wrong and offering to fix it. That's it.`,
+YOUR JOB: Get them to run the prescan. Without data, you have nothing to work with.`,
       },
       {
-        label: "The Call Structure (15-20 minutes)",
-        content: `MINUTE 0-2: RAPPORT + CONTEXT
-"[NAME], great to connect. Thanks for making time. [I Care tone] Before I jump in — how's business going? [I Really Want to Know tone]"
-→ Let them talk for 30-60 seconds. Listen. You're qualifying AND building rapport.
+        label: "The Inbound Call — Opening",
+        content: `"Hi [NAME], this is [YOUR NAME] from Fruxal? [up-tone] I saw you created an account recently — welcome aboard! [Enthusiastic] I wanted to make sure everything's set up for you. Have you had a chance to run the business scan yet?" [I Really Want to Know tone]
 
-"Great. So let me show you what we found. Your Financial Health Score came in at [SCORE] out of 100, which puts you in the [BAND] range for [INDUSTRY] businesses in [PROVINCE]. We found [NUMBER] areas totaling about [TOTAL] a year."
+IF THEY HAVEN'T:
+"No worries at all — it takes about 3 minutes. I can actually walk you through it right now if you have a sec. I'll stay on the line while you answer the questions, and then I can show you what it finds in real-time."
 
-MINUTE 2-10: WALK THROUGH TOP 3 FINDINGS
-For each finding:
-1. Name it: "The biggest one is [TITLE]"
-2. Explain in plain language: "What this means is..."
-3. Show the math: "Your rate is X. The median is Y. On your volume, that's $Z."
-4. Pause: "Does that make sense?" [Get a micro-agreement]
+IF THEY HAVE BUT DIDN'T FINISH:
+"Totally fine — that happens. Want to finish it now? I'll guide you through it. We're about [X] questions away and then I can show you your results immediately."
 
-MINUTE 10-12: THE ASK
-"So here's how Fruxal works: we handle all the recovery — vendor calls, filings, applications. You do nothing.
+IF THEY SAY "I WAS JUST LOOKING":
+"Makes total sense. Quick question though — what made you sign up in the first place? Was there something specific you were curious about?" [I Really Want to Know tone]
+→ Whatever they say IS their pain point. Use it.
 
-Our fee is 12% of confirmed savings. So if we recover [TOTAL], you keep [88%] and we earn [12%]. If we recover nothing, you pay nothing. [Reasonable Man tone] The risk is entirely on us.
-
-Which of those findings stands out to you as the most impactful?"
-
-MINUTE 12-15: HANDLE OBJECTIONS + CLOSE
-→ Whatever they say, you now know which 10 is weak. Loop.
-→ Close with: "Want me to send the agreement over? Takes 2 minutes to review." [Presupposing tone]`,
+SLP KEY: You're building 10 #1 (You) here. You're helpful, not pushy. You called to help, not to sell.`,
       },
       {
-        label: "If They Say Yes",
-        content: `1. "Great — I'll send the agreement right now. It's straightforward: the scope, the 12% fee, and the cancellation terms."
-2. CLICK "Send Agreement" in the client file → auto-generates + emails
-3. "While you review that, I'll need a couple of documents to get started: [TOP 2 DOCUMENTS]. You can upload them through your dashboard."
-4. "Once signed, I'll start on [TOP FINDING] first — that's the quickest win. You should see a confirmed result within 30-60 days."
-5. SET FOLLOW-UP DATE → 24 hours if agreement not signed yet
-6. SUBMIT DEBRIEF → Fill in call outcome, agreed findings, next steps`,
+        label: "Walking Them Through the Prescan Live",
+        content: `THIS IS YOUR HIGHEST-VALUE MOVE WITH INBOUND LEADS.
+
+"Let me send you the link right now — fruxal.ca — and I'll stay on the phone while you do it. First question will be about your industry..."
+
+WHILE THEY ANSWER:
+- Stay engaged: "Great, got it" after each answer
+- Add context: "The reason we ask about processing is because [INDUSTRY] businesses typically overpay by..."
+- Build anticipation: "Once you finish this part, the scan runs against 4,000+ benchmarks for [INDUSTRY] businesses in [PROVINCE]"
+
+WHEN RESULTS APPEAR:
+"Okay, you should see your results now. What does the total say?"
+→ Let THEM read the number out loud. This creates ownership of the data.
+
+"Right — so $[AMOUNT] is what the scan is estimating based on your answers. Want me to walk you through the top finding?"
+
+YOU NOW HAVE DATA. Transition to the review call flow (Playbook Stage 04).`,
       },
       {
-        label: "If They Say 'Let Me Think About It'",
-        content: `DON'T PANIC. This is the most common response. Use the SLP loop:
+        label: "Inbound Email — Get Them to Scan",
+        content: `SUBJECT: Your Fruxal account is ready — just need 3 minutes
 
-STEP 1 — ACKNOWLEDGE:
-"Totally fair. I wouldn't want you to rush into anything." [I Care tone]
+Hi [NAME],
 
-STEP 2 — IDENTIFY WHICH 10 IS WEAK:
-"Can I ask — what specifically is on your mind? Is it the process, the fee, or whether these numbers are real?"
+Welcome to Fruxal! I saw you created an account but haven't run the business scan yet.
 
-STEP 3 — LOOP BACK:
-They say "the fee" → Loop to 10 #3 (The Numbers):
-"Got it. So at 12%, on the $43K we found, you'd keep $37,840. Right now that $43K is just leaving. It's not 12% vs 0% — it's $37,840 kept vs $43,000 lost."
+The scan is the foundation of everything we do — it compares your business against industry benchmarks and flags where you might be overpaying.
 
-They say "the numbers" → Loop to 10 #3 with proof:
-"Fair. Let me do this — pick any one finding. I'll show you the exact math. If that one's wrong, forget everything else."
+It takes about 3 minutes: [PRESCAN LINK]
 
-They say "I need to talk to my partner" → Loop to 10 #1 (You):
-"Of course. What would THEY need to hear to feel comfortable? I'm happy to do a quick call with both of you."
+Once you've done it, I'll personally review your results and walk you through anything we find. If it comes back clean — great, you're optimized.
 
-STEP 4 — LOWER THE THRESHOLD:
-"What if I just start with the insurance requote? Zero commitment, zero risk, and you'll see a real result in 2 weeks."
+Want me to call you and walk through it together? Sometimes it's easier with a guide.
 
-STEP 5 — SET THE FOLLOW-UP:
-"When should I check back? Thursday?" → Always get a specific date.`,
+Reply with a good time and I'll call you.
+
+[YOUR NAME]
+Fruxal`,
       },
     ],
   },
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SCENARIO 4: POST-PRESCAN — They ran the scan
+  // ═══════════════════════════════════════════════════════════════════════
   {
-    id: "stage-5",
-    stage: "05",
-    title: "Agreement Signed — Starting Recovery",
-    color: "#1B3A2D",
-    timing: "Immediately after signature",
-    goal: "Get documents + start first recovery",
+    id: "post-prescan",
+    title: "Post-Prescan Lead",
+    icon: "📊",
+    color: "#C4841D",
+    desc: "They completed the prescan. You have their data — total leak, findings, industry, province. This is your bread and butter.",
     sections: [
       {
-        label: "First 24 Hours After Signing",
-        content: `1. REQUEST DOCUMENTS → Click "Request Document" in the Documents tab:
-   - T2 / Form 1120 (last 2 years)
-   - Most recent bank statement
-   - Insurance policy declarations
-   - Processing statement
-   → Client gets an email with upload link
+        label: "The First Call — Within 24 Hours",
+        content: `THE 24-HOUR RULE: Contact within 24 hours. Non-negotiable. 3x conversion rate.
 
-2. UPDATE PIPELINE STAGE → Move to "In Engagement"
+OPEN YOUR CLIENT FILE → Read total leak, top 3 findings, industry, province.
+CLICK "CALL SCRIPT" → AI generates personalized opening with their numbers.
 
-3. SEND CONFIRMATION EMAIL:
-"[NAME], welcome aboard. I've sent the document requests — once I have those, I'll start on [TOP FINDING] immediately. You should see the first confirmed result within 30-60 days. If you have any questions, I'm a text/call away."
+OPENING:
+"Hi [NAME], this is [YOUR NAME] from Fruxal? [up-tone] I'm calling because your business scan flagged some things worth looking at. Got a minute?" [Reasonable Man]
 
-4. ADD NOTE TO FILE: "Agreement signed [DATE]. Starting with [TOP FINDING]. Docs requested."
-
-5. NOTIFY ACCOUNTANT (if assigned): The accountant sees the file automatically.`,
-      },
-      {
-        label: "The First Recovery — Make It Count",
-        content: `Your first confirmed recovery sets the tone for the entire relationship.
-
-PICK THE EASIEST WIN FIRST:
-- Insurance requote → Almost always saves money, takes 1-2 weeks
-- Processing rate negotiation → Quantifiable, fast
-- Missed deduction → If you have the T2, accountant can spot it quickly
-
-DO NOT start with the hardest finding. Start with the one most likely to succeed.
-
-WHEN CONFIRMED:
-1. Log it in the Savings tab: amount, category, confidence note
-2. Client gets an automatic email: "$X recovered — [FINDING NAME]"
-3. CALL THEM PERSONALLY:
-   "Hey [NAME], quick good news — we confirmed $[AMOUNT] on the insurance requote. That's $[AMOUNT] a year back in your pocket. I'm moving on to [NEXT FINDING] now."
-
-WHY THIS MATTERS:
-This call transforms the relationship. You're no longer "the Fruxal guy." You're "the person who just saved me $4,800." Trust on all Three 10s goes to maximum.`,
-      },
-    ],
-  },
-  {
-    id: "stage-6",
-    stage: "06",
-    title: "Ongoing Recovery — Keeping Momentum",
-    color: "#3D7A5E",
-    timing: "Monthly throughout engagement",
-    goal: "Maximize total recovery + build referral relationship",
-    sections: [
-      {
-        label: "Monthly Touchpoints",
-        content: `EVERY MONTH — DO THESE:
-
-1. CHECK ANOMALY ALERTS → Any new cost spikes from their connected data?
-2. LOG CONFIRMED SAVINGS → As each recovery is confirmed
-3. UPDATE THE CLIENT (even if brief):
-   - "Quick update on your file: [FINDING] is in progress with [VENDOR/CRA]. Should have confirmation by [DATE]."
-   - Even "no news" is news: "Still waiting on CRA — normal timeline is 8-12 weeks. You're at week 6."
-
-4. CHECK FOR NEW LEAKS → If they connected QuickBooks/Plaid, the system detects new anomalies automatically
-
-NEVER go silent for more than 2 weeks. Silence = "they forgot about me."`,
-      },
-      {
-        label: "Quarterly Business Review (QBR)",
-        content: `EVERY 90 DAYS — Generate a QBR:
-
-1. Click "Generate QBR" in the client file (AI creates the full report)
-2. Review it — make sure numbers are accurate
-3. Email or present it on a call
-
-THE QBR COVERS:
-- Recovery progress (what was found, recovered, in progress)
-- Health score trend (improving or declining)
-- New issues detected this quarter
-- Upcoming priorities for next quarter
-- Recommended next steps
-
-WHY: The QBR makes you look like a $5,000/quarter consultant. The client shares it with their partner/board. It creates referral conversations: "My Fruxal rep sends me this every quarter."`,
-      },
-      {
-        label: "The Referral Ask — Timing Is Everything",
-        content: `WHEN TO ASK: Only AFTER the first confirmed recovery. Never before.
+THE HOOK:
+"Your scan found about [TOTAL] a year in potential savings across [NUMBER] areas. The biggest one is [TOP FINDING] at roughly [TOP AMOUNT] per year. I'd love to walk you through what we found in a quick 15-minute call."
 
 THE ASK:
-"[NAME], now that you've seen how this works — do you know any other business owners who might be losing money the same way you were? I'm happy to run a free scan for anyone you think could benefit."
+"Would [TOMORROW] at [TIME] work?" → Always offer a specific time.`,
+      },
+      {
+        label: "Follow-Up Sequence (If No Response)",
+        content: `DAY 1: Call + voicemail + email
+DAY 3: Email — single finding angle
+   SUBJECT: Quick question about your [CATEGORY]
+   "When's the last time you compared your [processing rates]? Your scan shows you're paying $[X] more than similar businesses."
 
-WHY AFTER FIRST RECOVERY:
-- Before recovery: "Trust me, it works" → weak
-- After recovery: "You've seen it work" → powerful
-- They have proof. They have a story. They become your best salesperson.
+DAY 5: Second call (different time of day)
 
-DON'T PUSH: If they say "let me think about it," say "No rush at all. If someone comes to mind, just send them fruxal.ca and I'll take care of the rest." Then move on.
+DAY 7: Email — cost of waiting
+   SUBJECT: $[MONTHLY LEAK] — that's what this month cost
+   "Since your scan, roughly $[MONTHLY] has leaked. The scan is here when you're ready."
 
-REFERRAL INCENTIVE: Not needed. The value of the service IS the incentive. Paying for referrals cheapens the relationship.`,
+DAY 10: Breakup email
+   SUBJECT: Should I close your file?
+   "I don't want to be a pest. If now isn't the right time, no worries. Your results are saved."
+   → THIS EMAIL gets the highest response rate.
+
+DAY 14: Stop active outreach. Move to nurture.
+
+RULES:
+- Max 3 calls. Max 4 emails. Space 2-3 days apart.
+- Never more than one contact per day.`,
+      },
+      {
+        label: "The Review Call — Minute by Minute",
+        content: `MINUTE 0-2: RAPPORT
+"Thanks for making time. Before I jump in — how's business?" [I Really Want to Know]
+→ Let them talk 30-60 seconds. Listen. You're qualifying.
+
+MINUTE 2-10: FINDINGS
+"Your Health Score is [SCORE]/100. We found [NUMBER] areas totaling [TOTAL]/year."
+For each top finding:
+1. Name it
+2. Plain language explanation
+3. Show the math
+4. "Does that make sense?" [micro-agreement]
+
+MINUTE 10-12: THE ASK
+"We handle all the recovery. You do nothing. Our fee: 12% of confirmed savings.
+So [TOTAL] recovered = you keep [88%]. We recover nothing = you pay nothing.
+Which finding stands out to you?"
+
+MINUTE 12-15: OBJECTIONS + CLOSE
+→ Identify which of the Three 10s is weak. Loop. Close.
+→ "Want me to send the agreement? Takes 2 minutes." [Presupposing]`,
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SCENARIO 5: REACTIVATION — Cold/Dead Lead
+  // ═══════════════════════════════════════════════════════════════════════
+  {
+    id: "reactivation",
+    title: "Reactivation (Cold Lead)",
+    icon: "🔄",
+    color: "#B34040",
+    desc: "Old lead that went cold — did prescan weeks/months ago, never converted. You're bringing them back.",
+    sections: [
+      {
+        label: "Why Leads Go Cold + How to Revive Them",
+        content: `WHY THEY WENT COLD:
+1. Life got busy — not that they weren't interested
+2. Bad timing — cash tight, other priorities
+3. Didn't trust the numbers — certainty wasn't transferred
+4. Follow-up stopped — YOUR fault, not theirs
+
+THE REACTIVATION ADVANTAGE:
+- They already have data in the system
+- They already showed interest once
+- Their leaks have gotten BIGGER (more months of loss)
+
+CALCULATE THE COST OF DELAY:
+Original total leak: $[X]/year
+Months since prescan: [N]
+Money lost since: $[X ÷ 12 × N]
+→ THIS is your opening hook.`,
+      },
+      {
+        label: "The Reactivation Call",
+        content: `"Hi [NAME], this is [YOUR NAME] from Fruxal? [up-tone] We connected a while back about your business scan — I wanted to circle back with an update." [I Care tone]
+
+THE UPDATE HOOK:
+"I was reviewing your file and realized it's been [N] months since your scan. Based on what we found, that's roughly $[MONTHS × MONTHLY LEAK] that's leaked since we last talked. The findings haven't changed — if anything, some may have gotten worse with rate increases."
+
+THEN:
+"I know timing wasn't right before. Is now a better time to take a look? I can walk through the updated numbers in 10 minutes."
+
+IF THEY'RE HESITANT:
+"Totally fine — no pressure. But the insurance requote alone takes zero effort on your end and usually saves $2-5K. Can I at least start that one?" [Lower the action threshold with a small first step]
+
+IF THEY SAY "I FORGOT ABOUT THIS":
+"That's actually really common — life gets busy. The good news is your scan is still here and the data is still valid. Want me to pull up the top finding right now?"`,
+      },
+      {
+        label: "Reactivation Email",
+        content: `SUBJECT: $[AMOUNT LOST SINCE SCAN] — since we last talked
+
+Hi [NAME],
+
+It's been [N] months since your Fruxal scan found $[TOTAL]/year in potential savings. That means roughly $[LOST SINCE] has leaked since we last connected.
+
+Your results are still here. The findings are still valid. And the money is still leaving.
+
+If now is a better time, I'd love to walk through it again — takes 15 minutes.
+
+[CALENDLY LINK]
+
+No hard feelings if the timing still isn't right. But the leak doesn't pause.
+
+[YOUR NAME]
+Fruxal
+
+WHY: The dollar amount lost since the scan creates a visceral "ouch" moment. They can't unhear it.`,
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SCENARIO 6: ENTERPRISE / CFO OUTREACH ($1M+)
+  // ═══════════════════════════════════════════════════════════════════════
+  {
+    id: "enterprise",
+    title: "Enterprise / CFO Outreach",
+    icon: "🏢",
+    color: "#1B3A2D",
+    desc: "$1M+ revenue businesses. Different language, different decision-maker, different timeline.",
+    sections: [
+      {
+        label: "How Enterprise is Different",
+        content: `ENTERPRISE PROSPECTS ARE DIFFERENT:
+
+1. DECISION MAKER is a CFO/Owner/CEO — not a manager
+2. LANGUAGE must be sophisticated — no "quick scan", no "got a minute?"
+3. TIMELINE is longer — weeks, not days
+4. STAKES are higher — $50K-$200K+ in potential recovery
+5. THEY HAVE AN ACCOUNTANT — definitely. Your differentiation must be sharp.
+6. THEY'VE BEEN SOLD TO — by every consultant, advisor, and vendor. They're immune to pitches.
+
+YOUR APPROACH: Act like a peer, not a salesperson. You're a financial intelligence firm, not a lead gen company. Speak their language.`,
+      },
+      {
+        label: "The Enterprise Opening",
+        content: `"[NAME], [YOUR NAME] from Fruxal. [No up-tone — flat, confident, peer-to-peer] We're a financial recovery firm that works on contingency with mid-market businesses. I'll be brief."
+
+THE HOOK — CHOOSE ONE:
+If you know their industry:
+"We've been working with [INDUSTRY] companies in the [REVENUE RANGE] bracket and consistently finding $50-150K in recoverable savings — mostly in tax structure, vendor contracts, and unclaimed programs. I'm curious whether anyone's done a forensic-level review of your cost base recently."
+
+If they're public or you have data:
+"I was looking at your business and noticed a couple of signals that suggest you might have some material tax structure inefficiencies. Specifically around [owner comp mix / passive income / SR&ED eligibility / entity structure]. Worth a conversation?"
+
+SLP NOTES:
+- No Reasonable Man tone — these people see through casual
+- Use Absolute Certainty — you've seen this pattern before
+- "I'll be brief" = respect for their time = instant credibility
+- "forensic-level review" = positions you as serious, not a scan tool`,
+      },
+      {
+        label: "Enterprise Email Template",
+        content: `SUBJECT: [COMPANY NAME] — financial structure review
+
+[NAME],
+
+Fruxal is a contingency-based financial recovery firm. We work with [INDUSTRY] businesses in the $1-10M range to identify and recover savings across tax structure, vendor contracts, insurance, and government programs.
+
+We consistently find $50-150K in recoverable savings for businesses at your stage. Our fee: 12% of confirmed recovery only. No retainer, no upfront cost, no engagement unless we find something material.
+
+Three areas where we typically find the most for [INDUSTRY] companies:
+1. [SPECIFIC AREA 1 — e.g., "SR&ED eligibility on your R&D activities"]
+2. [SPECIFIC AREA 2 — e.g., "Owner compensation structure optimization"]
+3. [SPECIFIC AREA 3 — e.g., "Commercial insurance competitiveness"]
+
+Would a 20-minute call make sense to see if there's a fit?
+
+[YOUR NAME]
+Fruxal Financial Recovery
+[PHONE] · [CALENDLY]
+
+KEY DIFFERENCES FROM SMB EMAIL:
+- No "free scan" language — sounds cheap
+- "20-minute call" not "15-minute" — enterprise expects more substance
+- Three specific areas — shows you've done homework
+- "Material" savings — enterprise language
+- "Contingency-based" up front — removes the "here we go, another fee" reaction`,
+      },
+      {
+        label: "The Enterprise Review Meeting",
+        content: `Enterprise calls are 30-45 minutes, not 15. Structure:
+
+MINUTE 0-5: POSITIONING
+"Thanks for making time. Let me tell you how we work, and then I'll show you what we've found in a preliminary analysis — and you can tell me if any of it resonates."
+
+Explain the model:
+- "We work on contingency. 12% of confirmed savings. If we find nothing, you pay nothing."
+- "We work alongside your accountant, not instead of them. We handle optimization, they handle compliance."
+- "Everything we find is backed by specific calculations, not estimates."
+
+MINUTE 5-20: FINDINGS PRESENTATION
+Present as a "preliminary analysis" not a "scan." Walk through top findings WITH the math.
+
+For enterprise, add:
+- Industry benchmarking context ("Companies at your revenue level in [INDUSTRY] typically...")
+- Compliance exposure ("Based on your structure, your penalty exposure on [OBLIGATION] is approximately...")
+- Strategic recommendations ("If you're planning an exit in the next 3-5 years, the LCGE/QSBS planning alone could be worth...")
+
+MINUTE 20-30: DISCUSSION
+"What resonates? What doesn't? What would you need to see to feel confident moving forward?"
+→ Let THEM talk. Enterprise buyers need to process out loud.
+
+MINUTE 30-35: NEXT STEPS
+"Here's what I'd suggest: we formalize an engagement agreement, I request specific documents from your team, and within 60 days you'll have confirmed recovery numbers. Sound reasonable?"`,
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SCENARIO 7: NO-SHOW — They booked but didn't show up
+  // ═══════════════════════════════════════════════════════════════════════
+  {
+    id: "no-show",
+    title: "No-Show Recovery",
+    icon: "👻",
+    color: "#8E8C85",
+    desc: "They booked a call and didn't show up. They feel guilty. Handle with grace and you'll rebook 60% of them.",
+    sections: [
+      {
+        label: "The No-Show Call (Same Day)",
+        content: `Call them 15-30 minutes after the missed time:
+
+"Hey [NAME], it's [YOUR NAME] from Fruxal. We had a call booked for [TIME] — no worries at all if something came up. [I Care tone] Things happen. Want to reschedule for later this week?"
+
+KEY RULES:
+- NO guilt-tripping. No "I was waiting for you." No passive aggression.
+- LIGHT and easy. They already feel bad — don't make it worse.
+- OFFER to reschedule immediately — don't wait for them to suggest it.
+- If voicemail: "Hey [NAME], I think we missed each other — totally fine. Here's my calendar link to rebook whenever works: [CALENDLY]. Talk soon."
+
+SLP: This is ALL about 10 #1 (You). You're showing grace under frustration. This builds massive trust. Many no-shows become your best clients because you handled it so well.`,
+      },
+      {
+        label: "No-Show Email (If No Answer on Phone)",
+        content: `SUBJECT: No worries — let's reschedule
+
+Hi [NAME],
+
+I think we missed each other for our call today — no worries at all, I know things come up.
+
+Here's my calendar to rebook whenever works: [CALENDLY LINK]
+
+Your scan results ($[TOTAL]/year in potential savings) are still here whenever you're ready.
+
+[YOUR NAME]
+
+WHY SHORT: They feel guilty. A long email makes them feel worse and less likely to respond. Short + graceful = high rebook rate.`,
       },
     ],
   },
@@ -408,10 +540,10 @@ REFERRAL INCENTIVE: Not needed. The value of the service IS the incentive. Payin
 
 export default function RepPlaybookPage() {
   const router = useRouter();
-  const [activeStage, setActiveStage] = useState("stage-1");
+  const [activeScenario, setActiveScenario] = useState("cold");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
-  const stage = STAGES.find(s => s.id === activeStage)!;
+  const scenario = SCENARIOS.find(s => s.id === activeScenario)!;
 
   return (
     <div className="min-h-screen" style={{ background: "#0F1A14", fontFamily: "system-ui, -apple-system, sans-serif" }}>
@@ -444,54 +576,45 @@ export default function RepPlaybookPage() {
       </div>
 
       <div className="max-w-[900px] mx-auto px-6 py-8">
-        <h1 className="text-[24px] font-bold text-white mb-2">The Customer Contact Playbook</h1>
+        <h1 className="text-[24px] font-bold text-white mb-2">Contact Playbook</h1>
         <p className="text-[13px] mb-8" style={{ color: "rgba(255,255,255,0.35)" }}>
-          Every stage of the pipeline — exactly what to do, when to do it, and what to say. Follow this system and you close.
+          Every scenario you'll face — exactly what to say, when, and how. Pick your situation.
         </p>
 
-        {/* Stage timeline */}
-        <div className="flex gap-1 mb-8 overflow-x-auto pb-2">
-          {STAGES.map((s, i) => (
-            <button key={s.id} onClick={() => { setActiveStage(s.id); setExpandedItem(null); }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[11px] font-semibold transition-all shrink-0"
+        {/* Scenario selector */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-8">
+          {SCENARIOS.map(s => (
+            <button key={s.id} onClick={() => { setActiveScenario(s.id); setExpandedItem(null); }}
+              className="text-left p-3 rounded-xl transition-all"
               style={{
-                background: activeStage === s.id ? s.color + "22" : "rgba(255,255,255,0.03)",
-                border: `1px solid ${activeStage === s.id ? s.color + "66" : "rgba(255,255,255,0.08)"}`,
-                color: activeStage === s.id ? s.color : "rgba(255,255,255,0.35)",
+                background: activeScenario === s.id ? s.color + "22" : "rgba(255,255,255,0.03)",
+                border: `1px solid ${activeScenario === s.id ? s.color + "66" : "rgba(255,255,255,0.08)"}`,
               }}>
-              <span className="text-[10px] font-black opacity-50">{s.stage}</span>
-              {s.title.split(" — ")[0]}
+              <span className="text-[18px]">{s.icon}</span>
+              <p className="text-[12px] font-bold mt-1" style={{ color: activeScenario === s.id ? s.color : "rgba(255,255,255,0.6)" }}>{s.title}</p>
+              <p className="text-[10px] mt-0.5 line-clamp-2" style={{ color: "rgba(255,255,255,0.3)" }}>{s.desc}</p>
             </button>
           ))}
         </div>
 
-        {/* Stage header */}
-        <div className="mb-6 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        {/* Scenario header */}
+        <div className="mb-6 p-5 rounded-xl" style={{ background: scenario.color + "15", border: `1px solid ${scenario.color}33` }}>
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-[32px] font-black" style={{ color: stage.color }}>{stage.stage}</span>
-            <div>
-              <h2 className="text-[18px] font-bold text-white">{stage.title}</h2>
-              <div className="flex gap-4 mt-1">
-                <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.3)" }}>
-                  Timing: <span className="text-white font-semibold">{stage.timing}</span>
-                </span>
-                <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.3)" }}>
-                  Goal: <span style={{ color: stage.color }} className="font-semibold">{stage.goal}</span>
-                </span>
-              </div>
-            </div>
+            <span className="text-[28px]">{scenario.icon}</span>
+            <h2 className="text-[18px] font-bold text-white">{scenario.title}</h2>
           </div>
+          <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.5)" }}>{scenario.desc}</p>
         </div>
 
         {/* Sections */}
         <div className="space-y-3">
-          {stage.sections.map((item, i) => (
+          {scenario.sections.map((item, i) => (
             <div key={i} className="rounded-xl overflow-hidden"
               style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <button onClick={() => setExpandedItem(expandedItem === item.label ? null : item.label)}
                 className="w-full px-5 py-4 text-left flex items-center justify-between hover:bg-white/[0.02] transition">
                 <div className="flex items-center gap-3">
-                  <span className="text-[11px] font-black w-6 text-center" style={{ color: stage.color }}>{i + 1}</span>
+                  <span className="text-[12px] font-black w-6 text-center" style={{ color: scenario.color }}>{i + 1}</span>
                   <span className="text-[14px] font-semibold text-white">{item.label}</span>
                 </div>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round"
@@ -509,24 +632,6 @@ export default function RepPlaybookPage() {
               )}
             </div>
           ))}
-        </div>
-
-        {/* Next stage navigation */}
-        <div className="flex gap-3 mt-8">
-          {STAGES.findIndex(s => s.id === activeStage) > 0 && (
-            <button onClick={() => { const idx = STAGES.findIndex(s => s.id === activeStage); setActiveStage(STAGES[idx - 1].id); setExpandedItem(null); window.scrollTo(0, 0); }}
-              className="flex-1 py-3 rounded-xl text-[13px] font-bold transition"
-              style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              ← Previous Stage
-            </button>
-          )}
-          {STAGES.findIndex(s => s.id === activeStage) < STAGES.length - 1 && (
-            <button onClick={() => { const idx = STAGES.findIndex(s => s.id === activeStage); setActiveStage(STAGES[idx + 1].id); setExpandedItem(null); window.scrollTo(0, 0); }}
-              className="flex-1 py-3 rounded-xl text-[13px] font-bold transition"
-              style={{ background: STAGES[STAGES.findIndex(s => s.id === activeStage) + 1].color + "22", color: STAGES[STAGES.findIndex(s => s.id === activeStage) + 1].color, border: `1px solid ${STAGES[STAGES.findIndex(s => s.id === activeStage) + 1].color}44` }}>
-              Next: {STAGES[STAGES.findIndex(s => s.id === activeStage) + 1].title.split(" — ")[0]} →
-            </button>
-          )}
         </div>
       </div>
     </div>
