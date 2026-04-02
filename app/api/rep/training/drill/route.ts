@@ -84,6 +84,7 @@ RESPONSE FORMAT (strict JSON):
 {
   "score": <number 1-10>,
   "coaching": "<2-3 sentence coaching note — specific, actionable, direct. Name what they did right AND what to improve. Reference Straight Line principles by name when relevant.>",
+  "better_response": "<If score is 7 or below, write the EXACT words the rep SHOULD have said instead. This must be a complete, ready-to-use response — not a suggestion or outline. If score is 8+, set to null.>",
   "closed": <boolean — true only if the prospect has clearly agreed to move forward>
 }`;
 }
@@ -129,6 +130,7 @@ export async function POST(req: NextRequest) {
 
       let score = 5;
       let coaching = "Keep building certainty. Stay focused on the Three 10s.";
+      let betterResponse: string | null = null;
       let closed = false;
 
       try {
@@ -138,13 +140,14 @@ export async function POST(req: NextRequest) {
           const parsed = JSON.parse(jsonMatch[0]);
           score = Math.min(10, Math.max(1, Number(parsed.score) || 5));
           coaching = parsed.coaching || coaching;
+          betterResponse = parsed.better_response || null;
           closed = !!parsed.closed;
         }
       } catch { /* use defaults */ }
 
       // If closed or last turn, skip prospect response
       if (closed || turn >= 8) {
-        return NextResponse.json({ score, coaching, closed: true, prospectResponse: "" });
+        return NextResponse.json({ score, coaching, betterResponse, closed: true, prospectResponse: "" });
       }
 
       // Get prospect response
@@ -162,7 +165,7 @@ export async function POST(req: NextRequest) {
         ? prospectRes.content[0].text
         : "...";
 
-      return NextResponse.json({ score, coaching, closed, prospectResponse });
+      return NextResponse.json({ score, coaching, betterResponse, closed, prospectResponse });
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });

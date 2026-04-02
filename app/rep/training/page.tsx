@@ -14,6 +14,7 @@ interface Message {
   content: string;
   score?: number; // 1-10 Straight Line score on rep's last message
   coaching?: string;
+  betterResponse?: string | null; // What the rep SHOULD have said (shown when score <= 7)
 }
 
 interface Scenario {
@@ -150,7 +151,7 @@ export default function RepTrainingPage() {
 
       const withCoach: Message[] = [
         ...newMessages,
-        { role: "coach", content: data.coaching, score: data.score },
+        { role: "coach", content: data.coaching, score: data.score, betterResponse: data.betterResponse || null },
         ...(data.closed ? [] : [{ role: "prospect" as const, content: data.prospectResponse }]),
       ];
       setMessages(withCoach);
@@ -296,6 +297,70 @@ export default function RepTrainingPage() {
             </div>
           </div>
 
+          {/* TRAINING GUIDE — what to say for each objection */}
+          <div className="p-5 rounded-xl mb-8"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-4"
+              style={{ color: "rgba(255,255,255,0.3)" }}>
+              Straight Line Playbook — How to Handle Every Situation
+            </p>
+            <div className="space-y-4">
+              {[
+                {
+                  objection: "\"I need to think about it\"",
+                  wrong: "Okay, take your time. I'll follow up next week.",
+                  right: "Totally fair. Can I ask — what specifically are you thinking about? Is it the fee, the process, or whether the numbers are real? Because if it's [X], I can address that right now.",
+                  principle: "Identify the real objection behind the stall. Never accept a vague delay.",
+                },
+                {
+                  objection: "\"12% is too much\"",
+                  wrong: "Well, that's our standard rate. It's pretty competitive.",
+                  right: "I get it — 12% sounds like a number. But let's look at YOUR numbers: we found $43K in leaks. You keep $37,840 — money that's currently walking out the door. The alternative isn't paying us 0% — it's losing the full $43K. We take all the risk.",
+                  principle: "Reframe: it's not 12% vs 0%, it's 88% kept vs 100% lost. Use their actual dollar amount.",
+                },
+                {
+                  objection: "\"My accountant handles this\"",
+                  wrong: "We're better than accountants because we use AI.",
+                  right: "That's great — and we work WITH your accountant. What we do is different: they handle compliance, we handle optimization. For example, your diagnostic found $8K in insurance overpayment and $12K in processing fees — those aren't things an accountant typically reviews.",
+                  principle: "Never attack their accountant. Differentiate scope, then cite specific findings outside accounting scope.",
+                },
+                {
+                  objection: "\"These numbers seem high\"",
+                  wrong: "Our AI is very accurate. Trust the system.",
+                  right: "Fair question. Let me show you how we got there. Your processing rate is 2.9% — the industry median is 2.3%. On your $400K card volume, that's $2,400/year. That's not an estimate — that's math. Each finding has the same breakdown.",
+                  principle: "Show the calculation, not the conclusion. Walk through one finding in detail to build credibility for all.",
+                },
+                {
+                  objection: "\"I don't have time for this\"",
+                  wrong: "It only takes a few minutes of your time each week.",
+                  right: "That's exactly why we exist. You do nothing. We handle every call to CRA, every vendor renegotiation, every application. The only thing you do is show up for one 15-minute call where I walk you through what we found. After that, we do the work.",
+                  principle: "Remove the effort objection completely. Emphasize that you do ALL the work.",
+                },
+                {
+                  objection: "\"How do I know you can actually recover this?\"",
+                  wrong: "We have a great track record with lots of clients.",
+                  right: "Two things: First, you pay nothing until money is confirmed in your account — so the risk is entirely on us. Second, let me start with the highest-confidence finding: your insurance hasn't been re-quoted in 3 years. That alone is almost always recoverable. Can I start there?",
+                  principle: "Lead with zero-risk, then offer to prove it with the easiest win first.",
+                },
+              ].map((item, i) => (
+                <div key={i} className="pb-4" style={{ borderBottom: i < 5 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                  <p className="text-[12px] font-bold text-white mb-2">{item.objection}</p>
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    <div className="px-3 py-2 rounded-lg" style={{ background: "rgba(179,64,64,0.1)", border: "1px solid rgba(179,64,64,0.15)" }}>
+                      <p className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "#B34040" }}>Wrong</p>
+                      <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>{item.wrong}</p>
+                    </div>
+                    <div className="px-3 py-2 rounded-lg" style={{ background: "rgba(45,122,80,0.1)", border: "1px solid rgba(45,122,80,0.15)" }}>
+                      <p className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "#2D7A50" }}>Right</p>
+                      <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>{item.right}</p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] italic" style={{ color: "rgba(196,132,29,0.7)" }}>{item.principle}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <button onClick={startDrill} disabled={!scenario}
             className="w-full py-4 rounded-xl text-[14px] font-bold transition-all disabled:opacity-30"
             style={{
@@ -380,6 +445,17 @@ export default function RepTrainingPage() {
                     <p className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
                       {m.content}
                     </p>
+                    {m.betterResponse && (
+                      <div className="mt-3 px-3 py-2.5 rounded-lg"
+                        style={{ background: "rgba(45,122,80,0.1)", border: "1px solid rgba(45,122,80,0.2)" }}>
+                        <p className="text-[9px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "#2D7A50" }}>
+                          What you should have said:
+                        </p>
+                        <p className="text-[12px] leading-relaxed italic" style={{ color: "rgba(255,255,255,0.8)" }}>
+                          &ldquo;{m.betterResponse}&rdquo;
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
