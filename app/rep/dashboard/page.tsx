@@ -147,6 +147,11 @@ export default function RepDashboard() {
                 style={{ color: "#1B3A2D" }}>
                 Learn
               </button>
+              <button onClick={() => router.push("/rep/training/playbook")}
+                className="text-[11px] font-semibold px-3 py-1 rounded-lg hover:bg-[#F0EFEB] transition"
+                style={{ color: "#1B3A2D" }}>
+                Playbook
+              </button>
               <button onClick={() => router.push("/rep/training")}
                 className="text-[11px] font-semibold px-3 py-1 rounded-lg hover:bg-[#F0EFEB] transition"
                 style={{ color: "#1B3A2D" }}>
