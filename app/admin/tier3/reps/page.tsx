@@ -20,14 +20,62 @@ export default function RepsAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string|null>(null);
   const [selected, setSelected] = useState<any>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [addForm, setAddForm] = useState({ name: "", email: "", phone: "", province: "", commissionRate: "12" });
+  const [adding, setAdding] = useState(false);
+  const [sendingLink, setSendingLink] = useState<string|null>(null);
 
-  useEffect(() => {
+  const loadAnalytics = () => {
     fetch("/api/admin/tier3/reps/analytics")
       .then(r => r.json())
       .then(d => { if (d.success) setAnalytics(d.analytics); else setError(d.error || "Failed to load"); })
       .catch(() => setError("Network error"))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadAnalytics(); }, []);
+
+  const addRep = async () => {
+    if (!addForm.name.trim() || !addForm.email.trim()) return;
+    setAdding(true);
+    try {
+      const res = await fetch("/api/admin/tier3/reps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: addForm.name.trim(),
+          email: addForm.email.trim().toLowerCase(),
+          phone: addForm.phone.trim() || null,
+          province: addForm.province.trim() || null,
+          commissionRate: Number(addForm.commissionRate) || 12,
+        }),
+      });
+      const j = await res.json();
+      if (j.success) {
+        setShowAdd(false);
+        setAddForm({ name: "", email: "", phone: "", province: "", commissionRate: "12" });
+        loadAnalytics();
+      } else {
+        setError(j.error || "Failed to create rep");
+      }
+    } catch { setError("Network error"); }
+    setAdding(false);
+  };
+
+  const sendPortalLink = async (repId: string, repEmail: string) => {
+    setSendingLink(repId);
+    try {
+      const res = await fetch("/api/rep/auth/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repId }),
+      });
+      const j = await res.json();
+      if (j.success) setError(null);
+      else setError(j.error || "Failed to send link");
+    } catch { setError("Network error"); }
+    setSendingLink(null);
+  };
 
   if (loading) return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
@@ -56,7 +104,13 @@ export default function RepsAnalyticsPage() {
             <h1 className="text-[17px] font-bold text-[#1A1A18]">Rep Performance</h1>
             <p className="text-[11px] text-[#8E8C85] mt-0.5">{analytics.filter(r => r.status === "active").length} active reps</p>
           </div>
-          <AdminNav />
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowAdd(true)}
+              className="h-9 px-4 text-[12px] font-bold text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2A5A44] transition">
+              + Add Rep
+            </button>
+            <AdminNav />
+          </div>
         </div>
       </div>
 
@@ -111,17 +165,78 @@ export default function RepsAnalyticsPage() {
                   <td className="px-4 py-3 font-semibold text-[#2D7A50]">{fmt(rep.commissionsEarned)}</td>
                   <td className="px-4 py-3 text-[#C4841D] font-semibold">{fmt(rep.commissionsPending)}</td>
                   <td className="px-4 py-3">
-                    <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
-                      style={{ background: rep.status === "active" ? "rgba(45,122,80,0.08)" : "rgba(181,179,173,0.15)",
-                               color: STAGE_COLOR[rep.status] || "#8E8C85" }}>
-                      {rep.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
+                        style={{ background: rep.status === "active" ? "rgba(45,122,80,0.08)" : "rgba(181,179,173,0.15)",
+                                 color: STAGE_COLOR[rep.status] || "#8E8C85" }}>
+                        {rep.status}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); sendPortalLink(rep.id, rep.email); }}
+                        disabled={sendingLink === rep.id}
+                        className="text-[9px] font-semibold text-[#1B3A2D] hover:underline disabled:opacity-40">
+                        {sendingLink === rep.id ? "Sending..." : "Send Link"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {/* Add Rep Modal */}
+        {showAdd && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowAdd(false)}>
+            <div className="fixed inset-0" style={{ background: "rgba(26,26,24,0.3)" }} />
+            <div className="relative bg-white rounded-2xl border border-[#E5E3DD] shadow-xl w-full max-w-md p-6 z-50" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[15px] font-bold text-[#1A1A18]">Add New Rep</h3>
+                <button onClick={() => setShowAdd(false)} className="text-[#B5B3AD] text-xl hover:text-[#1A1A18]">×</button>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">Full Name *</label>
+                  <input value={addForm.name} onChange={e => setAddForm(p => ({ ...p, name: e.target.value }))}
+                    placeholder="John Smith" className="w-full mt-1 px-3 py-2 text-[13px] border border-[#E5E3DD] rounded-lg bg-[#FAFAF8] focus:outline-none focus:border-[#1B3A2D]" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">Email *</label>
+                  <input type="email" value={addForm.email} onChange={e => setAddForm(p => ({ ...p, email: e.target.value }))}
+                    placeholder="john@example.com" className="w-full mt-1 px-3 py-2 text-[13px] border border-[#E5E3DD] rounded-lg bg-[#FAFAF8] focus:outline-none focus:border-[#1B3A2D]" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">Phone</label>
+                    <input value={addForm.phone} onChange={e => setAddForm(p => ({ ...p, phone: e.target.value }))}
+                      placeholder="514-555-1234" className="w-full mt-1 px-3 py-2 text-[13px] border border-[#E5E3DD] rounded-lg bg-[#FAFAF8] focus:outline-none focus:border-[#1B3A2D]" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">Province / State</label>
+                    <input value={addForm.province} onChange={e => setAddForm(p => ({ ...p, province: e.target.value }))}
+                      placeholder="QC" maxLength={2} className="w-full mt-1 px-3 py-2 text-[13px] border border-[#E5E3DD] rounded-lg bg-[#FAFAF8] focus:outline-none focus:border-[#1B3A2D] uppercase" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">Commission Rate (%)</label>
+                  <input type="number" value={addForm.commissionRate} onChange={e => setAddForm(p => ({ ...p, commissionRate: e.target.value }))}
+                    min="1" max="50" className="w-full mt-1 px-3 py-2 text-[13px] border border-[#E5E3DD] rounded-lg bg-[#FAFAF8] focus:outline-none focus:border-[#1B3A2D]" />
+                  <p className="text-[10px] text-[#B5B3AD] mt-1">Percentage of the contingency fee the rep earns per recovery</p>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-5">
+                <button onClick={addRep} disabled={adding || !addForm.name.trim() || !addForm.email.trim()}
+                  className="flex-1 h-10 text-[13px] font-bold text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2A5A44] transition disabled:opacity-40">
+                  {adding ? "Creating..." : "Create Rep"}
+                </button>
+                <button onClick={() => setShowAdd(false)}
+                  className="px-4 h-10 text-[13px] text-[#56554F] border border-[#E5E3DD] rounded-lg hover:bg-[#F0EFEB] transition">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Detail slide-over */}
         {selected && (
