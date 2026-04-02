@@ -190,6 +190,11 @@ export default function RepTrainingPage() {
             <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#2D7A50" }}>
               Objection Drill
             </span>
+            <button onClick={() => router.push("/rep/training/learn")}
+              className="text-[12px] font-semibold hover:text-white transition hidden sm:block"
+              style={{ color: "rgba(255,255,255,0.4)" }}>
+              Learn First →
+            </button>
             <button onClick={() => router.push("/rep/scripts")}
               className="text-[12px] font-semibold hover:text-white transition hidden sm:block"
               style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -227,6 +232,23 @@ export default function RepTrainingPage() {
             <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.35)" }}>
               Claude plays the prospect. You close. Every exchange scored on the Straight Line system.
             </p>
+          </div>
+
+          {/* Learn first banner */}
+          <div className="p-4 rounded-xl mb-8 flex items-center gap-4 cursor-pointer hover:opacity-90 transition"
+            onClick={() => router.push("/rep/training/learn")}
+            style={{ background: "rgba(45,122,80,0.08)", border: "1px solid rgba(45,122,80,0.2)" }}>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: "rgba(45,122,80,0.15)" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2" strokeLinecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-white">New here? Learn the business first</p>
+              <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Study the pitches, fee model, and objection responses before drilling. Takes 10 minutes.
+              </p>
+            </div>
+            <span className="text-[11px] font-bold shrink-0" style={{ color: "#2D7A50" }}>Learn →</span>
           </div>
 
           {/* Difficulty */}
