@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getToken } from "next-auth/jwt";
 import crypto from "crypto";
 
 const _ip_shareRl = new Map<string, {c: number; r: number}>();
@@ -14,13 +15,21 @@ function ip_shareCheck(ip: string): boolean {
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-// POST — create share link
+// POST — create share link (authenticated + ownership verified)
 export async function POST(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = (token as any).id || token.sub;
+
   const _ip_ip_share = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (!ip_shareCheck(_ip_ip_share)) return NextResponse.json({error: "Too many requests"}, {status: 429});
   try {
     const { businessId } = await req.json();
     if (!businessId) return NextResponse.json({ error: "businessId required" }, { status: 400 });
+
+    // Verify ownership
+    const { data: profile } = await sb.from("business_profiles").select("business_id").eq("user_id", userId).eq("business_id", businessId).maybeSingle();
+    if (!profile) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
     const shareId = crypto.randomBytes(8).toString("hex");
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getToken } from "next-auth/jwt";
 
 const _ip_referralRl = new Map<string, {c: number; r: number}>();
 function ip_referralCheck(ip: string): boolean {
@@ -13,10 +14,15 @@ function ip_referralCheck(ip: string): boolean {
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-// GET — Get referral code + stats for a user
+// GET — Get referral code + stats for authenticated user
 export async function GET(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get("userId");
-  if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const authUserId = (token as any)?.id || token?.sub;
+  if (!authUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Only allow fetching own referral data
+  const userId = req.nextUrl.searchParams.get("userId") || authUserId;
+  if (userId !== authUserId) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
   try {
     // Get or create referral code

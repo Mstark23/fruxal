@@ -5,6 +5,7 @@
 // =============================================================================
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getToken } from "next-auth/jwt";
 
 const _ip_alertsRl = new Map<string, {c: number; r: number}>();
 function ip_alertsCheck(ip: string): boolean {
@@ -19,8 +20,16 @@ function ip_alertsCheck(ip: string): boolean {
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 export async function GET(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = (token as any).id || token.sub;
+
   const businessId = req.nextUrl.searchParams.get("businessId");
   if (!businessId) return NextResponse.json({ error: "businessId required" }, { status: 400 });
+
+  // Verify ownership
+  const { data: profile } = await sb.from("business_profiles").select("business_id").eq("user_id", userId).eq("business_id", businessId).maybeSingle();
+  if (!profile) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
   const { data } = await sb.from("alert_rules").select("*").eq("businessId", businessId).order("createdAt", { ascending: false });
   return NextResponse.json({ alerts: data || [] });
@@ -56,8 +65,20 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  // Verify the alert belongs to user's business before deleting
+  const userId = (token as any).id || token.sub;
+  const { data: alert } = await sb.from("alert_rules").select("businessId").eq("id", id).maybeSingle();
+  if (alert?.businessId) {
+    const { data: profile } = await sb.from("business_profiles").select("business_id").eq("user_id", userId).eq("business_id", alert.businessId).maybeSingle();
+    if (!profile) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+  }
+
   await sb.from("alert_rules").delete().eq("id", id);
   return NextResponse.json({ deleted: true });
 }
