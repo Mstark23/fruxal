@@ -50,6 +50,8 @@ export default function SoloDashboard() {
   const [diagFindings, setDiagFindings] = useState<any[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [assignedRep, setAssignedRep] = useState<{ name: string; calendly_url: string | null; contingency_rate: number; pipeline_stage: string | null } | null>(null);
+  const [integrations, setIntegrations] = useState<{ quickbooks: boolean; plaid: boolean }>({ quickbooks: false, plaid: false });
+  const [connectDismissed, setConnectDismissed] = useState(false);
 
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
   const isFR = lang === "fr";
@@ -99,6 +101,7 @@ export default function SoloDashboard() {
       setLeaksFixed(d.leaks?.fixed ?? 0);
       setTotalSavings(d.leaks?.total_savings ?? 0);
       if (d.assigned_rep) setAssignedRep(d.assigned_rep);
+      if (d.integrations) setIntegrations(d.integrations);
       if (!prescanLoaded && d.leaks?.top_unfixed?.length > 0) {
         setScore(d.health_score || 50);
         setTotalLeak(d.total_leak_estimate ?? 0);
@@ -257,6 +260,31 @@ export default function SoloDashboard() {
             <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} className="h-6 px-2.5 text-[11px] font-bold text-ink-muted bg-white border border-border-light rounded-md hover:bg-bg-section transition">{lang === "fr" ? "EN" : "FR"}</button>
           )}
         </div>
+
+        {/* CONNECT DATA BANNER — shown if no QuickBooks or Plaid connected */}
+        {!connectDismissed && !integrations.quickbooks && !integrations.plaid && !loading && (
+          <div className="w-full rounded-xl mb-4 border border-[#0A85EA]/20 bg-[#0A85EA]/[0.03] px-4 py-3.5" style={fadeDelay(0.01)}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-[#0A85EA]/10 flex items-center justify-center shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A85EA" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-semibold text-ink">{t("Connect your financial data", "Connectez vos données financières")}</p>
+                <p className="text-[11px] text-ink-muted mt-0.5">{t("Link QuickBooks or your bank account to get exact leak amounts instead of estimates.", "Liez QuickBooks ou votre compte bancaire pour obtenir des montants exacts au lieu d'estimations.")}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => window.open("/api/quickbooks/connect", "_blank")}
+                  className="h-8 px-3.5 text-[11px] font-bold text-white bg-[#2CA01C] rounded-lg hover:opacity-90 transition">QuickBooks</button>
+                <button onClick={() => window.open("/v2/integrations", "_blank")}
+                  className="h-8 px-3.5 text-[11px] font-bold text-[#0A85EA] bg-[#0A85EA]/10 border border-[#0A85EA]/20 rounded-lg hover:bg-[#0A85EA]/15 transition">{t("Bank", "Banque")}</button>
+                <button onClick={() => setConnectDismissed(true)}
+                  className="w-6 h-6 flex items-center justify-center text-ink-faint hover:text-ink-muted transition">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ANALYZING BANNER */}
         {isAnalyzing && (

@@ -456,6 +456,15 @@ export async function GET(req: NextRequest) {
         obligations,
         programs: { available: programsAvailable },
         assigned_rep,
+        integrations: await (async () => {
+          try {
+            const [qb, plaid] = await Promise.all([
+              Promise.resolve(supabaseAdmin.from("quickbooks_connections").select("id").eq("user_id", userId).maybeSingle()).then(r => !!r.data).catch(() => false),
+              Promise.resolve(supabaseAdmin.from("plaid_connections").select("id").eq("user_id", userId).maybeSingle()).then(r => !!r.data).catch(() => false),
+            ]);
+            return { quickbooks: qb, plaid };
+          } catch { return { quickbooks: false, plaid: false }; }
+        })(),
       },
     });
 

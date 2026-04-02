@@ -52,6 +52,8 @@ export default function BusinessDashboard() {
   const [leaksFixed, setLeaksFixed] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
   const [assignedRep, setAssignedRep] = useState<{ name: string; calendly_url: string | null; contingency_rate: number; pipeline_stage: string | null } | null>(null);
+  const [integrations, setIntegrations] = useState<{ quickbooks: boolean; plaid: boolean }>({ quickbooks: false, plaid: false });
+  const [connectDismissed, setConnectDismissed] = useState(false);
 
   const [reportId, setReportId] = useState<string | null>(null);
   const [dashboardBusinessId, setDashboardBusinessId] = useState<string>("");
@@ -96,6 +98,7 @@ export default function BusinessDashboard() {
       setLeaksFixed(d.leaks?.fixed ?? 0);
       setTotalSavings(d.leaks?.total_savings ?? 0);
       if (d.assigned_rep) setAssignedRep(d.assigned_rep);
+      if (d.integrations) setIntegrations(d.integrations);
       if (d.leaks?.top_unfixed?.length > 0) {
         setScore(d.health_score || 50);
         setTotalLeak(d.total_leak_estimate ?? 0);
@@ -232,6 +235,31 @@ export default function BusinessDashboard() {
             {reportId && <button onClick={() => router.push(`/v2/diagnostic/${reportId}`)} className="h-6 px-2.5 text-[11px] font-bold text-brand bg-brand/5 border border-brand/15 rounded-md hover:bg-brand/10 transition">{t("Full Report →", "Rapport →")}</button>}
           </div>
         </div>
+
+        {/* CONNECT DATA BANNER */}
+        {!connectDismissed && !integrations.quickbooks && !integrations.plaid && !loading && (
+          <div className="w-full rounded-xl mb-4 border border-[#0A85EA]/20 bg-[#0A85EA]/[0.03] px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-[#0A85EA]/10 flex items-center justify-center shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A85EA" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-semibold text-ink">{t("Connect your financial data", "Connectez vos données financières")}</p>
+                <p className="text-[11px] text-ink-muted mt-0.5">{t("Link QuickBooks or your bank account for real numbers instead of estimates.", "Liez QuickBooks ou votre compte bancaire pour des montants réels.")}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => window.open("/api/quickbooks/connect", "_blank")}
+                  className="h-8 px-3.5 text-[11px] font-bold text-white bg-[#2CA01C] rounded-lg hover:opacity-90 transition">QuickBooks</button>
+                <button onClick={() => window.open("/v2/integrations", "_blank")}
+                  className="h-8 px-3.5 text-[11px] font-bold text-[#0A85EA] bg-[#0A85EA]/10 border border-[#0A85EA]/20 rounded-lg hover:bg-[#0A85EA]/15 transition">{t("Bank", "Banque")}</button>
+                <button onClick={() => setConnectDismissed(true)}
+                  className="w-6 h-6 flex items-center justify-center text-ink-faint hover:text-ink-muted transition">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ANALYZING BANNER */}
         {isAnalyzing && (
