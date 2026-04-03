@@ -10,6 +10,24 @@ interface AiChatWidgetProps {
   position?: "inline" | "floating";
 }
 
+// Render confidence badges inline
+function renderContent(text: string) {
+  if (!text) return null;
+  const badges: Record<string, { label: string; bg: string; color: string }> = {
+    "[DATA:actual]": { label: "From your documents", bg: "rgba(45,122,80,0.1)", color: "#2D7A50" },
+    "[DATA:scan]": { label: "Prescan estimate", bg: "rgba(196,132,29,0.1)", color: "#C4841D" },
+    "[DATA:industry]": { label: "Industry benchmark", bg: "rgba(3,105,161,0.1)", color: "#0369a1" },
+  };
+  const parts = text.split(/(\[DATA:(?:actual|scan|industry)\])/g);
+  return parts.map((part, i) => {
+    const badge = badges[part];
+    if (badge) {
+      return <span key={i} className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold mx-0.5 align-middle" style={{ background: badge.bg, color: badge.color }}>{badge.label}</span>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -20,8 +38,10 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
   const [calendlyUrl, setCalendlyUrl] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(position === "inline");
   const [loaded, setLoaded] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   // Load starters + chat history on mount
   useEffect(() => {
@@ -129,6 +149,53 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
     setTimeout(() => inputRef.current?.focus(), 100);
   }, [messages, streaming]);
 
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || uploading) return;
+    setUploading(true);
+    setMessages(prev => [...prev, { role: "user", content: `Uploaded: ${file.name}` }]);
+    setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("documentType", file.name.toLowerCase().includes("t2") || file.name.toLowerCase().includes("1120") ? "t2"
+        : file.name.toLowerCase().includes("bank") ? "bank_statement"
+        : file.name.toLowerCase().includes("insurance") ? "insurance"
+        : "financials");
+
+      const res = await fetch("/api/v2/document-intelligence", { method: "POST", body: formData });
+      const j = await res.json();
+
+      let response = "";
+      if (j.success) {
+        const insights = j.insights || [];
+        response = `I've analyzed ${file.name}. `;
+        if (j.profileUpdated?.length > 0) response += `Updated your profile with: ${j.profileUpdated.join(", ")}. `;
+        if (insights.length > 0) response += insights.join(" ");
+        if (insights.length === 0) response += "Everything looks consistent with your current data.";
+        response += " Your rep will use this for more accurate recovery.";
+      } else {
+        response = "I couldn't analyze that file. Try uploading a PDF of your T2, financial statements, or bank statement.";
+      }
+
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: "assistant", content: response };
+        return updated;
+      });
+      setSuggestions(["What did you find in my documents?", "Are there new deductions I'm missing?", "What should my rep focus on next?"]);
+    } catch {
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: "assistant", content: "Upload failed. Please try again with a PDF, JPG, or PNG file." };
+        return updated;
+      });
+    }
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
+  }, [uploading]);
+
   // Floating button (when position = "floating")
   if (position === "floating" && !isOpen) {
     return (
@@ -202,7 +269,9 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
                   ? "bg-[#1B3A2D] text-white rounded-br-md"
                   : "bg-white border border-[#E5E3DD] text-[#1A1A18] rounded-bl-md"
               }`} style={{ boxShadow: m.role === "assistant" ? "0 1px 2px rgba(0,0,0,0.03)" : "none" }}>
-                {m.content || (
+                {m.content ? (
+                  m.role === "assistant" ? renderContent(m.content) : m.content
+                ) : (
                   <span className="flex items-center gap-1.5 text-[#8E8C85]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8E8C85] animate-bounce" style={{ animationDelay: "0ms" }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8E8C85] animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -241,18 +310,23 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
 
         {/* Input */}
         <div className="px-3 py-3 border-t border-[#E5E3DD] bg-white shrink-0">
-          <div className="flex items-center gap-2 bg-[#FAFAF8] border border-[#E5E3DD] rounded-xl pl-3.5 pr-1.5 py-0.5 focus-within:border-[#1B3A2D] focus-within:ring-2 focus-within:ring-[#1B3A2D]/10 transition-all">
+          <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleFileUpload} />
+          <div className="flex items-center gap-2 bg-[#FAFAF8] border border-[#E5E3DD] rounded-xl pl-1.5 pr-1.5 py-0.5 focus-within:border-[#1B3A2D] focus-within:ring-2 focus-within:ring-[#1B3A2D]/10 transition-all">
+            <button onClick={() => fileRef.current?.click()} disabled={streaming || uploading}
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#E5E3DD] transition disabled:opacity-30 shrink-0" title="Upload document">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E8C85" strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" /></svg>
+            </button>
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-              placeholder="Ask about your leaks, recovery, programs..."
-              disabled={streaming}
+              placeholder={uploading ? "Analyzing document..." : "Ask about your leaks, recovery, programs..."}
+              disabled={streaming || uploading}
               className="flex-1 py-2 text-[13px] text-[#1A1A18] bg-transparent border-none outline-none placeholder:text-[#B5B3AD] disabled:opacity-50"
             />
-            <button onClick={() => sendMessage(input)} disabled={streaming || !input.trim()}
+            <button onClick={() => sendMessage(input)} disabled={streaming || uploading || !input.trim()}
               className="w-8 h-8 rounded-lg bg-[#1B3A2D] flex items-center justify-center hover:bg-[#2A5A44] transition disabled:opacity-30 shrink-0">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </button>

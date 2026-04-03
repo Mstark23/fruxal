@@ -21,11 +21,16 @@ function rlCheck(key: string): boolean {
 }
 
 async function buildContext(userId: string) {
-  const [profile, leaks, progress, pipeline] = await Promise.all([
+  const [profile, leaks, progress, pipeline, obligations, anomalies, memories, recentTopics] = await Promise.all([
     supabaseAdmin.from("business_profiles").select("business_name, industry, province, country, annual_revenue, employee_count, business_structure").eq("user_id", userId).maybeSingle().then(r => r.data),
     supabaseAdmin.from("detected_leaks").select("title, severity, category, annual_impact_min, annual_impact_max, status").eq("user_id", userId).order("annual_impact_max", { ascending: false }).limit(8).then(r => r.data || []),
     supabaseAdmin.from("user_progress").select("total_recovered, total_available").eq("user_id", userId).maybeSingle().then(r => r.data),
     supabaseAdmin.from("tier3_pipeline").select("stage, tier3_rep_assignments(tier3_reps(name, calendly_url))").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle().then(r => r.data),
+    supabaseAdmin.from("user_obligations").select("obligation_slug, status, next_deadline, obligation_rules(title, penalty_max)").eq("user_id", userId).in("status", ["upcoming", "overdue"]).order("next_deadline").limit(5).then(r => r.data || []),
+    supabaseAdmin.from("anomaly_alerts").select("title, severity, estimated_impact").eq("user_id", userId).eq("status", "new").limit(3).then(r => r.data || []),
+    loadMemories({ userId, limit: 30 }),
+    // Cross-session: check what topics they've asked about most
+    supabaseAdmin.from("business_memories").select("content, category").eq("user_id", userId).eq("source", "customer_chat").order("created_at", { ascending: false }).limit(20).then(r => r.data || []),
   ]);
 
   const country = profile?.country || "CA";
@@ -33,38 +38,84 @@ async function buildContext(userId: string) {
   const repName = (pipeline as any)?.tier3_rep_assignments?.[0]?.tier3_reps?.name;
   const calendlyUrl = (pipeline as any)?.tier3_rep_assignments?.[0]?.tier3_reps?.calendly_url;
 
-  // Build smart starter questions based on their data
-  const starters: string[] = [];
-  if (leaks.length > 0) {
-    const topLeak = leaks[0];
-    starters.push(`What does "${topLeak.title}" mean for my business?`);
-    if (leaks.length > 1) starters.push(`Which leak should I fix first?`);
+  // Proactive alerts — things the AI should mention unprompted
+  const proactiveAlerts: string[] = [];
+  const upcomingDeadlines = (obligations as any[]).filter(o => {
+    if (!o.next_deadline) return false;
+    const days = Math.ceil((new Date(o.next_deadline).getTime() - Date.now()) / 86400000);
+    return days <= 14;
+  });
+  if (upcomingDeadlines.length > 0) {
+    proactiveAlerts.push(`DEADLINE ALERT: ${upcomingDeadlines.map(o => `${(o as any).obligation_rules?.title || o.obligation_slug} due ${o.next_deadline}${o.status === "overdue" ? " (OVERDUE!)" : ""} — penalty $${((o as any).obligation_rules?.penalty_max || 0).toLocaleString()}`).join("; ")}`);
   }
-  if ((progress?.total_available || 0) > 0 && (progress?.total_recovered || 0) === 0) {
+  if (anomalies.length > 0) {
+    proactiveAlerts.push(`ANOMALY DETECTED: ${anomalies.map(a => `${a.title} (${a.severity}) — $${(a.estimated_impact || 0).toLocaleString()} impact`).join("; ")}`);
+  }
+  const recovered = progress?.total_recovered || 0;
+  const available = progress?.total_available || 0;
+  if (recovered > 0 && recovered >= available * 0.5) {
+    proactiveAlerts.push(`MILESTONE: Client has recovered 50%+ of identified savings ($${recovered.toLocaleString()} of $${available.toLocaleString()})`);
+  }
+
+  // Cross-session intelligence: detect repeated topics
+  const topicCounts: Record<string, number> = {};
+  for (const m of recentTopics) {
+    const words = m.content.toLowerCase();
+    for (const topic of ["processing", "insurance", "tax", "fee", "accountant", "rep", "deadline", "program", "grant"]) {
+      if (words.includes(topic)) topicCounts[topic] = (topicCounts[topic] || 0) + 1;
+    }
+  }
+  const repeatedTopics = Object.entries(topicCounts).filter(([, c]) => c >= 3).map(([t]) => t);
+
+  // Build smart starters based on proactive data
+  const starters: string[] = [];
+  if (anomalies.length > 0) {
+    starters.push(`What's going on with the ${anomalies[0].title.toLowerCase()}?`);
+  }
+  if (upcomingDeadlines.length > 0 && upcomingDeadlines[0].status === "overdue") {
+    starters.push(`My ${(upcomingDeadlines[0] as any).obligation_rules?.title || "filing"} is overdue — what do I do?`);
+  } else if (upcomingDeadlines.length > 0) {
+    starters.push(`What do I need to do before my ${(upcomingDeadlines[0] as any).obligation_rules?.title || "deadline"}?`);
+  }
+  if (leaks.length > 0) {
+    starters.push(`What does "${leaks[0].title}" mean for my business?`);
+    if (leaks.length > 1) starters.push("Which leak should I fix first?");
+  }
+  if (recovered > 0) {
+    starters.push("What's my recovery progress so far?");
+  } else if (available > 0) {
     starters.push("How does the recovery process work?");
   }
-  if ((progress?.total_recovered || 0) > 0) {
-    starters.push("What's my recovery progress so far?");
-  }
   starters.push(isUS ? "What tax credits do I qualify for?" : "What government programs can I access?");
-  if (!repName) starters.push("When will I be assigned a rep?");
+
+  const memoryBlock = formatMemoriesForPrompt(memories);
 
   return {
     systemContext: `
 BUSINESS: ${profile?.business_name || "Unknown"} (${profile?.industry || "Unknown"}, ${profile?.province || "?"} ${country})
 Revenue: $${(profile?.annual_revenue || 0).toLocaleString()} | Employees: ${profile?.employee_count ?? 0}
+Structure: ${profile?.business_structure || "Unknown"}
 ${repName ? `Rep: ${repName}` : "No rep assigned yet"}
 
 LEAKS (${leaks.length}):
 ${leaks.slice(0, 6).map(l => `- [${l.severity}] ${l.title}: $${(l.annual_impact_max || l.annual_impact_min || 0).toLocaleString()}/yr [${l.status}]`).join("\n") || "None."}
 
-RECOVERY: $${(progress?.total_recovered || 0).toLocaleString()} recovered / $${(progress?.total_available || 0).toLocaleString()} available
+RECOVERY: $${recovered.toLocaleString()} recovered / $${available.toLocaleString()} available
+
+UPCOMING DEADLINES:
+${upcomingDeadlines.map(o => `- ${(o as any).obligation_rules?.title || o.obligation_slug}: ${o.next_deadline} ${o.status === "overdue" ? "OVERDUE" : ""}`).join("\n") || "None in next 14 days."}
+
+${proactiveAlerts.length > 0 ? `\nPROACTIVE ALERTS (mention these naturally if relevant to the conversation):\n${proactiveAlerts.map(a => `- ${a}`).join("\n")}` : ""}
+
+${repeatedTopics.length > 0 ? `\nPATTERN DETECTED: Client has asked about "${repeatedTopics.join('", "')}" multiple times across conversations. This seems important to them — prioritize these topics and acknowledge you remember their interest.` : ""}
 
 Country: ${isUS ? "US" : "Canada"} — use ${isUS ? "IRS/CPA" : "CRA/accountant"} terminology
+${memoryBlock}
 `.trim(),
-    starters,
+    starters: starters.slice(0, 5),
     repName,
     calendlyUrl,
+    memories,
   };
 }
 
@@ -91,26 +142,47 @@ export async function POST(req: NextRequest) {
     const memories = await loadMemories({ userId });
     const memoryBlock = formatMemoriesForPrompt(memories);
 
-    const systemPrompt = `You are the Fruxal AI Assistant — a financial advisor embedded in the customer's dashboard.
+    const systemPrompt = `You are the Fruxal AI Assistant — a financial advisor embedded in the customer's dashboard. You know this business deeply and remember previous conversations.
 
 ${systemContext}
-${memoryBlock}
 
-RULES:
+CORE RULES:
 1. Keep answers to 2-4 sentences. Be direct and specific.
-2. Always cite actual dollar amounts.
-3. Explain leaks in THEIR context (industry, revenue).
-4. Give the exact first step to fix something — not a list.
-5. Never name specific vendors. Say "your rep can connect you."
+2. Always cite actual dollar amounts from their data.
+3. Explain leaks in THEIR context (industry, revenue, province/state).
+4. Give the exact first step — not a list of options.
+5. Never name specific vendors. Say "your rep can connect you with the right provider."
 6. Be warm but professional. No emojis.
 7. End with a single actionable next step.
 
-AFTER YOUR RESPONSE, on a new line, add exactly 3 suggested follow-up questions the user might ask next. Format them as:
+CONFIDENCE INDICATORS — After key dollar claims, add one of these inline tags:
+- [DATA:actual] — from uploaded documents or confirmed recoveries
+- [DATA:scan] — from prescan estimates (benchmarks, not exact)
+- [DATA:industry] — from industry averages
+Only on dollar amounts or specific claims. Use sparingly (1-2 per response max).
+
+PROACTIVE BEHAVIOR:
+- If PROACTIVE ALERTS exist above, weave them naturally into your response
+- If a deadline is within 7 days, mention it even if they didn't ask
+- If an anomaly was detected, bring it up: "By the way, I noticed..."
+- If they've hit a recovery milestone, celebrate it
+
+MULTI-TURN TASKS:
+When the customer asks something requiring multiple steps (e.g., "help me prepare for tax filing"):
+- Guide them step by step: "Let's do this together. Step 1: [action]. Ready for step 2?"
+- Wait for their response before giving the next step
+- Number the steps so they know progress
+- End each step with a question
+
+CROSS-SESSION MEMORY:
+- Reference memories naturally: "Last time we discussed your insurance..."
+- If PATTERN DETECTED above shows repeated topics, acknowledge: "I know [topic] has been on your mind..."
+
+AFTER YOUR RESPONSE, add exactly 3 follow-up suggestions:
 [SUGGEST]Question 1[/SUGGEST]
 [SUGGEST]Question 2[/SUGGEST]
 [SUGGEST]Question 3[/SUGGEST]
-
-Make suggestions specific to what was just discussed. Never generic.`;
+Make them specific to what was discussed. If proactive alerts exist, make one suggestion about the alert.`;
 
     const conversationMessages = (history || []).slice(-8).map((m: any) => ({
       role: m.role as "user" | "assistant",
