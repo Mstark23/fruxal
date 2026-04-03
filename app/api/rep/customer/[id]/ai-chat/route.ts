@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRep } from "@/lib/rep-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { callClaude } from "@/lib/ai/client";
+import { loadMemories, formatMemoriesForPrompt, extractAndSaveMemories } from "@/lib/ai/memory";
 
 export const maxDuration = 30;
 
@@ -129,9 +130,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const { message, history } = await req.json();
     if (!message?.trim()) return NextResponse.json({ error: "Message required" }, { status: 400 });
 
-    const context = await buildRepContext(params.id, auth.repId!);
+    const [context, memories] = await Promise.all([
+      buildRepContext(params.id, auth.repId!),
+      loadMemories({ pipelineId: params.id }),
+    ]);
     if (!context) return NextResponse.json({ error: "Client not found" }, { status: 404 });
 
+    const memoryBlock = formatMemoriesForPrompt(memories);
     const repName = auth.rep?.name || "Rep";
 
     const systemPrompt = `You are a Fruxal AI Strategist — ${repName}'s personal assistant for this specific client.
@@ -144,6 +149,7 @@ You have the client's COMPLETE file below. Your job is to help the rep:
 5. Draft communications (emails, follow-ups, talking points)
 
 ${context}
+${memoryBlock}
 
 BEHAVIOR RULES:
 - Be direct and strategic. No fluff. The rep is busy.
@@ -166,6 +172,15 @@ BEHAVIOR RULES:
       user: userContent,
       maxTokens: 800,
     });
+
+    // Save memories in background
+    extractAndSaveMemories({
+      pipelineId: params.id,
+      source: "rep_chat",
+      userMessage: message,
+      assistantResponse: result.text,
+      existingMemories: memories,
+    }).catch(() => {});
 
     return NextResponse.json({ success: true, message: result.text });
   } catch (err: any) {

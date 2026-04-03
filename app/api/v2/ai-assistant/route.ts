@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { callClaude } from "@/lib/ai/client";
+import { loadMemories, formatMemoriesForPrompt, extractAndSaveMemories } from "@/lib/ai/memory";
 
 export const maxDuration = 30;
 
@@ -79,13 +80,19 @@ export async function POST(req: NextRequest) {
     const { message, history } = await req.json();
     if (!message?.trim()) return NextResponse.json({ error: "Message required" }, { status: 400 });
 
-    const context = await buildContext(userId);
+    const [context, memories] = await Promise.all([
+      buildContext(userId),
+      loadMemories({ userId }),
+    ]);
+
+    const memoryBlock = formatMemoriesForPrompt(memories);
 
     const systemPrompt = `You are the Fruxal AI Assistant — a financial advisor embedded in the customer's dashboard.
 
 You have access to their REAL business data below. Every answer must reference their specific numbers.
 
 ${context}
+${memoryBlock}
 
 BEHAVIOR RULES:
 1. Keep answers to 2-4 sentences. Be direct and specific.
@@ -109,6 +116,15 @@ BEHAVIOR RULES:
       user: [...conversationHistory.map((m: any) => `${m.role}: ${m.content}`), `user: ${message}`].join("\n\n"),
       maxTokens: 512,
     });
+
+    // Extract and save new memories in background (non-blocking)
+    extractAndSaveMemories({
+      userId,
+      source: "customer_chat",
+      userMessage: message,
+      assistantResponse: result.text,
+      existingMemories: memories,
+    }).catch(() => {}); // Never block response
 
     return NextResponse.json({ success: true, message: result.text });
   } catch (err: any) {

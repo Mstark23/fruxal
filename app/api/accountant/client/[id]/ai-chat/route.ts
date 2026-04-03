@@ -17,6 +17,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { callClaude } from "@/lib/ai/client";
+import { loadMemories, formatMemoriesForPrompt, extractAndSaveMemories } from "@/lib/ai/memory";
 
 export const maxDuration = 30;
 
@@ -129,8 +130,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const { message, history } = await req.json();
     if (!message?.trim()) return NextResponse.json({ error: "Message required" }, { status: 400 });
 
-    const context = await buildAccountantContext(params.id);
+    const [context, memories] = await Promise.all([
+      buildAccountantContext(params.id),
+      loadMemories({ pipelineId: params.id }),
+    ]);
     if (!context) return NextResponse.json({ error: "Client not found" }, { status: 404 });
+
+    const memoryBlock = formatMemoriesForPrompt(memories);
 
     const systemPrompt = `You are a Fruxal AI Tax & Compliance Advisor — an expert assistant for the accountant reviewing this client.
 
@@ -142,6 +148,7 @@ You have the client's COMPLETE financial data below. Your job is to help the acc
 5. Prioritize findings by confirmed recoverability
 
 ${context}
+${memoryBlock}
 
 BEHAVIOR RULES:
 - Respond as a senior CPA would to a colleague — technical, precise, concise.
@@ -164,6 +171,15 @@ BEHAVIOR RULES:
       user: userContent,
       maxTokens: 1200,
     });
+
+    // Save memories in background
+    extractAndSaveMemories({
+      pipelineId: params.id,
+      source: "accountant_chat",
+      userMessage: message,
+      assistantResponse: result.text,
+      existingMemories: memories,
+    }).catch(() => {});
 
     return NextResponse.json({ success: true, message: result.text });
   } catch (err: any) {
