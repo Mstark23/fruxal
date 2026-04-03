@@ -70,6 +70,15 @@ export default function RepCustomerPage() {
   const [recommending, setRecommending] = useState<string|null>(null);
   const [recommendedSlugs, setRecommendedSlugs] = useState<Set<string>>(new Set());
 
+  // Sales Scripts state
+  type ScriptTab = "cold_outreach" | "post_prescan" | "review_call" | "objection_handling";
+  const [showScripts, setShowScripts] = useState(false);
+  const [scriptType, setScriptType] = useState<ScriptTab>("cold_outreach");
+  const [scripts, setScripts] = useState<any>(null);
+  const [scriptsLoading, setScriptsLoading] = useState(false);
+  const [scriptsIndustryTag, setScriptsIndustryTag] = useState<string|null>(null);
+  const [copiedIdx, setCopiedIdx] = useState<number|null>(null);
+
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   async function sendClientAccess() {
@@ -214,6 +223,32 @@ ${repInfo?.name || 'Your Fruxal rep'}`
       const j = await r.json();
       if (j.success) setCallPrep(j.callPrep);
     } finally { setCallPrepLoading(false); }
+  };
+
+  const fetchScripts = async (type: ScriptTab) => {
+    setScriptsLoading(true);
+    try {
+      const r = await fetch(`/api/rep/customer/${diagId}/scripts?type=${type}`, {
+        credentials: "include",
+      });
+      const j = await r.json();
+      if (j.success) {
+        setScripts(j.script || j.scripts);
+        setScriptsIndustryTag(j.context?.industryMatch || j.industryTag || null);
+      }
+    } catch { /* ignore */ }
+    setScriptsLoading(false);
+  };
+
+  const handleScriptTabChange = (type: ScriptTab) => {
+    setScriptType(type);
+    fetchScripts(type);
+  };
+
+  const copyScript = (text: string, idx: number) => {
+    navigator.clipboard?.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
   };
 
   const requestDocument = async () => {
@@ -382,7 +417,11 @@ ${repInfo?.name || 'Your Fruxal rep'}`
             )}
             <button onClick={generateCallPrep} disabled={callPrepLoading}
               className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F] hover:bg-[#F0EFEB] transition-colors disabled:opacity-40">
-              {callPrepLoading ? "Generating…" : "📞 Call Script"}
+              {callPrepLoading ? "Generating..." : "Call Script"}
+            </button>
+            <button onClick={() => { setShowScripts(s => !s); if (!scripts) fetchScripts(scriptType); }}
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#1B3A2D] text-[#1B3A2D] hover:bg-[#F0FBF5] transition-colors">
+              Sales Scripts
             </button>
             {client.engagement?.id && (
               <a href={`/api/rep/customer/${diagId}/agreement`} target="_blank" rel="noopener"
@@ -408,6 +447,112 @@ ${repInfo?.name || 'Your Fruxal rep'}`
       </div>
 
       <div className="max-w-[1100px] mx-auto px-6 py-6">
+
+        {/* ═══ SALES SCRIPTS PANEL ═══ */}
+        {showScripts && (
+          <div className="mb-6 bg-white border border-[#E5E3DD] rounded-xl overflow-hidden" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div className="px-5 py-3 border-b border-[#E5E3DD] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <p className="text-[11px] font-bold text-[#1A1A18] uppercase tracking-wider">Sales Scripts</p>
+                {scriptsIndustryTag && (
+                  <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full"
+                    style={{ color:"#1B3A2D", background:"rgba(27,58,45,0.08)" }}>
+                    {scriptsIndustryTag}
+                  </span>
+                )}
+              </div>
+              <button onClick={() => setShowScripts(false)}
+                className="text-[#8E8C85] hover:text-[#1A1A18] transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            {/* Script type tabs */}
+            <div className="flex border-b border-[#E5E3DD]">
+              {([
+                { key: "cold_outreach" as ScriptTab, label: "Cold Outreach" },
+                { key: "post_prescan" as ScriptTab, label: "Post-Prescan" },
+                { key: "review_call" as ScriptTab, label: "Review Call" },
+                { key: "objection_handling" as ScriptTab, label: "Objections" },
+              ]).map(st => (
+                <button key={st.key} onClick={() => handleScriptTabChange(st.key)}
+                  className="flex-1 text-[11px] font-semibold px-3 py-2.5 border-b-2 transition-colors"
+                  style={{
+                    borderColor: scriptType === st.key ? "#1B3A2D" : "transparent",
+                    color: scriptType === st.key ? "#1B3A2D" : "#8E8C85",
+                    background: scriptType === st.key ? "rgba(27,58,45,0.03)" : "transparent",
+                  }}>
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Script content */}
+            <div className="px-5 py-4">
+              {scriptsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-5 h-5 border-2 border-[#E5E3DD] border-t-[#1B3A2D] rounded-full animate-spin" />
+                  <span className="ml-3 text-[11px] text-[#8E8C85]">Loading scripts...</span>
+                </div>
+              ) : scripts && Array.isArray(scripts) ? (
+                <div className="space-y-4">
+                  {scripts.map((section: any, idx: number) => (
+                    <div key={idx} className="border border-[#F0EFEB] rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-[#FAFAF8]">
+                        <p className="text-[11px] font-bold text-[#1A1A18]">{section.title}</p>
+                        <button
+                          onClick={() => copyScript(section.content, idx)}
+                          className="text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors"
+                          style={{
+                            color: copiedIdx === idx ? "#2D7A50" : "#1B3A2D",
+                            background: copiedIdx === idx ? "rgba(45,122,80,0.08)" : "rgba(27,58,45,0.06)",
+                          }}>
+                          {copiedIdx === idx ? "Copied" : "Copy"}
+                        </button>
+                      </div>
+                      <pre className="px-4 py-3 text-[11px] text-[#56554F] whitespace-pre-wrap font-sans leading-relaxed bg-white">
+                        {section.content}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
+              ) : scripts && typeof scripts === "object" && !Array.isArray(scripts) ? (
+                <div className="space-y-4">
+                  {Object.entries(scripts).map(([key, value]: [string, any], idx: number) => {
+                    const displayTitle = key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+                    const displayValue = typeof value === "string" ? value
+                      : Array.isArray(value) ? value.map((v: any) =>
+                          typeof v === "object" ? Object.entries(v).map(([k, val]) => `${k.replace(/_/g, " ")}: ${val}`).join("\n") : String(v)
+                        ).join("\n\n")
+                      : typeof value === "object" ? JSON.stringify(value, null, 2)
+                      : String(value);
+                    return (
+                      <div key={key} className="border border-[#F0EFEB] rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-2.5 bg-[#FAFAF8]">
+                          <p className="text-[11px] font-bold text-[#1A1A18]">{displayTitle}</p>
+                          <button
+                            onClick={() => copyScript(displayValue, idx)}
+                            className="text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors"
+                            style={{
+                              color: copiedIdx === idx ? "#2D7A50" : "#1B3A2D",
+                              background: copiedIdx === idx ? "rgba(45,122,80,0.08)" : "rgba(27,58,45,0.06)",
+                            }}>
+                            {copiedIdx === idx ? "Copied" : "Copy"}
+                          </button>
+                        </div>
+                        <pre className="px-4 py-3 text-[11px] text-[#56554F] whitespace-pre-wrap font-sans leading-relaxed bg-white">
+                          {displayValue}
+                        </pre>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-[11px] text-[#B5B3AD] text-center py-6">Click a script type tab above to load scripts.</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {tab === "overview" && (
           <div className="space-y-4">

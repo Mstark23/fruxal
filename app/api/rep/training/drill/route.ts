@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRep } from "@/lib/rep-auth";
 import Anthropic from "@anthropic-ai/sdk";
+import { getIndustryScenario } from "@/lib/rep/industry-scenarios";
 
 
 const DIFFICULTY_INSTRUCTIONS: Record<string, string> = {
@@ -24,13 +25,42 @@ const SCENARIO_CONTEXT: Record<string, string> = {
   post_diagnostic: "You've reviewed the diagnostic report sent to you. The numbers are interesting but you're skeptical — you want proof that recovery is actually possible before signing anything.",
 };
 
-function buildProspectSystem(persona: string, scenario: string, difficulty: string): string {
+function buildProspectSystem(persona: string, scenario: string, difficulty: string, industry?: string): string {
   const difficultyInstructions = DIFFICULTY_INSTRUCTIONS[difficulty] || DIFFICULTY_INSTRUCTIONS.resistant;
   const scenarioContext = SCENARIO_CONTEXT[scenario] || "";
+
+  // Build industry-specific context if provided
+  let industryContext = "";
+  if (industry) {
+    const indScenario = getIndustryScenario(industry);
+    if (indScenario) {
+      const painPointsList = indScenario.painPoints.slice(0, 3).join(", ");
+      const objectionsList = indScenario.objections.slice(0, 3).map(o => o.objection).join("; ");
+      const topCategory = indScenario.topLeakCategories[0]?.category || "costs";
+      const skepticismEntries = Object.entries(
+        // Build skepticism from objections — use the first objection response as a skeptical pushback
+        indScenario.topLeakCategories.reduce((acc, lc) => {
+          acc[lc.category] = `I already handle ${lc.category.replace(/_/g, " ")} — what could you possibly find that I haven't already looked at?`;
+          return acc;
+        }, {} as Record<string, string>)
+      );
+      const topSkepticism = skepticismEntries[0];
+
+      industryContext = `
+INDUSTRY CONTEXT:
+- You are a ${indScenario.name} business owner in ${indScenario.seasonalNotes ? indScenario.name : "Canada"}
+- Your main concerns are: ${painPointsList}
+- You'll raise these specific objections: ${objectionsList}
+- When they mention ${topCategory.replace(/_/g, " ")}, push back with: '${topSkepticism ? topSkepticism[1] : "I already watch that like a hawk."}'
+- Your industry leaks about ${indScenario.benchmarks.avgLeakPct}% on average, but you don't believe that applies to you
+- The decision maker in your business is typically: ${indScenario.decisionMakers}`;
+    }
+  }
 
   return `You are roleplaying as a Canadian small business owner in a sales call with a Fruxal recovery rep.
 
 PERSONA: ${persona}
+${industryContext}
 
 YOUR SITUATION: ${scenarioContext}
 
@@ -44,7 +74,7 @@ FRUXAL CONTEXT (what you know/believe):
 
 RULES:
 - Stay in character as this specific business owner — use their voice, concerns, and personality
-- Raise realistic objections relevant to your persona and scenario
+- Raise realistic objections relevant to your persona and scenario${industry ? "\n- Prioritize industry-specific objections and concerns over generic ones" : ""}
 - Never break character or acknowledge this is a roleplay
 - Keep responses to 1–3 sentences max — you're a busy business owner
 - React authentically to how confident and compelling the rep is
@@ -54,8 +84,27 @@ RULES:
 Respond ONLY as the prospect. Nothing else.`;
 }
 
-function buildCoachSystem(): string {
+function buildCoachSystem(industry?: string): string {
+  // Build industry-specific coaching context
+  let industryCoaching = "";
+  if (industry) {
+    const indScenario = getIndustryScenario(industry);
+    if (indScenario) {
+      const topOpener = indScenario.topLeakCategories[0]?.opener || "";
+      industryCoaching = `
+INDUSTRY-SPECIFIC COACHING:
+- The rep is calling a ${indScenario.name} prospect. Industry-specific best practices: ${indScenario.competitiveAngle}
+- For this industry, the strongest opener is: "${topOpener}"
+- Key leak categories to reference: ${indScenario.topLeakCategories.map(lc => `${lc.category.replace(/_/g, " ")} (${lc.typicalAmountRange})`).join(", ")}
+- Common industry objections the rep should anticipate: ${indScenario.objections.slice(0, 3).map(o => `"${o.objection}"`).join(", ")}
+- Seasonal notes: ${indScenario.seasonalNotes}
+- When scoring, reward the rep for using industry-specific language, numbers, and pain points rather than generic pitches.
+`;
+    }
+  }
+
   return `You are a Straight Line Persuasion coach evaluating a Fruxal recovery rep's response in a live drill.
+${industryCoaching}
 
 You are coaching based on Jordan Belfort's Straight Line Persuasion System. You know the entire methodology deeply.
 
@@ -139,7 +188,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { action, scenario, difficulty, persona, openingLine, history, repResponse, turn } = body;
+    const { action, scenario, difficulty, persona, openingLine, history, repResponse, turn, industry } = body;
 
     // === OPEN: send opening line ===
     if (action === "open") {
@@ -159,7 +208,7 @@ export async function POST(req: NextRequest) {
       const coachRes = await client.messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 300,
-        system: buildCoachSystem(),
+        system: buildCoachSystem(industry),
         messages: [
           {
             role: "user",
@@ -194,7 +243,7 @@ export async function POST(req: NextRequest) {
       const prospectRes = await client.messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 120,
-        system: buildProspectSystem(persona, scenario, difficulty),
+        system: buildProspectSystem(persona, scenario, difficulty, industry),
         messages: [
           ...prospectMessages,
           { role: "user", content: repResponse },
