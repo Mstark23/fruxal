@@ -358,18 +358,69 @@ function buildEnterprisePrompt(ctx: BusinessContext): string {
     : "No upcoming deadlines in the next 60 days.";
 
   const isUS = b.country === "US";
+  const ent = ctx.enterprise;
+
+  // Enterprise-specific blocks (only populated for enterprise tier)
+  const structureBlock = ent ? [
+    "CORPORATE STRUCTURE:",
+    ent.owner_salary != null ? `Owner compensation: ${fmt(ent.owner_salary)}/yr` : null,
+    ent.ebitda_estimate != null ? `EBITDA estimate: ${fmt(ent.ebitda_estimate)}/yr` : null,
+    ent.net_income != null ? `Net income (last year): ${fmt(ent.net_income)}` : null,
+    ent.has_holdco ? "Holdco structure: YES — eligible for Section 112 deduction, surplus stripping, dividend refunds" : null,
+    ent.passive_income_over_50k ? "Passive income: OVER $50K — SBD grind-down applies, active vs passive income optimization needed" : null,
+    ent.lcge_eligible === true ? "LCGE eligible: YES — $1.25M+ lifetime capital gains exemption available" : ent.lcge_eligible === false ? "LCGE eligible: NO (may need QSBC purification)" : null,
+    ent.exit_horizon ? `Exit horizon: ${ent.exit_horizon}` : null,
+    ent.shareholder_agreements ? "Shareholder agreement: YES" : null,
+  ].filter(Boolean).join("\n") : "";
+
+  const scoresBlock = ent?.scores ? [
+    "DETAILED SCORES:",
+    `Compliance: ${ent.scores.compliance}/100 | Efficiency: ${ent.scores.efficiency}/100`,
+    `Optimization: ${ent.scores.optimization}/100 | Growth: ${ent.scores.growth}/100`,
+    `Bankability: ${ent.scores.bankability}/100 | Exit Readiness: ${ent.scores.exit_readiness}/100`,
+    ent.ebitda_impact != null ? `EBITDA impact of fixing leaks: ${fmt(ent.ebitda_impact)}/yr` : null,
+    ent.enterprise_value_impact != null ? `Enterprise value impact: ${fmt(ent.enterprise_value_impact)}` : null,
+  ].filter(Boolean).join("\n") : "";
+
+  const riskBlock = ent?.risk_matrix?.length
+    ? "RISK MATRIX:\n" + ent.risk_matrix.map(r =>
+        `- ${r.area}: Likelihood ${r.likelihood}, Impact ${r.impact}${r.description ? ` — ${r.description}` : ""}`
+      ).join("\n")
+    : "";
+
+  const priorityBlock = ent?.priority_sequence?.length
+    ? "PRIORITY ACTION SEQUENCE (ROI-ranked):\n" + ent.priority_sequence.map(s =>
+        `${s.step}. ${s.action}${s.value > 0 ? ` → ${fmt(s.value)}/yr` : ""}`
+      ).join("\n")
+    : "";
+
+  const benchBlock = ent?.benchmarks?.length
+    ? "PEER BENCHMARKS:\n" + ent.benchmarks.map(b =>
+        `- ${b.metric}: Yours ${b.yours} | Industry avg ${b.industry_avg} | Top quartile ${b.top_quartile}`
+      ).join("\n")
+    : "";
+
+  const execSumBlock = ent?.executive_summary
+    ? `EXECUTIVE SUMMARY:\n${ent.executive_summary}`
+    : "";
+
+  const qualityNote = ent?.intake_quality_score != null && ent.intake_quality_score < 70
+    ? `\nDATA QUALITY: Intake quality score is ${ent.intake_quality_score}/100. Recommend completing more profile fields for higher-confidence analysis.`
+    : "";
+
   return `You are a virtual CFO advisor for ${b.name}, a ${b.industry} business in ${b.province}${isUS ? " (US)" : ""}.
 ${isUS ? "US business. Use IRS terminology (Form 1120-S, W-2, QSBS, Section 199A/179). Say 'CPA'. Never use Canadian terms (CRA, T2, RDTOH, LCGE, etc.)." : "Canadian business. Use CRA terminology. Apply provincial rules."}
 
 BUSINESS PROFILE:
-- Revenue: ~${b.monthly_revenue > 0 ? fmt(b.monthly_revenue) + "/month" : "not calculated"} | Employees: ${b.employees || "unknown"}
+- Revenue: ~${b.monthly_revenue > 0 ? fmt(b.monthly_revenue) + "/month (" + fmt(b.annual_revenue) + "/yr)" : "not calculated"} | Employees: ${b.employees || "unknown"}
 - ${isUS ? "State" : "Province"}: ${b.province} | Structure: ${b.structure || "not specified"}
-
+${structureBlock ? "\n" + structureBlock + "\n" : ""}
 DIAGNOSTIC SUMMARY${r ? ` (${formatDate(r.completed_at)})` : ""}:
 ${r ? `Health score: ${r.score}/100` : "No completed enterprise diagnostic."}
+${scoresBlock ? scoresBlock + "\n" : ""}
 Priority findings:
 ${findingsBlock}
-
+${execSumBlock ? "\n" + execSumBlock + "\n" : ""}${riskBlock ? "\n" + riskBlock + "\n" : ""}${priorityBlock ? "\n" + priorityBlock + "\n" : ""}${benchBlock ? "\n" + benchBlock + "\n" : ""}
 FINANCIAL PERFORMANCE:
 Recovered to date: ${fmt(ctx.recovery.recovered)}/month (${fmt(ctx.recovery.recovered * 12)}/year annualized)
 Available to capture: ${fmt(ctx.recovery.available)}/month
@@ -381,13 +432,16 @@ ${tasksBlock}
 OBLIGATIONS IN NEXT 60 DAYS:
 ${deadlineBlock}
 ${beBlock ? "\n" + beBlock + "\n" : ""}
-${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}${journeyBlock ? "\n" + journeyBlock + "\n" : ""}${solutionsBlock ? "\n" + solutionsBlock + "\n" : ""}
+${ratioBlock ? "\n" + ratioBlock + "\n" : ""}${prescanBlock ? "\n" + prescanBlock + "\n" : ""}${liveScoreBlock ? "\n" + liveScoreBlock + "\n" : ""}${goalBlock ? "\n" + goalBlock + "\n" : ""}${journeyBlock ? "\n" + journeyBlock + "\n" : ""}${solutionsBlock ? "\n" + solutionsBlock + "\n" : ""}${qualityNote}
+
 YOUR ROLE AND RULES:
 - CFO-level depth and precision in every response
 - Structure longer responses: Situation → Options → Recommendation
-- Reference industry benchmarks when relevant
-- Proactively flag: CRA risks, SR&ED opportunities, compliance gaps, holdco structures
-- For decisions: provide scenario analysis (base / conservative / optimistic cases)
+- Reference the peer benchmarks and industry data above when relevant
+- Proactively flag: ${isUS ? "IRS audit risk, R&D tax credits, QSBS eligibility, state incentives" : "CRA risks, SR&ED opportunities, compliance gaps, holdco structures, LCGE planning"}
+- When holdco/exit/corporate structure data is available above, use it in analysis — don't ask for data you already have
+- For decisions: provide scenario analysis (base / conservative / optimistic cases) with dollar amounts
+- Use the priority action sequence to guide users on what to tackle next
 - Format complex answers with clear sections — bullet points for action items
 - Recommend professional advisors for implementation of complex strategies
 - Respond in French if the user writes in French`;

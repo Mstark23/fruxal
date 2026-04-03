@@ -107,6 +107,28 @@ export interface UpcomingDeadline {
   risk_level: string;
 }
 
+export interface EnterpriseContext {
+  owner_salary: number | null;
+  has_holdco: boolean;
+  passive_income_over_50k: boolean;
+  exit_horizon: string | null;
+  lcge_eligible: boolean | null;
+  ebitda_estimate: number | null;
+  net_income: number | null;
+  shareholder_agreements: boolean;
+  intake_quality_score: number | null;
+  executive_summary: string | null;
+  risk_matrix: Array<{ area: string; likelihood: string; impact: string; description?: string }>;
+  scores: {
+    compliance: number; efficiency: number; optimization: number;
+    growth: number; bankability: number; exit_readiness: number;
+  } | null;
+  ebitda_impact: number | null;
+  enterprise_value_impact: number | null;
+  priority_sequence: Array<{ step: number; action: string; value: number }>;
+  benchmarks: Array<{ metric: string; yours: number; industry_avg: number; top_quartile: number }>;
+}
+
 export interface BusinessContext {
   business: {
     id: string;
@@ -142,6 +164,7 @@ export interface BusinessContext {
   journey: JourneyContext | null;
   topSolutions: TopSolutionEntry[] | null;
   assignedRep: AssignedRepContext | null;
+  enterprise: EnterpriseContext | null;
 }
 
 // Minimal context for when DB queries fail
@@ -162,6 +185,7 @@ function emptyContext(businessId: string): BusinessContext {
     activeGoal: null,
     journey: null,
     topSolutions: null,
+    enterprise: null,
   };
 }
 
@@ -174,10 +198,10 @@ export async function buildBusinessContext(
   try {
     // All queries in parallel — 3-second timeout on the whole bundle
     const [profileRes, reportRes, tasksRes, snapRes, obligRes, bizRes, beRes, ratioRes, prescanCtxRes, liveScoreRes, goalRes, journeyRes] = await Promise.all([
-      // 1. Business profile
+      // 1. Business profile (includes enterprise fields if available)
       supabaseAdmin
         .from("business_profiles")
-        .select("business_name, industry, industry_label, province, country, annual_revenue, exact_annual_revenue, employee_count, business_structure")
+        .select("business_name, industry, industry_label, province, country, annual_revenue, exact_annual_revenue, employee_count, business_structure, owner_salary, has_holdco, passive_income_over_50k, exit_horizon, lcge_eligible, ebitda_estimate, net_income_last_year, shareholder_agreements, intake_quality_score")
         .eq("business_id", businessId)
         .eq("user_id", userId)
         .maybeSingle()
@@ -364,12 +388,13 @@ export async function buildBusinessContext(
       }
     } catch { /* non-fatal */ }
 
-    // -- Latest report findings (cap at 5)
+    // -- Latest report findings (cap at 5 for solo/business, 10 for enterprise)
+    const findingsCap = tier === "enterprise" ? 10 : 5;
     let latestReport: BusinessContext["latest_report"] = null;
     if (reportRes) {
       const rj = reportRes.result_json as any;
       const findings: BusinessFinding[] = (rj?.findings || [])
-        .slice(0, 5)
+        .slice(0, findingsCap)
         .map((f: any) => ({
           title: String(f.title || f.finding || "").slice(0, 80),
           category: String(f.category || "general").slice(0, 40),
@@ -448,7 +473,7 @@ export async function buildBusinessContext(
       upcoming_deadlines: deadlines.slice(0, 5),
       tier,
       topSolutions: (topSolRes as any) ?? null,
-      assignedRep: null,
+      assignedRep,
       journey: journeyRes?.daysOnPlatform != null ? {
         daysOnPlatform: journeyRes.daysOnPlatform,
         tasksCompleted: journeyRes.tasksCompleted,
@@ -511,6 +536,40 @@ export async function buildBusinessContext(
         safety_margin_pct:  Math.round((beRes.safety_margin_pct ?? 0) * 10) / 10,
         data_source:        beRes.data_source || "manual",
       } : null,
+      enterprise: tier === "enterprise" ? (() => {
+        const rj = reportRes?.result_json as any;
+        return {
+          owner_salary:           profile?.owner_salary ?? null,
+          has_holdco:             profile?.has_holdco ?? false,
+          passive_income_over_50k: profile?.passive_income_over_50k ?? false,
+          exit_horizon:           profile?.exit_horizon ?? null,
+          lcge_eligible:          profile?.lcge_eligible ?? null,
+          ebitda_estimate:        profile?.ebitda_estimate ?? null,
+          net_income:             profile?.net_income_last_year ?? null,
+          shareholder_agreements: profile?.shareholder_agreements ?? false,
+          intake_quality_score:   profile?.intake_quality_score ?? null,
+          executive_summary:      rj?.executive_summary ?? rj?.exec_summary ?? null,
+          risk_matrix:            (rj?.risk_matrix || []).slice(0, 7).map((r: any) => ({
+            area: r.area || r.category || "", likelihood: r.likelihood || "medium",
+            impact: r.impact || "medium", description: r.description || "",
+          })),
+          scores: rj?.scores ? {
+            compliance: rj.scores.compliance ?? 0, efficiency: rj.scores.efficiency ?? 0,
+            optimization: rj.scores.optimization ?? 0, growth: rj.scores.growth ?? 0,
+            bankability: rj.scores.bankability ?? 0, exit_readiness: rj.scores.exit_readiness ?? 0,
+          } : null,
+          ebitda_impact:            rj?.totals?.ebitda_impact ?? null,
+          enterprise_value_impact:  rj?.totals?.enterprise_value_impact ?? null,
+          priority_sequence:        (rj?.action_plan?.optimal_sequence || rj?.priority_sequence || [])
+            .slice(0, 6).map((s: any, i: number) => ({
+              step: s.step ?? i + 1, action: s.action || s.title || "", value: s.value ?? s.estimated_savings ?? 0,
+            })),
+          benchmarks:               (rj?.benchmark_comparisons || []).slice(0, 6).map((b: any) => ({
+            metric: b.metric || b.label || "", yours: b.yours ?? b.value ?? 0,
+            industry_avg: b.industry_avg ?? b.average ?? 0, top_quartile: b.top_quartile ?? b.best ?? 0,
+          })),
+        };
+      })() : null,
     };
   } catch (err: any) {
     console.error("[buildBusinessContext] Error:", err.message);

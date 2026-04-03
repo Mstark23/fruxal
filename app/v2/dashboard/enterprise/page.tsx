@@ -108,6 +108,15 @@ export default function EnterpriseDashboard() {
   const [showCpaModal, setShowCpaModal] = useState(false);
   const [cpaCopied,    setCpaCopied]    = useState(false);
 
+  // AI Tools state
+  const [aiToolLoading, setAiToolLoading] = useState<string | null>(null);
+  const [scenarioResult, setScenarioResult] = useState<any>(null);
+  const [taxCalendar, setTaxCalendar] = useState<any>(null);
+  const [anomalies, setAnomalies] = useState<any>(null);
+  const [industryReport, setIndustryReport] = useState<any>(null);
+  const [intelligence, setIntelligence] = useState<any>(null);
+  const [activeAiTool, setActiveAiTool] = useState<string | null>(null);
+
   const isFr = lang === "fr";
   const t    = (en: string, fr: string) => isFr ? fr : en;
 
@@ -1827,6 +1836,164 @@ export default function EnterpriseDashboard() {
             <p className="text-[12px] font-semibold text-ink">{t("Ask AI Advisor","Demander à l'IA")}</p>
             <p className="text-[11px] text-ink-faint">{t("Drill into any finding with your AI financial advisor","Explorez chaque résultat avec votre conseiller IA")}</p>
           </button>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            SECTION 7 — ENTERPRISE AI TOOLS
+        ══════════════════════════════════════════════════════════════════ */}
+        <div className="mb-4" style={fade(0.16)}>
+          <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("AI-Powered Intelligence","Intelligence IA")}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+            {/* Scenario Modeler */}
+            <button onClick={async () => {
+              setActiveAiTool(activeAiTool === "scenario" ? null : "scenario");
+              if (!scenarioResult && !aiToolLoading) {
+                setAiToolLoading("scenario");
+                try {
+                  const r = await fetch("/api/v2/scenario-model", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ scenario: "What happens if we fix all critical leaks?" }) });
+                  const d = await r.json(); if (d.success || d.analysis) setScenarioResult(d.analysis || d.data || d);
+                } catch {} finally { setAiToolLoading(null); }
+              }
+            }} className="bg-white border border-border-light rounded-xl p-4 text-left hover:border-brand/30 hover:shadow-sm transition group">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#2D7A50]/8 text-[#2D7A50]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 20h20"/><path d="M5 20V8l5 4 4-8 5 4v12"/></svg>
+                </span>
+                <div className="flex-1">
+                  <p className="text-[12px] font-bold text-ink">{t("Scenario Modeler","Modélisateur de scénarios")}</p>
+                  <p className="text-[10px] text-ink-faint">{t("What-if analysis on your leaks","Analyse hypothétique sur vos fuites")}</p>
+                </div>
+                {aiToolLoading === "scenario" && <div className="w-4 h-4 border-2 border-border border-t-brand rounded-full animate-spin" />}
+              </div>
+            </button>
+
+            {/* Tax Calendar */}
+            <button onClick={async () => {
+              setActiveAiTool(activeAiTool === "tax" ? null : "tax");
+              if (!taxCalendar && !aiToolLoading) {
+                setAiToolLoading("tax");
+                try {
+                  const r = await fetch("/api/v2/tax-calendar");
+                  const d = await r.json(); if (d.success || d.calendar) setTaxCalendar(d.calendar || d.data || d);
+                } catch {} finally { setAiToolLoading(null); }
+              }
+            }} className="bg-white border border-border-light rounded-xl p-4 text-left hover:border-brand/30 hover:shadow-sm transition group">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#B34040]/8 text-[#B34040]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+                </span>
+                <div className="flex-1">
+                  <p className="text-[12px] font-bold text-ink">{t("Tax Calendar","Calendrier fiscal")}</p>
+                  <p className="text-[10px] text-ink-faint">{t("12-month compliance timeline","Échéancier de conformité 12 mois")}</p>
+                </div>
+                {aiToolLoading === "tax" && <div className="w-4 h-4 border-2 border-border border-t-brand rounded-full animate-spin" />}
+              </div>
+            </button>
+
+            {/* Anomaly Detection */}
+            <button onClick={async () => {
+              setActiveAiTool(activeAiTool === "anomaly" ? null : "anomaly");
+              if (!anomalies && !aiToolLoading) {
+                setAiToolLoading("anomaly");
+                try {
+                  const r = await fetch("/api/v2/anomaly-detect", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({}) });
+                  const d = await r.json(); if (d.success || d.anomalies) setAnomalies(d.anomalies || d.data || d);
+                } catch {} finally { setAiToolLoading(null); }
+              }
+            }} className="bg-white border border-border-light rounded-xl p-4 text-left hover:border-brand/30 hover:shadow-sm transition group">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#C4841D]/8 text-[#C4841D]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </span>
+                <div className="flex-1">
+                  <p className="text-[12px] font-bold text-ink">{t("Anomaly Detection","Détection d'anomalies")}</p>
+                  <p className="text-[10px] text-ink-faint">{t("Find unusual patterns in your financials","Trouvez les anomalies dans vos finances")}</p>
+                </div>
+                {aiToolLoading === "anomaly" && <div className="w-4 h-4 border-2 border-border border-t-brand rounded-full animate-spin" />}
+              </div>
+            </button>
+
+            {/* Industry Report */}
+            <button onClick={async () => {
+              setActiveAiTool(activeAiTool === "industry" ? null : "industry");
+              if (!industryReport && !aiToolLoading) {
+                setAiToolLoading("industry");
+                try {
+                  const r = await fetch("/api/v2/industry-report");
+                  const d = await r.json(); if (d.success || d.report) setIndustryReport(d.report || d.data || d);
+                } catch {} finally { setAiToolLoading(null); }
+              }
+            }} className="bg-white border border-border-light rounded-xl p-4 text-left hover:border-brand/30 hover:shadow-sm transition group">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#0369a1]/8 text-[#0369a1]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </span>
+                <div className="flex-1">
+                  <p className="text-[12px] font-bold text-ink">{t("Industry Report","Rapport sectoriel")}</p>
+                  <p className="text-[10px] text-ink-faint">{t("Board-ready industry benchmarking","Comparaison sectorielle pour le CA")}</p>
+                </div>
+                {aiToolLoading === "industry" && <div className="w-4 h-4 border-2 border-border border-t-brand rounded-full animate-spin" />}
+              </div>
+            </button>
+
+            {/* Intelligence Engine */}
+            <button onClick={async () => {
+              setActiveAiTool(activeAiTool === "intelligence" ? null : "intelligence");
+              if (!intelligence && !aiToolLoading) {
+                setAiToolLoading("intelligence");
+                try {
+                  const r = await fetch("/api/v2/intelligence");
+                  const d = await r.json(); if (d.success || d.insights) setIntelligence(d.insights || d.data || d);
+                } catch {} finally { setAiToolLoading(null); }
+              }
+            }} className="bg-white border border-border-light rounded-xl p-4 text-left hover:border-brand/30 hover:shadow-sm transition group">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#7c3aed]/8 text-[#7c3aed]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2a4 4 0 014 4v1h1a3 3 0 013 3v6a3 3 0 01-3 3H7a3 3 0 01-3-3V10a3 3 0 013-3h1V6a4 4 0 014-4z"/><circle cx="9" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1" fill="currentColor" stroke="none"/><path d="M9 17s1 1 3 1 3-1 3-1"/></svg>
+                </span>
+                <div className="flex-1">
+                  <p className="text-[12px] font-bold text-ink">{t("Intelligence Engine","Moteur d'intelligence")}</p>
+                  <p className="text-[10px] text-ink-faint">{t("Pattern discovery across your data","Découverte de patterns dans vos données")}</p>
+                </div>
+                {aiToolLoading === "intelligence" && <div className="w-4 h-4 border-2 border-border border-t-brand rounded-full animate-spin" />}
+              </div>
+            </button>
+          </div>
+
+          {/* AI Tool Results Panel */}
+          {activeAiTool && (
+            <div className="mt-3 bg-white border border-border-light rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div className="px-5 py-3 border-b border-border-light flex items-center justify-between">
+                <p className="text-[12px] font-bold text-ink">
+                  {activeAiTool === "scenario" && t("Scenario Analysis","Analyse de scénarios")}
+                  {activeAiTool === "tax" && t("Tax Compliance Calendar","Calendrier de conformité fiscale")}
+                  {activeAiTool === "anomaly" && t("Detected Anomalies","Anomalies détectées")}
+                  {activeAiTool === "industry" && t("Industry Benchmarking Report","Rapport de comparaison sectorielle")}
+                  {activeAiTool === "intelligence" && t("Intelligence Insights","Observations intelligentes")}
+                </p>
+                <button onClick={() => setActiveAiTool(null)} className="text-ink-faint hover:text-ink transition">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <div className="px-5 py-4 max-h-[400px] overflow-y-auto">
+                {aiToolLoading ? (
+                  <div className="flex items-center gap-3 py-8 justify-center">
+                    <div className="w-5 h-5 border-2 border-border border-t-brand rounded-full animate-spin" />
+                    <p className="text-[12px] text-ink-muted">{t("Analyzing your data with AI...","Analyse de vos données avec l'IA...")}</p>
+                  </div>
+                ) : (
+                  <pre className="text-[12px] text-ink-secondary leading-relaxed whitespace-pre-wrap font-sans">
+                    {activeAiTool === "scenario" && (typeof scenarioResult === "string" ? scenarioResult : JSON.stringify(scenarioResult, null, 2))}
+                    {activeAiTool === "tax" && (typeof taxCalendar === "string" ? taxCalendar : JSON.stringify(taxCalendar, null, 2))}
+                    {activeAiTool === "anomaly" && (typeof anomalies === "string" ? anomalies : JSON.stringify(anomalies, null, 2))}
+                    {activeAiTool === "industry" && (typeof industryReport === "string" ? industryReport : JSON.stringify(industryReport, null, 2))}
+                    {activeAiTool === "intelligence" && (typeof intelligence === "string" ? intelligence : JSON.stringify(intelligence, null, 2))}
+                  </pre>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════
