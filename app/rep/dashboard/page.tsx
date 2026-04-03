@@ -68,7 +68,8 @@ export default function RepDashboard() {
       const matchFilter =
         filter === "active"   ? !!c.engagement :
         filter === "pipeline" ? (!c.engagement && !!c.pipeline) :
-        filter === "followup" ? (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)) : true;
+        filter === "followup" ? (c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)) :
+      filter === "atrisk" ? (() => { const d = c.pipeline?.updatedAt ? Math.floor((Date.now()-new Date(c.pipeline.updatedAt).getTime())/86400000) : 0; return d >= 7 && !["completed","fee_collected","lost"].includes(c.pipeline?.stage||""); })() : true;
       return matchSearch && matchFilter;
     });
     // Sort
@@ -292,6 +293,7 @@ export default function RepDashboard() {
               { key:"active",   label:`Active (${activeCount})`       },
               { key:"pipeline", label:"Pipeline"                      },
               { key:"followup", label:`Follow-up (${followUpCount})`, urgent:followUpCount>0 },
+              { key:"atrisk",   label:`At Risk (${clients.filter(c => { const d = c.pipeline?.updatedAt ? Math.floor((Date.now()-new Date(c.pipeline.updatedAt).getTime())/86400000) : 0; return d >= 7 && !["completed","fee_collected","lost"].includes(c.pipeline?.stage||""); }).length})`, urgent:true },
             ].map(f => (
               <button key={f.key} onClick={() => setFilter(f.key)}
                 className="text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition-all"
@@ -324,18 +326,41 @@ export default function RepDashboard() {
               const hasFollowUp = c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000);
               const daysUntil = c.pipeline?.followUpDate ? Math.ceil((new Date(c.pipeline.followUpDate).getTime()-Date.now())/86400000) : null;
               const isNew = (c.pipeline?.stage === "lead" || c.pipeline?.stage === "contacted") && c.assignedAt && (Date.now() - new Date(c.assignedAt).getTime()) < 86400000 * 2;
+              // Risk indicators
+              const daysSinceUpdate = c.pipeline?.updatedAt ? Math.floor((Date.now() - new Date(c.pipeline.updatedAt).getTime()) / 86400000) : null;
+              const daysSinceAssign = c.assignedAt ? Math.floor((Date.now() - new Date(c.assignedAt).getTime()) / 86400000) : 0;
+              const isStalled = daysSinceUpdate !== null && daysSinceUpdate >= 14 && !["completed","fee_collected","lost"].includes(c.pipeline?.stage||"");
+              const isGoingCold = daysSinceUpdate !== null && daysSinceUpdate >= 7 && daysSinceUpdate < 14;
+              const isOverdueFollowUp = c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate).getTime() < Date.now();
+
+              // Progress bar
+              const confirmed = c.engagement?.confirmedSavings || 0;
+              const potential = c.annualLeak ?? 0;
+              const progressPct = potential > 0 ? Math.min(100, Math.round((confirmed / potential) * 100)) : 0;
+
+              // AI summary line
+              const topLeakHint = c.findingsCount > 0 ? `${c.findingsCount} findings` : "No scan yet";
+              const lastContactDays = daysSinceUpdate ?? daysSinceAssign;
+              const summaryLine = `${c.industry || "Business"}, ${fmtM(c.annualLeak ?? 0)} leak, ${topLeakHint}, last activity ${lastContactDays}d ago`;
+
               return (
-                <button key={c.pipelineId || c.diagnosticId}
-                  onClick={() => router.push(`/rep/customer/${c.pipelineId || c.diagnosticId}`)}
-                  className="bg-white border border-[#E5E3DD] rounded-xl p-4 text-left hover:border-[#1B3A2D]/30 hover:shadow-md transition-all group"
-                  style={{boxShadow:"0 1px 3px rgba(0,0,0,0.03)"}}>
-                  <div className="flex items-start justify-between mb-3">
+                <div key={c.pipelineId || c.diagnosticId}
+                  className="bg-white border rounded-xl p-4 text-left hover:shadow-md transition-all group relative"
+                  style={{boxShadow:"0 1px 3px rgba(0,0,0,0.03)", borderColor: isStalled ? "rgba(179,64,64,0.3)" : isGoingCold ? "rgba(196,132,29,0.25)" : "#E5E3DD"}}>
+
+                  {/* Risk badge */}
+                  {isStalled && <div className="absolute -top-2 right-3 text-[8px] font-black px-2 py-0.5 rounded-full bg-[#B34040] text-white uppercase tracking-wider">Stalled {daysSinceUpdate}d</div>}
+                  {!isStalled && isGoingCold && <div className="absolute -top-2 right-3 text-[8px] font-black px-2 py-0.5 rounded-full bg-[#C4841D] text-white uppercase tracking-wider">Going cold</div>}
+                  {isOverdueFollowUp && !isStalled && <div className="absolute -top-2 left-3 text-[8px] font-black px-2 py-0.5 rounded-full bg-[#B34040] text-white uppercase tracking-wider">Overdue</div>}
+
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-semibold text-[#1A1A18] truncate group-hover:text-[#1B3A2D]">{c.companyName}</p>
-                      <p className="text-[10px] text-[#8E8C85] mt-0.5">{c.industry || "—"} · {c.province || "—"}</p>
+                      <p className="text-[10px] text-[#8E8C85] mt-0.5">{summaryLine}</p>
                     </div>
                     <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full ml-2 shrink-0" style={{color:stage.color,background:stage.bg}}>{stage.label}</span>{isNew && <span className="text-[9px] font-black px-1.5 py-0.5 rounded ml-1" style={{background:"rgba(45,122,80,0.15)",color:"#2D7A50"}}>NEW</span>}
                   </div>
+
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     <div className="bg-[#F0EFEB] rounded-lg px-2.5 py-2">
                       <p className="text-[9px] text-[#8E8C85] uppercase font-semibold">Annual Leak</p>
@@ -346,25 +371,58 @@ export default function RepDashboard() {
                       <p className="text-[13px] font-bold text-[#1A1A18]">{c.findingsCount}</p>
                     </div>
                   </div>
-                  {c.engagement && <div className="border-t border-[#F0EFEB] pt-2 flex items-center justify-between"><span className="text-[9px] font-semibold text-[#2D7A50] uppercase">Active Engagement</span><span className="text-[9px] text-[#8E8C85]">{c.engagement.feePercentage}% fee</span></div>}
-                  {c.pipeline?.stage === "call_booked" && (
+
+                  {/* Progress bar */}
+                  {c.engagement && (
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] font-semibold text-[#2D7A50] uppercase">Recovery: {fmtM(confirmed)}</span>
+                        <span className="text-[9px] text-[#8E8C85]">{progressPct}% of {fmtM(potential)}</span>
+                      </div>
+                      <div className="h-1.5 bg-[#F0EFEB] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${progressPct}%`, background: progressPct >= 50 ? "#2D7A50" : progressPct >= 20 ? "#C4841D" : "#E5E3DD" }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {!c.engagement && c.pipeline?.stage === "call_booked" && (
                     <div className="border-t border-[#F0EFEB] pt-2 flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#C4841D] animate-pulse"/>
                       <span className="text-[9px] font-semibold text-[#C4841D] uppercase">Call Booked</span>
                     </div>
                   )}
-                  {!c.engagement && c.pipeline?.stage !== "call_booked" && rep?.calendly_url && (
-                    <div className="border-t border-[#F0EFEB] pt-2 flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#E5E3DD]"/>
-                      <span className="text-[9px] text-[#B5B3AD]">Awaiting booking</span>
-                    </div>
-                  )}
+
                   {hasFollowUp && <div className="mt-2 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#C4841D]"/><p className="text-[9px] font-semibold text-[#C4841D]">{daysUntil!==null&&daysUntil<=0?"Overdue":`Follow-up in ${daysUntil}d`}</p></div>}
-                  <div className="mt-3 flex items-center justify-between">
-                    <p className="text-[9px] text-[#B5B3AD]">{new Date(c.assignedAt).toLocaleDateString("en-CA",{month:"short",day:"numeric"})}</p>
-                    <span className="text-[10px] font-semibold text-[#1B3A2D] group-hover:underline">Open →</span>
+
+                  {/* Quick actions */}
+                  <div className="mt-3 pt-2 border-t border-[#F0EFEB] flex items-center justify-between">
+                    <div className="flex gap-1.5">
+                      {c.pipeline?.contactEmail && (
+                        <a href={`mailto:${c.pipeline.contactEmail}?subject=${encodeURIComponent(`Following up — ${c.companyName}`)}`}
+                          onClick={e => e.stopPropagation()}
+                          className="w-7 h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Email">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+                        </a>
+                      )}
+                      {c.pipeline?.contactPhone && (
+                        <a href={`tel:${c.pipeline.contactPhone}`}
+                          onClick={e => e.stopPropagation()}
+                          className="w-7 h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Call">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.86 19.86 0 013.09 5.18 2 2 0 015.11 3h3a2 2 0 012 1.72c.13.81.36 1.6.68 2.35a2 2 0 01-.45 2.11L8.09 11.5a16 16 0 006.41 6.41l2.32-2.32a2 2 0 012.11-.45c.75.32 1.54.55 2.35.68A2 2 0 0122 16.92z"/></svg>
+                        </a>
+                      )}
+                      {rep?.calendly_url && (
+                        <a href={rep.calendly_url} target="_blank" rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="w-7 h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Book call">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </a>
+                      )}
+                    </div>
+                    <button onClick={() => router.push(`/rep/customer/${c.pipelineId || c.diagnosticId}`)}
+                      className="text-[10px] font-semibold text-[#1B3A2D] group-hover:underline">Open →</button>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
