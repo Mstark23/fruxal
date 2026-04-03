@@ -54,11 +54,11 @@ export default function SavingsCounter({ total, recent, leaksFixed, totalLeaks }
   }, [total, recent]);
 
   return (
-    <div className="bg-emerald-500/[0.04] border border-emerald-500/10 rounded-2xl p-5 relative overflow-hidden">
+    <div className="bg-[#2D7A50]/[0.04] border border-[#2D7A50]/15 rounded-xl p-5 relative overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
       {/* Floating +amount badge */}
       {showRecent && recent && recent > 0 && (
         <div className="absolute top-3 right-3" style={{ animation: "floatUp 2s ease-out forwards" }}>
-          <span className="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg">
+          <span className="bg-[#2D7A50]/15 text-[#2D7A50] text-xs font-bold px-2.5 py-1 rounded-lg">
             +${(Number(recent) || 0).toLocaleString()}/yr
           </span>
         </div>
@@ -66,23 +66,23 @@ export default function SavingsCounter({ total, recent, leaksFixed, totalLeaks }
 
       <div className="flex items-center gap-2 mb-3">
         <span className="text-base">💰</span>
-        <span className="text-emerald-400/40 text-[9px] font-bold uppercase tracking-widest">Annual Savings</span>
+        <span className="text-[#8E8C85] text-[9px] font-bold uppercase tracking-widest">Annual Savings</span>
       </div>
 
       {/* Big number */}
-      <p className="text-emerald-400 text-3xl font-black mb-1">
+      <p className="text-[#2D7A50] text-3xl font-black mb-1">
         ${(Number(displayTotal) || 0).toLocaleString()}
-        <span className="text-sm font-normal text-emerald-400/30">/yr</span>
+        <span className="text-sm font-normal text-[#2D7A50]/40">/yr</span>
       </p>
 
       {/* Progress bar */}
       <div className="mt-3">
         <div className="flex justify-between mb-1">
-          <span className="text-white/15 text-[9px]">{leaksFixed} of {totalLeaks} leaks addressed</span>
-          <span className="text-emerald-400/40 text-[9px] font-bold">{pct}%</span>
+          <span className="text-[#8E8C85] text-[9px]">{leaksFixed} of {totalLeaks} leaks addressed</span>
+          <span className="text-[#2D7A50] text-[9px] font-bold">{pct}%</span>
         </div>
-        <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden">
-          <div className="h-full bg-emerald-500/50 rounded-full transition-all duration-1000 ease-out"
+        <div className="h-1.5 bg-[#F0EFEB] rounded-full overflow-hidden">
+          <div className="h-full bg-[#2D7A50]/60 rounded-full transition-all duration-1000 ease-out"
             style={{ width: pct + "%" }} />
         </div>
       </div>

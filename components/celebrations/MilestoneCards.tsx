@@ -26,28 +26,28 @@ interface MilestoneCardsProps {
 
 export default function MilestoneCards({ earned, nextUp, totalAvailable }: MilestoneCardsProps) {
   return (
-    <div className="bg-white/[0.015] border border-white/[0.04] rounded-2xl p-4">
+    <div className="bg-white border border-[#E5E3DD] rounded-xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-base">🏆</span>
-          <span className="text-white/25 text-[9px] font-bold uppercase tracking-widest">Milestones</span>
+          <span className="text-[#8E8C85] text-[9px] font-bold uppercase tracking-widest">Milestones</span>
         </div>
-        <span className="text-white/10 text-[9px]">{earned.length}/{totalAvailable}</span>
+        <span className="text-[#B5B3AD] text-[9px]">{earned.length}/{totalAvailable}</span>
       </div>
 
       {/* Earned milestones (show last 3) */}
       {earned.length > 0 && (
         <div className="flex gap-2 mb-3">
           {earned.slice(-3).map(m => (
-            <div key={m.id} className="flex-1 bg-amber-500/5 border border-amber-500/10 rounded-xl p-2.5 text-center group relative">
+            <div key={m.id} className="flex-1 bg-[#C4841D]/5 border border-[#C4841D]/15 rounded-xl p-2.5 text-center group relative">
               <span className="text-xl block mb-0.5">{m.icon}</span>
-              <p className="text-amber-400/50 text-[8px] font-bold leading-tight">{m.label}</p>
+              <p className="text-[#C4841D] text-[8px] font-bold leading-tight">{m.label}</p>
 
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 bg-[#0f1318] border border-white/10 rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
-                <p className="text-white/50 text-[10px] font-semibold">{m.label}</p>
-                <p className="text-white/20 text-[8px]">{m.description}</p>
-                {m.earned_at && <p className="text-white/10 text-[7px] mt-0.5">Earned {m.earned_at}</p>}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 bg-[#1A1A18] border border-[#3A3A38] rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+                <p className="text-white text-[10px] font-semibold">{m.label}</p>
+                <p className="text-white/60 text-[8px]">{m.description}</p>
+                {m.earned_at && <p className="text-white/30 text-[7px] mt-0.5">Earned {m.earned_at}</p>}
               </div>
             </div>
           ))}
@@ -57,9 +57,9 @@ export default function MilestoneCards({ earned, nextUp, totalAvailable }: Miles
       {earned.length === 0 && (
         <div className="flex gap-2 mb-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="flex-1 bg-white/[0.02] border border-white/[0.03] rounded-xl p-2.5 text-center">
-              <span className="text-xl block mb-0.5 grayscale opacity-20">🔒</span>
-              <p className="text-white/10 text-[8px]">Locked</p>
+            <div key={i} className="flex-1 bg-[#F0EFEB] border border-[#E5E3DD] rounded-xl p-2.5 text-center">
+              <span className="text-xl block mb-0.5 grayscale opacity-30">🔒</span>
+              <p className="text-[#B5B3AD] text-[8px]">Locked</p>
             </div>
           ))}
         </div>
@@ -67,13 +67,13 @@ export default function MilestoneCards({ earned, nextUp, totalAvailable }: Miles
 
       {/* Next milestone */}
       {nextUp && (
-        <div className="bg-white/[0.02] border border-dashed border-white/[0.06] rounded-xl px-3 py-2.5 flex items-center gap-2.5">
-          <span className="text-lg grayscale opacity-40">{nextUp.icon}</span>
+        <div className="bg-[#FAFAF8] border border-dashed border-[#E5E3DD] rounded-xl px-3 py-2.5 flex items-center gap-2.5">
+          <span className="text-lg grayscale opacity-50">{nextUp.icon}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-white/20 text-[10px] font-semibold">{nextUp.label}</p>
-            <p className="text-white/10 text-[8px] truncate">{nextUp.description}</p>
+            <p className="text-[#56554F] text-[10px] font-semibold">{nextUp.label}</p>
+            <p className="text-[#8E8C85] text-[8px] truncate">{nextUp.description}</p>
           </div>
-          <span className="text-white/10 text-[9px]">Next →</span>
+          <span className="text-[#B5B3AD] text-[9px]">Next →</span>
         </div>
       )}
     </div>

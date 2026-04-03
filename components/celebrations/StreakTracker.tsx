@@ -24,7 +24,7 @@ export default function StreakTracker({ current, longest, todayActive, weekMap }
   const flameColor = current >= 30 ? "text-orange-400" : current >= 14 ? "text-amber-400" : current >= 7 ? "text-yellow-400" : "text-white/20";
 
   return (
-    <div className="bg-white/[0.015] border border-white/[0.04] rounded-2xl p-4">
+    <div className="bg-white border border-[#E5E3DD] rounded-xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className={`${flameSize} ${current > 0 ? "" : "grayscale opacity-30"}`}
@@ -32,12 +32,12 @@ export default function StreakTracker({ current, longest, todayActive, weekMap }
             🔥
           </span>
           <div>
-            <p className="text-white/50 text-sm font-black">{current} day{current !== 1 ? "s" : ""}</p>
-            <p className="text-white/10 text-[8px] uppercase tracking-wider">Current streak</p>
+            <p className="text-[#1A1A18] text-sm font-black">{current} day{current !== 1 ? "s" : ""}</p>
+            <p className="text-[#8E8C85] text-[8px] uppercase tracking-wider">Current streak</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-white/20 text-[10px]">Best: {longest}d</p>
+          <p className="text-[#B5B3AD] text-[10px]">Best: {longest}d</p>
         </div>
       </div>
 
@@ -47,22 +47,22 @@ export default function StreakTracker({ current, longest, todayActive, weekMap }
           <div key={i} className="flex flex-col items-center gap-1">
             <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold transition-all ${
               active
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20"
+                ? "bg-[#2D7A50]/10 text-[#2D7A50] border border-[#2D7A50]/20"
                 : i === weekMap.length - 1 && !todayActive
-                ? "bg-amber-500/10 text-amber-400/40 border border-amber-500/10 border-dashed"
-                : "bg-white/[0.03] text-white/10"
+                ? "bg-[#C4841D]/10 text-[#C4841D] border border-[#C4841D]/20 border-dashed"
+                : "bg-[#F0EFEB] text-[#B5B3AD]"
             }`}>
               {active ? "✓" : i === weekMap.length - 1 && !todayActive ? "?" : ""}
             </div>
-            <span className="text-[7px] text-white/10">{dayLabels[i]}</span>
+            <span className="text-[7px] text-[#B5B3AD]">{dayLabels[i]}</span>
           </div>
         ))}
       </div>
 
       {/* Motivation nudge */}
       {!todayActive && current > 0 && (
-        <div className="mt-3 pt-2 border-t border-white/[0.03]">
-          <p className="text-amber-400/40 text-[10px] text-center">
+        <div className="mt-3 pt-2 border-t border-[#F0EFEB]">
+          <p className="text-[#C4841D] text-[10px] text-center">
             Complete an action to keep your {current}-day streak!
           </p>
         </div>

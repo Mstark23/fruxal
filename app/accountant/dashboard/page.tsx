@@ -113,42 +113,8 @@ export default function AccountantDashboard() {
   const quickWins = playbooks.filter(p => p.quick_win && p.status === "queued");
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
-
-      {/* Top bar */}
-      <div className="bg-white border-b border-[#E8E6E1]">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-[7px] bg-[#1B3A2D] flex items-center justify-center">
-              <span className="text-white font-black text-[11px]">F</span>
-            </div>
-            <div>
-              <span className="text-[14px] font-bold text-[#1A1A18]">{accountant.name}</span>
-              <span className="ml-2 text-[11px] font-semibold text-[#8E8C85] uppercase tracking-wider">Accountant</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-right">
-            <button
-              onClick={async () => {
-                await fetch("/api/accountant/auth/logout", { method: "POST" });
-                window.location.href = "/accountant/login";
-              }}
-              className="text-[11px] font-medium text-[#8E8C85] hover:text-[#1A1A18] transition">
-              Sign out
-            </button>
-            <div>
-              <div className="text-[16px] font-bold text-[#1A1A18]">{summary.queue || 0}</div>
-              <div className="text-[10px] text-[#8E8C85]">In queue</div>
-            </div>
-            <div>
-              <div className="text-[16px] font-bold text-[#2D7A50]">{fmtM(accountant.stats?.total_confirmed || 0)}</div>
-              <div className="text-[10px] text-[#8E8C85]">Total confirmed</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-6 py-6">
+    <div className="bg-[#FAFAF8]">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
 
         {/* KPI strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
@@ -289,7 +255,13 @@ export default function AccountantDashboard() {
                         <span className="text-[12px] font-semibold text-[#1A1A18]">{pb.company_name}</span>
                         {pb.contact_name && <span className="text-[11px] text-[#8E8C85] ml-2">· {pb.contact_name}</span>}
                       </div>
-                      {pb.rep_name && <span className="text-[11px] text-[#8E8C85]">Rep: {pb.rep_name}</span>}
+                      {pb.rep_name && <span className="text-[11px] text-[#8E8C85] mr-2">Rep: {pb.rep_name}</span>}
+                      {pb.pipeline_id && (
+                        <a href={`/accountant/client/${pb.pipeline_id}`}
+                          className="text-[11px] font-semibold text-[#1B3A2D] hover:underline shrink-0">
+                          View client →
+                        </a>
+                      )}
                     </div>
 
                     {/* Execution steps */}

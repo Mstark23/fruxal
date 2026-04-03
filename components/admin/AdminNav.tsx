@@ -3,6 +3,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 const TABS = [
   { path: "/admin/overview",          label: "Overview" },
+  { path: "/admin/analytics",         label: "Analytics" },
   { path: "/admin/users",             label: "Users" },
   { path: "/admin/tier3",             label: "Tier 3 Pipeline" },
   { path: "/admin/tier3/engagements", label: "Engagements" },

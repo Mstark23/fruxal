@@ -12,6 +12,10 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
+import RecoveryTimeline, { buildTimelineSteps } from "@/components/v2/RecoveryTimeline";
+import StreakTracker from "@/components/celebrations/StreakTracker";
+import MilestoneCards, { MILESTONE_DEFINITIONS } from "@/components/celebrations/MilestoneCards";
+import SavingsCounter from "@/components/celebrations/SavingsCounter";
 import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "@/components/v2/LiveScoreRing";
 
 function Ring({ pct, size = 44, sw = 4, color = "#2D7A50" }: { pct: number; size?: number; sw?: number; color?: string }) {
@@ -240,15 +244,17 @@ export default function BusinessDashboard() {
         {/* CONNECT DATA BANNER */}
         {!connectDismissed && !integrations.quickbooks && !integrations.plaid && !loading && (
           <div className="w-full rounded-xl mb-4 border border-[#0A85EA]/20 bg-[#0A85EA]/[0.03] px-4 py-3.5">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#0A85EA]/10 flex items-center justify-center shrink-0">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A85EA" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-[#0A85EA]/10 flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A85EA" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold text-ink">{t("Connect your financial data", "Connectez vos données financières")}</p>
+                  <p className="text-[11px] text-ink-muted mt-0.5">{t("Link QuickBooks or your bank account for real numbers instead of estimates.", "Liez QuickBooks ou votre compte bancaire pour des montants réels.")}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-semibold text-ink">{t("Connect your financial data", "Connectez vos données financières")}</p>
-                <p className="text-[11px] text-ink-muted mt-0.5">{t("Link QuickBooks or your bank account for real numbers instead of estimates.", "Liez QuickBooks ou votre compte bancaire pour des montants réels.")}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 ml-12 sm:ml-0">
                 <button onClick={() => window.open("/api/quickbooks/connect", "_blank")}
                   className="h-8 px-3.5 text-[11px] font-bold text-white bg-[#2CA01C] rounded-lg hover:opacity-90 transition">QuickBooks</button>
                 <button onClick={() => window.open("/v2/integrations", "_blank")}
@@ -305,7 +311,7 @@ export default function BusinessDashboard() {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
                 {[
                   { n: "1", text: t("Complete the 5-min intake form", "Remplissez le formulaire de 5 min") },
                   { n: "2", text: profile.country === "US" ? "Get exact dollar amounts + CPA briefing" : t("Get exact dollar amounts + accountant briefing", "Montants exacts + briefing comptable") },
@@ -361,7 +367,7 @@ export default function BusinessDashboard() {
                   {assignedRep.name.charAt(0).toUpperCase()}
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
                 {[
                   { n: "1", text: t("Book a free call with your rep", "Réservez un appel gratuit") },
                   { n: "2", text: profile.country === "US" ? "We handle all the work & IRS filings" : t("We handle all the work & CRA calls", "On s'occupe de tout") },
@@ -878,6 +884,19 @@ export default function BusinessDashboard() {
               </div>
             </button>
 
+            {/* Recovery Timeline */}
+            {(assignedRep || totalSavings > 0) && (
+              <RecoveryTimeline steps={buildTimelineSteps({
+                prescanDate: new Date().toISOString(),
+                diagnosticDate: diagFindings.length > 0 ? new Date().toISOString() : undefined,
+                repAssigned: !!assignedRep,
+                repName: assignedRep?.name,
+                engagementStarted: assignedRep?.pipeline_stage === "in_engagement" || assignedRep?.pipeline_stage === "fee_collected",
+                confirmedSavings: totalSavings,
+                totalLeaks: leaks.length || diagFindings.length,
+              })} />
+            )}
+
             <div className="bg-white rounded-xl border border-border-light p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-3">{t("Recovery", "Récupération")}</div>
               <div className="flex items-center gap-3 mb-2">
@@ -913,6 +932,29 @@ export default function BusinessDashboard() {
                 </div>
               </div>
             </button>
+
+            {/* Gamification: Savings Counter */}
+            {totalSavings > 0 && (
+              <SavingsCounter total={totalSavings} leaksFixed={leaksFixed} totalLeaks={leaks.length || diagFindings.length || 1} />
+            )}
+
+            {/* Gamification: Streak Tracker */}
+            {streak && streak.current > 0 && (
+              <StreakTracker current={streak.current} longest={streak.longest || streak.current} todayActive={streak.today_active ?? true} weekMap={streak.week_map || []} />
+            )}
+
+            {/* Gamification: Milestones */}
+            {progress && (
+              <MilestoneCards
+                earned={(progress as any).milestones?.filter((m: any) => m.earned_at) || []}
+                nextUp={(() => {
+                  const earnedIds = ((progress as any).milestones || []).filter((m: any) => m.earned_at).map((m: any) => m.id);
+                  const next = MILESTONE_DEFINITIONS.find(d => !earnedIds.includes(d.id));
+                  return next ? { id: next.id, icon: next.icon, label: next.label, description: next.description } : null;
+                })()}
+                totalAvailable={MILESTONE_DEFINITIONS.length}
+              />
+            )}
           </div>
         </div>
 

@@ -200,7 +200,7 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
   if (position === "floating" && !isOpen) {
     return (
       <button onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#1B3A2D] flex items-center justify-center shadow-xl hover:bg-[#2A5A44] transition-all hover:scale-105"
+        className="fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-50 w-14 h-14 rounded-full bg-[#1B3A2D] flex items-center justify-center shadow-xl hover:bg-[#2A5A44] transition-all hover:scale-105"
         style={{ boxShadow: "0 4px 20px rgba(27,58,45,0.3)" }}>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
@@ -210,7 +210,7 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
   }
 
   return (
-    <div className={position === "floating" ? "fixed bottom-6 right-6 z-50 w-[380px] h-[520px] flex flex-col" : "flex flex-col h-full"}>
+    <div className={position === "floating" ? "fixed bottom-0 right-0 lg:bottom-6 lg:right-6 z-50 w-full lg:w-[380px] h-[85vh] lg:h-[520px] flex flex-col" : "flex flex-col h-full"}>
       <div className="bg-white border border-[#E5E3DD] rounded-2xl overflow-hidden flex flex-col h-full"
         style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
 

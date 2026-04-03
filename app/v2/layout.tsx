@@ -2,6 +2,7 @@
 import { useRouter, usePathname } from "next/navigation";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 import { QuickStartWidget } from "@/components/v2/QuickStartWidget";
+import NotificationBell from "@/components/v2/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 
@@ -242,7 +243,13 @@ export default function V2Layout({children}:{children:React.ReactNode}) {
         </div>
       </aside>
 
-      <main className="flex-1 pb-20 lg:pb-0">{children}</main>
+      <main className="flex-1 pb-20 lg:pb-0">
+        {/* Top bar with notification bell — visible on all screen sizes */}
+        <div className="flex items-center justify-end px-4 sm:px-6 lg:px-8 pt-3 pb-0">
+          <NotificationBell />
+        </div>
+        {children}
+      </main>
 
       {/* ── MOBILE BOTTOM NAV ────────────────────────────────────────────── */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-border-light z-50">
