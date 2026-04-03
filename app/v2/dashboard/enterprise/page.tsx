@@ -18,14 +18,15 @@
 // =============================================================================
 "use client";
 
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { RecoveryCounter } from "@/components/v2/RecoveryCounter";
 import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "@/components/v2/LiveScoreRing";
 import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
 import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
+import RecoveryTimeline, { buildTimelineSteps } from "@/components/v2/RecoveryTimeline";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+const AiChatWidget = lazy(() => import("@/components/v2/AiChatWidget"));
 
 const fade = (delay = 0) => ({
   animation: `fadeUp 0.4s ease ${delay}s both`,
@@ -1673,6 +1674,23 @@ export default function EnterpriseDashboard() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════
+            RECOVERY TIMELINE
+        ══════════════════════════════════════════════════════════════════ */}
+        {hasReport && (
+          <div className="mb-4" style={fade(0.11)}>
+            <RecoveryTimeline steps={buildTimelineSteps({
+              prescanDate: lastRun || new Date().toISOString(),
+              diagnosticDate: hasReport ? (lastRun || new Date().toISOString()) : undefined,
+              repAssigned: !!entStatus?.rep,
+              repName: entStatus?.rep?.name,
+              engagementStarted: !!entStatus?.engagement,
+              confirmedSavings: entStatus?.savings?.confirmed ?? 0,
+              totalLeaks: findings.length,
+            })} />
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
             SECTION 5 — SAVINGS TRACKER
         ══════════════════════════════════════════════════════════════════ */}
         {entStatus?.engagement && (
@@ -1942,6 +1960,7 @@ Best regards`;
         </div>
 
       </div>
+      <Suspense fallback={null}><AiChatWidget position="floating" /></Suspense>
       <style jsx global>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
       `}</style>
