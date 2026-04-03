@@ -4,6 +4,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  actions?: ActionItem[];
+}
+
+interface ActionItem {
+  type: string;
+  params: Record<string, string>;
+  label: string;
 }
 
 interface AiChatWidgetProps {
@@ -28,6 +35,16 @@ function renderContent(text: string) {
   });
 }
 
+// Action button icons
+const ACTION_ICONS: Record<string, { icon: string; bg: string; color: string }> = {
+  mark_obligation: { icon: "✓", bg: "rgba(45,122,80,0.08)", color: "#2D7A50" },
+  create_task: { icon: "+", bg: "rgba(27,58,45,0.08)", color: "#1B3A2D" },
+  schedule_reminder: { icon: "⏰", bg: "rgba(196,132,29,0.08)", color: "#C4841D" },
+  run_scenario: { icon: "⚡", bg: "rgba(3,105,161,0.08)", color: "#0369a1" },
+  generate_report: { icon: "📄", bg: "rgba(124,58,237,0.08)", color: "#7c3aed" },
+  export_pdf: { icon: "↓", bg: "rgba(142,140,133,0.08)", color: "#56554F" },
+};
+
 export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -36,9 +53,13 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [repName, setRepName] = useState<string | null>(null);
   const [calendlyUrl, setCalendlyUrl] = useState<string | null>(null);
+  const [tier, setTier] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(position === "inline");
   const [loaded, setLoaded] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showContext, setShowContext] = useState(false);
+  const [contextData, setContextData] = useState<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -55,6 +76,7 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
         if (d.starters) setStarters(d.starters);
         if (d.repName) setRepName(d.repName);
         if (d.calendlyUrl) setCalendlyUrl(d.calendlyUrl);
+        if (d.tier) setTier(d.tier);
       })
       .catch(() => {});
 
@@ -66,11 +88,41 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
       })
       .catch(() => {})
       .finally(() => setLoaded(true));
+
+    // Load context data for sidebar
+    fetch("/api/v2/dashboard")
+      .then(r => r.json())
+      .then(d => { if (d.success) setContextData(d.data); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streaming]);
+
+  // Execute an AI-suggested action
+  const executeAction = useCallback(async (action: ActionItem) => {
+    setActionLoading(action.type);
+    try {
+      const res = await fetch("/api/v2/ai-actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: action.type, params: action.params }),
+      });
+      const j = await res.json();
+      if (j.success) {
+        setMessages(prev => [...prev, { role: "assistant", content: `✅ ${j.message || "Done!"}` }]);
+        // Dispatch events for dashboard refresh
+        if (action.type === "create_task") window.dispatchEvent(new CustomEvent("fruxal:task:completed"));
+        if (action.type === "mark_obligation") window.dispatchEvent(new CustomEvent("fruxal:score:updated"));
+      } else {
+        setMessages(prev => [...prev, { role: "assistant", content: `Could not complete action: ${j.error || "Unknown error"}` }]);
+      }
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Action failed. Please try again." }]);
+    }
+    setActionLoading(null);
+  }, []);
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || streaming) return;
@@ -96,6 +148,7 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let fullText = "";
+      let pendingActions: ActionItem[] = [];
 
       if (reader) {
         while (true) {
@@ -111,8 +164,11 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
 
               if (data.text) {
                 fullText += data.text;
-                // Remove suggestion tags from display
-                const cleanDisplay = fullText.replace(/\[SUGGEST\].*?\[\/SUGGEST\]/g, "").trim();
+                // Remove suggestion and action tags from display
+                const cleanDisplay = fullText
+                  .replace(/\[SUGGEST\].*?\[\/SUGGEST\]/g, "")
+                  .replace(/\[ACTION:[^\]]*\].*?\[\/ACTION\]/g, "")
+                  .trim();
                 setMessages(prev => {
                   const updated = [...prev];
                   updated[updated.length - 1] = { role: "assistant", content: cleanDisplay };
@@ -124,6 +180,8 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
                 if (data.suggestions?.length) setSuggestions(data.suggestions);
                 if (data.repName) setRepName(data.repName);
                 if (data.calendlyUrl) setCalendlyUrl(data.calendlyUrl);
+                if (data.tier) setTier(data.tier);
+                if (data.actions?.length) pendingActions = data.actions;
               }
 
               if (data.error) {
@@ -136,6 +194,16 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
             } catch { /* skip malformed chunks */ }
           }
         }
+      }
+
+      // Attach actions to the last message
+      if (pendingActions.length > 0) {
+        setMessages(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          updated[updated.length - 1] = { ...last, actions: pendingActions };
+          return updated;
+        });
       }
     } catch {
       setMessages(prev => {
@@ -196,6 +264,8 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
     if (fileRef.current) fileRef.current.value = "";
   }, [uploading]);
 
+  const isEnterprise = tier === "enterprise";
+
   // Floating button (when position = "floating")
   if (position === "floating" && !isOpen) {
     return (
@@ -210,7 +280,7 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
   }
 
   return (
-    <div className={position === "floating" ? "fixed bottom-0 right-0 lg:bottom-6 lg:right-6 z-50 w-full lg:w-[380px] h-[85vh] lg:h-[520px] flex flex-col" : "flex flex-col h-full"}>
+    <div className={position === "floating" ? "fixed bottom-0 right-0 lg:bottom-6 lg:right-6 z-50 w-full lg:w-[420px] h-[85vh] lg:h-[560px] flex flex-col" : "flex flex-col h-full"}>
       <div className="bg-white border border-[#E5E3DD] rounded-2xl overflow-hidden flex flex-col h-full"
         style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
 
@@ -223,20 +293,93 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
               </svg>
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-[#1A1A18]">Fruxal AI</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[13px] font-semibold text-[#1A1A18]">Fruxal AI</p>
+                {isEnterprise && (
+                  <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#1B3A2D]/8 text-[#1B3A2D]">CFO</span>
+                )}
+              </div>
               <p className="text-[10px] text-[#8E8C85]">
-                {repName ? `Your rep: ${repName}` : "Ask me anything about your business"}
+                {repName ? `Your rep: ${repName}` : isEnterprise ? "CFO-level financial advisor" : "Ask me anything about your business"}
               </p>
             </div>
           </div>
-          {position === "floating" && (
-            <button onClick={() => setIsOpen(false)} className="text-[#B5B3AD] hover:text-[#1A1A18] transition">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          <div className="flex items-center gap-1">
+            {/* Context toggle button */}
+            <button onClick={() => setShowContext(!showContext)}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center transition ${showContext ? "bg-[#1B3A2D]/10 text-[#1B3A2D]" : "text-[#B5B3AD] hover:bg-[#F0EFEB]"}`}
+              title="Show context">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
               </svg>
             </button>
-          )}
+            {position === "floating" && (
+              <button onClick={() => setIsOpen(false)} className="w-7 h-7 rounded-lg flex items-center justify-center text-[#B5B3AD] hover:text-[#1A1A18] hover:bg-[#F0EFEB] transition">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Context Sidebar Panel */}
+        {showContext && contextData && (
+          <div className="px-4 py-3 border-b border-[#E5E3DD] bg-[#FAFAF8] shrink-0">
+            <p className="text-[9px] font-bold text-[#8E8C85] uppercase tracking-wider mb-2">What the AI knows</p>
+            <div className="grid grid-cols-2 gap-2">
+              {contextData.health_score > 0 && (
+                <div className="bg-white rounded-lg px-2.5 py-2 border border-[#E5E3DD]">
+                  <p className="text-[9px] text-[#8E8C85]">Health Score</p>
+                  <p className="text-[15px] font-bold" style={{ color: contextData.health_score >= 60 ? "#2D7A50" : "#C4841D" }}>{contextData.health_score}/100</p>
+                </div>
+              )}
+              {(contextData.total_leak_estimate > 0 || contextData.leaks?.total_leak > 0) && (
+                <div className="bg-white rounded-lg px-2.5 py-2 border border-[#E5E3DD]">
+                  <p className="text-[9px] text-[#8E8C85]">Leaking</p>
+                  <p className="text-[15px] font-bold text-[#B34040]">${((contextData.total_leak_estimate || contextData.leaks?.total_leak || 0) / 1000).toFixed(0)}K/yr</p>
+                </div>
+              )}
+              {contextData.leaks?.total_savings > 0 && (
+                <div className="bg-white rounded-lg px-2.5 py-2 border border-[#E5E3DD]">
+                  <p className="text-[9px] text-[#8E8C85]">Recovered</p>
+                  <p className="text-[15px] font-bold text-[#2D7A50]">${((contextData.leaks?.total_savings || 0) / 1000).toFixed(0)}K</p>
+                </div>
+              )}
+              {contextData.obligations?.overdue > 0 && (
+                <div className="bg-white rounded-lg px-2.5 py-2 border border-[#E5E3DD]">
+                  <p className="text-[9px] text-[#8E8C85]">Overdue</p>
+                  <p className="text-[15px] font-bold text-[#B34040]">{contextData.obligations.overdue}</p>
+                </div>
+              )}
+              {contextData.assigned_rep && (
+                <div className="bg-white rounded-lg px-2.5 py-2 border border-[#E5E3DD] col-span-2">
+                  <p className="text-[9px] text-[#8E8C85]">Rep</p>
+                  <p className="text-[12px] font-semibold text-[#1A1A18]">{contextData.assigned_rep.name} — {contextData.assigned_rep.pipeline_stage?.replace(/_/g, " ") || "assigned"}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Enterprise Quick Tools Bar */}
+        {isEnterprise && messages.length === 0 && loaded && (
+          <div className="px-4 py-2.5 border-b border-[#E5E3DD] bg-white shrink-0">
+            <div className="flex gap-1.5 overflow-x-auto">
+              {[
+                { label: "Scenario", msg: "Run a what-if scenario: what happens if we fix all critical leaks this quarter?" },
+                { label: "Tax Calendar", msg: "Show me my complete tax compliance calendar for the next 12 months" },
+                { label: "Board Report", msg: "Generate a board-ready summary of our financial health and recovery progress" },
+                { label: "Exit Readiness", msg: "Analyze my exit readiness and what's blocking a higher valuation" },
+              ].map((tool, i) => (
+                <button key={i} onClick={() => sendMessage(tool.msg)}
+                  className="shrink-0 px-2.5 py-1.5 text-[10px] font-semibold text-[#1B3A2D] bg-[#1B3A2D]/5 border border-[#1B3A2D]/15 rounded-lg hover:bg-[#1B3A2D]/10 transition whitespace-nowrap">
+                  {tool.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-[#FAFAF8]">
@@ -248,8 +391,14 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
                   <path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5" />
                 </svg>
               </div>
-              <p className="text-[14px] font-semibold text-[#1A1A18] mb-1">How can I help?</p>
-              <p className="text-[12px] text-[#8E8C85] mb-5">I know your business data. Ask me anything.</p>
+              <p className="text-[14px] font-semibold text-[#1A1A18] mb-1">
+                {isEnterprise ? "Your virtual CFO" : "How can I help?"}
+              </p>
+              <p className="text-[12px] text-[#8E8C85] mb-5">
+                {isEnterprise
+                  ? "I have your full financial profile, diagnostics, benchmarks, and risk matrix."
+                  : "I know your business data. Ask me anything."}
+              </p>
               <div className="space-y-2 w-full">
                 {starters.slice(0, 4).map((q, i) => (
                   <button key={i} onClick={() => sendMessage(q)}
@@ -263,22 +412,47 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
 
           {/* Message bubbles */}
           {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
-                m.role === "user"
-                  ? "bg-[#1B3A2D] text-white rounded-br-md"
-                  : "bg-white border border-[#E5E3DD] text-[#1A1A18] rounded-bl-md"
-              }`} style={{ boxShadow: m.role === "assistant" ? "0 1px 2px rgba(0,0,0,0.03)" : "none" }}>
-                {m.content ? (
-                  m.role === "assistant" ? renderContent(m.content) : m.content
-                ) : (
-                  <span className="flex items-center gap-1.5 text-[#8E8C85]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8E8C85] animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8E8C85] animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8E8C85] animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </span>
-                )}
+            <div key={i}>
+              <div className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
+                  m.role === "user"
+                    ? "bg-[#1B3A2D] text-white rounded-br-md"
+                    : "bg-white border border-[#E5E3DD] text-[#1A1A18] rounded-bl-md"
+                }`} style={{ boxShadow: m.role === "assistant" ? "0 1px 2px rgba(0,0,0,0.03)" : "none" }}>
+                  {m.content ? (
+                    m.role === "assistant" ? renderContent(m.content) : m.content
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-[#8E8C85]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#8E8C85] animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#8E8C85] animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#8E8C85] animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Action buttons attached to this message */}
+              {m.actions && m.actions.length > 0 && !streaming && (
+                <div className="flex flex-wrap gap-1.5 mt-2 ml-0">
+                  {m.actions.map((action, j) => {
+                    const meta = ACTION_ICONS[action.type] || ACTION_ICONS.create_task;
+                    return (
+                      <button key={j}
+                        onClick={() => executeAction(action)}
+                        disabled={!!actionLoading}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded-lg border transition hover:shadow-sm disabled:opacity-50"
+                        style={{ background: meta.bg, borderColor: meta.color + "30", color: meta.color }}>
+                        {actionLoading === action.type ? (
+                          <span className="w-3 h-3 border-2 rounded-full animate-spin" style={{ borderColor: meta.color + "30", borderTopColor: meta.color }} />
+                        ) : (
+                          <span className="text-[12px]">{meta.icon}</span>
+                        )}
+                        {action.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ))}
 
@@ -294,7 +468,7 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
             </div>
           )}
 
-          {/* Action buttons after relevant messages */}
+          {/* Book a call button */}
           {calendlyUrl && messages.length > 0 && messages[messages.length - 1]?.role === "assistant" && messages[messages.length - 1]?.content?.toLowerCase().includes("rep") && !streaming && (
             <div className="flex gap-2 pt-1">
               <a href={calendlyUrl} target="_blank" rel="noopener noreferrer"
@@ -322,7 +496,7 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-              placeholder={uploading ? "Analyzing document..." : "Ask about your leaks, recovery, programs..."}
+              placeholder={uploading ? "Analyzing document..." : isEnterprise ? "Ask your virtual CFO..." : "Ask about your leaks, recovery, programs..."}
               disabled={streaming || uploading}
               className="flex-1 py-2 text-[13px] text-[#1A1A18] bg-transparent border-none outline-none placeholder:text-[#B5B3AD] disabled:opacity-50"
             />
@@ -331,7 +505,9 @@ export default function AiChatWidget({ position = "inline" }: AiChatWidgetProps)
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </button>
           </div>
-          <p className="text-[9px] text-[#B5B3AD] text-center mt-1.5">AI advisor with your real business data</p>
+          <p className="text-[9px] text-[#B5B3AD] text-center mt-1.5">
+            {isEnterprise ? "CFO advisor with your full financial profile" : "AI advisor with your real business data"}
+          </p>
         </div>
       </div>
     </div>

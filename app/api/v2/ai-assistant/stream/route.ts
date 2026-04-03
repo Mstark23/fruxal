@@ -131,8 +131,45 @@ export async function POST(req: NextRequest) {
     // If just requesting starters (no message), return them
     const { systemContext, starters, repName, calendlyUrl } = await buildContext(userId);
 
+    // Detect user tier from the businesses table
+    const tierResult = await supabaseAdmin
+      .from("businesses")
+      .select("tier")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const tier: string = tierResult.data?.tier || "solo";
+
     if (getStarters) {
-      return new Response(JSON.stringify({ success: true, starters, repName, calendlyUrl }), {
+      let finalStarters: string[];
+
+      if (tier === "enterprise") {
+        const enterpriseStarters = [
+          "Model the EBITDA impact if we fix all critical leaks",
+          "What's my biggest exit readiness gap right now?",
+          "Compare my margins to industry top quartile",
+          "Walk me through the optimal recovery sequence",
+          "What compliance risks should I flag for my board?",
+          "Run a scenario: what if revenue grows 20% next year?",
+        ];
+        finalStarters = enterpriseStarters.sort(() => Math.random() - 0.5).slice(0, 4);
+      } else if (tier === "business") {
+        finalStarters = [
+          "Which leak should I fix first for maximum ROI?",
+          "How does my financial health compare to peers?",
+          "What government programs am I eligible for?",
+          "What's the status of my recovery?",
+        ];
+      } else {
+        // solo tier — use context-aware starters if available, fallback to defaults
+        finalStarters = starters.length > 0 ? starters.slice(0, 4) : [
+          "What are my biggest money leaks?",
+          "Do I have any overdue obligations?",
+          "What free programs am I eligible for?",
+          "How can I improve my health score?",
+        ];
+      }
+
+      return new Response(JSON.stringify({ success: true, starters: finalStarters, repName, calendlyUrl, tier }), {
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -182,7 +219,16 @@ AFTER YOUR RESPONSE, add exactly 3 follow-up suggestions:
 [SUGGEST]Question 1[/SUGGEST]
 [SUGGEST]Question 2[/SUGGEST]
 [SUGGEST]Question 3[/SUGGEST]
-Make them specific to what was discussed. If proactive alerts exist, make one suggestion about the alert.`;
+Make them specific to what was discussed. If proactive alerts exist, make one suggestion about the alert.
+
+ACTION ITEMS:
+When you recommend a specific action the user could take right now, wrap it in action tags:
+[ACTION:mark_obligation|slug=gst-return]Mark GST return as filed[/ACTION]
+[ACTION:create_task|title=Review insurance quotes|category=insurance]Create this as a task[/ACTION]
+[ACTION:schedule_reminder|title=Follow up on SR&ED|due_date=2026-05-15]Set a reminder[/ACTION]
+[ACTION:run_scenario|scenario=Fix top 3 critical leaks]Run this scenario[/ACTION]
+
+Only add 1-2 action tags per response, and only when the action is clearly appropriate. Don't force actions.`;
 
     const conversationMessages = (history || []).slice(-8).map((m: any) => ({
       role: m.role as "user" | "assistant",
@@ -223,11 +269,30 @@ Make them specific to what was discussed. If proactive alerts exist, make one su
             suggestions.push(match[1].trim());
           }
 
-          // Clean response text (remove suggestion tags)
-          const cleanText = fullText.replace(/\[SUGGEST\].*?\[\/SUGGEST\]/g, "").trim();
+          // Parse action items from the response
+          const actions: { type: string; params: Record<string, string>; label: string }[] = [];
+          const actionRegex = /\[ACTION:([\w]+)\|([^\]]+)\](.*?)\[\/ACTION\]/g;
+          let actionMatch;
+          while ((actionMatch = actionRegex.exec(fullText)) !== null) {
+            const type = actionMatch[1];
+            const paramStr = actionMatch[2];
+            const label = actionMatch[3].trim();
+            const params: Record<string, string> = {};
+            for (const pair of paramStr.split("|")) {
+              const [k, ...v] = pair.split("=");
+              if (k && v.length) params[k] = v.join("=");
+            }
+            actions.push({ type, params, label });
+          }
+
+          // Clean response text (remove suggestion and action tags)
+          const cleanText = fullText
+            .replace(/\[SUGGEST\].*?\[\/SUGGEST\]/g, "")
+            .replace(/\[ACTION:[\w]+\|[^\]]+\].*?\[\/ACTION\]/g, "")
+            .trim();
 
           // Send final metadata
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, suggestions, repName, calendlyUrl })}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, suggestions, actions, repName, calendlyUrl, tier })}\n\n`));
           controller.close();
 
           // Extract memories in background
