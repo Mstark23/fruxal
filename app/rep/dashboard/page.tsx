@@ -90,6 +90,31 @@ export default function RepDashboard() {
   const activeCount   = clients.filter(c => c.engagement).length;
   const followUpCount = clients.filter(c => c.pipeline?.followUpDate && new Date(c.pipeline.followUpDate) <= new Date(Date.now()+3*86400000)).length;
   const isNewRep = clients.length === 0 && !loading;
+  const [industryOpen, setIndustryOpen] = useState(false);
+
+  const industryStats = useMemo(() => {
+    const SIGNED_STAGES = new Set(["signed","in_engagement","recovery_tracking","fee_collected","completed"]);
+    const map = new Map<string, { total: number; signed: number; leakSum: number }>();
+    for (const c of clients) {
+      const ind = c.industry || "Other";
+      if (!map.has(ind)) map.set(ind, { total: 0, signed: 0, leakSum: 0 });
+      const entry = map.get(ind)!;
+      entry.total++;
+      if (SIGNED_STAGES.has(c.pipeline?.stage || "")) {
+        entry.signed++;
+        entry.leakSum += c.annualLeak ?? 0;
+      }
+    }
+    return Array.from(map.entries())
+      .map(([name, d]) => ({
+        name,
+        total: d.total,
+        signed: d.signed,
+        rate: d.total > 0 ? Math.round((d.signed / d.total) * 100) : 0,
+        avgDeal: d.signed > 0 ? Math.round(d.leakSum / d.signed) : 0,
+      }))
+      .sort((a, b) => b.rate - a.rate || b.signed - a.signed);
+  }, [clients]);
 
   // Today's Actions — urgent items the rep should handle right now
   const todayActions = useMemo(() => {
@@ -221,6 +246,44 @@ export default function RepDashboard() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ═══ INDUSTRY PERFORMANCE ═══ */}
+        {industryStats.length > 1 && (
+          <div className="mb-5">
+            <button onClick={() => setIndustryOpen(o => !o)}
+              className="flex items-center gap-2 text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-2 hover:text-[#56554F] transition-colors">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                style={{ transform: industryOpen ? "rotate(90deg)" : "rotate(0deg)", transition:"transform 0.15s" }}>
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+              Industry Performance
+            </button>
+            {industryOpen && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {industryStats.map(ind => (
+                  <div key={ind.name} className="bg-white border border-[#E5E3DD] rounded-xl px-4 py-3" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-[11px] font-semibold text-[#1A1A18] truncate">{ind.name}</p>
+                      <span className="text-[10px] font-bold shrink-0 ml-2"
+                        style={{ color: ind.rate >= 50 ? "#2D7A50" : ind.rate >= 25 ? "#C4841D" : "#8E8C85" }}>
+                        {ind.rate}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-[#F0EFEB] rounded-full overflow-hidden mb-2">
+                      <div className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(ind.rate, 3)}%`, background: ind.rate >= 50 ? "#2D7A50" : ind.rate >= 25 ? "#C4841D" : "#B5B3AD" }} />
+                    </div>
+                    <div className="flex items-center gap-3 text-[9px] text-[#8E8C85]">
+                      <span>{ind.total} client{ind.total !== 1 ? "s" : ""}</span>
+                      <span>{ind.signed} signed</span>
+                      {ind.avgDeal > 0 && <span className="ml-auto font-semibold text-[#56554F]">Avg {fmtM(ind.avgDeal)}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

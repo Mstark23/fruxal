@@ -190,12 +190,64 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       });
     }
 
+    // ─── Smart next-action suggestions (logic-based, no AI) ─────────────
+    const contactFirstName = (pipe.contact_name || "there").split(" ")[0];
+    const totalAgreedFmt = `$${(totalAgreed || 0).toLocaleString()}`;
+    const now = new Date();
+
+    function addBusinessDays(from: Date, days: number): string {
+      const d = new Date(from);
+      let added = 0;
+      while (added < days) {
+        d.setDate(d.getDate() + 1);
+        const dow = d.getDay();
+        if (dow !== 0 && dow !== 6) added++;
+      }
+      return d.toISOString().split("T")[0];
+    }
+
+    let nextActions: { action: string; priority: "high" | "medium" | "low"; automated: boolean }[] = [];
+    let suggestedFollowUpDate = "";
+    let suggestedMessage = "";
+
+    if (call_outcome === "ready_to_sign") {
+      suggestedFollowUpDate = addBusinessDays(now, 2);
+      nextActions = [
+        { action: "Send agreement email (auto-sent)", priority: "high", automated: true },
+        { action: "Follow up in 2 days if not signed", priority: "high", automated: false },
+        { action: "Prepare onboarding checklist for engagement kickoff", priority: "medium", automated: false },
+      ];
+      suggestedMessage = `Hi ${contactFirstName},\n\nGreat speaking with you today. I just sent over the engagement agreement for the ${totalAgreedFmt} in annual savings we identified.\n\nQuick recap of what we'll recover:\n${agreedList.slice(0, 5).map((f: any) => `- ${f.title}: $${(f.impact_max || f.impact_min || 0).toLocaleString()}/yr`).join("\n")}\n\nThe agreement takes about 30 seconds to sign. Once that's done, we get started right away — you don't lift a finger.\n\nLet me know if you have any questions!\n\nBest,\n${repName}`;
+    } else if (call_outcome === "needs_time") {
+      // 3-5 business days based on whether there are concerns
+      const followUpDays = client_concerns ? 5 : 3;
+      suggestedFollowUpDate = addBusinessDays(now, followUpDays);
+      nextActions = [
+        { action: "Send recap email within 24 hours", priority: "high", automated: false },
+        { action: `Schedule follow-up call for ${new Date(suggestedFollowUpDate).toLocaleDateString("en-CA", { weekday: "long", month: "short", day: "numeric" })}`, priority: "high", automated: false },
+        { action: "Prepare answers to client concerns for next call", priority: "medium", automated: false },
+        ...(client_concerns ? [{ action: "Address specific objections in follow-up email", priority: "medium" as const, automated: false }] : []),
+      ];
+      suggestedMessage = `Hi ${contactFirstName},\n\nThanks for taking the time today to go over the findings for your business. I appreciate you being thorough about this.\n\nHere's a quick recap of what we discussed:\n\nTotal identified savings: ${totalAgreedFmt}/year\n${agreedList.slice(0, 5).map((f: any) => `- ${f.title}: $${(f.impact_max || f.impact_min || 0).toLocaleString()}/yr`).join("\n")}\n\nAs a reminder, we work on contingency — ${contingencyRate}% of what we actually recover. If we don't find real savings, you pay nothing.${client_concerns ? `\n\nRegarding your concern about ${client_concerns.split(".")[0].toLowerCase()} — I completely understand, and I'll have more details for you when we reconnect.` : ""}\n\nI'll follow up ${followUpDays === 3 ? "later this week" : "early next week"} to see where you're at. In the meantime, feel free to reach out with any questions.\n\nBest,\n${repName}`;
+    } else if (call_outcome === "not_interested") {
+      suggestedFollowUpDate = addBusinessDays(now, 30);
+      nextActions = [
+        { action: "Add to reactivation queue (30-day follow-up)", priority: "medium", automated: false },
+        { action: "Send a polite closing email", priority: "low", automated: false },
+        { action: "Log reason for decline for future reference", priority: "low", automated: false },
+      ];
+      suggestedMessage = `Hi ${contactFirstName},\n\nThank you for taking the time to speak with me today. I understand the timing may not be right, and I respect that.\n\nJust so you have it for reference, we identified ${totalAgreedFmt}/year in potential savings for your business. That opportunity doesn't expire — these are ongoing costs that can be recovered anytime.\n\nIf anything changes or you'd like to revisit, I'm always here. No pressure at all.\n\nWishing you and your business all the best,\n${repName}`;
+    }
+
     return NextResponse.json({
       success:       true,
       debrief_id:    debriefId,
       new_stage:     newStage,
       email_sent:    call_outcome === "ready_to_sign" && !!pipe.contact_email,
       total_agreed:  totalAgreed,
+      nextActions,
+      suggestedFollowUpDate,
+      suggestedMessage,
     });
   } catch (err: any) {
     console.error("[debrief POST]", err);

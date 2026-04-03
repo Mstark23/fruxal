@@ -66,6 +66,7 @@ export default function RepCustomerPage() {
   const [debriefFindings, setDebriefFindings] = useState<string[]>([]);
   const [debriefSubmitting, setDebriefSubmitting] = useState(false);
   const [debriefDone, setDebriefDone] = useState(false);
+  const [debriefResult, setDebriefResult] = useState<any>(null);
   const [repInfo, setRepInfo] = useState<any>(null);
   const [recommending, setRecommending] = useState<string|null>(null);
   const [recommendedSlugs, setRecommendedSlugs] = useState<Set<string>>(new Set());
@@ -78,6 +79,8 @@ export default function RepCustomerPage() {
   const [scriptsLoading, setScriptsLoading] = useState(false);
   const [scriptsIndustryTag, setScriptsIndustryTag] = useState<string|null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number|null>(null);
+  const [emailSentIdx, setEmailSentIdx] = useState<number|null>(null);
+  const [emailSending, setEmailSending] = useState<number|null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -249,6 +252,36 @@ ${repInfo?.name || 'Your Fruxal rep'}`
     navigator.clipboard?.writeText(text);
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  const sendScriptEmail = async (subject: string, body: string, idx: number) => {
+    if (!client?.pipeline?.contactEmail) { showToast("No contact email for this client"); return; }
+    setEmailSending(idx);
+    try {
+      const r = await fetch(`/api/rep/customer/${diagId}/send-email`, {
+        credentials: "include", method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject, body }),
+      });
+      const j = await r.json();
+      if (j.success) {
+        setEmailSentIdx(idx);
+        setTimeout(() => setEmailSentIdx(null), 3000);
+      } else {
+        showToast("Failed: " + (j.error || "Unknown error"));
+      }
+    } catch { showToast("Failed to send email"); }
+    setEmailSending(null);
+  };
+
+  // Helper: detect if a script key is an email template and resolve its subject
+  const getEmailMeta = (key: string, scriptObj: any): { subject: string } | null => {
+    const k = key.toLowerCase();
+    if (k === "email_body" && scriptObj?.email_subject) return { subject: scriptObj.email_subject };
+    if (k === "day1_email" && scriptObj?.email_subjects?.day1) return { subject: scriptObj.email_subjects.day1 };
+    if (k === "day3_email" && scriptObj?.email_subjects?.day3) return { subject: scriptObj.email_subjects.day3 };
+    if (k === "day7_email" && scriptObj?.email_subjects?.day7) return { subject: scriptObj.email_subjects.day7 };
+    return null;
   };
 
   const requestDocument = async () => {
@@ -526,19 +559,37 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                         ).join("\n\n")
                       : typeof value === "object" ? JSON.stringify(value, null, 2)
                       : String(value);
+                    const emailMeta = getEmailMeta(key, scripts);
                     return (
                       <div key={key} className="border border-[#F0EFEB] rounded-lg overflow-hidden">
                         <div className="flex items-center justify-between px-4 py-2.5 bg-[#FAFAF8]">
                           <p className="text-[11px] font-bold text-[#1A1A18]">{displayTitle}</p>
-                          <button
-                            onClick={() => copyScript(displayValue, idx)}
-                            className="text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors"
-                            style={{
-                              color: copiedIdx === idx ? "#2D7A50" : "#1B3A2D",
-                              background: copiedIdx === idx ? "rgba(45,122,80,0.08)" : "rgba(27,58,45,0.06)",
-                            }}>
-                            {copiedIdx === idx ? "Copied" : "Copy"}
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            {emailMeta && client?.pipeline?.contactEmail && (
+                              emailSentIdx === idx ? (
+                                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md text-[#2D7A50] bg-[rgba(45,122,80,0.08)] transition-opacity">
+                                  Sent &#10003;
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => sendScriptEmail(emailMeta.subject, displayValue, idx)}
+                                  disabled={emailSending === idx}
+                                  className="text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors disabled:opacity-50"
+                                  style={{ color:"white", background:"#1B3A2D" }}>
+                                  {emailSending === idx ? "Sending..." : "Send Email"}
+                                </button>
+                              )
+                            )}
+                            <button
+                              onClick={() => copyScript(displayValue, idx)}
+                              className="text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors"
+                              style={{
+                                color: copiedIdx === idx ? "#2D7A50" : "#1B3A2D",
+                                background: copiedIdx === idx ? "rgba(45,122,80,0.08)" : "rgba(27,58,45,0.06)",
+                              }}>
+                              {copiedIdx === idx ? "Copied" : "Copy"}
+                            </button>
+                          </div>
                         </div>
                         <pre className="px-4 py-3 text-[11px] text-[#56554F] whitespace-pre-wrap font-sans leading-relaxed bg-white">
                           {displayValue}
@@ -905,14 +956,79 @@ ${repInfo?.name || 'Your Fruxal rep'}`
         {tab === "debrief" && (
           <div className="space-y-4">
             {debriefDone ? (
-              <div className="flex flex-col items-center py-10 gap-3 bg-white border border-[#E5E3DD] rounded-xl">
-                <div className="w-12 h-12 rounded-full bg-[rgba(45,122,80,0.08)] flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <div className="space-y-4">
+                <div className="flex flex-col items-center py-8 gap-3 bg-white border border-[#E5E3DD] rounded-xl">
+                  <div className="w-12 h-12 rounded-full bg-[rgba(45,122,80,0.08)] flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <p className="text-[14px] font-semibold text-[#1A1A18]">Debrief saved</p>
+                  <p className="text-[12px] text-[#8E8C85] text-center">
+                    {debriefOutcome === "ready_to_sign" ? "Engagement email sent to client with signature link." : "Pipeline updated."}
+                  </p>
                 </div>
-                <p className="text-[14px] font-semibold text-[#1A1A18]">Debrief saved</p>
-                <p className="text-[12px] text-[#8E8C85] text-center">
-                  {debriefOutcome === "ready_to_sign" ? "Engagement email sent to client with signature link." : "Pipeline updated."}
-                </p>
+
+                {/* Next Actions */}
+                {debriefResult?.nextActions?.length > 0 && (
+                  <div className="bg-white border border-[#E5E3DD] rounded-xl p-5" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[11px] font-bold text-[#8E8C85] uppercase tracking-wider">Suggested Next Steps</p>
+                      {debriefResult.suggestedFollowUpDate && (
+                        <span className="text-[10px] font-semibold text-[#C4841D] bg-[rgba(196,132,29,0.08)] px-2 py-0.5 rounded-full">
+                          Follow up: {new Date(debriefResult.suggestedFollowUpDate + "T12:00:00").toLocaleDateString("en-CA", { weekday:"short", month:"short", day:"numeric" })}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2 mb-4">
+                      {debriefResult.nextActions.map((na: any, i: number) => (
+                        <div key={i} className="flex items-start gap-2.5 px-3 py-2 rounded-lg"
+                          style={{ background: na.priority === "high" ? "rgba(179,64,64,0.04)" : na.priority === "medium" ? "rgba(196,132,29,0.04)" : "rgba(142,140,133,0.04)" }}>
+                          <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
+                            style={{ background: na.priority === "high" ? "#B34040" : na.priority === "medium" ? "#C4841D" : "#8E8C85" }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[12px] text-[#1A1A18]">{na.action}</p>
+                            {na.automated && <span className="text-[9px] font-semibold text-[#2D7A50] bg-[rgba(45,122,80,0.08)] px-1.5 py-0.5 rounded mt-0.5 inline-block">Auto</span>}
+                          </div>
+                          <span className="text-[9px] font-bold uppercase tracking-wider shrink-0"
+                            style={{ color: na.priority === "high" ? "#B34040" : na.priority === "medium" ? "#C4841D" : "#8E8C85" }}>
+                            {na.priority}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {debriefResult.suggestedMessage && (
+                      <div className="border border-[#F0EFEB] rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-2 bg-[#FAFAF8]">
+                          <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider">Suggested Follow-Up Email</p>
+                          <div className="flex items-center gap-1.5">
+                            {client?.pipeline?.contactEmail && (
+                              <button
+                                onClick={() => sendScriptEmail(
+                                  debriefOutcome === "ready_to_sign" ? "Quick recap from our call" :
+                                  debriefOutcome === "needs_time" ? `Following up — ${client?.companyName || "your business"}` :
+                                  `Thank you for your time — ${client?.companyName || ""}`,
+                                  debriefResult.suggestedMessage,
+                                  9000
+                                )}
+                                disabled={emailSending === 9000}
+                                className="text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors disabled:opacity-50"
+                                style={{ color:"white", background:"#1B3A2D" }}>
+                                {emailSending === 9000 ? "Sending..." : emailSentIdx === 9000 ? "Sent!" : "Send Email"}
+                              </button>
+                            )}
+                            <button onClick={() => { navigator.clipboard?.writeText(debriefResult.suggestedMessage); showToast("Copied to clipboard"); }}
+                              className="text-[10px] font-semibold text-[#1B3A2D] px-2.5 py-1 rounded-md" style={{ background:"rgba(27,58,45,0.06)" }}>
+                              Copy
+                            </button>
+                          </div>
+                        </div>
+                        <pre className="px-4 py-3 text-[11px] text-[#56554F] whitespace-pre-wrap font-sans leading-relaxed bg-white max-h-[200px] overflow-y-auto">
+                          {debriefResult.suggestedMessage}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="bg-white border border-[#E5E3DD] rounded-xl p-5" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -987,7 +1103,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                     if (!debriefOutcome) return;
                     setDebriefSubmitting(true);
                     const debriefPipeId = (client?.pipeline?.id as string) || diagId;
-                    await fetch(`/api/rep/customer/${debriefPipeId}/debrief`, {
+                    const debriefRes = await fetch(`/api/rep/customer/${debriefPipeId}/debrief`, {
                       credentials: "include",
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -998,6 +1114,8 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                         notes:           debriefNotes,
                       }),
                     });
+                    const debriefJson = await debriefRes.json().catch(() => ({}));
+                    if (debriefJson.nextActions) setDebriefResult(debriefJson);
                     setDebriefDone(true);
                     setDebriefSubmitting(false);
                   }}
