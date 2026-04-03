@@ -30,7 +30,7 @@ function LockIcon() {
 interface Leak { slug: string; title: string; title_fr?: string; severity: string; category: string; description: string; description_fr?: string; impact_min: number; impact_max: number; confidence: number | null; affiliates?: Array<{ name: string; url: string }> }
 
 interface Deadline { title: string; days_until: number; penalty_max?: number }
-const SEV_DOT: Record<string, string> = { critical: "#B34040", high: "#C4841D", medium: "#8E8C85", low: "#C5C2BB" };
+const SEV_DOT: Record<string, string> = { critical: "#B34040", high: "#C4841D", medium: "#0369a1", low: "#8E8C85" };
 
 export default function BusinessDashboard() {
   const router = useRouter();
@@ -338,7 +338,7 @@ export default function BusinessDashboard() {
                   <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
                   <p className="text-[12px] text-white/60 flex-1">
                     {t("Estimated leak based on prescan:", "Fuite estimée selon le préscan :")}
-                    <span className="text-red-400 font-black ml-1.5">${totalLeak.toLocaleString()}/yr</span>
+                    <span className="font-black ml-1.5" style={{ color: "#B34040" }}>${totalLeak.toLocaleString()}/yr</span>
                     <span className="text-white/30 text-[11px] ml-1.5">{t("— confirm with intake", "— confirmer avec l'analyse")}</span>
                   </p>
                 </div>
@@ -393,7 +393,7 @@ export default function BusinessDashboard() {
                 <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl mb-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div>
                     <div className="text-[10px] text-white/30 uppercase tracking-wider">{t("Your estimated annual leak", "Fuite annuelle estimée")}</div>
-                    <div className="text-[18px] font-black text-red-400">${totalLeak.toLocaleString()}/yr</div>
+                    <div className="text-[18px] font-black" style={{ color: "#B34040" }}>${totalLeak.toLocaleString()}/yr</div>
                   </div>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                   <div className="text-right">
@@ -603,7 +603,7 @@ export default function BusinessDashboard() {
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
-                            style={{ background: f.severity === "critical" ? "rgba(179,64,64,0.08)" : f.severity === "high" ? "rgba(196,132,29,0.08)" : "rgba(142,140,133,0.08)", color: SEV_DOT[f.severity] || "#8E8C85" }}>
+                            style={{ background: f.severity === "critical" ? "rgba(179,64,64,0.08)" : f.severity === "high" ? "rgba(196,132,29,0.08)" : f.severity === "medium" ? "rgba(3,105,161,0.08)" : "rgba(142,140,133,0.08)", color: SEV_DOT[f.severity] || "#8E8C85" }}>
                             {f.severity}
                           </span>
                           <span className="text-[10px] text-ink-faint">{f.category}</span>
@@ -885,16 +885,28 @@ export default function BusinessDashboard() {
                     <span>{t("You", "Vous")}</span><span>{t("Avg", "Moy.")}</span><span>Top 25%</span>
                   </div>
                 </div>
-                {diagBenchmarks.map((b, i) => (
-                    <div key={i} className="px-4 py-2 border-b border-border-light last:border-0">
-                      <p key={i} className="text-[10px] font-semibold text-ink-secondary mb-1.5">{isFR ? (b.metric_name_fr || b.metric_fr || b.metric_name || b.metric || "") : (b.metric_name || b.metric || "")}</p>
-                      <div key={i} className="grid grid-cols-3 text-center">
-                        <div><div className="text-[12px] font-bold text-ink-secondary">{b.your_value}</div><div className="text-[10px] text-ink-faint">{t("You", "Vous")}</div></div>
+                {diagBenchmarks.map((b, i) => {
+                    const yours = parseFloat(String(b.your_value).replace(/[^0-9.\-]/g, ""));
+                    const avg = parseFloat(String(b.industry_avg).replace(/[^0-9.\-]/g, ""));
+                    const isAbove = !isNaN(yours) && !isNaN(avg) ? yours >= avg : null;
+                    return (
+                    <div key={i} className="px-4 py-2.5 border-b border-border-light last:border-0">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-[10px] font-semibold text-ink-secondary">{isFR ? (b.metric_name_fr || b.metric_fr || b.metric_name || b.metric || "") : (b.metric_name || b.metric || "")}</p>
+                        {isAbove !== null && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: isAbove ? "rgba(45,122,80,0.08)" : "rgba(179,64,64,0.08)", color: isAbove ? "#2D7A50" : "#B34040" }}>
+                            {isAbove ? t("Above avg", "Au-dessus") : t("Below avg", "En-dessous")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-3 text-center">
+                        <div><div className="text-[12px] font-bold" style={{ color: isAbove === null ? "#3D3D3A" : isAbove ? "#2D7A50" : "#B34040" }}>{b.your_value}</div><div className="text-[10px] text-ink-faint">{t("You", "Vous")}</div></div>
                         <div><div className="text-[12px] font-bold" style={{ color: "#0369a1" }}>{b.industry_avg}</div><div className="text-[10px] text-ink-faint">{t("Avg", "Moy.")}</div></div>
                         <div><div className="text-[12px] font-bold text-positive">{b.top_quartile}</div><div className="text-[10px] text-ink-faint">Top 25%</div></div>
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 }
               </div>
             )}
