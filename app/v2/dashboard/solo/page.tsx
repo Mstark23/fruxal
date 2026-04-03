@@ -2,8 +2,9 @@
 // FRUXAL DASHBOARD - SOLO TIER
 // =============================================================================
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
+const AiChatWidget = lazy(() => import("@/components/v2/AiChatWidget"));
 import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
 
@@ -797,6 +798,7 @@ export default function SoloDashboard() {
         </div>
 
       </div>
+      <Suspense fallback={null}><AiChatWidget position="floating" /></Suspense>
     </div>
   );
 }

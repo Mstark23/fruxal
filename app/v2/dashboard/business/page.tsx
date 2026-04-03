@@ -6,7 +6,8 @@
 // =============================================================================
 
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
+const AiChatWidget = lazy(() => import("@/components/v2/AiChatWidget"));
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useCelebration } from "@/hooks/useCelebration";
@@ -916,6 +917,7 @@ export default function BusinessDashboard() {
         </div>
 
       </div>
+      <Suspense fallback={null}><AiChatWidget position="floating" /></Suspense>
     </div>
   );
 }
