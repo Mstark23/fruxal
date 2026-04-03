@@ -73,6 +73,8 @@ export default function BusinessDashboard() {
 
   // T2 is free — affiliates are the revenue, not subscriptions
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [scoreExpanded, setScoreExpanded] = useState(false);
+  const [scoreBreakdown, setScoreBreakdown] = useState<{ compliance: number; efficiency: number; optimization: number; growth: number } | null>(null);
 
   const t = useCallback((en: string, fr: string) => lang === "fr" ? fr : en, [lang]);
   const isFR = lang === "fr";
@@ -132,6 +134,14 @@ export default function BusinessDashboard() {
         setReportId(json.report_id || null);
         const diagScore = r.scores?.overall ?? r.overall_score ?? 0;
         if (diagScore > 0) setScore(diagScore);
+        // Extract score breakdown components if available
+        const bd = {
+          compliance:   r.scores?.compliance   ?? r.compliance_score   ?? 0,
+          efficiency:   r.scores?.efficiency   ?? r.efficiency_score   ?? 0,
+          optimization: r.scores?.optimization ?? r.optimization_score ?? 0,
+          growth:       r.scores?.growth       ?? r.growth_score       ?? 0,
+        };
+        if (bd.compliance || bd.efficiency || bd.optimization || bd.growth) setScoreBreakdown(bd);
         const diagLeak = r.totals?.annual_leaks ?? r.total_annual_leaks ?? 0;
         if (diagLeak > 0) setTotalLeak(diagLeak);
         setBankabilityScore(r.scores?.bankability ?? r.bankability_score ?? 0);
@@ -444,26 +454,60 @@ export default function BusinessDashboard() {
 
         {/* KPI CARDS — 5 on business (adds Bankability) */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5" style={fade(0.04)}>
-          <button onClick={() => router.push("/v2/diagnostic")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
-            {score > 0 ? (
-              <>
-                <div className="flex items-end gap-1.5">
-                  <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: score >= 60 ? "#1B3A2D" : "#C4841D" }}>{score}</span>
-                  <span className="text-xs text-ink-muted mb-1">/100</span>
-                </div>
-                <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${score}%`, background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
-                {dashboardBusinessId && (
-                  <ScoreRingAddons businessId={dashboardBusinessId} lang={lang} />
+          <div className="bg-white rounded-xl border border-border-light text-left transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <button onClick={() => setScoreExpanded(prev => !prev)} className="w-full p-5 text-left">
+              <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Health Score", "Score santé")}</div>
+              {score > 0 ? (
+                <>
+                  <div className="flex items-end gap-1.5">
+                    <span className="font-serif text-[36px] font-bold leading-none tracking-tight" style={{ color: score >= 60 ? "#1B3A2D" : "#C4841D" }}>{score}</span>
+                    <span className="text-xs text-ink-muted mb-1">/100</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8E8C85" strokeWidth="2.5" strokeLinecap="round" className="mb-1.5 ml-auto" style={{ transform: scoreExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                  <div className="mt-3 h-[3px] bg-bg-section rounded-full"><div className="h-full rounded-full transition-all duration-1000" style={{ width: `${score}%`, background: score >= 70 ? "#2D7A50" : score >= 40 ? "#C4841D" : "#B34040" }} /></div>
+                  {dashboardBusinessId && (
+                    <ScoreRingAddons businessId={dashboardBusinessId} lang={lang} />
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
+                  <div className="text-[11px] text-ink-muted mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
+                </>
+              )}
+            </button>
+            {scoreExpanded && (
+              <div className="px-5 pb-4 pt-0 border-t border-border-light/50">
+                <div className="text-[11px] font-semibold text-ink-muted mt-3 mb-2">{t("Your score is calculated from:", "Votre score est calculé à partir de :")}</div>
+                {scoreBreakdown ? (
+                  <div className="space-y-1.5">
+                    {([
+                      { key: "compliance", en: "Compliance", fr: "Conformité" },
+                      { key: "efficiency", en: "Efficiency", fr: "Efficacité" },
+                      { key: "optimization", en: "Optimization", fr: "Optimisation" },
+                      { key: "growth", en: "Growth", fr: "Croissance" },
+                    ] as const).map(c => {
+                      const val = scoreBreakdown[c.key];
+                      return (
+                        <div key={c.key} className="flex items-center gap-2">
+                          <span className="text-[11px] text-ink-muted w-24">{t(c.en, c.fr)}</span>
+                          <div className="flex-1 h-[3px] bg-bg-section rounded-full">
+                            <div className="h-full rounded-full transition-all duration-700" style={{ width: val + "%", background: val >= 70 ? "#2D7A50" : val >= 40 ? "#C4841D" : "#B34040" }} />
+                          </div>
+                          <span className="text-[10px] font-bold text-ink-muted w-6 text-right">{val || "—"}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-ink-muted">{t("Run a diagnostic to see your score breakdown", "Lancez un diagnostic pour voir le détail de votre score")}</p>
                 )}
-              </>
-            ) : (
-              <>
-                <div className="font-serif text-[36px] font-bold leading-none tracking-tight text-ink-faint">—</div>
-                <div className="text-[11px] text-ink-muted mt-1.5">{t("Run diagnostic →", "Lancer →")}</div>
-              </>
+                <button onClick={() => router.push("/v2/diagnostic")} className="mt-3 text-[11px] font-semibold text-brand hover:underline">
+                  {t("View full report →", "Voir le rapport complet →")}
+                </button>
+              </div>
             )}
-          </button>
+          </div>
 
           <button onClick={() => router.push("/v2/leaks")} className="bg-white rounded-xl p-5 border border-border-light text-left hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-all" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">{t("Annual Leak", "Fuite annuelle")}</div>

@@ -188,6 +188,87 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const { lang, setLang, t, isFR } = useLang();
   const isFr = lang === "fr";
+  const [prescanPrefilled, setPrescanPrefilled] = useState(false);
+  const [prefilledFields, setPrefilledFields] = useState<Set<string>>(new Set());
+
+  // Auto-populate from prescan data
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("lg_prescan_result");
+      if (!raw) return;
+      const prescan = JSON.parse(raw);
+      if (!prescan) return;
+
+      const filled: string[] = [];
+      const updates: Partial<OnboardingData> = {};
+
+      // Industry
+      if (prescan.industry) {
+        const match = INDUSTRIES.find(i => i.value === prescan.industry);
+        if (match) {
+          updates.industry = match.value;
+          updates.industry_naics = match.naics;
+          filled.push("industry");
+        }
+      }
+
+      // Province
+      if (prescan.province) {
+        const allRegions = [...CA_PROVINCES, ...US_STATES];
+        const match = allRegions.find(p => p.value === prescan.province);
+        if (match) {
+          updates.province = match.value;
+          filled.push("province");
+        }
+      }
+
+      // Country — from prescan or cookie
+      if (prescan.country) {
+        updates.country = prescan.country;
+        filled.push("country");
+      }
+
+      // Monthly revenue — find closest REVENUE_RANGES value
+      if (prescan.revenue && typeof prescan.revenue === "number") {
+        let closest = REVENUE_RANGES[0];
+        let closestDist = Math.abs(prescan.revenue - Number(closest.value));
+        for (const r of REVENUE_RANGES) {
+          const dist = Math.abs(prescan.revenue - Number(r.value));
+          if (dist < closestDist) { closest = r; closestDist = dist; }
+        }
+        updates.monthly_revenue = closest.value;
+        filled.push("monthly_revenue");
+      }
+
+      // Employee count — find closest EMPLOYEE_RANGES value
+      if (prescan.employees && typeof prescan.employees === "number") {
+        let closest = EMPLOYEE_RANGES[0];
+        let closestDist = Math.abs(prescan.employees - Number(closest.value));
+        for (const e of EMPLOYEE_RANGES) {
+          const dist = Math.abs(prescan.employees - Number(e.value));
+          if (dist < closestDist) { closest = e; closestDist = dist; }
+        }
+        updates.employee_count = closest.value;
+        filled.push("employee_count");
+      }
+
+      // Structure
+      if (prescan.structure) {
+        const allStructures = [...CA_STRUCTURES, ...US_STRUCTURES];
+        const match = allStructures.find(s => s.value === prescan.structure);
+        if (match) {
+          updates.structure = match.value;
+          filled.push("structure");
+        }
+      }
+
+      if (filled.length > 0) {
+        setData(prev => ({ ...prev, ...updates }));
+        setPrescanPrefilled(true);
+        setPrefilledFields(new Set(filled));
+      }
+    } catch { /* non-fatal */ }
+  }, []);
 
   // Auto-detect language from province
   useEffect(() => {
@@ -301,6 +382,14 @@ export default function OnboardingPage() {
           {/* ═══ STEP 0: Business Basics ═══ */}
           {step === 0 && (
             <div className="space-y-5">
+              {prescanPrefilled && (
+                <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl" style={{ background: "rgba(45,122,80,0.06)", border: "1px solid rgba(45,122,80,0.12)" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <span className="text-[12px] text-[#2D7A50]">
+                    {isFr ? "Certains champs ont ete pre-remplis depuis votre scan. Verifiez et ajustez au besoin." : "We've pre-filled some fields from your scan. Review and adjust as needed."}
+                  </span>
+                </div>
+              )}
               <StepHeader
                 title={isFr ? "Parlons de votre entreprise" : "Tell us about your business"}
                 subtitle={isFr ? "Ces informations déterminent quelles obligations s'appliquent à vous." : "This determines which obligations apply to you."}
@@ -312,7 +401,7 @@ export default function OnboardingPage() {
                   className="input-field" />
               </Field>
 
-              <Field label={isFr ? "Industrie" : "Industry"}>
+              <Field label={isFr ? "Industrie" : "Industry"} prefilled={prefilledFields.has("industry")}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {INDUSTRIES.map(ind => (
                     <button key={ind.value} onClick={() => { update("industry", ind.value); update("industry_naics", ind.naics); }}
@@ -327,7 +416,7 @@ export default function OnboardingPage() {
                 </div>
               </Field>
 
-              <Field label={isFr ? "Structure juridique" : "Legal structure"}>
+              <Field label={isFr ? "Structure juridique" : "Legal structure"} prefilled={prefilledFields.has("structure")}>
                 <div className="grid grid-cols-2 gap-1.5">
                   {(data.country === "US" ? US_STRUCTURES : CA_STRUCTURES).map(s => (
                     <button key={s.value} onClick={() => update("structure", s.value)}
@@ -343,7 +432,7 @@ export default function OnboardingPage() {
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label={data.country === "US" ? "State" : (isFr ? "Province" : "Province")}>
+                <Field label={data.country === "US" ? "State" : (isFr ? "Province" : "Province")} prefilled={prefilledFields.has("province")}>
                   <select value={data.province} onChange={e => update("province", e.target.value)} className="input-field">
                     <option value="">{isFr ? "Sélectionner..." : "Select..."}</option>
                     {(data.country === "US" ? US_STATES : CA_PROVINCES).map(p => (
@@ -368,7 +457,7 @@ export default function OnboardingPage() {
                 subtitle={isFr ? "Aide à déterminer votre niveau d'obligations et les programmes disponibles." : "Helps determine your obligation level and available programs."}
               />
 
-              <Field label={isFr ? "Revenu mensuel approximatif" : "Approximate monthly revenue"}>
+              <Field label={isFr ? "Revenu mensuel approximatif" : "Approximate monthly revenue"} prefilled={prefilledFields.has("monthly_revenue")}>
                 <div className="grid grid-cols-2 gap-1.5">
                   {REVENUE_RANGES.map(r => (
                     <button key={r.value} onClick={() => update("monthly_revenue", r.value)}
@@ -383,7 +472,7 @@ export default function OnboardingPage() {
                 </div>
               </Field>
 
-              <Field label={isFr ? "Nombre d'employés" : "Number of employees"}>
+              <Field label={isFr ? "Nombre d'employés" : "Number of employees"} prefilled={prefilledFields.has("employee_count")}>
                 <div className="grid grid-cols-4 gap-1.5">
                   {EMPLOYEE_RANGES.map(e => (
                     <button key={e.value} onClick={() => update("employee_count", e.value)}
@@ -709,9 +798,9 @@ function StepHeader({ title, subtitle }: { title: string; subtitle: string }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, prefilled }: { label: string; children: React.ReactNode; prefilled?: boolean }) {
   return (
-    <div>
+    <div style={prefilled ? { borderLeft: "2px solid rgba(45,122,80,0.35)", paddingLeft: 10, borderRadius: 4 } : undefined}>
       <label className="block text-xs text-white/35 mb-1.5 font-medium">{label}</label>
       {children}
     </div>

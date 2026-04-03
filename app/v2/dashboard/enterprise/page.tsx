@@ -120,6 +120,213 @@ export default function EnterpriseDashboard() {
   const isFr = lang === "fr";
   const t    = (en: string, fr: string) => isFr ? fr : en;
 
+  /* ── renderToolResult: format AI tool output as readable cards ──────── */
+  function renderToolResult(tool: string, data: any): JSX.Element {
+    if (!data) return <p className="text-ink-faint text-[11px] py-4 text-center">{t("No results yet.", "Aucun résultat.")}</p>;
+
+    // --- Scenario Model ---
+    if (tool === "scenario") {
+      if (typeof data === "string") return <div className="space-y-2">{renderFormattedText(data)}</div>;
+      return (
+        <div className="space-y-3">
+          {Object.entries(data).map(([key, val]) => (
+            <div key={key} className="bg-bg rounded-lg px-4 py-3 border border-border-light">
+              <p className="text-[11px] font-bold text-ink uppercase tracking-wider mb-1.5">{key.replace(/_/g, " ")}</p>
+              <div className="text-[12px] text-ink-secondary">{typeof val === "string" ? renderFormattedText(val) : typeof val === "number" ? <span className="font-serif text-[18px] font-bold text-ink">{typeof val === "number" && val > 100 ? `$${val.toLocaleString()}` : val}</span> : Array.isArray(val) ? <ul className="space-y-1 ml-1">{(val as any[]).map((v, i) => <li key={i} className="flex items-start gap-2"><span className="text-brand mt-0.5">{">"}</span><span>{typeof v === "string" ? v : JSON.stringify(v)}</span></li>)}</ul> : renderKeyValuePairs(val)}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // --- Tax Calendar ---
+    if (tool === "tax") {
+      const items = Array.isArray(data) ? data : data?.items || data?.deadlines || data?.calendar || (typeof data === "object" ? Object.values(data).find(v => Array.isArray(v)) : null);
+      if (Array.isArray(items) && items.length > 0) {
+        return (
+          <div className="space-y-2">
+            {(items as any[]).map((item: any, i: number) => {
+              const status = (item.status || "upcoming").toLowerCase();
+              const statusColor = status === "overdue" ? { bg: "rgba(179,64,64,0.08)", text: "#B34040" } : status === "completed" ? { bg: "rgba(45,122,80,0.08)", text: "#2D7A50" } : { bg: "rgba(196,132,29,0.08)", text: "#C4841D" };
+              const riskColor = (item.risk_level || item.risk || "").toLowerCase() === "high" || (item.risk_level || item.risk || "").toLowerCase() === "critical" ? "#B34040" : (item.risk_level || item.risk || "").toLowerCase() === "medium" ? "#C4841D" : "#2D7A50";
+              return (
+                <div key={i} className="flex items-center gap-3 bg-bg rounded-lg px-4 py-3 border border-border-light">
+                  <div className="w-1 h-10 rounded-full shrink-0" style={{ background: riskColor }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-semibold text-ink">{item.title || item.name || item.summary || `Item ${i + 1}`}</p>
+                    {(item.date || item.deadline || item.due_date) && <p className="text-[10px] text-ink-muted mt-0.5">{item.date || item.deadline || item.due_date}</p>}
+                    {item.description && <p className="text-[10px] text-ink-faint mt-0.5">{item.description}</p>}
+                  </div>
+                  <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0" style={{ background: statusColor.bg, color: statusColor.text }}>{status}</span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      if (typeof data === "string") return <div className="space-y-2">{renderFormattedText(data)}</div>;
+      return renderKeyValuePairs(data);
+    }
+
+    // --- Anomaly Detection ---
+    if (tool === "anomaly") {
+      const items = Array.isArray(data) ? data : data?.anomalies || data?.alerts || data?.items || (typeof data === "object" ? Object.values(data).find(v => Array.isArray(v)) : null);
+      if (Array.isArray(items) && items.length > 0) {
+        return (
+          <div className="space-y-2">
+            {(items as any[]).map((a: any, i: number) => {
+              const sev = (a.severity || a.risk_level || a.level || "medium").toLowerCase();
+              const sevColor = sev === "critical" || sev === "high" ? { bg: "rgba(179,64,64,0.06)", border: "rgba(179,64,64,0.15)", badge: "#B34040" } : sev === "medium" ? { bg: "rgba(196,132,29,0.06)", border: "rgba(196,132,29,0.15)", badge: "#C4841D" } : { bg: "rgba(45,122,80,0.06)", border: "rgba(45,122,80,0.15)", badge: "#2D7A50" };
+              return (
+                <div key={i} className="rounded-lg px-4 py-3 border" style={{ background: sevColor.bg, borderColor: sevColor.border }}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full" style={{ background: sevColor.bg, color: sevColor.badge, border: `1px solid ${sevColor.border}` }}>{sev}</span>
+                    <p className="text-[12px] font-semibold text-ink">{a.title || a.name || a.type || `Anomaly ${i + 1}`}</p>
+                  </div>
+                  {(a.description || a.message || a.detail) && <p className="text-[11px] text-ink-secondary mb-1.5">{a.description || a.message || a.detail}</p>}
+                  {(a.suggested_action || a.recommendation || a.action) && (
+                    <div className="flex items-start gap-1.5 mt-1">
+                      <span className="text-brand text-[10px] mt-px font-bold">{">"}</span>
+                      <p className="text-[10px] text-brand font-medium">{a.suggested_action || a.recommendation || a.action}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      if (typeof data === "string") return <div className="space-y-2">{renderFormattedText(data)}</div>;
+      return renderKeyValuePairs(data);
+    }
+
+    // --- Industry Report ---
+    if (tool === "industry") {
+      const metrics = Array.isArray(data) ? data : data?.metrics || data?.benchmarks || data?.comparisons || (typeof data === "object" ? Object.values(data).find(v => Array.isArray(v)) : null);
+      if (Array.isArray(metrics) && metrics.length > 0) {
+        return (
+          <div className="space-y-1.5">
+            <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[9px] text-ink-faint uppercase tracking-wider font-semibold">
+              <div className="col-span-4">{t("Metric", "Mesure")}</div>
+              <div className="col-span-3 text-right">{t("Your Value", "Votre valeur")}</div>
+              <div className="col-span-3 text-right">{t("Industry Avg", "Moy. industrie")}</div>
+              <div className="col-span-2 text-right">{t("Status", "Statut")}</div>
+            </div>
+            {(metrics as any[]).map((m: any, i: number) => {
+              const yours = m.value ?? m.your_value ?? m.actual ?? null;
+              const avg = m.average ?? m.industry_average ?? m.benchmark ?? null;
+              const isAbove = yours !== null && avg !== null ? Number(yours) >= Number(avg) : null;
+              return (
+                <div key={i} className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-bg rounded-lg border border-border-light items-center">
+                  <div className="col-span-4 text-[11px] font-medium text-ink">{m.name || m.metric || m.label || `Metric ${i + 1}`}</div>
+                  <div className="col-span-3 text-right text-[12px] font-semibold text-ink">{yours !== null ? (typeof yours === "number" ? yours.toLocaleString() : yours) : "—"}</div>
+                  <div className="col-span-3 text-right text-[11px] text-ink-muted">{avg !== null ? (typeof avg === "number" ? avg.toLocaleString() : avg) : "—"}</div>
+                  <div className="col-span-2 text-right">
+                    {isAbove !== null ? (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: isAbove ? "rgba(45,122,80,0.08)" : "rgba(179,64,64,0.08)", color: isAbove ? "#2D7A50" : "#B34040" }}>
+                        {isAbove ? (t("Above", "Au-dessus")) : (t("Below", "En-dessous"))}
+                      </span>
+                    ) : <span className="text-[10px] text-ink-faint">—</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      if (typeof data === "string") return <div className="space-y-2">{renderFormattedText(data)}</div>;
+      return renderKeyValuePairs(data);
+    }
+
+    // --- Intelligence ---
+    if (tool === "intelligence") {
+      const items = Array.isArray(data) ? data : data?.insights || data?.patterns || data?.items || (typeof data === "object" ? Object.values(data).find(v => Array.isArray(v)) : null);
+      if (Array.isArray(items) && items.length > 0) {
+        return (
+          <div className="space-y-2">
+            {(items as any[]).map((ins: any, i: number) => (
+              <div key={i} className="flex items-start gap-3 bg-bg rounded-lg px-4 py-3 border border-border-light">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: "rgba(27,58,45,0.06)" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold text-ink mb-0.5">{ins.title || ins.name || ins.insight || `Insight ${i + 1}`}</p>
+                  {(ins.description || ins.detail || ins.message) && <p className="text-[11px] text-ink-secondary">{ins.description || ins.detail || ins.message}</p>}
+                  {(ins.impact || ins.value) && <p className="text-[10px] font-medium text-brand mt-1">{ins.impact || ins.value}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+      if (typeof data === "string") return <div className="space-y-2">{renderFormattedText(data)}</div>;
+      return renderKeyValuePairs(data);
+    }
+
+    // --- Generic fallback ---
+    if (typeof data === "string") return <div className="space-y-2">{renderFormattedText(data)}</div>;
+    return renderKeyValuePairs(data);
+  }
+
+  /* ── Helper: render formatted text (bold **headers**, bullet points) ── */
+  function renderFormattedText(text: string): JSX.Element {
+    const lines = text.split("\n");
+    return (
+      <>
+        {lines.map((line, i) => {
+          const trimmed = line.trim();
+          if (!trimmed) return <div key={i} className="h-2" />;
+          // Bold headers: **text** or lines ending with :
+          const boldMatch = trimmed.match(/^\*\*(.+?)\*\*$/);
+          if (boldMatch) return <p key={i} className="text-[12px] font-bold text-ink mt-2">{boldMatch[1]}</p>;
+          if (/^#{1,3}\s/.test(trimmed)) return <p key={i} className="text-[12px] font-bold text-ink mt-2">{trimmed.replace(/^#{1,3}\s*/, "")}</p>;
+          // Bullet points
+          if (/^[-•*]\s/.test(trimmed)) return <div key={i} className="flex items-start gap-2 ml-1"><span className="text-brand mt-0.5 shrink-0">{">"}</span><span className="text-[11px] text-ink-secondary">{trimmed.replace(/^[-•*]\s*/, "")}</span></div>;
+          // Numbered items
+          if (/^\d+[.)]\s/.test(trimmed)) return <div key={i} className="flex items-start gap-2 ml-1"><span className="text-[10px] font-bold text-ink-faint mt-px shrink-0">{trimmed.match(/^(\d+[.)])/)?.[1]}</span><span className="text-[11px] text-ink-secondary">{trimmed.replace(/^\d+[.)]\s*/, "")}</span></div>;
+          // Header-like lines ending with colon
+          if (/^[A-Z].*:$/.test(trimmed)) return <p key={i} className="text-[11px] font-bold text-ink mt-2">{trimmed}</p>;
+          return <p key={i} className="text-[11px] text-ink-secondary">{trimmed}</p>;
+        })}
+      </>
+    );
+  }
+
+  /* ── Helper: render object as clean key-value pairs ── */
+  function renderKeyValuePairs(obj: any): JSX.Element {
+    if (!obj || typeof obj !== "object") return <p className="text-[11px] text-ink-secondary">{String(obj)}</p>;
+    if (Array.isArray(obj)) {
+      return (
+        <div className="space-y-2">
+          {obj.map((item, i) => (
+            <div key={i} className="bg-bg rounded-lg px-4 py-3 border border-border-light">
+              {typeof item === "string" ? <p className="text-[11px] text-ink-secondary">{item}</p> : typeof item === "object" && item !== null ? (
+                <div className="space-y-1">
+                  {Object.entries(item).map(([k, v]) => (
+                    <div key={k} className="flex items-start gap-2">
+                      <span className="text-[10px] font-semibold text-ink-faint uppercase tracking-wider shrink-0 min-w-[80px]">{k.replace(/_/g, " ")}</span>
+                      <span className="text-[11px] text-ink-secondary">{typeof v === "object" ? JSON.stringify(v) : String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-[11px] text-ink-secondary">{String(item)}</p>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-1.5">
+        {Object.entries(obj).map(([k, v]) => (
+          <div key={k} className="flex items-start gap-3 bg-bg rounded-lg px-4 py-2.5 border border-border-light">
+            <span className="text-[10px] font-semibold text-ink-faint uppercase tracking-wider shrink-0 min-w-[100px]">{k.replace(/_/g, " ")}</span>
+            <span className="text-[11px] text-ink-secondary flex-1">{typeof v === "string" ? v : typeof v === "number" ? v.toLocaleString() : typeof v === "boolean" ? (v ? "Yes" : "No") : Array.isArray(v) ? (v as any[]).map(x => typeof x === "string" ? x : JSON.stringify(x)).join(", ") : typeof v === "object" && v !== null ? JSON.stringify(v) : String(v)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   useEffect(() => {
     if (authLoading || fetchedRef.current) return;
     fetchedRef.current = true;
@@ -1983,13 +2190,13 @@ export default function EnterpriseDashboard() {
                     <p className="text-[12px] text-ink-muted">{t("Analyzing your data with AI...","Analyse de vos données avec l'IA...")}</p>
                   </div>
                 ) : (
-                  <pre className="text-[12px] text-ink-secondary leading-relaxed whitespace-pre-wrap font-sans">
-                    {activeAiTool === "scenario" && (typeof scenarioResult === "string" ? scenarioResult : JSON.stringify(scenarioResult, null, 2))}
-                    {activeAiTool === "tax" && (typeof taxCalendar === "string" ? taxCalendar : JSON.stringify(taxCalendar, null, 2))}
-                    {activeAiTool === "anomaly" && (typeof anomalies === "string" ? anomalies : JSON.stringify(anomalies, null, 2))}
-                    {activeAiTool === "industry" && (typeof industryReport === "string" ? industryReport : JSON.stringify(industryReport, null, 2))}
-                    {activeAiTool === "intelligence" && (typeof intelligence === "string" ? intelligence : JSON.stringify(intelligence, null, 2))}
-                  </pre>
+                  <div className="text-[12px] text-ink-secondary leading-relaxed">
+                    {activeAiTool === "scenario" && renderToolResult("scenario", scenarioResult)}
+                    {activeAiTool === "tax" && renderToolResult("tax", taxCalendar)}
+                    {activeAiTool === "anomaly" && renderToolResult("anomaly", anomalies)}
+                    {activeAiTool === "industry" && renderToolResult("industry", industryReport)}
+                    {activeAiTool === "intelligence" && renderToolResult("intelligence", intelligence)}
+                  </div>
                 )}
               </div>
             </div>

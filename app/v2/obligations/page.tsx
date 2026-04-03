@@ -154,6 +154,62 @@ export default function ObligationsPage() {
                     lang===l ? "bg-white text-ink shadow-sm" : "text-ink-muted"}`}>{l.toUpperCase()}</button>
               ))}
             </div>
+            <button onClick={() => {
+                if (!calendar) return;
+                const allObs = [
+                  ...calendar.overdue, ...calendar.this_week, ...calendar.this_month,
+                  ...calendar.next_3_months, ...calendar.later, ...calendar.continuous,
+                ];
+                const fmtDt = (d: string) => {
+                  try {
+                    return new Date(d).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+                  } catch { return ""; }
+                };
+                const fmtEnd = (d: string) => {
+                  try {
+                    const dt = new Date(d);
+                    dt.setHours(dt.getHours() + 1);
+                    return dt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+                  } catch { return ""; }
+                };
+                const events = allObs
+                  .filter(o => o.deadline || o.next_deadline)
+                  .map(o => {
+                    const dl = o.deadline || o.next_deadline || "";
+                    return [
+                      "BEGIN:VEVENT",
+                      `DTSTART:${fmtDt(dl)}`,
+                      `DTEND:${fmtEnd(dl)}`,
+                      `SUMMARY:${(o.title || "").replace(/[,;\\]/g, " ")}`,
+                      `DESCRIPTION:Category: ${o.category || "N/A"} | Risk: ${o.risk_level || "N/A"}${o.penalty_max ? " | Max penalty: $" + o.penalty_max.toLocaleString() : ""}`,
+                      "STATUS:CONFIRMED",
+                      `UID:fruxal-${o.slug}-${dl}`,
+                      "END:VEVENT",
+                    ].join("\r\n");
+                  });
+                const ics = [
+                  "BEGIN:VCALENDAR",
+                  "VERSION:2.0",
+                  "PRODID:-//Fruxal//Obligations//EN",
+                  "CALSCALE:GREGORIAN",
+                  ...events,
+                  "END:VCALENDAR",
+                ].join("\r\n");
+                const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "fruxal-obligations.ics";
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a); URL.revokeObjectURL(url);
+              }}
+              disabled={!calendar}
+              className="flex items-center gap-1.5 text-[10px] font-semibold text-ink-muted border border-border-light rounded px-2.5 py-1.5 bg-white hover:bg-bg-warm hover:text-ink transition disabled:opacity-40"
+              title={t("Export to Calendar","Exporter au calendrier")}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+              </svg>
+              {t("Export .ics","Export .ics")}
+            </button>
             <button onClick={fetchData}
               className="w-7 h-7 flex items-center justify-center rounded border border-border-light bg-white text-ink-faint hover:text-ink transition">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
