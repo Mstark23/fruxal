@@ -56,15 +56,29 @@ export async function GET(req: NextRequest) {
     const dm: Record<string,any>  = {}; for (const d of diagnostics) dm[d.id]             = d;
     const em: Record<string,any>  = {}; for (const e of engagements) em[e.diagnostic_id]  = e;
 
-    // Enrich: for T1/T2 users, pull business_profile to get leak totals
+    // Enrich: for T1/T2 users, pull business_profile + detected_leaks
     const userIds = pipelines.map((p:any) => p.user_id).filter(Boolean);
     const profileMap: Record<string,any> = {};
+    const leakMap: Record<string,{ count: number; total: number }> = {};
     if (userIds.length) {
-      const { data: profiles } = await supabaseAdmin
-        .from("business_profiles")
-        .select("user_id, business_name, industry, province, annual_revenue")
-        .in("user_id", userIds);
-      for (const p of profiles || []) profileMap[p.user_id] = p;
+      const [profilesRes, leaksRes] = await Promise.all([
+        supabaseAdmin
+          .from("business_profiles")
+          .select("user_id, business_name, business_id, industry, province, annual_revenue")
+          .in("user_id", userIds),
+        supabaseAdmin
+          .from("detected_leaks")
+          .select("user_id, annual_impact_max")
+          .in("user_id", userIds),
+      ]);
+      for (const p of profilesRes.data || []) profileMap[p.user_id] = p;
+      // Aggregate leaks per user
+      for (const l of leaksRes.data || []) {
+        if (!l.user_id) continue;
+        if (!leakMap[l.user_id]) leakMap[l.user_id] = { count: 0, total: 0 };
+        leakMap[l.user_id].count++;
+        leakMap[l.user_id].total += l.annual_impact_max || 0;
+      }
     }
 
     const clients = assignments.map((a:any) => {
@@ -95,8 +109,8 @@ export async function GET(req: NextRequest) {
           notes:         (pipe as any).notes || null,
         } : null,
         engagement:    a.diagnostic_id ? (em[a.diagnostic_id] || null) : null,
-        annualLeak:    result.totals?.annual_leaks ?? 0,
-        findingsCount: (result.findings || []).length,
+        annualLeak:    result.totals?.annual_leaks ?? (pipe?.user_id ? leakMap[pipe.user_id]?.total ?? 0 : 0),
+        findingsCount: (result.findings || []).length || (pipe?.user_id ? leakMap[pipe.user_id]?.count ?? 0 : 0),
       };
     });
 
