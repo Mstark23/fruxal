@@ -11,8 +11,89 @@ import { getToken } from "next-auth/jwt";
 import { createClient } from "@supabase/supabase-js";
 
 export const maxDuration = 30; // Vercel function timeout (seconds)
-// generateActionsFromPrescan migrated — stub until lib/ai action-plan is wired
-async function generateActionsFromPrescan(userId: string, scanId: string, data: any): Promise<any[]> { return []; }
+// Generate action items from prescan confirmed leaks
+async function generateActionsFromPrescan(userId: string, scanId: string, data: any): Promise<any[]> {
+  const actions: any[] = [];
+  const confirmedLeaks = data.confirmedLeaks || [];
+
+  // Create an action for each confirmed leak
+  for (let i = 0; i < confirmedLeaks.length; i++) {
+    const leak = confirmedLeaks[i];
+    const severity = (leak.severity || "medium").toLowerCase();
+    const priority =
+      severity === "critical" ? "this_week" :
+      severity === "high" ? "this_month" :
+      "this_quarter";
+
+    actions.push({
+      userId,
+      title: leak.title,
+      description: leak.explanation || leak.description || "",
+      category: leak.category || "uncategorized",
+      estimated_value: leak.amount ?? 0,
+      priority,
+      status: "pending",
+      display_order: i,
+      action_type: "fix_leak",
+      source_scan_id: scanId,
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  // Add "connect data" actions if not already connected
+  const { data: progress } = await supabase
+    .from("user_progress")
+    .select("quickbooks_connected, bank_connected")
+    .eq("userId", userId)
+    .single();
+
+  const baseOrder = confirmedLeaks.length;
+
+  if (!progress?.quickbooks_connected) {
+    actions.push({
+      userId,
+      title: "Connect QuickBooks",
+      description: "Link your QuickBooks account so Fruxal can automatically detect financial leaks and verify savings.",
+      category: "setup",
+      estimated_value: 0,
+      priority: "this_week",
+      status: "pending",
+      display_order: baseOrder,
+      action_type: "connect",
+      source_scan_id: scanId,
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  if (!progress?.bank_connected) {
+    actions.push({
+      userId,
+      title: "Connect bank account",
+      description: "Link your bank account through Plaid so Fruxal can analyze transactions and find hidden charges.",
+      category: "setup",
+      estimated_value: 0,
+      priority: "this_week",
+      status: "pending",
+      display_order: baseOrder + 1,
+      action_type: "connect",
+      source_scan_id: scanId,
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  // Insert all actions into user_actions
+  if (actions.length > 0) {
+    const { error } = await supabase
+      .from("user_actions")
+      .insert(actions);
+    if (error) {
+      console.error("Failed to insert actions:", error);
+      throw error;
+    }
+  }
+
+  return actions;
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

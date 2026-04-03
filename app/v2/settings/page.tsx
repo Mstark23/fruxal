@@ -185,6 +185,7 @@ export default function SettingsPage() {
   const [deleteInput, setDeleteInput] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   async function handleDelete() {
     if (deleteInput !== "DELETE") return;
@@ -663,6 +664,48 @@ export default function SettingsPage() {
         .input-field::placeholder { color:#B5B0A8; }
         .input-field option { background:white; color:#1A1A18; }
       `}</style>
+
+      {/* ── Data Export ──────────────────────────────────────────────────── */}
+      <div className="mt-8 rounded-xl border border-border-light bg-white overflow-hidden">
+        <div className="px-4 py-4">
+          <p className="text-[13px] font-semibold text-ink mb-1">
+            {isFr ? "Exporter vos données" : "Export Your Data"}
+          </p>
+          <p className="text-[12px] text-ink-muted mb-3">
+            {isFr
+              ? "Téléchargez une copie complète de toutes vos données Fruxal en format JSON."
+              : "Download a complete copy of all your Fruxal data in JSON format."}
+          </p>
+          <button
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                const res = await fetch("/api/v2/account/export");
+                if (!res.ok) throw new Error("Export failed");
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `fruxal-data-export-${new Date().toISOString().split("T")[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+              } catch (e) {
+                console.error("Export error:", e);
+              } finally {
+                setExporting(false);
+              }
+            }}
+            className="px-4 py-2 text-[12px] font-bold text-brand border border-brand/20 rounded-lg hover:bg-brand-soft transition disabled:opacity-50"
+          >
+            {exporting
+              ? (isFr ? "Génération en cours..." : "Generating export...")
+              : (isFr ? "Télécharger l'export" : "Download Data Export")}
+          </button>
+        </div>
+      </div>
 
       {/* ── Danger Zone ─────────────────────────────────────────────────── */}
       <div id="danger-zone" className="mt-8 rounded-xl border border-red-200 overflow-hidden">
