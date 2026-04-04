@@ -264,6 +264,17 @@ export async function POST(req: NextRequest) {
     if (profile.industry && !profile.industry_label) {
       profile.industry_label = INDUSTRY_LABELS[profile.industry] || profile.industry;
     }
+    // Final safety: if industry is empty string, treat as missing
+    if (!profile.industry || profile.industry === "") {
+      profile.industry = "general";
+      profile.industry_slug = "general";
+      profile.industry_label = "General Business";
+    }
+    if (!profile.industry_label || profile.industry_label === "") {
+      profile.industry_label = INDUSTRY_LABELS[profile.industry] || profile.industry || "General Business";
+    }
+    console.log(`[Diagnostic] Industry resolved: industry="${profile.industry}" label="${profile.industry_label}" slug="${profile.industry_slug}"`);
+
 
     // ── 3. Fetch DB context ───────────────────────────────────────────────
     const ctx = await fetchDiagnosticContext(
