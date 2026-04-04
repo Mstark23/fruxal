@@ -120,13 +120,14 @@ export async function POST(request: NextRequest) {
       },
     ];
     
-    // Call Claude API with language-aware system prompt
-    const response = await anthropic.messages.create({
+    // Call Claude API with language-aware system prompt (streamed to reduce timeout risk)
+    const stream = anthropic.messages.stream({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1500, // Increased: final summary + tags + run_analysis needs room
-      system: buildSystemPrompt(lang || "en", prefilledIndustry || "", country),
+      system: [{ type: "text", text: buildSystemPrompt(lang || "en", prefilledIndustry || "", country), cache_control: { type: "ephemeral" } }] as any,
       messages,
     });
+    const response = await stream.finalMessage();
     
     const assistantMessage = response.content[0];
     if (assistantMessage.type !== 'text') {
@@ -183,12 +184,13 @@ export async function POST(request: NextRequest) {
             { role: 'user' as const, content: followUpPrompt },
           ];
           
-          const followUpResponse = await anthropic.messages.create({
+          const followUpStream = anthropic.messages.stream({
             model: 'claude-sonnet-4-20250514',
             max_tokens: 512,
-            system: buildSystemPrompt(lang || 'en', '', country),
+            system: [{ type: "text", text: buildSystemPrompt(lang || 'en', '', country), cache_control: { type: "ephemeral" } }] as any,
             messages: followUpMessages,
           });
+          const followUpResponse = await followUpStream.finalMessage();
           
           const followUpText = followUpResponse.content[0];
           if (followUpText.type === 'text') {

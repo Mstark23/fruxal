@@ -34,7 +34,7 @@ export function buildDiagnosticPrompts(
 
 /** Token budget per tier — used by tierMaxTokens() in run/route.ts */
 export const DIAGNOSTIC_MAX_TOKENS: Record<DiagnosticTier, number> = {
-  enterprise: 16_000,
-  business:   12_000,
-  solo:        8_000,
+  enterprise: 12_000,  // was 16,000
+  business:    8_000,  // was 12,000
+  solo:        5_500,  // was 8,000
 };

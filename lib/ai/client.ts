@@ -6,9 +6,10 @@
 // in a route file again.
 //
 // Usage:
-//   import { callClaude, callClaudeJSON } from "@/lib/ai/client";
+//   import { callClaude, callClaudeJSON, callClaudeStream } from "@/lib/ai/client";
 //   const raw  = await callClaude({ system, user, maxTokens: 8000 });
 //   const json = await callClaudeJSON({ system, user, maxTokens: 8000 });
+//   const stream = callClaudeStream({ system, user, maxTokens: 8000 });
 // =============================================================================
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -36,25 +37,26 @@ export const CLAUDE_MODEL   = "claude-sonnet-4-20250514";          // main — d
 export const CLAUDE_FAST    = "claude-sonnet-4-20250514";   // fast tier — same model for now
 export const CLAUDE_LEGACY  = "claude-sonnet-4-20250514";   // legacy routes still using old string
 
-// ─── Token budgets by use case ───────────────────────────────────────────────
+// ─── Token budgets by use case (~30% reduction) ─────────────────────────────
 export const TOKENS = {
-  diagnostic_solo:       8_000,
-  diagnostic_business:  12_000,
-  diagnostic_enterprise:16_000,
-  prescan_chat:          1_024,
-  chat_advisor:          2_048,
-  action_plan:           2_000,
-  competitor:            2_000,
-  parse_doc:             1_500,
-  tier3_diagnostic:      4_000,
+  diagnostic_solo:        5_500,   // was 8,000
+  diagnostic_business:    8_000,   // was 12,000
+  diagnostic_enterprise: 12_000,   // was 16,000
+  prescan_chat:           1_024,   // unchanged
+  chat_advisor:           2_048,   // unchanged
+  action_plan:            1_500,   // was 2,000
+  competitor:             1_500,   // was 2,000
+  parse_doc:              1_200,   // was 1,500
+  tier3_diagnostic:       3_000,   // was 4,000
 } as const;
 
 // ─── Core call interface ──────────────────────────────────────────────────────
 export interface ClaudeCallOptions {
-  system:    string;
-  user:      string;
-  maxTokens: number;
-  model?:    string;
+  system:       string;
+  user:         string;
+  maxTokens:    number;
+  model?:       string;
+  cacheSystem?: boolean;
 }
 
 export interface ClaudeResult {
@@ -67,13 +69,20 @@ export interface ClaudeResult {
 /**
  * Raw Claude call — returns the text block directly.
  * Throws on API error so callers can catch and handle.
+ * When cacheSystem is true, the system prompt is sent with cache_control
+ * for Anthropic's prompt caching (5-min TTL, 90% cost reduction on hits).
  */
 export async function callClaude(opts: ClaudeCallOptions): Promise<ClaudeResult> {
   const model = opts.model ?? CLAUDE_MODEL;
+
+  const systemPayload = opts.cacheSystem
+    ? [{ type: "text" as const, text: opts.system, cache_control: { type: "ephemeral" as const } }]
+    : opts.system;
+
   const response = await getAnthropicClient().messages.create({
     model,
     max_tokens: opts.maxTokens,
-    system:     opts.system,
+    system:     systemPayload as any,
     messages:   [{ role: "user", content: opts.user }],
   });
 
@@ -92,26 +101,86 @@ export async function callClaude(opts: ClaudeCallOptions): Promise<ClaudeResult>
 /**
  * Claude call that expects a JSON response.
  * Strips markdown fences, parses, and returns the parsed object.
- * Throws if parsing fails.
+ * Retries once on parse failure (with cacheSystem on the retry to save cost).
  */
 export async function callClaudeJSON<T = any>(opts: ClaudeCallOptions): Promise<T & {
   _meta: { promptTokens: number; completionTokens: number; model: string };
 }> {
-  const result = await callClaude(opts);
-  const clean  = result.text.replace(/```json\n?|```\n?/g, "").trim();
+  let lastError = "";
 
-  let parsed: T;
-  try {
-    parsed = JSON.parse(clean) as T;
-  } catch (e: any) {
-    throw new Error(`Claude returned invalid JSON: ${e.message}. Raw: ${clean.slice(0,200)}`);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const userPrompt = attempt === 0
+      ? opts.user
+      : `Your previous response was invalid JSON. Fix it and respond with ONLY valid JSON, no markdown fences:\n\n${opts.user}`;
+
+    const result = await callClaude({ ...opts, user: userPrompt, cacheSystem: attempt > 0 });
+    const clean = result.text.replace(/```json\n?|```\n?/g, "").trim();
+
+    try {
+      const parsed = JSON.parse(clean) as T;
+      return {
+        ...parsed,
+        _meta: {
+          promptTokens:     result.promptTokens,
+          completionTokens: result.completionTokens,
+          model:            result.model,
+        },
+      };
+    } catch (e: any) {
+      lastError = `Attempt ${attempt + 1}: ${e.message}. Raw: ${clean.slice(0, 200)}`;
+      console.warn(`[callClaudeJSON] Parse failed attempt ${attempt + 1}:`, e.message);
+    }
   }
-  return {
-    ...parsed,
-    _meta: {
-      promptTokens:     result.promptTokens,
-      completionTokens: result.completionTokens,
-      model:            result.model,
-    },
+
+  throw new Error(`Claude returned invalid JSON after 2 attempts: ${lastError}`);
+}
+
+// ─── Streaming support ───────────────────────────────────────────────────────
+
+export interface ClaudeStreamOptions extends ClaudeCallOptions {
+  cacheSystem?: boolean;
+  thinking?: { type: "enabled"; budget_tokens: number };
+}
+
+/**
+ * Streaming Claude call — returns a ReadableStream of SSE-formatted chunks.
+ * Each chunk is either { text } for content deltas, { done, usage } for
+ * completion, or { error } on failure.
+ */
+export function callClaudeStream(opts: ClaudeStreamOptions): ReadableStream {
+  const model = opts.model ?? CLAUDE_MODEL;
+  const systemPayload = opts.cacheSystem
+    ? [{ type: "text" as const, text: opts.system, cache_control: { type: "ephemeral" as const } }]
+    : opts.system;
+
+  const createParams: any = {
+    model,
+    max_tokens: opts.maxTokens,
+    system: systemPayload,
+    messages: [{ role: "user", content: opts.user }],
+    stream: true,
   };
+
+  if (opts.thinking) {
+    createParams.thinking = opts.thinking;
+  }
+
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        const stream = getAnthropicClient().messages.stream(createParams);
+        for await (const event of stream) {
+          if (event.type === "content_block_delta" && (event.delta as any).type === "text_delta") {
+            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text: (event.delta as any).text })}\n\n`));
+          }
+        }
+        const finalMessage = await stream.finalMessage();
+        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ done: true, usage: finalMessage.usage })}\n\n`));
+        controller.close();
+      } catch (err: any) {
+        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ error: err.message })}\n\n`));
+        controller.close();
+      }
+    },
+  });
 }

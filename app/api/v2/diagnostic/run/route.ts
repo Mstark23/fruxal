@@ -14,6 +14,7 @@ import { getToken }        from "next-auth/jwt";
 import { supabaseAdmin }   from "@/lib/supabase-admin";
 import Anthropic           from "@anthropic-ai/sdk";
 import crypto              from "crypto";
+import { CLAUDE_MODEL }               from "@/lib/ai/client";
 import { resolveTier, tierMaxTokens } from "@/lib/ai/tier";
 import { fetchDiagnosticContext }      from "@/lib/ai/context";
 import { buildTaxContext, PromptInputs } from "@/lib/ai/prompts"; // buildTaxContext still needed for diagCtx assembly
@@ -413,12 +414,20 @@ export async function POST(req: NextRequest) {
 
     try {
       if (process.env.NODE_ENV !== "production") console.log(`[Diagnostic:Run] tier=${tier} country=${country} province=${province} sysPromptLen=${systemPrompt.length} userPromptLen=${userPrompt.length}`);
-      const response = await getAnthropic().messages.create({
-        model:      "claude-sonnet-4-20250514",
+
+      const createParams: any = {
+        model: CLAUDE_MODEL,
         max_tokens: tierMaxTokens(tier),
-        system:     systemPrompt,
-        messages:   [{ role: "user", content: userPrompt }],
-      });
+        system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
+        messages: [{ role: "user", content: userPrompt }],
+      };
+
+      // Enterprise gets extended thinking for complex RDTOH/CDA/salary-dividend math
+      if (tier === "enterprise") {
+        createParams.thinking = { type: "enabled", budget_tokens: 5000 };
+      }
+
+      const response = await getAnthropic().messages.create(createParams);
 
       // Check for stop reason — if stopped due to length, response may be truncated
       if (response.stop_reason === "end_turn" || response.stop_reason === "stop_sequence") {

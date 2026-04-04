@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",   // CHANGED: hardcoded — no env var override
         max_tokens: 1024,
-        system: systemPrompt,
+        system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
         messages,
       }),
     });
