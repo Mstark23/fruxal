@@ -255,6 +255,7 @@ ${buildDiagnosticSchema("enterprise", 12, "CA")}`;
 // US ENTERPRISE TIER — $1M+ revenue, US owner-managed C-corps / S-corps / LLCs
 // =============================================================================
 function buildUSEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
+  console.log("[Enterprise:US] Building prompts. ctx.profile.industry =", ctx.profile?.industry, "ctx.profile.industry_label =", ctx.profile?.industry_label);
   const {
     profile, province: state, annualRevenue, revenueSource,
     estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct,
@@ -262,8 +263,10 @@ function buildUSEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPro
     overdue, penaltyExposure, ownerSalary, exitHorizon,
     hasHoldco, sredLastYear, estimatedTaxDrag,
   } = ctx;
+  console.log("[Enterprise:US] Destructured OK. profile.industry =", profile?.industry);
 
   const industry   = profile.industry_label || profile.industry || "business";
+  console.log("[Enterprise:US] industry resolved to:", industry);
   const bizName    = profile.business_name  || "this corporation";
   const structure  = profile.structure      || "s_corp";
 
