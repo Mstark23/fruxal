@@ -255,20 +255,33 @@ ${buildDiagnosticSchema("enterprise", 12, "CA")}`;
 // US ENTERPRISE TIER — $1M+ revenue, US owner-managed C-corps / S-corps / LLCs
 // =============================================================================
 function buildUSEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
-  console.log("[Enterprise:US] Building prompts. ctx.profile.industry =", ctx.profile?.industry, "ctx.profile.industry_label =", ctx.profile?.industry_label);
-  const {
-    profile, province: state, annualRevenue, revenueSource,
-    estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct,
-    employees, isFr, taxCtx, leakList, programList, benchmarkList,
-    overdue, penaltyExposure, ownerSalary, exitHorizon,
-    hasHoldco, sredLastYear, estimatedTaxDrag,
-  } = ctx;
-  console.log("[Enterprise:US] Destructured OK. profile.industry =", profile?.industry);
+  // ALL variables accessed in this function must be declared here
+  const profile = ctx.profile;
+  const state = ctx.province;
+  const annualRevenue = ctx.annualRevenue;
+  const revenueSource = ctx.revenueSource;
+  const estimatedPayroll = ctx.estimatedPayroll;
+  const estimatedEBITDA = ctx.estimatedEBITDA;
+  const ebitdaSource = ctx.ebitdaSource;
+  const grossMarginPct = ctx.grossMarginPct;
+  const employees = ctx.employees;
+  const isFr = ctx.isFr;
+  const taxCtx = ctx.taxCtx;
+  const leakList = ctx.leakList;
+  const programList = ctx.programList;
+  const benchmarkList = ctx.benchmarkList;
+  const overdue = ctx.overdue;
+  const penaltyExposure = ctx.penaltyExposure;
+  const ownerSalary = ctx.ownerSalary;
+  const exitHorizon = ctx.exitHorizon;
+  const hasHoldco = ctx.hasHoldco;
+  const sredLastYear = ctx.sredLastYear;
+  const estimatedTaxDrag = ctx.estimatedTaxDrag;
 
-  const industry   = profile.industry_label || profile.industry || "business";
-  console.log("[Enterprise:US] industry resolved to:", industry);
-  const bizName    = profile.business_name  || "this corporation";
-  const structure  = profile.structure      || "s_corp";
+  const industry   = profile?.industry_label || profile?.industry || "business";
+  const bizName    = profile?.business_name  || "this corporation";
+  const structure  = profile?.structure      || "s_corp";
+  console.log("[Enterprise:US] All vars declared. industry =", industry);
 
   // US EV multiples (similar ranges, US M&A comps)
   const evLow  = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * 4) : Math.round(annualRevenue * 0.5);

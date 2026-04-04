@@ -32,7 +32,7 @@ export function buildSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userProm
   const {
     profile, province, country, annualRevenue, revenueSource,
     employees, isFr, taxCtx, leakList, programList, benchmarkList,
-    overdue, penaltyExposure,
+    overdue, penaltyExposure, grossMarginPct,
   } = ctx;
   if ((country ?? "CA") === "US") return buildUSSoloPrompts(ctx);
 
@@ -127,7 +127,7 @@ ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Reven
 ${isFr ? "12. CRITICAL — FRENCH: Every user-facing text field (title, title_fr, description, description_fr, executive_summary_fr, recommendation_fr, etc.) MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
-  const { estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct } = ctx;
+  const { estimatedPayroll, estimatedEBITDA, ebitdaSource } = ctx;
 
   const userPrompt = `Analyze this solo/micro business and return a complete JSON diagnostic report.
 
