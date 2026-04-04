@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { callClaudeJSON } from "@/lib/ai/client";
+import { buildVoiceBlock, FRUXAL_JSON_RULES } from "@/lib/ai/prompts/shared/voice";
 
 export const maxDuration = 30;
 
@@ -56,7 +57,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const isUS = profile?.country === "US";
+    const country = (profile?.country === "US" ? "US" : "CA") as "CA" | "US";
+    const isUS = country === "US";
     const revenue = profile?.annual_revenue || 0;
 
     // Build analysis prompt
@@ -82,7 +84,7 @@ ${(recentTxns || []).map(t => `${t.date}: ${t.name} — $${Math.abs(t.amount).to
       }>;
       summary: string;
     }>({
-      system: `You are a financial anomaly detection engine. Analyze the data and find REAL anomalies — not normal business fluctuations.
+      system: buildVoiceBlock(country) + FRUXAL_JSON_RULES + `\nYou are a financial anomaly detection engine. Analyze the data and find REAL anomalies — not normal business fluctuations.
 
 Rules:
 - Only flag changes that are 15%+ above the prior 3-month average

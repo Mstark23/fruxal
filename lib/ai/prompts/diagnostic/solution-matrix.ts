@@ -19,8 +19,9 @@ export function buildSolutionMatrix(
   hasPayroll:   boolean,
   doesRd:       boolean,
   country:      "CA" | "US" = "CA",
+  relevantCategories?: string[],  // Only include matching rows (case-insensitive partial match)
 ): string {
-  if (country === "US") return buildUSSolutionMatrix(tier, province, annualRevenue, employees, industry, hasPayroll, doesRd);
+  if (country === "US") return filterMatrixRows(buildUSSolutionMatrix(tier, province, annualRevenue, employees, industry, hasPayroll, doesRd), relevantCategories);
 
   const isQC = province === "QC";
   const isON = province === "ON";
@@ -45,7 +46,7 @@ export function buildSolutionMatrix(
 
   // ── SOLO ──────────────────────────────────────────────────────────────────
   if (tier === "solo") {
-    return `
+    return filterMatrixRows(`
 SOLUTION MATRIX — SOLO TIER ($0–$150K, ${employees} employees, ${province})
 For each finding you write, use the matching row below to select solutions.
 MAX 2 solutions per finding. If no strong match: solutions: [].
@@ -98,7 +99,7 @@ CASH_FLOW | Late AR, invoicing gaps, payment collection, banking fees
   → Wave Invoicing (free, built-in, instant) | FreshBooks (automated reminders, ~$19/mo)
   → Plooto (https://plooto.com, PAD pull payments, ~$25/mo) — only if recurring B2B billing
   → Neo Financial Business (https://neo.ca/business, no-fee Canadian business banking)
-`.trim();
+`.trim(), relevantCategories);
   }
 
   // ── BUSINESS ──────────────────────────────────────────────────────────────
@@ -107,7 +108,7 @@ CASH_FLOW | Late AR, invoicing gaps, payment collection, banking fees
     const isRetailFood  = industryLower.includes("restaurant") || industryLower.includes("retail") || industryLower.includes("food");
     const isMfg         = industryLower.includes("manufactur") || industryLower.includes("wholesale");
 
-    return `
+    return filterMatrixRows(`
 SOLUTION MATRIX — BUSINESS TIER ($150K–$1M, ${employees} employees, ${province})
 For each finding, use the matching row. MAX 3 solutions per finding.
 The "why" must reference province compliance, employee count, and the specific gap. Not generic.
@@ -160,7 +161,7 @@ CASH_FLOW | AR collection, payment terms, working capital, banking
   → B2B collections: Plooto (https://plooto.com, Canadian EFT/PAD pull, $25/mo flat)
   → AR automation: FreshBooks (automated reminders) | QuickBooks Online AR module
   → Working capital: BDC Working Capital Loan (https://bdc.ca, government-backed, lower rates)
-`.trim();
+`.trim(), relevantCategories);
   }
 
   // ── ENTERPRISE ────────────────────────────────────────────────────────────
@@ -169,7 +170,7 @@ CASH_FLOW | AR collection, payment terms, working capital, banking
     const isMfg         = industryLower.includes("manufactur") || industryLower.includes("wholesale") || industryLower.includes("distribution");
     const revM          = (annualRevenue / 1_000_000).toFixed(1);
 
-    return `
+    return filterMatrixRows(`
 SOLUTION MATRIX — ENTERPRISE TIER ($1M+, ${employees} employees, CCPC, ${province})
 For each finding, use the matching row. MAX 3 solutions per finding.
 The "why" must be CFO-level: ROI, integration depth, Canadian compliance — not feature lists.
@@ -230,7 +231,7 @@ CASH_FLOW | Working capital, AR >45 days, credit facility, treasury
   → AR automation: Versapay (https://versapay.com, network-based AR, best B2B $5M+) | Esker (https://esker.ca)
   → Credit facility: BDC (https://bdc.ca, government-backed, lower rates for CCPCs) | RBC Commercial credit line | ${isAB ? "ATB Business (https://atb.com)" : "TD Commercial"}
   → Trade credit insurance: Euler Hermes Canada (https://eulerhermes.ca) — for large AR concentration risk
-`.trim();
+`.trim(), relevantCategories);
   }
 
   return "";
@@ -446,4 +447,53 @@ CASH_FLOW | AR >45 days, working capital, credit facility, treasury optimization
   }
 
   return "";
+}
+
+
+// =============================================================================
+// Filter matrix rows to only include relevant categories
+// Each category block starts with a line like "TAX | ..." or "PAYROLL | ..."
+// and continues until the next category line or end of string.
+// =============================================================================
+function filterMatrixRows(matrix: string, relevantCategories?: string[]): string {
+  if (!relevantCategories || relevantCategories.length === 0) return matrix;
+
+  const lines = matrix.split("\n");
+  // Find the header lines (before first category row) and category blocks
+  const headerLines: string[] = [];
+  const blocks: { category: string; lines: string[] }[] = [];
+  let currentBlock: { category: string; lines: string[] } | null = null;
+
+  // Category rows start with an uppercase word followed by " | " (e.g., "TAX | ...", "PAYROLL | ...")
+  const categoryPattern = /^([A-Z][A-Z_]+)\s*\|/;
+
+  for (const line of lines) {
+    const match = line.match(categoryPattern);
+    if (match) {
+      if (currentBlock) blocks.push(currentBlock);
+      currentBlock = { category: match[1], lines: [line] };
+    } else if (currentBlock) {
+      currentBlock.lines.push(line);
+    } else {
+      headerLines.push(line);
+    }
+  }
+  if (currentBlock) blocks.push(currentBlock);
+
+  // Filter blocks: keep if any relevantCategory partially matches (case-insensitive)
+  const lowerCategories = relevantCategories.map(c => c.toLowerCase());
+  const filteredBlocks = blocks.filter(block => {
+    const blockCat = block.category.toLowerCase();
+    return lowerCategories.some(rc => blockCat.includes(rc) || rc.includes(blockCat));
+  });
+
+  // If filtering removed everything, return all (safety fallback)
+  if (filteredBlocks.length === 0) return matrix;
+
+  const result = [
+    ...headerLines,
+    ...filteredBlocks.flatMap(b => b.lines),
+  ].join("\n");
+
+  return result;
 }

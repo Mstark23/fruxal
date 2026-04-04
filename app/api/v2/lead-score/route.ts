@@ -9,7 +9,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { callClaudeJSON } from "@/lib/ai/client";
 
 export const maxDuration = 15;
 

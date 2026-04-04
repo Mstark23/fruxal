@@ -5,13 +5,38 @@
 // recovery stalled 30+ days, new programs available.
 // Generates personalized push notifications or emails.
 // Called by cron daily or on-demand.
+//
+// BATCHED: collects all eligible users' context, makes ONE Claude call
+// for up to 50 users instead of 50 separate calls.
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { callClaudeJSON } from "@/lib/ai/client";
+import { buildVoiceBlock, FRUXAL_JSON_RULES } from "@/lib/ai/prompts/shared/voice";
 
 export const maxDuration = 30;
+
+interface UserNudgeContext {
+  user_id: string;
+  business: string;
+  revenue: string;
+  country: string;
+  triggers: string[];
+  deadlines: string;
+  anomalies: string;
+  recovery: string;
+}
+
+interface NudgeResult {
+  user_id: string;
+  nudge_type: "email" | "notification";
+  subject: string;
+  message: string;
+  cta_text: string;
+  cta_url: string;
+  urgency: "high" | "medium" | "low";
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,9 +62,11 @@ export async function POST(req: NextRequest) {
       for (const u of active || []) if (u.user_id) userIds.push(u.user_id);
     }
 
-    const nudges: any[] = [];
+    // ── Collect context for all eligible users ────────────────────────────
+    const batchContexts: UserNudgeContext[] = [];
+    const userMetadata: Map<string, { profile: any; triggers: string[] }> = new Map();
 
-    for (const uid of userIds.slice(0, 50)) { // Cap at 50 per run
+    for (const uid of userIds.slice(0, 50)) {
       try {
         const [profile, recentScores, obligations, progress, anomalies, lastNudge] = await Promise.all([
           supabaseAdmin.from("business_profiles").select("business_name, country, annual_revenue").eq("user_id", uid).maybeSingle().then(r => r.data),
@@ -79,55 +106,91 @@ export async function POST(req: NextRequest) {
 
         if (triggers.length === 0) continue;
 
-        // Generate personalized nudge
-        const isUS = profile?.country === "US";
-        const result = await callClaudeJSON<{
-          nudge_type: "email" | "notification";
-          subject: string;
-          message: string;
-          cta_text: string;
-          cta_url: string;
-          urgency: "high" | "medium" | "low";
-        }>({
-          system: `Generate a single, personalized nudge message for a Fruxal customer.
+        const deadlineStr = soon.length > 0
+          ? soon.map(o => `${(o as any).obligation_rules?.title}: ${o.next_deadline} ($${((o as any).obligation_rules?.penalty_max || 0).toLocaleString()} penalty)`).join("; ")
+          : "";
+        const anomalyStr = anomalies.length > 0
+          ? anomalies.map(a => `${a.title} ($${(a.estimated_impact || 0).toLocaleString()})`).join("; ")
+          : "";
+        const recoveryStr = `$${(progress?.total_recovered || 0).toLocaleString()} recovered / $${(progress?.total_available || 0).toLocaleString()} available`;
 
-Business: ${profile?.business_name || "Unknown"} ($${(profile?.annual_revenue || 0).toLocaleString()} revenue, ${isUS ? "US" : "Canada"})
-Triggers: ${triggers.join(", ")}
-${soon.length > 0 ? `Upcoming deadlines: ${soon.map(o => `${(o as any).obligation_rules?.title}: ${o.next_deadline} (penalty: $${((o as any).obligation_rules?.penalty_max || 0).toLocaleString()})`).join("; ")}` : ""}
-${anomalies.length > 0 ? `Anomalies: ${anomalies.map(a => `${a.title} ($${(a.estimated_impact || 0).toLocaleString()})`).join("; ")}` : ""}
-Recovery: $${(progress?.total_recovered || 0).toLocaleString()} recovered / $${(progress?.total_available || 0).toLocaleString()} available
+        batchContexts.push({
+          user_id: uid,
+          business: profile?.business_name || "Unknown",
+          revenue: `$${(profile?.annual_revenue || 0).toLocaleString()}`,
+          country: profile?.country || "CA",
+          triggers,
+          deadlines: deadlineStr,
+          anomalies: anomalyStr,
+          recovery: recoveryStr,
+        });
 
-Rules:
+        userMetadata.set(uid, { profile, triggers });
+      } catch (e: any) {
+        console.warn(`[Nudge] Skipping user ${uid} (data fetch):`, e.message);
+      }
+    }
+
+    if (batchContexts.length === 0) {
+      return NextResponse.json({ success: true, nudgesGenerated: 0, nudges: [] });
+    }
+
+    // ── Single batched Claude call for all users ──────────────────────────
+    const batchData = batchContexts.map(ctx => ({
+      user_id: ctx.user_id,
+      business: ctx.business,
+      revenue: ctx.revenue,
+      triggers: ctx.triggers,
+      ...(ctx.deadlines ? { deadlines: ctx.deadlines } : {}),
+      ...(ctx.anomalies ? { anomalies: ctx.anomalies } : {}),
+      recovery: ctx.recovery,
+    }));
+
+    const batchResults = await callClaudeJSON<NudgeResult[]>({
+      system: buildVoiceBlock() + FRUXAL_JSON_RULES + `
+Generate nudge messages for these users. Return a JSON array with one nudge per user.
+
+Rules per nudge:
 - Keep message to 2-3 sentences max
 - Reference their actual numbers
 - One clear CTA
 - Tone: helpful, not pushy
 - Never say "we noticed" — say what happened directly
-Return JSON: { nudge_type, subject, message, cta_text, cta_url, urgency }`,
-          user: "Generate the nudge.",
-          maxTokens: 300,
-        });
 
-        nudges.push({
-          user_id: uid,
-          business_name: profile?.business_name,
-          triggers,
-          ...result,
-        });
+Each nudge: { "user_id": "<match from input>", "nudge_type": "email"|"notification", "subject": "...", "message": "...", "cta_text": "...", "cta_url": "...", "urgency": "high"|"medium"|"low" }
 
-        // Record nudge
-        await supabaseAdmin.from("nudge_history").insert({
-          user_id: uid,
-          triggers,
-          nudge_type: result.nudge_type,
-          subject: result.subject,
-          message: result.message,
-          urgency: result.urgency,
-          created_at: new Date().toISOString(),
-        }).then(({ error }) => { if (error) console.warn("[Nudge] Insert:", error.message); });
-      } catch (e: any) {
-        console.warn(`[Nudge] Skipping user ${uid}:`, e.message);
-      }
+Return ONLY the JSON array.`,
+      user: JSON.stringify(batchData),
+      maxTokens: 3000,
+    });
+
+    // ── Parse results and save each nudge ─────────────────────────────────
+    const results = Array.isArray(batchResults) ? batchResults : [];
+    const nudges: any[] = [];
+
+    for (const result of results) {
+      if (!result.user_id) continue;
+      const meta = userMetadata.get(result.user_id);
+      if (!meta) continue;
+
+      const { user_id: _, ...nudgeFields } = result;
+      nudges.push({
+        user_id: result.user_id,
+        business_name: meta.profile?.business_name,
+        triggers: meta.triggers,
+        ...nudgeFields,
+      });
+
+      // Record nudge
+      await supabaseAdmin.from("nudge_history").insert({
+        user_id: result.user_id,
+        triggers: meta.triggers,
+        nudge_type: result.nudge_type,
+        subject: result.subject,
+        message: result.message,
+        urgency: result.urgency,
+        created_at: new Date().toISOString(),
+      }).then(({ error }) => { if (error) console.warn("[Nudge] Insert:", error.message); });
     }
 
     return NextResponse.json({ success: true, nudgesGenerated: nudges.length, nudges });

@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { callClaude } from "@/lib/ai/client";
+import { buildVoiceBlock } from "@/lib/ai/prompts/shared/voice";
 
 export const maxDuration = 30;
 
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     const healthTrend = scoreHistory.length >= 2 ? (scoreHistory[0]?.health_score || 0) - (scoreHistory[1]?.health_score || 0) : 0;
 
     const result = await callClaude({
-      system: `Generate a board-ready industry benchmarking report for a ${isUS ? "US" : "Canadian"} small business.
+      system: buildVoiceBlock(country as "CA" | "US") + `\nGenerate a board-ready industry benchmarking report for a ${isUS ? "US" : "Canadian"} small business.
 
 BUSINESS DATA:
 - Name: ${profile.business_name}

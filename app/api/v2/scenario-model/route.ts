@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { callClaudeJSON } from "@/lib/ai/client";
+import { buildVoiceBlock, FRUXAL_JSON_RULES } from "@/lib/ai/prompts/shared/voice";
 
 export const maxDuration = 30;
 
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
       recommendation: string;
       caveats: string[];
     }>({
-      system: `You are a financial scenario modeler for ${isUS ? "US" : "Canadian"} small businesses.
+      system: buildVoiceBlock(country as "CA" | "US") + FRUXAL_JSON_RULES + `\nYou are a financial scenario modeler for ${isUS ? "US" : "Canadian"} small businesses.
 
 The client wants to know the financial impact of a business change. Use their ACTUAL data to model both states.
 

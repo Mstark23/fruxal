@@ -19,6 +19,7 @@ import { resolveTier, tierMaxTokens } from "@/lib/ai/tier";
 import { fetchDiagnosticContext }      from "@/lib/ai/context";
 import { buildTaxContext, PromptInputs } from "@/lib/ai/prompts"; // buildTaxContext still needed for diagCtx assembly
 import { buildDiagnosticPrompts } from "@/lib/ai/prompts/diagnostic/index";
+import { buildDiagnosticTool } from "@/lib/ai/prompts/diagnostic/tool-schema";
 import { generateTasksFromFindings } from "@/lib/ai/task-generator";
 import { getPrescanContext, type PrescanContext } from "@/lib/ai/prescan-context";
 import { suggestGoal } from "@/lib/ai/goal-suggester";
@@ -415,11 +416,15 @@ export async function POST(req: NextRequest) {
     try {
       if (process.env.NODE_ENV !== "production") console.log(`[Diagnostic:Run] tier=${tier} country=${country} province=${province} sysPromptLen=${systemPrompt.length} userPromptLen=${userPrompt.length}`);
 
+      const tool = buildDiagnosticTool(tier as any, country as any);
+
       const createParams: any = {
         model: CLAUDE_MODEL,
         max_tokens: tierMaxTokens(tier),
         system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
         messages: [{ role: "user", content: userPrompt }],
+        tools: [tool],
+        tool_choice: { type: "tool", name: "submit_diagnostic" },
       };
 
       // Enterprise gets extended thinking for complex RDTOH/CDA/salary-dividend math
@@ -429,32 +434,14 @@ export async function POST(req: NextRequest) {
 
       const response = await getAnthropic().messages.create(createParams);
 
-      // Check for stop reason — if stopped due to length, response may be truncated
-      if (response.stop_reason === "end_turn" || response.stop_reason === "stop_sequence") {
-        // Normal completion
-      } else if (response.stop_reason === "max_tokens") {
-        console.warn(`[Diagnostic:Run] Claude hit max_tokens (${tierMaxTokens(tier)}) for tier ${tier} — output truncated`);
+      // Extract tool result — no JSON parsing needed, schema enforced by the API
+      const toolBlock = response.content.find((b: any) => b.type === "tool_use");
+      if (!toolBlock || toolBlock.type !== "tool_use") {
+        throw new Error("Claude did not return a tool_use block");
       }
+      aiResult = (toolBlock as any).input; // Already parsed JSON — schema enforced by the API
 
-      const textBlock = response.content.find((b: any) => b.type === "text") as { type: "text"; text: string } | undefined;
-      const rawText   = textBlock?.text || "";
-
-      if (!rawText || rawText.length < 50) {
-        console.error("[Diagnostic:Run] Claude returned empty/short response (len=" + rawText.length + ")");
-        throw new Error("AI returned an incomplete response. Please try again.");
-      }
-
-      // Strip markdown fences, extract just the JSON object
-      let jsonStr = rawText.replace(/```json\n?|```\n?/g, "").trim();
-      // If Claude added text before/after the JSON, extract the {...} block
-      const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-      if (jsonMatch) jsonStr = jsonMatch[0];
-      try { aiResult = JSON.parse(jsonStr); } catch {
-        console.error("[Diagnostic:Run] JSON parse failed (rawLen=" + rawText.length + ")");
-        throw new Error('AI returned invalid JSON — not parseable');
-      }
-
-      // Schema validation: if Claude returned empty or schema-invalid output, retry once
+      // Schema validation: verify essential fields are present
       const hasValidScores = aiResult?.scores && typeof aiResult.scores.overall === 'number';
       if (!hasValidScores || !Array.isArray(aiResult?.findings) || aiResult.findings.length === 0) {
         console.error("[Diagnostic] AI returned invalid schema (scores:", !!aiResult?.scores, "findings:", aiResult?.findings?.length ?? 0, ")");
