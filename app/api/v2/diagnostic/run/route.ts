@@ -31,7 +31,7 @@ import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
 function getAnthropic() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 }
-export const maxDuration = 120;
+export const maxDuration = 300; // Vercel Pro allows up to 300s
 
 // Per-user rate limiter for diagnostic runs
 // Per-user rate limiter

@@ -1,6 +1,6 @@
 {
   "functions": {
-    "app/api/v2/diagnostic/run/route.ts": {
+    "api/v2/diagnostic/run": {
       "maxDuration": 300
     }
   },
