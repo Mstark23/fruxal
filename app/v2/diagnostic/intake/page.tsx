@@ -488,6 +488,38 @@ export default function DiagnosticIntakePage() {
                   className="w-full px-3 py-2.5 text-sm bg-white border border-border rounded-lg focus:outline-none focus:border-brand/50 focus:ring-1 focus:ring-brand/20" />
               </div>
 
+              <div className="col-span-2">
+                <label className="block text-[11px] font-semibold text-ink-secondary mb-1">{t("Industry", "Industrie")}</label>
+                <select value={data.industry} onChange={e => {
+                  const sel = e.target.value;
+                  const naicsMap: Record<string, string> = { restaurant:"7225", construction:"236", retail:"441", ecommerce:"4541", consulting:"5416", software_development:"5112", healthcare:"621", salon:"8121", trucking:"484", real_estate:"531", manufacturing:"31-33", accounting:"5412", legal:"5411", marketing:"5418", fitness:"71394", cleaning:"5617", landscaping:"5617", rideshare:"4853", photography:"54192" };
+                  setData(d => ({ ...d, industry: sel, industry_naics: naicsMap[sel] || "" }));
+                }}
+                  className="w-full px-3 py-2.5 text-sm bg-white border border-border rounded-lg focus:outline-none focus:border-brand/50">
+                  <option value="">{t("Select your industry...", "Sélectionnez votre industrie...")}</option>
+                  <option value="restaurant">{t("Restaurant / Food Service", "Restaurant / Service alimentaire")}</option>
+                  <option value="construction">{t("Construction / Renovation", "Construction / Rénovation")}</option>
+                  <option value="retail">{t("Retail", "Commerce de détail")}</option>
+                  <option value="ecommerce">{t("E-Commerce", "Commerce en ligne")}</option>
+                  <option value="consulting">{t("Consulting / Professional Services", "Consultation / Services professionnels")}</option>
+                  <option value="software_development">{t("Software / SaaS / Tech", "Logiciel / SaaS / Tech")}</option>
+                  <option value="healthcare">{t("Healthcare / Clinic", "Santé / Clinique")}</option>
+                  <option value="salon">{t("Beauty / Salon / Spa", "Beauté / Salon / Spa")}</option>
+                  <option value="trucking">{t("Transport / Delivery", "Transport / Livraison")}</option>
+                  <option value="real_estate">{t("Real Estate", "Immobilier")}</option>
+                  <option value="manufacturing">{t("Manufacturing", "Fabrication")}</option>
+                  <option value="accounting">{t("Accounting / Bookkeeping", "Comptabilité / Tenue de livres")}</option>
+                  <option value="legal">{t("Legal Services", "Services juridiques")}</option>
+                  <option value="marketing">{t("Marketing / Design / Agency", "Marketing / Design / Agence")}</option>
+                  <option value="fitness">{t("Fitness / Gym / Coaching", "Fitness / Gym / Coaching")}</option>
+                  <option value="cleaning">{t("Cleaning / Janitorial", "Nettoyage / Entretien")}</option>
+                  <option value="landscaping">{t("Landscaping", "Aménagement paysager")}</option>
+                  <option value="rideshare">{t("Rideshare / Delivery Driver", "Chauffeur / Livreur")}</option>
+                  <option value="photography">{t("Photography / Videography", "Photo / Vidéo")}</option>
+                  <option value="other">{t("Other", "Autre")}</option>
+                </select>
+              </div>
+
               <div>
                 <label className="block text-[11px] font-semibold text-ink-secondary mb-1">{t("Legal structure", "Structure légale")}</label>
                 <select value={data.structure} onChange={e => setData(d => ({ ...d, structure: e.target.value }))}

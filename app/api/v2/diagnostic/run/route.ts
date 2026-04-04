@@ -219,16 +219,18 @@ export async function POST(req: NextRequest) {
       }, { status: 422 });
     }
 
-    // Warn but don't block if industry is unknown — Claude will use generic benchmarks
+    // Default industry if missing — prevents "undefined" in results
     if (!profile.industry && !profile.industry_label) {
-      console.warn("[Diagnostic] No industry set for businessId:", businessId, "— Claude will use generic benchmarks");
+      console.warn("[Diagnostic] No industry set for businessId:", businessId, "— defaulting to 'general'");
+      profile.industry = "general";
+      profile.industry_label = "General Business";
     }
 
     // ── 3. Fetch DB context ───────────────────────────────────────────────
     const ctx = await fetchDiagnosticContext(
       businessId,
       province,
-      profile.industry_slug || profile.industry || "",
+      profile.industry_slug || profile.industry || "general",
       tier,
       language,
       country

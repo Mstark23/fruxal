@@ -97,6 +97,12 @@ export async function POST(req: NextRequest) {
       total_assets:          d.total_assets          ?? null,
       total_liabilities:     d.total_liabilities     ?? null,
 
+      // Industry (critical — used by diagnostic engine for benchmarks)
+      industry:              d.industry               ?? undefined,
+      industry_slug:         d.industry               ?? undefined,
+      industry_naics:        d.industry_naics         ?? undefined,
+      industry_label:        d.industry_label         ?? undefined,
+
       // Country + province (override onboarding if provided from intake form)
       country:               d.country               ?? undefined,
       province:              d.province               ?? undefined,
