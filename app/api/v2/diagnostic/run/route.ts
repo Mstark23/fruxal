@@ -496,19 +496,30 @@ export async function POST(req: NextRequest) {
         tool_choice: { type: "tool", name: "submit_diagnostic" },
       };
 
-      // Enterprise gets extended thinking for complex RDTOH/CDA/salary-dividend math
-      if (tier === "enterprise") {
-        createParams.thinking = { type: "enabled", budget_tokens: 5000 };
-      }
+      // NOTE: extended thinking is incompatible with tool_choice in Anthropic API
+      // so we don't enable thinking when using tool_use schema
 
       const response = await getAnthropic().messages.create(createParams);
 
-      // Extract tool result — no JSON parsing needed, schema enforced by the API
+      // Extract tool result — schema enforced by the API
       const toolBlock = response.content.find((b: any) => b.type === "tool_use");
-      if (!toolBlock || toolBlock.type !== "tool_use") {
-        throw new Error("Claude did not return a tool_use block");
+      if (toolBlock && toolBlock.type === "tool_use") {
+        aiResult = (toolBlock as any).input;
+      } else {
+        // Fallback: if no tool_use block, try parsing text content as JSON
+        const textBlock = response.content.find((b: any) => b.type === "text") as any;
+        const rawText = textBlock?.text || "";
+        if (!rawText || rawText.length < 50) {
+          throw new Error("AI returned an incomplete response");
+        }
+        const jsonStr = rawText.replace(/```json\n?|```\n?/g, "").trim();
+        try {
+          aiResult = JSON.parse(jsonStr);
+        } catch (parseErr: any) {
+          console.error("[Diagnostic] JSON parse failed:", parseErr.message, "raw:", jsonStr.slice(0, 200));
+          throw new Error("AI returned invalid format. Please try again.");
+        }
       }
-      aiResult = (toolBlock as any).input; // Already parsed JSON — schema enforced by the API
 
       // Schema validation: verify essential fields are present
       const hasValidScores = aiResult?.scores && typeof aiResult.scores.overall === 'number';
@@ -523,13 +534,19 @@ export async function POST(req: NextRequest) {
       }
 
     } catch (aiErr: any) {
-      console.error("[Diagnostic] AI error:", aiErr.message);
+      console.error("[Diagnostic] AI error:", aiErr.message, aiErr.stack?.slice(0, 500));
       await supabaseAdmin
         .from("diagnostic_reports")
         .update({ status: "failed", updated_at: new Date().toISOString() })
         .eq("id", reportId);
+      // Return a user-friendly message, not the raw error
+      const userMsg = aiErr.message?.includes("thinking")
+        ? "Extended thinking not supported with this configuration. Retrying without it."
+        : aiErr.message?.includes("tool")
+        ? "Analysis format error. Please try again."
+        : "AI analysis failed. Please try again.";
       return NextResponse.json(
-        { success: false, error: "AI analysis failed: " + aiErr.message, reportId },
+        { success: false, error: userMsg, reportId },
         { status: 500 }
       );
     }
