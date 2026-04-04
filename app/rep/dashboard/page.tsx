@@ -287,6 +287,9 @@ export default function RepDashboard() {
           </div>
         )}
 
+        {/* ═══ MY STATS ═══ */}
+        <RepStatsSection />
+
         {/* ═══ CALENDLY SETUP BANNER ═══ */}
         {!rep?.calendly_url && !showCalendlyEdit && (
           <div className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl mb-5"
