@@ -366,8 +366,15 @@ export default function DiagnosticIntakePage() {
         body: JSON.stringify({ businessId, language: lang }),
         signal: controller.signal,
       });
-      const runJson = await runRes.json();
-      console.log("[Intake:Launch] Step 2 result:", JSON.stringify(runJson).slice(0, 300));
+      const runText = await runRes.text();
+      console.log("[Intake:Launch] Step 2 raw response (first 500):", runText.slice(0, 500));
+      let runJson;
+      try {
+        runJson = JSON.parse(runText);
+      } catch {
+        console.error("[Intake:Launch] Server returned non-JSON:", runText.slice(0, 300));
+        throw new Error("Server error — the diagnostic timed out or crashed. Please try again.");
+      }
       if (!runJson.success) throw new Error("Diagnostic failed: " + (runJson.error || "unknown"));
 
       clearTimeout(clientTimeout);
