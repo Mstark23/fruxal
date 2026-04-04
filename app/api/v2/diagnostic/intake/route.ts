@@ -98,10 +98,21 @@ export async function POST(req: NextRequest) {
       total_liabilities:     d.total_liabilities     ?? null,
 
       // Industry (critical — used by diagnostic engine for benchmarks)
-      industry:              d.industry               ?? undefined,
-      industry_slug:         d.industry               ?? undefined,
-      industry_naics:        d.industry_naics         ?? undefined,
-      industry_label:        d.industry_label         ?? undefined,
+      industry:              d.industry && d.industry !== "" ? d.industry : undefined,
+      industry_slug:         d.industry && d.industry !== "" ? d.industry : undefined,
+      industry_naics:        d.industry_naics && d.industry_naics !== "" ? d.industry_naics : undefined,
+      industry_label:        d.industry ? ({
+        restaurant: "Restaurant / Food Service", construction: "Construction / Renovation",
+        retail: "Retail", ecommerce: "E-Commerce", consulting: "Consulting / Professional Services",
+        software_development: "Software / SaaS / Tech", healthcare: "Healthcare / Clinic",
+        salon: "Beauty / Salon / Spa", trucking: "Transport / Delivery",
+        real_estate: "Real Estate", manufacturing: "Manufacturing",
+        accounting: "Accounting / Bookkeeping", legal: "Legal Services",
+        marketing: "Marketing / Design / Agency", fitness: "Fitness / Gym / Coaching",
+        cleaning: "Cleaning / Janitorial", landscaping: "Landscaping",
+        rideshare: "Rideshare / Delivery Driver", photography: "Photography / Videography",
+        other: "General Business",
+      } as Record<string, string>)[d.industry] || d.industry : undefined,
 
       // Country + province (override onboarding if provided from intake form)
       country:               d.country               ?? undefined,

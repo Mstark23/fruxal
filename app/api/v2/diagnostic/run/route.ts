@@ -222,6 +222,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Default industry if missing — try prescan data first, then fallback to "general"
+    const INDUSTRY_LABELS: Record<string, string> = {
+      restaurant: "Restaurant / Food Service", construction: "Construction / Renovation",
+      retail: "Retail", ecommerce: "E-Commerce", consulting: "Consulting / Professional Services",
+      software_development: "Software / SaaS / Tech", healthcare: "Healthcare / Clinic",
+      salon: "Beauty / Salon / Spa", trucking: "Transport / Delivery",
+      real_estate: "Real Estate", manufacturing: "Manufacturing",
+      accounting: "Accounting / Bookkeeping", legal: "Legal Services",
+      marketing: "Marketing / Design / Agency", fitness: "Fitness / Gym / Coaching",
+      cleaning: "Cleaning / Janitorial", landscaping: "Landscaping",
+      rideshare: "Rideshare / Delivery Driver", photography: "Photography / Videography",
+      other: "General Business", general: "General Business",
+    };
+
     if (!profile.industry && !profile.industry_label) {
       // Try to recover industry from prescan_runs
       const { data: prescanRow } = await supabaseAdmin
@@ -234,17 +247,22 @@ export async function POST(req: NextRequest) {
       if (prescanRow?.industry_slug) {
         profile.industry = prescanRow.industry_slug;
         profile.industry_slug = prescanRow.industry_slug;
-        // Also backfill the profile so this doesn't happen again
+        profile.industry_label = INDUSTRY_LABELS[prescanRow.industry_slug] || prescanRow.industry_slug;
         await supabaseAdmin.from("business_profiles").update({
           industry: prescanRow.industry_slug,
-          industry_slug: prescanRow.industry_slug
+          industry_slug: prescanRow.industry_slug,
+          industry_label: profile.industry_label,
         }).eq("user_id", userId).eq("business_id", businessId);
         console.log("[Diagnostic] Backfilled industry from prescan:", prescanRow.industry_slug);
       } else {
-        console.warn("[Diagnostic] No industry set for businessId:", businessId, "— defaulting to 'general'");
+        console.warn("[Diagnostic] No industry set for businessId:", businessId, "— defaulting to 'General Business'");
         profile.industry = "general";
         profile.industry_label = "General Business";
       }
+    }
+    // Always ensure industry_label is human-readable (not a slug)
+    if (profile.industry && !profile.industry_label) {
+      profile.industry_label = INDUSTRY_LABELS[profile.industry] || profile.industry;
     }
 
     // ── 3. Fetch DB context ───────────────────────────────────────────────
