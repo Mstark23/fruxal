@@ -522,8 +522,36 @@ export async function POST(req: NextRequest) {
       try {
         aiResult = JSON.parse(jsonStr);
       } catch (parseErr: any) {
-        console.error("[Diagnostic] JSON parse failed:", parseErr.message, "raw:", jsonStr.slice(0, 300));
-        throw new Error("AI returned invalid format. Please try again.");
+        console.error("[Diagnostic] JSON parse failed:", parseErr.message);
+        console.error("[Diagnostic] Raw text (first 500):", rawText.slice(0, 500));
+        console.error("[Diagnostic] JSON extract (first 500):", jsonStr.slice(0, 500));
+        // Retry: ask Claude to fix its JSON
+        try {
+          const retryStream = getAnthropic().messages.stream({
+            model: CLAUDE_MODEL,
+            max_tokens: tierMaxTokens(tier),
+            system: "Fix this broken JSON. Return ONLY valid JSON, nothing else.",
+            messages: [{ role: "user", content: "Fix this JSON:\n\n" + rawText.slice(0, 6000) }],
+          });
+          let retryText = "";
+          for await (const evt of retryStream) {
+            if (evt.type === "content_block_delta" && (evt.delta as any)?.type === "text_delta") {
+              retryText += (evt.delta as any).text;
+            }
+          }
+          const retryJson = retryText.replace(/```json\n?|```\n?/g, "").trim();
+          const rStart = retryJson.indexOf("{");
+          const rEnd = retryJson.lastIndexOf("}");
+          if (rStart >= 0 && rEnd > rStart) {
+            aiResult = JSON.parse(retryJson.slice(rStart, rEnd + 1));
+            console.log("[Diagnostic] Retry parse succeeded");
+          } else {
+            throw new Error("Retry also failed");
+          }
+        } catch (retryErr: any) {
+          console.error("[Diagnostic] Retry also failed:", retryErr.message);
+          throw new Error("AI returned invalid JSON after retry. Raw start: " + rawText.slice(0, 200));
+        }
       }
 
       // Schema validation: verify essential fields are present
