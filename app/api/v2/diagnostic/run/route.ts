@@ -544,14 +544,8 @@ export async function POST(req: NextRequest) {
         .from("diagnostic_reports")
         .update({ status: "failed", updated_at: new Date().toISOString() })
         .eq("id", reportId);
-      // Return a user-friendly message, not the raw error
-      const userMsg = aiErr.message?.includes("thinking")
-        ? "Extended thinking not supported with this configuration. Retrying without it."
-        : aiErr.message?.includes("tool")
-        ? "Analysis format error. Please try again."
-        : "AI analysis failed. Please try again.";
       return NextResponse.json(
-        { success: false, error: userMsg, reportId },
+        { success: false, error: "AI error: " + (aiErr.message || "Unknown error"), reportId },
         { status: 500 }
       );
     }
