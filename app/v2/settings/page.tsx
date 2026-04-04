@@ -65,6 +65,8 @@ interface NotifPrefs {
   quiet_end_hour: number;
   timezone: string;
   min_urgency_email: string;
+  monthly_brief_enabled?: boolean;
+  monthly_brief_frequency?: string;
 }
 
 interface BillingData {
@@ -554,6 +556,70 @@ export default function SettingsPage() {
                         ))}
                       </select>
                     </Field>
+                  </div>
+
+                  {/* ── Monthly Brief ─────────────────────────────────────── */}
+                  <SectionTitle title={isFr ? "Résumé mensuel" : "Monthly Brief"} />
+                  <div className="space-y-3">
+                    <Toggle
+                      on={notifPrefs.monthly_brief_enabled ?? true}
+                      onClick={() => updateNotif("monthly_brief_enabled", !(notifPrefs.monthly_brief_enabled ?? true))}
+                      label={isFr ? "Recevoir des résumés mensuels" : "Receive monthly briefs"}
+                    />
+
+                    {(notifPrefs.monthly_brief_enabled ?? true) && (
+                      <>
+                        <p className="text-[10px] text-ink-faint -mt-1">
+                          {isFr ? "Fréquence d'envoi" : "Delivery frequency"}
+                        </p>
+                        <div className="space-y-1">
+                          {[
+                            { value: "monthly", en: "Monthly", fr: "Mensuel" },
+                            { value: "biweekly", en: "Bi-weekly", fr: "Bimensuel" },
+                            { value: "weekly", en: "Weekly", fr: "Hebdomadaire" },
+                          ].map(f => (
+                            <button key={f.value} onClick={() => updateNotif("monthly_brief_frequency", f.value)}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-left transition-all ${
+                                (notifPrefs.monthly_brief_frequency || "monthly") === f.value
+                                  ? "bg-brand-soft text-brand border border-brand/15"
+                                  : "bg-white text-ink-muted border border-transparent hover:bg-bg-section"
+                              }`}>
+                              <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
+                                (notifPrefs.monthly_brief_frequency || "monthly") === f.value ? "border-brand-light" : "border-white/15"
+                              }`}>
+                                {(notifPrefs.monthly_brief_frequency || "monthly") === f.value && <span className="w-1.5 h-1.5 rounded-full bg-brand-light" />}
+                              </span>
+                              {isFr ? f.fr : f.en}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="bg-bg-section rounded-xl px-4 py-3 mt-2">
+                          <p className="text-[11px] text-ink-muted">
+                            {(() => {
+                              const freq = notifPrefs.monthly_brief_frequency || "monthly";
+                              const now = new Date();
+                              let nextDate: Date;
+                              if (freq === "weekly") {
+                                nextDate = new Date(now.getTime() + (7 - now.getDay()) * 86400000);
+                              } else if (freq === "biweekly") {
+                                nextDate = new Date(now.getTime() + (14 - (now.getDate() % 14)) * 86400000);
+                              } else {
+                                nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                              }
+                              const dateStr = nextDate.toLocaleDateString(isFr ? "fr-CA" : "en-CA", { month: "long", day: "numeric", year: "numeric" });
+                              return isFr ? `Votre prochain résumé est prévu le ${dateStr}` : `Your next brief is scheduled for ${dateStr}`;
+                            })()}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => {/* placeholder for future archive page */}}
+                          className="text-[11px] font-semibold text-brand hover:underline">
+                          {isFr ? "Voir les résumés passés" : "View past briefs"} →
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

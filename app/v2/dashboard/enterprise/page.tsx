@@ -28,6 +28,7 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContai
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 const AiChatWidget = lazy(() => import("@/components/v2/AiChatWidget"));
+import DailyBriefing from "@/components/v2/DailyBriefing";
 
 const fade = (delay = 0) => ({
   animation: `fadeUp 0.4s ease ${delay}s both`,
@@ -119,6 +120,14 @@ export default function EnterpriseDashboard() {
   const [activeAiTool, setActiveAiTool] = useState<string | null>(null);
   const [trends, setTrends] = useState<any[]>([]);
   const [newIssues, setNewIssues] = useState<any[]>([]);
+
+  // QBR state
+  const [qbr, setQbr] = useState<any>(null);
+  const [qbrExpanded, setQbrExpanded] = useState(false);
+
+  // Share link state
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
 
   const isFr = lang === "fr";
   const t    = (en: string, fr: string) => isFr ? fr : en;
@@ -412,6 +421,11 @@ export default function EnterpriseDashboard() {
           if (d?.success) setEntStatus(d.data);
           setEntStatusLoaded(true);
         }).catch(() => { setEntStatusLoaded(true); });
+
+        // Fetch latest QBR (non-blocking)
+        fetch("/api/v2/qbr/latest").then(r => r.ok ? r.json() : null).then(d => {
+          if (d?.success && d.qbr) setQbr(d.qbr);
+        }).catch(() => {});
 
         // Fetch trends data
         fetch("/api/trends").then(r => r.json()).then(d => {
@@ -1296,6 +1310,9 @@ export default function EnterpriseDashboard() {
           </div>
         )}
 
+        {/* ── Daily Briefing ────────────────────────────────────────────── */}
+        <DailyBriefing lang={lang} onAskAi={(prompt) => router.push(`/v2/chat?prompt=${encodeURIComponent(prompt)}`)} />
+
         {/* ── SR&ED Eligibility Banner ─────────────────────────────────────── */}
         {/* ── Main grid: Findings + Right column ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-3 mb-5" style={fade(0.10)}>
@@ -2169,6 +2186,61 @@ export default function EnterpriseDashboard() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════
+            QBR — QUARTERLY BUSINESS REVIEW
+        ══════════════════════════════════════════════════════════════════ */}
+        <div className="bg-white rounded-xl border border-border-light overflow-hidden mb-4" style={fade(0.13)}>
+          <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-border-light/50">
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ background: "rgba(45,122,80,0.08)" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </span>
+              <h3 className="text-[13px] font-bold text-ink">{t("Quarterly Business Review", "Revue trimestrielle")}</h3>
+            </div>
+            {qbr?.generated_at && (
+              <span className="text-[10px] text-ink-faint">
+                {new Date(qbr.generated_at).toLocaleDateString(isFr ? "fr-CA" : "en-CA", { month: "short", day: "numeric", year: "numeric" })}
+              </span>
+            )}
+          </div>
+          <div className="px-5 py-4">
+            {qbr ? (
+              <>
+                <p className="text-[12px] text-ink-secondary leading-relaxed">
+                  {qbrExpanded
+                    ? qbr.summary
+                    : (qbr.summary || "").split("\n").slice(0, 2).join("\n").slice(0, 200) + ((qbr.summary || "").length > 200 ? "..." : "")}
+                </p>
+                {qbr.highlights?.length > 0 && qbrExpanded && (
+                  <div className="mt-3 space-y-1.5">
+                    {qbr.highlights.map((h: string, i: number) => (
+                      <div key={i} className="flex items-start gap-2 text-[11px] text-ink-muted">
+                        <span className="text-brand mt-0.5">{">"}</span>
+                        <span>{typeof h === "string" ? h : (h as any).text || JSON.stringify(h)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {qbr.next_review_date && qbrExpanded && (
+                  <p className="text-[10px] text-ink-faint mt-3">
+                    {t("Next review:", "Prochaine revue:")} {new Date(qbr.next_review_date + "T12:00:00").toLocaleDateString(isFr ? "fr-CA" : "en-CA", { month: "long", day: "numeric", year: "numeric" })}
+                  </p>
+                )}
+                <button onClick={() => setQbrExpanded(!qbrExpanded)}
+                  className="text-[11px] font-semibold text-brand hover:underline mt-2">
+                  {qbrExpanded ? t("Collapse", "Réduire") : t("View Full QBR", "Voir la revue complète")}
+                </button>
+              </>
+            ) : (
+              <p className="text-[12px] text-ink-faint">
+                {t("Your first QBR will be available after your initial review call", "Votre première revue trimestrielle sera disponible après votre appel initial")}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════════
             SECTION 6 — QUICK ACTIONS
         ══════════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4" style={fade(0.14)}>
@@ -2193,6 +2265,36 @@ export default function EnterpriseDashboard() {
             </span>
             <p className="text-[12px] font-semibold text-ink">{t("Send to Accountant","Envoyer au comptable")}</p>
             <p className="text-[11px] text-ink-faint">{t("Pre-written briefing email with findings","Courriel de synthèse pré-rédigé avec constats")}</p>
+          </button>
+
+          {/* Copy Share Link */}
+          <button onClick={async () => {
+            if (!businessId) return;
+            try {
+              const r = await fetch("/api/share", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ businessId }),
+              });
+              const d = await r.json();
+              if (d.url) {
+                setShareUrl(d.url);
+                await navigator.clipboard.writeText(d.url);
+                setShareCopied(true);
+                setTimeout(() => setShareCopied(false), 3000);
+              }
+            } catch {}
+          }}
+            disabled={!hasReport || !businessId}
+            className="bg-white border border-border-light rounded-xl px-4 py-4 flex flex-col gap-2 hover:border-brand/30 hover:shadow-sm transition group text-left disabled:opacity-40">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-bg-section text-ink-muted group-hover:text-brand transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+              </svg>
+            </span>
+            <p className="text-[12px] font-semibold text-ink">{shareCopied ? t("Copied!","Copié!") : t("Copy Share Link","Copier le lien de partage")}</p>
+            <p className="text-[11px] text-ink-faint">{t("Read-only link for your accountant or partner","Lien en lecture seule pour votre comptable ou partenaire")}</p>
           </button>
 
           {/* Download PDF */}
