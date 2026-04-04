@@ -61,12 +61,14 @@ export default function DashboardRouter() {
         } catch { /* non-fatal */ }
       }
 
-      // 1. Check localStorage first — fastest path, no API call needed
+      // 1. Check localStorage for cached tier — skip for "free"/"solo" since revenue
+      // may qualify for a higher tier (e.g., $20M business shouldn't stay on solo)
       try {
         const stored = localStorage.getItem("fruxal_tier");
         if (stored === "enterprise") { router.replace("/v2/dashboard/enterprise" + suffix); return; }
         if (stored === "business")   { router.replace("/v2/dashboard/business"   + suffix); return; }
-        if (stored === "solo")       { router.replace("/v2/dashboard/solo"        + suffix); return; }
+        // Don't return for "solo" or "free" — fall through to API check
+        // which will also check revenue for tier qualification
       } catch { /* non-fatal */ }
 
       // 2. Check document.referrer — if coming from business dashboard, go back there
@@ -92,14 +94,16 @@ export default function DashboardRouter() {
         }
       } catch { /* non-fatal */ }
 
-      // 4. Call API — use recommended_plan (revenue-based) not just paid tier
+      // 4. Call API — use revenue + recommended_plan to determine correct tier
       try {
         const res = await fetch(rid ? "/api/v2/dashboard?prescanRunId=" + rid : "/api/v2/dashboard");
         const json = res.ok ? await res.json() : null;
         const tier  = (json?.data?.tier             || "free").toLowerCase();
         const plan  = (json?.data?.recommended_plan || "solo").toLowerCase();
-        const eff = (tier === "enterprise" || tier === "corp" || plan === "enterprise") ? "enterprise"
-                  : (tier === "business" || tier === "growth" || tier === "team" || plan === "business") ? "business"
+        const revenue = json?.data?.profile?.exact_annual_revenue || json?.data?.profile?.annual_revenue || json?.data?.annual_revenue || 0;
+        // Revenue overrides billing tier — $20M business should never see solo
+        const eff = (tier === "enterprise" || tier === "corp" || plan === "enterprise" || revenue >= 1_000_000) ? "enterprise"
+                  : (tier === "business" || tier === "growth" || tier === "team" || plan === "business" || revenue >= 150_000) ? "business"
                   : "solo";
         try { localStorage.setItem("fruxal_tier", eff); } catch { /* non-fatal */ }
         if      (eff === "enterprise") router.replace("/v2/dashboard/enterprise" + suffix);

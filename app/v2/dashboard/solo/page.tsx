@@ -93,10 +93,12 @@ export default function SoloDashboard() {
       const d = json.data;
       const detectedTier = (d.tier || "free").toLowerCase();
       const detectedPlan = (d.recommended_plan || "").toLowerCase();
+      const revenue = d.profile?.exact_annual_revenue || d.profile?.annual_revenue || d.annual_revenue || 0;
       if (detectedTier === "enterprise" || detectedTier === "corp") { redirected = true; router.replace("/v2/dashboard/enterprise"); return; }
       if (detectedTier === "business" || detectedTier === "growth" || detectedTier === "team") { redirected = true; router.replace("/v2/dashboard/business"); return; }
-      // NOTE: Do NOT redirect on recommended_plan — that caused a redirect loop.
-      // Free users who qualify by revenue stay on solo and see upgrade CTAs.
+      // Revenue-based redirect: if revenue qualifies for higher tier, redirect regardless of billing tier
+      if (revenue >= 1_000_000) { redirected = true; router.replace("/v2/dashboard/enterprise"); return; }
+      if (revenue >= 150_000) { redirected = true; router.replace("/v2/dashboard/business"); return; }
       setTier(detectedTier);
       if (d.recommended_plan) setRecommendedPlan(d.recommended_plan);
       setProfile(d.profile || { province: "", country: "", industry: "Small Business", structure: "" });
