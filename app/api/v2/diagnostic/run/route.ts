@@ -275,6 +275,29 @@ export async function POST(req: NextRequest) {
     }
     console.log(`[Diagnostic] Industry resolved: industry="${profile.industry}" label="${profile.industry_label}" slug="${profile.industry_slug}"`);
 
+    // ALWAYS backfill DB if industry was missing or empty — persistent fix
+    // This ensures the profile row is permanently updated so dashboards,
+    // chat prompts, and future diagnostics all see the correct industry.
+    if (profile._industryBackfilled !== false) {
+      const dbUpdate: Record<string, any> = {};
+      // Check what's actually in DB (profile object may have been mutated above)
+      const { data: dbRow } = await supabaseAdmin
+        .from("business_profiles")
+        .select("industry, industry_slug, industry_label")
+        .eq("business_id", businessId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!dbRow?.industry || dbRow.industry === "" || !dbRow?.industry_label || dbRow.industry_label === "") {
+        dbUpdate.industry = profile.industry;
+        dbUpdate.industry_slug = profile.industry_slug || profile.industry;
+        dbUpdate.industry_label = profile.industry_label;
+        await supabaseAdmin.from("business_profiles")
+          .update(dbUpdate)
+          .eq("business_id", businessId)
+          .eq("user_id", userId);
+        console.log(`[Diagnostic] Backfilled industry in DB: ${JSON.stringify(dbUpdate)}`);
+      }
+    }
 
     // ── 3. Fetch DB context ───────────────────────────────────────────────
     const ctx = await fetchDiagnosticContext(

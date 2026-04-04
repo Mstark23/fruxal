@@ -161,6 +161,8 @@ export async function POST(req: NextRequest) {
       Object.entries(updatePayload).filter(([, v]) => v !== undefined)
     );
 
+    console.log(`[Intake] Saving industry: raw="${d.industry}" clean.industry="${clean.industry}" clean.industry_label="${clean.industry_label}" clean.industry_slug="${clean.industry_slug}"`);
+
     // upsert — if no row exists yet (new business), create it.
     // .update() silently fails when no row exists -> "Business not found" on diagnostic launch
     const { error } = await supabaseAdmin
