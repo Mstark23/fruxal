@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "app/api/v2/diagnostic/run/route.ts": {
+      "maxDuration": 300
+    }
+  },
   "crons": [
     {
       "path": "/api/v2/cron/daily",
