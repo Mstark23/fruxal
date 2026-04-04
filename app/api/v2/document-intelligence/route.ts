@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { callClaudeJSON } from "@/lib/ai/client";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 
 export const maxDuration = 60;
 
@@ -48,15 +48,38 @@ export async function POST(req: NextRequest) {
     // Build extraction prompt based on document type
     const extractionPrompt = buildExtractionPrompt(docType, isUS, profile);
 
-    const result = await callClaudeJSON({
-      system: `You are a financial document analysis engine. Extract structured data from the uploaded document.
+    const systemPrompt = `You are a financial document analysis engine. Extract structured data from the uploaded document.
 Return ONLY valid JSON. Be precise with numbers — use exact values from the document, never estimate.
 If a field is not visible or not applicable, use null.
-Country context: ${isUS ? "United States" : "Canada"}`,
-      user: extractionPrompt,
-      maxTokens: 2000,
-      // Note: Vision is handled by the Anthropic SDK when we pass image content
+Country context: ${isUS ? "United States" : "Canada"}`;
+
+    const response = await getAnthropicClient().messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages: [{
+        role: "user",
+        content: [
+          {
+            type: mediaType.startsWith("image/") ? "image" : "document",
+            source: {
+              type: "base64",
+              media_type: mediaType,
+              data: base64,
+            },
+          },
+          {
+            type: "text",
+            text: extractionPrompt,
+          },
+        ],
+      }],
     });
+
+    const textBlock = response.content.find((b: any) => b.type === "text");
+    const rawText = (textBlock as any)?.text || "";
+    const clean = rawText.replace(/```json\n?|```\n?/g, "").trim();
+    const result = JSON.parse(clean);
 
     // Store extraction result
     const extractionId = crypto.randomUUID();

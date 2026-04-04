@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       supabaseAdmin.from("document_extractions").select("extracted_data, document_type")
         .eq("user_id", userId).order("created_at", { ascending: false }).limit(3).then(r => r.data || []),
       supabaseAdmin.from("financial_snapshots").select("processing_fees, insurance, bank_fees, software_costs, rent")
-        .eq("business_id", profile?.business_name ? undefined : "").order("snapshot_month", { ascending: false }).limit(3).then(r => r.data || []),
+        .eq("business_id", profile?.business_id || "NONE").order("snapshot_month", { ascending: false }).limit(3).then(r => r.data || []),
     ]);
 
     const country = profile?.country || "CA";

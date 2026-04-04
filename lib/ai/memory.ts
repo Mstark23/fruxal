@@ -42,9 +42,8 @@ export async function loadMemories(opts: {
   let query = supabaseAdmin
     .from("business_memories")
     .select("id, category, content, source, importance, tags, created_at")
-    .order("importance", { ascending: true }) // critical first
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(limit * 2); // fetch extra so we can re-sort by importance in JS
 
   if (businessId) query = query.eq("business_id", businessId);
   else if (userId) query = query.eq("user_id", userId);
@@ -55,7 +54,16 @@ export async function loadMemories(opts: {
   query = query.or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
   const { data } = await query;
-  return (data || []) as Memory[];
+
+  // Sort by importance (critical > high > medium > low), then by recency
+  const IMPORTANCE_ORDER: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+  const sorted = (data || []).sort((a: any, b: any) => {
+    const ia = IMPORTANCE_ORDER[a.importance] ?? 3;
+    const ib = IMPORTANCE_ORDER[b.importance] ?? 3;
+    if (ia !== ib) return ia - ib;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+  return sorted.slice(0, limit) as Memory[];
 }
 
 // ─── FORMAT: Build memory block for system prompt ────────────────────────────
@@ -101,7 +109,28 @@ export async function extractAndSaveMemories(opts: {
   assistantResponse: string;
   existingMemories: Memory[];
 }): Promise<void> {
+  try {
   const { businessId, userId, pipelineId, source, userMessage, assistantResponse, existingMemories } = opts;
+
+  // ── Debounce: only extract memories every ~5 messages (2-min cooldown) ──
+  const idColumn = businessId ? "business_id" : userId ? "user_id" : "pipeline_id";
+  const idValue = businessId || userId || pipelineId || "";
+  if (!idValue) return;
+
+  const { data: lastMemory } = await supabaseAdmin
+    .from("business_memories")
+    .select("created_at")
+    .eq(idColumn, idValue)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Skip extraction if last memory was created less than 2 minutes ago
+  // At normal conversational pace this means ~every 5 exchanges
+  if (lastMemory?.created_at) {
+    const timeSince = Date.now() - new Date(lastMemory.created_at).getTime();
+    if (timeSince < 120_000) return; // 2 minutes cooldown
+  }
 
   // Use Claude to extract memories from the conversation
   try {
@@ -163,6 +192,10 @@ Return empty array if nothing worth remembering: { "new_memories": [] }`,
   } catch (e: any) {
     // Memory extraction is non-fatal — never block the main response
     console.warn("[Memory] Extraction failed:", e.message);
+  }
+  } catch (outer: any) {
+    // Outer catch — guarantees this function NEVER throws
+    console.warn("[Memory] Unexpected error in extractAndSaveMemories:", outer.message);
   }
 }
 
