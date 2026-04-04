@@ -491,40 +491,33 @@ export async function POST(req: NextRequest) {
     try {
       if (process.env.NODE_ENV !== "production") console.log(`[Diagnostic:Run] tier=${tier} country=${country} province=${province} sysPromptLen=${systemPrompt.length} userPromptLen=${userPrompt.length}`);
 
-      const tool = buildDiagnosticTool(tier as any, country as any);
-
       const createParams: any = {
         model: CLAUDE_MODEL,
         max_tokens: tierMaxTokens(tier),
         system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
         messages: [{ role: "user", content: userPrompt }],
-        tools: [tool],
-        tool_choice: { type: "tool", name: "submit_diagnostic" },
       };
-
-      // NOTE: extended thinking is incompatible with tool_choice in Anthropic API
-      // so we don't enable thinking when using tool_use schema
 
       const response = await getAnthropic().messages.create(createParams);
 
-      // Extract tool result — schema enforced by the API
-      const toolBlock = response.content.find((b: any) => b.type === "tool_use");
-      if (toolBlock && toolBlock.type === "tool_use") {
-        aiResult = (toolBlock as any).input;
-      } else {
-        // Fallback: if no tool_use block, try parsing text content as JSON
-        const textBlock = response.content.find((b: any) => b.type === "text") as any;
-        const rawText = textBlock?.text || "";
-        if (!rawText || rawText.length < 50) {
-          throw new Error("AI returned an incomplete response");
-        }
-        const jsonStr = rawText.replace(/```json\n?|```\n?/g, "").trim();
-        try {
-          aiResult = JSON.parse(jsonStr);
-        } catch (parseErr: any) {
-          console.error("[Diagnostic] JSON parse failed:", parseErr.message, "raw:", jsonStr.slice(0, 200));
-          throw new Error("AI returned invalid format. Please try again.");
-        }
+      const textBlock = response.content.find((b: any) => b.type === "text") as any;
+      const rawText = textBlock?.text || "";
+      if (!rawText || rawText.length < 50) {
+        throw new Error("AI returned an incomplete response (length=" + rawText.length + ")");
+      }
+      // Strip markdown fences and parse JSON
+      let jsonStr = rawText.replace(/```json\n?|```\n?/g, "").trim();
+      // Handle case where Claude wraps in extra text before/after JSON
+      const jsonStart = jsonStr.indexOf("{");
+      const jsonEnd = jsonStr.lastIndexOf("}");
+      if (jsonStart >= 0 && jsonEnd > jsonStart) {
+        jsonStr = jsonStr.slice(jsonStart, jsonEnd + 1);
+      }
+      try {
+        aiResult = JSON.parse(jsonStr);
+      } catch (parseErr: any) {
+        console.error("[Diagnostic] JSON parse failed:", parseErr.message, "raw:", jsonStr.slice(0, 300));
+        throw new Error("AI returned invalid format. Please try again.");
       }
 
       // Schema validation: verify essential fields are present
