@@ -336,6 +336,8 @@ export default function DiagnosticIntakePage() {
   // ── Save intake + launch diagnostic ───────────────────────────────────────
   async function launchDiagnostic() {
     if (!businessId) { setError("Business not found"); return; }
+    if (!data.industry) { setError(t("Please select an industry before launching.", "Veuillez sélectionner une industrie avant de lancer.")); return; }
+    if (!data.structure) { setError(t("Please select a legal structure before launching.", "Veuillez sélectionner une structure légale avant de lancer.")); return; }
     setSaving(true);
     setError(null);
 
@@ -739,10 +741,10 @@ export default function DiagnosticIntakePage() {
                 value={data.shareholder_agreements} onChange={v => setData(d => ({ ...d, shareholder_agreements: v }))} isFr={isFr} />
               {data.country === "CA" && <Toggle label="Has a Capital Dividend Account (CDA) balance" labelFr="A un compte de dividende en capital (CDC)"
                 value={data.has_cda_balance} onChange={v => setData(d => ({ ...d, has_cda_balance: v }))} isFr={isFr} />}
-              {data.country === "US" && <Toggle label="Currently structured as S-Corp (vs C-Corp or LLC)"
-                value={data.is_scorp} onChange={v => setData(d => ({ ...d, is_scorp: v }))} isFr={false} />}
-              {data.country === "US" && <Toggle label="Has accumulated retained earnings / E&P over $250K"
-                value={data.has_accumulated_ep} onChange={v => setData(d => ({ ...d, has_accumulated_ep: v }))} isFr={false} />}
+              {data.country === "US" && <Toggle label="Currently structured as S-Corp (vs C-Corp or LLC)" labelFr="Actuellement structuré en S-Corp"
+                value={(data as any).is_scorp ?? false} onChange={v => setData(d => ({ ...d, is_scorp: v } as any))} isFr={isFr} />}
+              {data.country === "US" && <Toggle label="Has accumulated retained earnings / E&P over $250K" labelFr="Bénéfices non répartis accumulés > 250K$"
+                value={(data as any).has_accumulated_ep ?? false} onChange={v => setData(d => ({ ...d, has_accumulated_ep: v } as any))} isFr={isFr} />}
             </div>
 
             <div className="bg-white border border-border-light rounded-xl p-4 space-y-3">
@@ -997,6 +999,7 @@ export default function DiagnosticIntakePage() {
             <div className="bg-white border border-border-light rounded-xl divide-y divide-border-light overflow-hidden">
               {[
                 { label: t("Business", "Entreprise"), value: `${data.business_name} • ${data.structure} • ${data.province}` },
+                { label: t("Industry", "Industrie"), value: data.industry ? data.industry.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : t("Not selected", "Non sélectionnée") },
                 { label: t("Annual revenue", "Revenus annuels"), value: data.exact_annual_revenue ? `$${data.exact_annual_revenue.toLocaleString()}` : t("Estimate only", "Estimation seulement") },
                 { label: t("Net income", "Revenu net"), value: data.net_income_last_year ? `$${data.net_income_last_year.toLocaleString()}` : "—" },
                 { label: t("EBITDA", "BAIIA"), value: data.ebitda_estimate ? `$${data.ebitda_estimate.toLocaleString()}` : "—" },

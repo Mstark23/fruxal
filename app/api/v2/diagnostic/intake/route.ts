@@ -162,6 +162,7 @@ export async function POST(req: NextRequest) {
     );
 
     console.log(`[Intake] Saving industry: raw="${d.industry}" clean.industry="${clean.industry}" clean.industry_label="${clean.industry_label}" clean.industry_slug="${clean.industry_slug}"`);
+    console.log(`[Intake] Full clean payload keys:`, Object.keys(clean).join(", "));
 
     // upsert — if no row exists yet (new business), create it.
     // .update() silently fails when no row exists -> "Business not found" on diagnostic launch
