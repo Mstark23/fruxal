@@ -1,16 +1,37 @@
 // Temporary debug endpoint — remove after fixing industry issue
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const userId = ((token as any)?.id || token?.sub) as string | undefined;
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const dynamic = "force-dynamic";
 
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    const userId = (session?.user as any)?.id;
+
+    if (!userId) {
+      // Fallback: try getToken
+      const { getToken } = await import("next-auth/jwt");
+      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      const tokenUserId = ((token as any)?.id || token?.sub) as string | undefined;
+      if (!tokenUserId) {
+        return NextResponse.json({ error: "Not logged in. Open dashboard first, then try again.", hint: "Use browser console: fetch('/api/v2/debug-industry').then(r=>r.json()).then(console.log)" });
+      }
+      return await getDebugData(tokenUserId);
+    }
+
+    return await getDebugData(userId);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message });
+  }
+}
+
+async function getDebugData(userId: string) {
   const { data: profile } = await supabaseAdmin
     .from("business_profiles")
-    .select("business_id, business_name, industry, province, country, business_structure")
+    .select("*")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -22,26 +43,20 @@ export async function GET(req: NextRequest) {
     .limit(1)
     .maybeSingle();
 
-  // List ALL columns in business_profiles to see which exist
-  const { data: allCols } = await supabaseAdmin
-    .from("business_profiles")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  const columnNames = allCols ? Object.keys(allCols) : [];
+  const columnNames = profile ? Object.keys(profile) : [];
 
   return NextResponse.json({
     userId,
-    profile_industry: profile?.industry,
-    profile_business_name: profile?.business_name,
-    profile_province: profile?.province,
-    profile_country: profile?.country,
-    profile_structure: profile?.business_structure,
-    prescan_industry: prescan?.industry_slug,
+    db_industry: profile?.industry ?? "NULL",
+    db_industry_label: profile?.industry_label ?? "COLUMN_MISSING_OR_NULL",
+    db_industry_slug: profile?.industry_slug ?? "COLUMN_MISSING_OR_NULL",
+    db_business_name: profile?.business_name ?? "NULL",
+    db_province: profile?.province ?? "NULL",
+    db_country: profile?.country ?? "NULL",
+    prescan_industry: prescan?.industry_slug ?? "NO_PRESCAN",
+    columns_in_table: columnNames.sort(),
+    has_industry_column: columnNames.includes("industry"),
     has_industry_label_column: columnNames.includes("industry_label"),
     has_industry_slug_column: columnNames.includes("industry_slug"),
-    has_industry_naics_column: columnNames.includes("industry_naics"),
-    all_columns: columnNames,
   });
 }
