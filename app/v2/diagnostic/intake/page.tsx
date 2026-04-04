@@ -358,28 +358,19 @@ export default function DiagnosticIntakePage() {
       console.log("[Intake:Launch] Step 1 result:", JSON.stringify(saveJson).slice(0, 200));
       if (!saveJson.success) throw new Error("Intake save failed: " + (saveJson.error || "unknown"));
 
-      console.log("[Intake:Launch] Step 2: Running diagnostic...");
-      // Run diagnostic
-      const runRes = await fetch("/api/v2/diagnostic/run", {
+      console.log("[Intake:Launch] Step 2: Triggering diagnostic (fire-and-forget)...");
+      // Fire diagnostic run but DON'T wait for it to complete.
+      // The run endpoint creates a report with status "analyzing" and processes in background.
+      // The dashboard has polling logic to detect when the report is ready.
+      fetch("/api/v2/diagnostic/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessId, language: lang }),
-        signal: controller.signal,
-      });
-      const runText = await runRes.text();
-      console.log("[Intake:Launch] Step 2 raw response (first 500):", runText.slice(0, 500));
-      let runJson;
-      try {
-        runJson = JSON.parse(runText);
-      } catch {
-        console.error("[Intake:Launch] Server returned non-JSON:", runText.slice(0, 300));
-        throw new Error("Server error — the diagnostic timed out or crashed. Please try again.");
-      }
-      if (!runJson.success) throw new Error("Diagnostic failed: " + (runJson.error || "unknown"));
+      }).catch(() => {}); // Fire and forget — don't block on response
 
       clearTimeout(clientTimeout);
-      // Redirect to dashboard — the rep reviews the report with the client on their call.
-      // The dashboard will show the green rep booking banner now that diagFindings exist.
+      // Redirect to dashboard immediately — it will show "analyzing" state
+      // and poll until the diagnostic completes
       router.push("/v2/dashboard");
     } catch (e: any) {
       clearTimeout(clientTimeout);
