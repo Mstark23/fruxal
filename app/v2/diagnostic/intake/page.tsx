@@ -1095,6 +1095,22 @@ export default function DiagnosticIntakePage() {
             ) : <div />}
             <button
               onClick={() => {
+                // Step 1 validation: require industry and structure
+                if (step === 1) {
+                  if (!data.industry) {
+                    alert(t("Please select your industry before continuing.", "Veuillez sélectionner votre industrie avant de continuer."));
+                    return;
+                  }
+                  if (!data.structure) {
+                    alert(t("Please select your legal structure before continuing.", "Veuillez sélectionner votre structure légale avant de continuer."));
+                    return;
+                  }
+                }
+                // Step 2 validation: require revenue
+                if (step === 2 && !data.exact_annual_revenue) {
+                  alert(t("Please enter your annual revenue before continuing.", "Veuillez entrer votre revenu annuel avant de continuer."));
+                  return;
+                }
                 // Auto-skip enterprise step if not enterprise
                 if (step === 3 && !isEnterprise) {
                   setStep(DOC_STEP);

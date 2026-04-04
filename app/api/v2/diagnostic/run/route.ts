@@ -221,11 +221,30 @@ export async function POST(req: NextRequest) {
       }, { status: 422 });
     }
 
-    // Default industry if missing — prevents "undefined" in results
+    // Default industry if missing — try prescan data first, then fallback to "general"
     if (!profile.industry && !profile.industry_label) {
-      console.warn("[Diagnostic] No industry set for businessId:", businessId, "— defaulting to 'general'");
-      profile.industry = "general";
-      profile.industry_label = "General Business";
+      // Try to recover industry from prescan_runs
+      const { data: prescanRow } = await supabaseAdmin
+        .from("prescan_runs")
+        .select("industry_slug")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (prescanRow?.industry_slug) {
+        profile.industry = prescanRow.industry_slug;
+        profile.industry_slug = prescanRow.industry_slug;
+        // Also backfill the profile so this doesn't happen again
+        await supabaseAdmin.from("business_profiles").update({
+          industry: prescanRow.industry_slug,
+          industry_slug: prescanRow.industry_slug
+        }).eq("user_id", userId).eq("business_id", businessId);
+        console.log("[Diagnostic] Backfilled industry from prescan:", prescanRow.industry_slug);
+      } else {
+        console.warn("[Diagnostic] No industry set for businessId:", businessId, "— defaulting to 'general'");
+        profile.industry = "general";
+        profile.industry_label = "General Business";
+      }
     }
 
     // ── 3. Fetch DB context ───────────────────────────────────────────────
