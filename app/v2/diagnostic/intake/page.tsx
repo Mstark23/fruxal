@@ -346,6 +346,7 @@ export default function DiagnosticIntakePage() {
     const clientTimeout = setTimeout(() => controller.abort(), 130_000);
 
     try {
+      console.log("[Intake:Launch] Step 1: Saving intake. industry =", data.industry, "businessId =", businessId);
       // Save intake data
       const saveRes = await fetch("/api/v2/diagnostic/intake", {
         method: "POST",
@@ -354,8 +355,10 @@ export default function DiagnosticIntakePage() {
         signal: controller.signal,
       });
       const saveJson = await saveRes.json();
-      if (!saveJson.success) throw new Error(saveJson.error);
+      console.log("[Intake:Launch] Step 1 result:", JSON.stringify(saveJson).slice(0, 200));
+      if (!saveJson.success) throw new Error("Intake save failed: " + (saveJson.error || "unknown"));
 
+      console.log("[Intake:Launch] Step 2: Running diagnostic...");
       // Run diagnostic
       const runRes = await fetch("/api/v2/diagnostic/run", {
         method: "POST",
@@ -364,7 +367,8 @@ export default function DiagnosticIntakePage() {
         signal: controller.signal,
       });
       const runJson = await runRes.json();
-      if (!runJson.success) throw new Error(runJson.error);
+      console.log("[Intake:Launch] Step 2 result:", JSON.stringify(runJson).slice(0, 300));
+      if (!runJson.success) throw new Error("Diagnostic failed: " + (runJson.error || "unknown"));
 
       clearTimeout(clientTimeout);
       // Redirect to dashboard — the rep reviews the report with the client on their call.
@@ -375,6 +379,8 @@ export default function DiagnosticIntakePage() {
       const msg = e?.name === "AbortError"
         ? "The analysis is taking longer than expected. Please try again — your data has been saved."
         : e.message;
+      console.error("[Intake:Launch] Error caught:", msg, "| Full error:", e);
+      console.error("[Intake:Launch] data.industry =", data.industry, "| data.structure =", data.structure);
       setError(msg);
       setSaving(false);
     }
