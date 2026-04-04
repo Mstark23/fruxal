@@ -24,10 +24,10 @@ export function resolveTier(profile: any, business: any): DiagnosticTier {
 }
 
 export function tierMaxTokens(tier: DiagnosticTier): number {
-  // Keep within Vercel Hobby 60s timeout — lower tokens = faster response
-  if (tier === "enterprise") return 8000;
-  if (tier === "business")   return 6000;
-  return 4000;
+  // Pro plan has 300s timeout — can afford higher token budgets
+  if (tier === "enterprise") return 16000;
+  if (tier === "business")   return 10000;
+  return 6000;
 }
 
 export function tierMaxFindings(tier: DiagnosticTier): number {
