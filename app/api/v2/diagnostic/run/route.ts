@@ -498,10 +498,16 @@ export async function POST(req: NextRequest) {
         messages: [{ role: "user", content: userPrompt }],
       };
 
-      const response = await getAnthropic().messages.create(createParams);
+      // Use streaming internally to prevent Vercel timeout.
+      // Collect all chunks server-side, then parse the full JSON.
+      const stream = getAnthropic().messages.stream(createParams);
+      let rawText = "";
+      for await (const event of stream) {
+        if (event.type === "content_block_delta" && (event.delta as any)?.type === "text_delta") {
+          rawText += (event.delta as any).text;
+        }
+      }
 
-      const textBlock = response.content.find((b: any) => b.type === "text") as any;
-      const rawText = textBlock?.text || "";
       if (!rawText || rawText.length < 50) {
         throw new Error("AI returned an incomplete response (length=" + rawText.length + ")");
       }
