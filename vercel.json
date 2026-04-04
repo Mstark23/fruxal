@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/v2/diagnostic/run": {
-      "maxDuration": 300
-    }
-  },
   "crons": [
     {
       "path": "/api/v2/cron/daily",
