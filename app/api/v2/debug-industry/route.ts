@@ -45,18 +45,25 @@ async function getDebugData(userId: string) {
 
   const columnNames = profile ? Object.keys(profile) : [];
 
+  // Also check businesses table for tier
+  const { data: biz } = await supabaseAdmin
+    .from("businesses")
+    .select("id, tier, billing_tier, owner_user_id")
+    .eq("owner_user_id", userId)
+    .maybeSingle();
+
   return NextResponse.json({
     userId,
     db_industry: profile?.industry ?? "NULL",
-    db_industry_label: profile?.industry_label ?? "COLUMN_MISSING_OR_NULL",
-    db_industry_slug: profile?.industry_slug ?? "COLUMN_MISSING_OR_NULL",
     db_business_name: profile?.business_name ?? "NULL",
     db_province: profile?.province ?? "NULL",
     db_country: profile?.country ?? "NULL",
+    db_exact_annual_revenue: profile?.exact_annual_revenue ?? "NULL",
+    db_annual_revenue: profile?.annual_revenue ?? "NULL",
     prescan_industry: prescan?.industry_slug ?? "NO_PRESCAN",
-    columns_in_table: columnNames.sort(),
-    has_industry_column: columnNames.includes("industry"),
-    has_industry_label_column: columnNames.includes("industry_label"),
-    has_industry_slug_column: columnNames.includes("industry_slug"),
+    businesses_tier: biz?.tier ?? "NULL",
+    businesses_billing_tier: biz?.billing_tier ?? "NULL",
+    businesses_id: biz?.id ?? "NULL",
+    profile_business_id: profile?.business_id ?? "NULL",
   });
 }
