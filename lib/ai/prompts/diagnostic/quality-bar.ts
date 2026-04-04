@@ -33,7 +33,7 @@ export function buildQualityBar(tier: DiagnosticTier, country: "CA" | "US" = "CA
   impact_max: 19828
   compliance_risk: "IRS reasonable compensation audit: if W-2 set below $84K, risk of reclassification + back FICA + 20% penalty. Document with industry comp study."
   confidence_level: "high"
-  recommendation: "1. File Form 2553 (S-corp election) — deadline March 15 for calendar year, or within 75 days of start. 2. Set up payroll via Gusto ($46/mo + $6/ee) — first W-2 payroll by next quarter. 3. Commission reasonable compensation study using RCReports ($300) or CPA analysis with BLS wage data for ${industry} in ${province}."
+  recommendation: "1. File Form 2553 (S-corp election) — deadline March 15 for calendar year, or within 75 days of start. 2. Set up payroll via Gusto ($46/mo + $6/ee) — first W-2 payroll by next quarter. 3. Commission reasonable compensation study using RCReports ($300) or CPA analysis with BLS wage data for this industry and location."
   solutions: [{ name: "Gusto", url: "https://gusto.com", why: "Best US payroll for S-corp owners — handles W-2, FICA deposits, state filing, and quarterly 941s automatically", price_approx: "$46/mo + $6/ee", category: "payroll" }]`
     : `EXAMPLE A — TAX STRUCTURE FINDING (CA):
   title: "HST Quick Method Election: $9,240/yr Tax Remittance Reduction"
