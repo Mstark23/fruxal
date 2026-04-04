@@ -24,6 +24,7 @@ import { LiveScoreRing, ScoreSparkline, ScoreBreakdown, ScoreRingAddons } from "
 import { LastBriefWidget } from "@/components/v2/LastBriefWidget";
 import { JourneyTimeline } from "@/components/v2/JourneyTimeline";
 import RecoveryTimeline, { buildTimelineSteps } from "@/components/v2/RecoveryTimeline";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 const AiChatWidget = lazy(() => import("@/components/v2/AiChatWidget"));
@@ -116,6 +117,8 @@ export default function EnterpriseDashboard() {
   const [industryReport, setIndustryReport] = useState<any>(null);
   const [intelligence, setIntelligence] = useState<any>(null);
   const [activeAiTool, setActiveAiTool] = useState<string | null>(null);
+  const [trends, setTrends] = useState<any[]>([]);
+  const [newIssues, setNewIssues] = useState<any[]>([]);
 
   const isFr = lang === "fr";
   const t    = (en: string, fr: string) => isFr ? fr : en;
@@ -409,6 +412,19 @@ export default function EnterpriseDashboard() {
           if (d?.success) setEntStatus(d.data);
           setEntStatusLoaded(true);
         }).catch(() => { setEntStatusLoaded(true); });
+
+        // Fetch trends data
+        fetch("/api/trends").then(r => r.json()).then(d => {
+          if (d.trends?.length) setTrends(d.trends);
+        }).catch(() => {});
+
+        // Fetch new issues (leaks created in last 30 days)
+        fetch("/api/v2/leaks?status=detected&since=30d").then(r => r.ok ? r.json() : null).then(d => {
+          if (d?.leaks?.length) setNewIssues(d.leaks.filter((l: any) => {
+            const created = new Date(l.created_at || l.detected_at);
+            return (Date.now() - created.getTime()) < 30 * 86400000;
+          }));
+        }).catch(() => {});
 
         if (reportRes?.success && reportRes.data) {
           const r = reportRes.data;
@@ -1601,6 +1617,63 @@ export default function EnterpriseDashboard() {
         {/* ── Locked sections: CPA Briefing + Priority Sequence + Benchmarks ── */}
         {(briefing || planSequence.length > 0 || benchmarks.length > 0) && (() => {
           const lockedValue = findings.slice(3).reduce((s: number, f: any) => s + ((f.impact_max || f.impact_min) ?? 0), 0);
+
+          // If in active engagement: show unlocked content
+          if (entStatus?.engagement) {
+            return (
+              <div className="space-y-3 mb-4">
+                {briefing && (
+                  <div className="bg-white rounded-xl border border-[#E5E3DD] p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                    <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">{t("CPA Briefing","Briefing CPA")}</p>
+                    <p className="text-[12px] text-[#56554F] leading-relaxed whitespace-pre-wrap">{typeof briefing === "string" ? briefing : briefing.summary || briefing.text || JSON.stringify(briefing)}</p>
+                  </div>
+                )}
+                {planSequence.length > 0 && (
+                  <div className="bg-white rounded-xl border border-[#E5E3DD] p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                    <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">{t("Priority Recovery Sequence","Séquence de récupération prioritaire")}</p>
+                    <div className="space-y-2">
+                      {planSequence.map((s: any, i: number) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-full bg-[#1B3A2D] text-white text-[10px] font-bold flex items-center justify-center shrink-0">{s.step || i+1}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[12px] font-semibold text-[#1A1A18] truncate">{s.action || s.title}</p>
+                          </div>
+                          {s.value > 0 && <span className="text-[11px] font-bold text-[#2D7A50] shrink-0">{fmtM(s.value)}/yr</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {benchmarks.length > 0 && (
+                  <div className="bg-white rounded-xl border border-[#E5E3DD] p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                    <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">{t("Peer Benchmarks","Comparaisons aux pairs")}</p>
+                    <div className="space-y-3">
+                      {benchmarks.map((b: any, i: number) => {
+                        const yours = parseFloat(b.yours || b.your_value) || 0;
+                        const avg = parseFloat(b.industry_avg || b.average) || 0;
+                        const aboveAvg = yours >= avg;
+                        return (
+                          <div key={i}>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[11px] font-semibold text-[#1A1A18]">{b.metric || b.label}</span>
+                              <span className={"text-[10px] font-bold " + (aboveAvg ? "text-[#2D7A50]" : "text-[#B34040]")}>{aboveAvg ? "▲ Above avg" : "▼ Below avg"}</span>
+                            </div>
+                            <div className="flex gap-4 text-[10px] text-[#8E8C85]">
+                              <span>Yours: <b className="text-[#1A1A18]">{b.yours || b.your_value}</b></span>
+                              <span>Avg: {b.industry_avg || b.average}</span>
+                              <span>Top 25%: {b.top_quartile || b.best}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // Not in engagement: show locked gate
           return (
             <div className="bg-white rounded-xl border overflow-hidden mb-3"
               style={{ borderColor: "rgba(27,58,45,0.15)", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
@@ -1907,6 +1980,93 @@ export default function EnterpriseDashboard() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════
+            ENTERPRISE INTELLIGENCE — Trends, Valuation, New Issues
+        ══════════════════════════════════════════════════════════════════ */}
+        {hasReport && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4" style={fade(0.12)}>
+            {/* Card 1: Health Score Trend */}
+            <div className="bg-white rounded-xl border border-[#E5E3DD] p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">{t("Health Score Trend","Tendance du pointage de santé")}</p>
+              {trends.length > 1 ? (
+                <div style={{ width: "100%", height: 140 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trends} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#8E8C85" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: "#8E8C85" }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E3DD" }} />
+                      <Area type="monotone" dataKey="score" stroke="#2D7A50" fill="#2D7A50" fillOpacity={0.15} strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[140px]">
+                  <p className="text-[11px] text-[#8E8C85] text-center">{t("Run more diagnostics to see your trend","Effectuez plus de diagnostics pour voir votre tendance")}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Card 2: Recovery Velocity */}
+            <div className="bg-white rounded-xl border border-[#E5E3DD] p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">{t("Recovery Velocity","Vélocité de récupération")}</p>
+              {trends.some((tr: any) => tr.recovered > 0) ? (
+                <div style={{ width: "100%", height: 140 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={trends} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#8E8C85" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: "#8E8C85" }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E3DD" }} formatter={(v: any) => [fmtM(Number(v)), t("Recovered","Récupéré")]} />
+                      <Bar dataKey="recovered" fill="#2D7A50" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <p className="text-[10px] text-[#8E8C85] text-right mt-1">
+                    {t("Total recovered","Total récupéré")}: <span className="font-bold text-[#2D7A50]">{fmtM(trends.reduce((s: number, tr: any) => s + (tr.recovered || 0), 0))}</span>
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[140px]">
+                  <p className="text-[11px] text-[#8E8C85] text-center">{t("Savings will appear here as your rep confirms recoveries","Les économies apparaîtront ici lorsque votre représentant confirmera les récupérations")}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Card 3: Valuation Impact */}
+            <div className="bg-white rounded-xl border border-[#E5E3DD] p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">{t("Enterprise Value Impact","Impact sur la valeur d'entreprise")}</p>
+              {totals.ebitda_impact > 0 ? (
+                <div>
+                  <p className="text-[11px] text-[#56554F] mb-2">{t("If you fix all identified leaks:","Si vous corrigez toutes les fuites identifiées :")}</p>
+                  <p className="text-[13px] font-bold text-[#1A1A18] mb-3">
+                    +{fmtM(totals.ebitda_impact)} {t("EBITDA/yr","BAIIA/an")} → +{fmtM(totals.ebitda_impact * 4)} {t("to","à")} {fmtM(totals.ebitda_impact * 6)} {t("enterprise value","valeur d'entreprise")}
+                  </p>
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="text-[#8E8C85]">
+                        <th className="text-left font-semibold pb-1">{t("Multiple","Multiple")}</th>
+                        <th className="text-right font-semibold pb-1">{t("Value Impact","Impact valeur")}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-[#1A1A18]">
+                      {[4, 5, 6].map(m => (
+                        <tr key={m} className="border-t border-[#E5E3DD]/60">
+                          <td className="py-1.5 font-medium">{m}×</td>
+                          <td className="py-1.5 text-right font-bold text-[#2D7A50]">+{fmtM(totals.ebitda_impact * m)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[140px]">
+                  <p className="text-[11px] text-[#8E8C85] text-center">{t("Run diagnostic to see valuation impact","Lancez un diagnostic pour voir l'impact sur la valeur")}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
             SECTION 5 — SAVINGS TRACKER
         ══════════════════════════════════════════════════════════════════ */}
         {entStatus?.engagement && (
@@ -1970,6 +2130,41 @@ export default function EnterpriseDashboard() {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* New Issues Alert */}
+        {newIssues.length > 0 && (
+          <div className="bg-[#FFFBEB] border border-[#F59E0B]/30 rounded-xl px-5 py-4 mb-4 flex items-start gap-3" style={fade(0.13)}>
+            <span className="shrink-0 mt-0.5 text-[#F59E0B]">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold text-[#92400E] mb-1">
+                {newIssues.length} {t("new issues detected this month","nouveaux problèmes détectés ce mois-ci")}
+              </p>
+              <div className="space-y-1.5">
+                {newIssues.slice(0, 3).map((issue: any, i: number) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className={"text-[9px] font-bold uppercase px-1.5 py-0.5 rounded " +
+                      (issue.severity === "critical" ? "bg-[#FEE2E2] text-[#B91C1C]" :
+                       issue.severity === "high" ? "bg-[#FEF3C7] text-[#92400E]" :
+                       "bg-[#E5E3DD] text-[#56554F]")}>
+                      {issue.severity || "new"}
+                    </span>
+                    <span className="text-[11px] text-[#1A1A18] truncate">{issue.title || issue.leak_name || issue.name}</span>
+                    {(issue.impact_max || issue.impact_min || issue.amount) > 0 && (
+                      <span className="text-[11px] font-bold text-[#B34040] shrink-0">{fmtM(issue.impact_max || issue.impact_min || issue.amount)}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {newIssues.length > 3 && (
+                <button onClick={() => router.push("/v2/leaks")} className="text-[11px] font-semibold text-[#92400E] hover:underline mt-2">
+                  {t("View all","Voir tout")} →
+                </button>
+              )}
+            </div>
           </div>
         )}
 
