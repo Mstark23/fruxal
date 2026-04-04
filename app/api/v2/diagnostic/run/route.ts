@@ -405,9 +405,15 @@ export async function POST(req: NextRequest) {
     };
 
     // Single call — routes to correct tier prompt (solo / business / enterprise)
-    const prompts = buildDiagnosticPrompts(tier, diagCtx);
-    systemPrompt = prompts.systemPrompt;
-    userPrompt   = prompts.userPrompt;
+    let prompts;
+    try {
+      prompts = buildDiagnosticPrompts(tier, diagCtx);
+      systemPrompt = prompts.systemPrompt;
+      userPrompt   = prompts.userPrompt;
+    } catch (promptErr: any) {
+      console.error("[Diagnostic] PROMPT BUILD FAILED:", promptErr.message, "\nStack:", promptErr.stack?.slice(0, 800));
+      return NextResponse.json({ success: false, error: "Prompt build failed: " + promptErr.message }, { status: 500 });
+    }
 
 
     // ── Append prescan baseline data to system prompt (under 400 tokens) ────
