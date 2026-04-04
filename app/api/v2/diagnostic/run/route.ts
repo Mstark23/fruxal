@@ -248,10 +248,9 @@ export async function POST(req: NextRequest) {
         profile.industry = prescanRow.industry_slug;
         profile.industry_slug = prescanRow.industry_slug;
         profile.industry_label = INDUSTRY_LABELS[prescanRow.industry_slug] || prescanRow.industry_slug;
+        // NOTE: only 'industry' column exists in business_profiles table
         await supabaseAdmin.from("business_profiles").update({
           industry: prescanRow.industry_slug,
-          industry_slug: prescanRow.industry_slug,
-          industry_label: profile.industry_label,
         }).eq("user_id", userId).eq("business_id", businessId);
         console.log("[Diagnostic] Backfilled industry from prescan:", prescanRow.industry_slug);
       } else {
@@ -283,14 +282,13 @@ export async function POST(req: NextRequest) {
       // Check what's actually in DB (profile object may have been mutated above)
       const { data: dbRow } = await supabaseAdmin
         .from("business_profiles")
-        .select("industry, industry_slug, industry_label")
+        .select("industry")
         .eq("business_id", businessId)
         .eq("user_id", userId)
         .maybeSingle();
-      if (!dbRow?.industry || dbRow.industry === "" || !dbRow?.industry_label || dbRow.industry_label === "") {
+      if (!dbRow?.industry || dbRow.industry === "") {
         dbUpdate.industry = profile.industry;
-        dbUpdate.industry_slug = profile.industry_slug || profile.industry;
-        dbUpdate.industry_label = profile.industry_label;
+        // NOTE: only 'industry' column exists in business_profiles (per Prisma schema)
         await supabaseAdmin.from("business_profiles")
           .update(dbUpdate)
           .eq("business_id", businessId)
