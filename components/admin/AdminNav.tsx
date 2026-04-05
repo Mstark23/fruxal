@@ -30,7 +30,7 @@ export function AdminNav() {
         else if (!active)
           active = pathname?.startsWith(tab.path + "/") || false;
 
-        const disabled = tab.path === "/admin/settings";
+        const disabled = false;
         return (
           <button key={tab.path} onClick={() => !disabled && router.push(tab.path)} disabled={disabled}
             className={`pb-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
