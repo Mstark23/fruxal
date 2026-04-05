@@ -1632,6 +1632,33 @@ export default function EnterpriseDashboard() {
           </div>
         )}
 
+        {/* ── Book Strategy Call CTA — primary conversion action ── */}
+        {hasReport && !entStatus?.engagement && (
+          <a href={calendlyUrl}
+            target="_blank" rel="noopener noreferrer"
+            className="block rounded-xl overflow-hidden mb-4 hover:shadow-lg transition-all"
+            style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+            <div className="px-5 py-5">
+              <div className="flex items-center gap-2 mb-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 0112 2.18 2 2 0 0114.09 4v3"/></svg>
+                <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">{t("Next Step", "Prochaine étape")}</span>
+              </div>
+              <p className="text-[16px] font-bold text-white mb-1">{t("Book Your Free Strategy Call", "Réservez votre appel stratégie gratuit")}</p>
+              <p className="text-[12px] text-white/70 mb-3">
+                {t(`$${(totals.leaks ?? 0).toLocaleString()}/yr in recoverable leaks identified across ${findings.length} findings. Your dedicated recovery expert will walk through each one — 12% contingency, no cost if we don't find savings.`,
+                   `${(totals.leaks ?? 0).toLocaleString()}$/an en fuites récupérables identifiées. Votre expert dédié examinera chaque constat — 12% à la performance, aucun frais si pas d'économies.`)}
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#1B3A2D] text-[12px] font-bold rounded-lg">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+                  {t("Book Free Call →", "Réserver →")}
+                </span>
+                <span className="text-[10px] text-white/50">{t("15 min · No commitment", "15 min · Sans engagement")}</span>
+              </div>
+            </div>
+          </a>
+        )}
+
         {/* ── Locked sections: CPA Briefing + Priority Sequence + Benchmarks ── */}
         {(briefing || planSequence.length > 0 || benchmarks.length > 0) && (() => {
           const lockedValue = findings.slice(3).reduce((s: number, f: any) => s + ((f.impact_max || f.impact_min) ?? 0), 0);
