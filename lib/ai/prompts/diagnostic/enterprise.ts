@@ -160,7 +160,7 @@ LEAK DETECTORS — additional context:
 ${leakList || "None"}
 
 INDUSTRY BENCHMARKS:
-${benchmarkList || "Use Canadian enterprise averages for this industry"}
+${benchmarkList || "No verified benchmarks available. Do NOT invent benchmark numbers."}
 
 ${buildQualityBar("enterprise", "CA", industry)}
 
@@ -224,6 +224,20 @@ BUSINESS FLAGS
 - Has Bookkeeper:    ${profile.has_bookkeeper       ? "YES" : "NO"}
 - Physical Location: ${profile.has_physical_location ? "YES" : "NO"}
 - Handles Data:      ${profile.handles_data         ? "YES" : "NO"}
+
+${(() => {
+  const d = ctx.docData;
+  if (!d || (!d.t2 && !d.financials && !d.gst && !d.t4 && !d.bank)) return "";
+  const lines: string[] = ["\nVERIFIED DOCUMENT DATA (treat as authoritative, overrides estimates above):"];
+  if (d.t2?.net_income_before_tax) lines.push(`  T2: Net income $${d.t2.net_income_before_tax.toLocaleString()}, tax payable $${(d.t2.total_tax_payable ?? 0).toLocaleString()}`);
+  if (d.t2?.small_business_deduction) lines.push(`  T2: SBD claimed $${d.t2.small_business_deduction.toLocaleString()}`);
+  if (d.t2?.sred_credit_claimed) lines.push(`  T2: SR&ED credit $${d.t2.sred_credit_claimed.toLocaleString()}`);
+  if (d.financials?.total_revenue) lines.push(`  Financials: Revenue $${d.financials.total_revenue.toLocaleString()}, Gross margin ${(d.financials.gross_margin_pct ?? 0).toFixed(1)}%, EBITDA $${(d.financials.ebitda ?? 0).toLocaleString()}, Net income $${(d.financials.net_income ?? 0).toLocaleString()}`);
+  if (d.gst?.quick_method !== undefined) lines.push(`  GST: Quick method elected = ${d.gst.quick_method ? "YES — already active" : "NO — assess eligibility"}`);
+  if (d.t4?.total_employment_income) lines.push(`  T4: Total payroll $${d.t4.total_employment_income.toLocaleString()}, ${d.t4.number_of_t4s ?? 0} employees on T4`);
+  if (d.bank?.avg_monthly_balance) lines.push(`  Bank: Avg monthly balance $${d.bank.avg_monthly_balance.toLocaleString()}`);
+  return lines.join("\n");
+})()}
 
 Return ONLY this JSON (no markdown fences):
 ${buildDiagnosticSchema("enterprise", 12, "CA")}`;
@@ -354,7 +368,7 @@ LEAK DETECTORS — additional context:
 ${leakList || "None"}
 
 INDUSTRY BENCHMARKS:
-${benchmarkList || "Use US enterprise averages for this industry and state"}
+${benchmarkList || "No verified benchmarks available. Do NOT invent benchmark numbers."}
 
 ${buildQualityBar("enterprise", "US", industry)}
 
@@ -375,6 +389,7 @@ STRUCTURAL RULES:
 12. MANDATORY WRITE ORDER: scores → totals → findings → executive_summary → savings_anchor → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence.
     If token budget is tight: reduce to 8 findings, shorten cpa_briefing and benchmark descriptions. NEVER truncate findings.
 13. When you have more analyses than the finding limit allows, use the FINDING PRIORITY ORDER from the methodology section. Never drop categories 1-3 for categories 7-9.
+${isFr ? "14. CRITICAL — FRENCH: Every user-facing text field MUST be in professional French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Analyze this US enterprise business and return a complete JSON diagnostic report.
@@ -401,6 +416,20 @@ ${ownerSalary > 0 ? `- Owner W-2:      $${ownerSalary.toLocaleString()}` : ""}
 - Est. tax drag:  ${estimatedTaxDrag > 0 ? `$${estimatedTaxDrag.toLocaleString()}/yr` : "Not calculated"}
 - SR&ED last yr:  ${(sredLastYear ?? 0) > 0 ? `$${sredLastYear.toLocaleString()}` : "None"}
 ${overdue > 0 ? `- ⚠️  OVERDUE OBLIGATIONS: ${overdue} — penalty exposure: $${(penaltyExposure ?? 0).toLocaleString()}` : ""}
+
+${(() => {
+  const d = ctx.docData;
+  if (!d || (!d.t2 && !d.financials && !d.gst && !d.t4 && !d.bank)) return "";
+  const lines: string[] = ["\nVERIFIED DOCUMENT DATA (treat as authoritative, overrides estimates above):"];
+  if (d.t2?.net_income_before_tax) lines.push(`  T2/1120: Net income $${d.t2.net_income_before_tax.toLocaleString()}, tax payable $${(d.t2.total_tax_payable ?? 0).toLocaleString()}`);
+  if (d.t2?.small_business_deduction) lines.push(`  T2/1120: Deduction claimed $${d.t2.small_business_deduction.toLocaleString()}`);
+  if (d.t2?.sred_credit_claimed) lines.push(`  T2/1120: R&D credit $${d.t2.sred_credit_claimed.toLocaleString()}`);
+  if (d.financials?.total_revenue) lines.push(`  Financials: Revenue $${d.financials.total_revenue.toLocaleString()}, Gross margin ${(d.financials.gross_margin_pct ?? 0).toFixed(1)}%, EBITDA $${(d.financials.ebitda ?? 0).toLocaleString()}, Net income $${(d.financials.net_income ?? 0).toLocaleString()}`);
+  if (d.gst?.quick_method !== undefined) lines.push(`  GST/Sales Tax: Quick method = ${d.gst.quick_method ? "YES" : "NO"}`);
+  if (d.t4?.total_employment_income) lines.push(`  T4/W-2: Total payroll $${d.t4.total_employment_income.toLocaleString()}, ${d.t4.number_of_t4s ?? 0} employees`);
+  if (d.bank?.avg_monthly_balance) lines.push(`  Bank: Avg monthly balance $${d.bank.avg_monthly_balance.toLocaleString()}`);
+  return lines.join("\n");
+})()}
 
 Return ONLY this JSON (no markdown fences):
 ${buildDiagnosticSchema("enterprise", 9, "US")}`;

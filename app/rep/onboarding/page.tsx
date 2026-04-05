@@ -52,22 +52,22 @@ export default function RepOnboardingPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="bg-white border-b border-[#E5E3DD]">
-        <div className="max-w-[760px] mx-auto px-6 py-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-[18px] font-bold text-[#1A1A18]">Rep Quick-Start Guide</h1>
+        <div className="max-w-[760px] mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-[16px] sm:text-[18px] font-bold text-[#1A1A18]">Rep Quick-Start Guide</h1>
             <p className="text-[11px] text-[#8E8C85] mt-0.5">5 steps to your first closed engagement</p>
           </div>
           <button onClick={() => router.push("/rep/dashboard")}
-            className="text-[12px] font-semibold text-[#1B3A2D] hover:underline">
-            Go to Dashboard →
+            className="text-[12px] font-semibold text-[#1B3A2D] hover:underline shrink-0 min-h-[36px]">
+            Dashboard →
           </button>
         </div>
       </div>
 
-      <div className="max-w-[760px] mx-auto px-6 py-8 space-y-4">
+      <div className="max-w-[760px] mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4">
         {STEPS.map((s, i) => (
           <div key={i} className="bg-white border border-[#E5E3DD] rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-            <div className="flex items-start gap-5 px-6 py-5">
+            <div className="flex items-start gap-3 sm:gap-5 px-4 sm:px-6 py-4 sm:py-5">
               <div className="w-8 h-8 rounded-full bg-[#1B3A2D] flex items-center justify-center shrink-0 mt-0.5">
                 <span className="text-[11px] font-black text-white">{s.n}</span>
               </div>
@@ -87,12 +87,12 @@ export default function RepOnboardingPage() {
 
         {/* Document cheat sheet */}
         <div className="bg-white border border-[#E5E3DD] rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-          <div className="px-6 py-4 border-b border-[#E5E3DD]">
+          <div className="px-4 sm:px-6 py-4 border-b border-[#E5E3DD]">
             <p className="text-[12px] font-bold text-[#1A1A18]">Documents to Request by Category</p>
           </div>
           <div className="divide-y divide-[#F0EFEB]">
             {Object.entries(DOCS_NEEDED).map(([cat, docs]) => (
-              <div key={cat} className="px-6 py-4">
+              <div key={cat} className="px-4 sm:px-6 py-4">
                 <p className="text-[11px] font-bold text-[#2D7A50] uppercase tracking-wider mb-2">{cat}</p>
                 <ul className="space-y-1">
                   {docs.map(doc => (
@@ -107,7 +107,7 @@ export default function RepOnboardingPage() {
           </div>
         </div>
 
-        <div className="bg-[#1B3A2D] rounded-xl px-6 py-5 text-center">
+        <div className="bg-[#1B3A2D] rounded-xl px-4 sm:px-6 py-5 text-center">
           <p className="text-[13px] font-semibold text-white mb-1">Commission model</p>
           <p className="text-[12px] text-white/60 mb-4">
             You earn a commission on the Fruxal fee. Client pays 12% of confirmed savings.

@@ -14,6 +14,22 @@ interface LinkResult {
   narrative:       string;
 }
 
+// ── Prescan-to-diagnostic category mapping ───────────────────────────────────
+// Prescan detects 7 leak types; diagnostic uses 9+ categories.
+// This map bridges the gap so matching works across category names.
+const PRESCAN_TO_DIAG_MAP: Record<string, string[]> = {
+  "processing_rate_high": ["cash_flow", "operations"],
+  "rent_or_chair_high":   ["contract", "operations"],
+  "tax_optimization_gap": ["tax", "structure"],
+  "payroll_ratio_high":   ["payroll"],
+  "insurance_overpayment":["insurance"],
+  "fuel_vehicle_high":    ["operations"],
+  "software_bloat":       ["operations"],
+  // Additional mappings for overlap
+  "revenue_underpricing": ["growth"],
+  "cash_shrinkage":       ["compliance", "cash_flow"],
+};
+
 // ── Match prescan leak to a diagnostic finding ────────────────────────────────
 function matchesPrescanLeak(finding: any, prescanLeak: any): boolean {
   const fTitle    = String(finding?.title ?? "").toLowerCase();
@@ -24,9 +40,14 @@ function matchesPrescanLeak(finding: any, prescanLeak: any): boolean {
 
   // Direct category match
   if (fCat && pCat && fCat === pCat) return true;
+
+  // Cross-category match via PRESCAN_TO_DIAG_MAP
+  const mappedDiagCats = PRESCAN_TO_DIAG_MAP[pSlug] || PRESCAN_TO_DIAG_MAP[pCat] || [];
+  if (fCat && mappedDiagCats.some(mc => fCat.includes(mc))) return true;
+
   // Slug match
   if (pSlug && (fTitle.includes(pSlug) || fCat.includes(pSlug))) return true;
-  // Title word overlap (3+ shared significant words)
+  // Title word overlap (2+ shared significant words)
   const fWords = fTitle.split(/\W+/).filter(w => w.length > 3);
   const pWords = pTitle.split(/\W+/).filter(w => w.length > 3);
   const shared = fWords.filter(w => pWords.includes(w));

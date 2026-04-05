@@ -292,19 +292,21 @@ export default function RepDashboard() {
 
         {/* ═══ CALENDLY SETUP BANNER ═══ */}
         {!rep?.calendly_url && !showCalendlyEdit && (
-          <div className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl mb-5"
+          <div className="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 px-4 py-3.5 rounded-xl mb-5"
             style={{ background: "rgba(196,132,29,0.04)", border: "1px solid rgba(196,132,29,0.15)" }}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: "rgba(196,132,29,0.1)" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4841D" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-semibold text-[#1A1A18]">Add your Calendly link</p>
-              <p className="text-[10px] text-[#8E8C85] mt-0.5">Clients assigned to you will see a booking CTA on their dashboard. Without it, they'll see a placeholder.</p>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                style={{ background: "rgba(196,132,29,0.1)" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4841D" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[12px] font-semibold text-[#1A1A18]">Add your Calendly link</p>
+                <p className="text-[10px] text-[#8E8C85] mt-0.5">Clients will see a booking CTA on their dashboard.</p>
+              </div>
             </div>
             <button
               onClick={() => { setCalendlyInput(""); setShowCalendlyEdit(true); }}
-              className="shrink-0 h-8 px-4 text-[11px] font-bold text-white rounded-lg transition hover:opacity-90"
+              className="shrink-0 h-9 px-4 text-[11px] font-bold text-white rounded-lg transition hover:opacity-90 w-full sm:w-auto"
               style={{ background: "#C4841D" }}>
               Add Link
             </button>
@@ -368,16 +370,16 @@ export default function RepDashboard() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2 sm:ml-auto">
+          <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
             <select value={sort} onChange={e => setSort(e.target.value as SortKey)}
-              className="text-[10px] font-semibold border border-[#E5E3DD] rounded-lg px-2 py-1.5 bg-white text-[#56554F] focus:outline-none focus:border-[#1B3A2D] cursor-pointer">
+              className="text-[10px] font-semibold border border-[#E5E3DD] rounded-lg px-2 py-1.5 bg-white text-[#56554F] focus:outline-none focus:border-[#1B3A2D] cursor-pointer min-h-[36px] shrink-0">
               <option value="newest">Newest first</option>
               <option value="leak_desc">Biggest leak</option>
               <option value="follow_up">Follow-up date</option>
               <option value="stage">Pipeline stage</option>
             </select>
             <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search clients…"
-              className="text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#1B3A2D] w-full sm:w-48"/>
+              className="text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#1B3A2D] w-full sm:w-48 min-h-[36px]"/>
           </div>
         </div>
 
@@ -466,22 +468,22 @@ export default function RepDashboard() {
                       {c.pipeline?.contactEmail && (
                         <a href={`mailto:${c.pipeline.contactEmail}?subject=${encodeURIComponent(`Following up — ${c.companyName}`)}`}
                           onClick={e => e.stopPropagation()}
-                          className="w-7 h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Email">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+                          className="w-9 h-9 sm:w-7 sm:h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Email">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
                         </a>
                       )}
                       {c.pipeline?.contactPhone && (
                         <a href={`tel:${c.pipeline.contactPhone}`}
                           onClick={e => e.stopPropagation()}
-                          className="w-7 h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Call">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.86 19.86 0 013.09 5.18 2 2 0 015.11 3h3a2 2 0 012 1.72c.13.81.36 1.6.68 2.35a2 2 0 01-.45 2.11L8.09 11.5a16 16 0 006.41 6.41l2.32-2.32a2 2 0 012.11-.45c.75.32 1.54.55 2.35.68A2 2 0 0122 16.92z"/></svg>
+                          className="w-9 h-9 sm:w-7 sm:h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Call">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.86 19.86 0 013.09 5.18 2 2 0 015.11 3h3a2 2 0 012 1.72c.13.81.36 1.6.68 2.35a2 2 0 01-.45 2.11L8.09 11.5a16 16 0 006.41 6.41l2.32-2.32a2 2 0 012.11-.45c.75.32 1.54.55 2.35.68A2 2 0 0122 16.92z"/></svg>
                         </a>
                       )}
                       {rep?.calendly_url && (
                         <a href={rep.calendly_url} target="_blank" rel="noopener noreferrer"
                           onClick={e => e.stopPropagation()}
-                          className="w-7 h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Book call">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          className="w-9 h-9 sm:w-7 sm:h-7 rounded-lg bg-[#F0EFEB] flex items-center justify-center hover:bg-[#E5E3DD] transition" title="Book call">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#56554F" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                         </a>
                       )}
                     </div>

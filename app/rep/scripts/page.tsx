@@ -547,26 +547,26 @@ export default function RepScriptsPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="bg-white border-b border-[#E5E3DD]">
-        <div className="max-w-[900px] mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-[17px] font-bold text-[#1B3A2D]">Scripts Library</h1>
-            <p className="text-[11px] text-[#8E8C85] mt-0.5">Copy-paste scripts for every scenario. Replace [BRACKETS] with client data.</p>
+        <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-[15px] sm:text-[17px] font-bold text-[#1B3A2D]">Scripts Library</h1>
+            <p className="text-[11px] text-[#8E8C85] mt-0.5 hidden sm:block">Copy-paste scripts for every scenario. Replace [BRACKETS] with client data.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <button onClick={() => router.push("/rep/training/playbook")}
-              className="text-[11px] font-semibold text-[#8E8C85] hover:text-[#1B3A2D] transition">Playbook</button>
+              className="text-[11px] font-semibold text-[#8E8C85] hover:text-[#1B3A2D] transition hidden sm:block">Playbook</button>
             <button onClick={() => router.push("/rep/dashboard")}
-              className="text-[11px] font-semibold text-[#1B3A2D] hover:underline">Dashboard →</button>
+              className="text-[11px] font-semibold text-[#1B3A2D] hover:underline min-h-[36px]">Dashboard →</button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-[900px] mx-auto px-6 py-6">
+      <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Category selector */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 flex-wrap">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-hide">
           {CATEGORIES.map(c => (
             <button key={c.id} onClick={() => { setActiveCategory(c.id); setExpanded(null); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all shrink-0 min-h-[36px]"
               style={{
                 background: activeCategory === c.id ? c.color + "15" : "white",
                 border: `1px solid ${activeCategory === c.id ? c.color + "40" : "#E5E3DD"}`,
@@ -584,10 +584,10 @@ export default function RepScriptsPage() {
             <div key={s.label} className="bg-white border border-[#E5E3DD] rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
               <button
                 onClick={() => setExpanded(expanded === s.label ? null : s.label)}
-                className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-[#FAFAF8] transition">
-                <div className="flex items-center gap-2">
+                className="w-full px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between text-left hover:bg-[#FAFAF8] transition min-h-[48px]">
+                <div className="flex items-center gap-2 min-w-0">
                   <div className="w-2 h-2 rounded-full shrink-0" style={{ background: category.color }} />
-                  <p className="text-[14px] font-semibold text-[#1A1A18]">{s.label}</p>
+                  <p className="text-[13px] sm:text-[14px] font-semibold text-[#1A1A18] truncate">{s.label}</p>
                 </div>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E8C85" strokeWidth="2" strokeLinecap="round"
                   style={{ transform: expanded === s.label ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>
@@ -595,15 +595,15 @@ export default function RepScriptsPage() {
                 </svg>
               </button>
               {expanded === s.label && (
-                <div className="px-5 pb-5 border-t border-[#F0EFEB]">
+                <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-[#F0EFEB]">
                   <div className="flex justify-end mb-2 pt-3">
                     <button onClick={() => copyScript(s.label, s.content)}
-                      className="text-[10px] font-semibold px-3 py-1 rounded-lg transition"
-                      style={{ background: copied === s.label ? "rgba(45,122,80,0.1)" : "transparent", color: copied === s.label ? "#2D7A50" : "#1B3A2D" }}>
+                      className="text-[10px] font-semibold px-3 py-1.5 rounded-lg transition min-h-[32px]"
+                      style={{ background: copied === s.label ? "rgba(45,122,80,0.1)" : "rgba(27,58,45,0.06)", color: copied === s.label ? "#2D7A50" : "#1B3A2D" }}>
                       {copied === s.label ? "Copied!" : "Copy →"}
                     </button>
                   </div>
-                  <pre className="text-[13px] text-[#56554F] whitespace-pre-wrap font-sans leading-relaxed bg-[#FAFAF8] border border-[#F0EFEB] rounded-lg p-4">
+                  <pre className="text-[12px] sm:text-[13px] text-[#56554F] whitespace-pre-wrap font-sans leading-relaxed bg-[#FAFAF8] border border-[#F0EFEB] rounded-lg p-3 sm:p-4">
                     {s.content}
                   </pre>
                 </div>

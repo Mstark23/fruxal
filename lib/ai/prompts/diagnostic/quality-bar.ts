@@ -32,6 +32,19 @@ ${example1}
 ${example2}
 
 ══════════════════════════════════════════════════════════════════════════════
+EXECUTIVE SUMMARY — GOLD STANDARD EXAMPLE
+══════════════════════════════════════════════════════════════════════════════
+
+"Your e-commerce business in Oregon is losing $47,200/yr across 5 fixable leaks. The two biggest: S-corp election saves $14,280/yr in FICA, and your processing rate is 0.6% above benchmark costing $4,380/yr. The most urgent: your Q1 estimated payment is due April 15 — missing it triggers a $2,400 penalty. File Form 2553 this week to start the S-corp savings."
+
+WHAT MAKES THIS GOOD:
+- Opens with exact total ($47,200/yr) and count (5 leaks)
+- Names the top 2 findings with specific dollar amounts
+- Identifies the most urgent action with a deadline
+- Ends with a concrete next step (File Form 2553)
+- Zero filler words. Zero "Based on our analysis." Reads like a text from a $500/hr CFO.
+
+══════════════════════════════════════════════════════════════════════════════
 RULES THAT MAKE EVERY FINDING WORLD-CLASS
 ══════════════════════════════════════════════════════════════════════════════
 

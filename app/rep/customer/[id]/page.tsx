@@ -1038,7 +1038,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
 
                 <div className="mb-4">
                   <p className="text-[12px] font-semibold text-[#1A1A18] mb-2">How did the call go?</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {([
                       { val: "ready_to_sign", label: "Ready to sign", color: "#2D7A50", bg: "rgba(45,122,80,0.08)" },
                       { val: "needs_time",    label: "Needs time",    color: "#C4841D", bg: "rgba(196,132,29,0.08)" },
@@ -1046,7 +1046,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                     ] as const).map(opt => (
                       <button key={opt.val}
                         onClick={() => setDebriefOutcome(opt.val)}
-                        className="py-2 px-3 rounded-lg text-[12px] font-semibold border transition"
+                        className="py-2.5 px-3 rounded-lg text-[12px] font-semibold border transition min-h-[44px]"
                         style={{
                           background: debriefOutcome === opt.val ? opt.bg : "white",
                           color: debriefOutcome === opt.val ? opt.color : "#8E8C85",

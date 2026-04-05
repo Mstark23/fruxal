@@ -8,7 +8,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { pickBestRep } from "@/lib/rep-picker";
-import { scoreLeadQuality } from "@/lib/lead-score";
+import { scoreLeadQuality, scoreToPriority } from "@/lib/lead-score";
+import { sendRepAssigned, sendRepNewClient } from "@/services/email/service";
+import crypto from "crypto";
 
 // ── GET: Load profile for intake pre-fill ─────────────────────────────────────
 export async function GET(req: NextRequest) {
@@ -164,10 +166,124 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
+    // ── Auto-assign rep if no pipeline entry exists yet ────────────────────
+    let assignedRep: { name: string; calendly_url: string | null; contingency_rate: number } | null = null;
+    let leadScore = 0;
+    let leadPriority: "hot" | "warm" | "cold" = "cold";
+
+    try {
+      const userId = token.sub as string;
+      const { data: existingPipe } = await supabaseAdmin
+        .from("tier3_pipeline").select("id").eq("user_id", userId).maybeSingle();
+
+      if (!existingPipe) {
+        // ── Fix #1: Convert year → string format the scorer expects ──────
+        let taxReviewStr: string | null = null;
+        if (d.last_tax_review_year) {
+          const gap = new Date().getFullYear() - Number(d.last_tax_review_year);
+          if (gap >= 3)      taxReviewStr = "3_plus_years";
+          else if (gap >= 1) taxReviewStr = "1_2_years";
+          else               taxReviewStr = "recent";
+        }
+
+        // ── Fix #5: Smarter leak estimate using intake signals ───────────
+        const rev = d.exact_annual_revenue ?? 0;
+        let leakEstimate = rev * 0.05; // baseline 5%
+        if (d.does_rd && !d.sred_claimed_last_year) leakEstimate += Math.min(rev * 0.15, 200_000); // unclaimed SR&ED
+        if (d.has_accountant === false)              leakEstimate += rev * 0.02; // missed deductions
+        if (d.gross_margin_pct && d.gross_margin_pct < 30) leakEstimate += rev * 0.03; // cost structure leaks
+        if ((d.employee_count ?? 0) >= 5 && !d.uses_payroll_software) leakEstimate += (d.employee_count ?? 0) * 500; // payroll inefficiency
+
+        const result = scoreLeadQuality({
+          annualRevenue:  d.exact_annual_revenue ?? null,
+          estimatedLeak:  Math.round(leakEstimate),
+          province:       d.province ?? null,
+          hasAccountant:  d.has_accountant ?? null,
+          lastTaxReview:  taxReviewStr,
+          doesRd:         d.does_rd ?? null,
+          employeeCount:  d.employee_count ?? null,
+          industry:       d.industry ?? null,
+          daysInPipeline: 0,
+        });
+        leadScore = result.score;
+        leadPriority = scoreToPriority(leadScore);
+
+        // ── Fix #2: Only auto-assign hot/warm leads ──────────────────────
+        if (leadPriority === "hot" || leadPriority === "warm") {
+          const rep = await pickBestRep(d.province ?? null);
+          if (rep) {
+            // ── Fix #3: Direct DB inserts instead of self-fetch ──────────
+            const pipelineId = crypto.randomUUID();
+            const appUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+
+            await supabaseAdmin.from("tier3_pipeline").insert({
+              id:             pipelineId,
+              user_id:        userId,
+              business_id:    businessId,
+              contact_email:  token.email || null,
+              company_name:   d.business_name || null,
+              industry:       d.industry || null,
+              province:       d.province || null,
+              country:        d.country || null,
+              annual_revenue: d.exact_annual_revenue || null,
+              stage:          leadPriority === "hot" ? "contacted" : "lead",
+              notes:          `Auto-assigned at intake. Score: ${leadScore} (${leadPriority}). Revenue: $${rev}. Leak est: $${Math.round(leakEstimate)}`,
+              created_at:     new Date().toISOString(),
+              updated_at:     new Date().toISOString(),
+            });
+
+            await supabaseAdmin.from("tier3_rep_assignments").insert({
+              id:                  crypto.randomUUID(),
+              rep_id:              rep.id,
+              pipeline_id:         pipelineId,
+              stage_at_assignment: leadPriority === "hot" ? "contacted" : "lead",
+              notes:               `Intake auto-assign. Reasons: ${result.reasons.join(", ")}`,
+              assigned_at:         new Date().toISOString(),
+            });
+
+            // Fire emails (non-blocking, non-fatal)
+            const clientDashUrl = `${appUrl}/rep/customer/${pipelineId}`;
+            Promise.all([
+              token.email ? sendRepAssigned(
+                token.email as string,
+                d.business_name || "your business",
+                rep.name,
+                rep.calendly_url || null,
+                Math.round(leakEstimate),
+                rep.contingency_rate ?? 12,
+              ) : Promise.resolve(false),
+              sendRepNewClient(
+                rep.email,
+                rep.name,
+                d.business_name || "New client",
+                d.industry || null,
+                d.province || null,
+                Math.round(leakEstimate),
+                clientDashUrl,
+              ),
+            ]).catch((e) => { console.warn("[Intake] notification failed:", e.message); });
+
+            assignedRep = { name: rep.name, calendly_url: rep.calendly_url, contingency_rate: rep.contingency_rate ?? 12 };
+            console.log(`[Intake] Auto-assigned rep ${rep.name} to user ${userId} (score: ${leadScore}, priority: ${leadPriority})`);
+          }
+        } else {
+          console.log(`[Intake] Lead score ${leadScore} (${leadPriority}) — no auto-assign for user ${userId}`);
+        }
+      }
+    } catch (e: any) {
+      console.warn("[Intake] Rep auto-assign failed (non-fatal):", e.message);
+    }
+
+    // ── Fix #4: Return rep info so frontend can show advisor immediately ──
     return NextResponse.json({
       success: true,
       intake_quality_score: Math.min(score, 100),
-      message: "Intake saved — ready to run diagnostic",
+      lead_score: leadScore,
+      lead_priority: leadPriority,
+      assigned_rep: assignedRep,
+      message: assignedRep
+        ? `Intake saved — your advisor ${assignedRep.name} has been notified`
+        : "Intake saved — ready to run diagnostic",
     });
 
   } catch (err: any) {

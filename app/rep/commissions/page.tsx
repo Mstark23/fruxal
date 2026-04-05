@@ -30,19 +30,19 @@ export default function RepCommissionsPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="bg-white border-b border-[#E5E3DD]">
-        <div className="max-w-[1100px] mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-[17px] font-bold text-[#1B3A2D] tracking-tight">Fruxal</span>
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-[15px] sm:text-[17px] font-bold text-[#1B3A2D] tracking-tight">Fruxal</span>
             <span className="text-[10px] font-semibold text-[#8E8C85] uppercase tracking-wider bg-[#F0EFEB] px-2 py-0.5 rounded-full">Commissions</span>
           </div>
           <button onClick={() => router.push("/rep/dashboard")}
-            className="text-[11px] font-semibold text-[#1B3A2D] hover:underline">
+            className="text-[11px] font-semibold text-[#1B3A2D] hover:underline min-h-[36px] flex items-center">
             Dashboard →
           </button>
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-6 py-6">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Summary cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           {[
@@ -61,15 +61,16 @@ export default function RepCommissionsPage() {
 
         {/* Top partners */}
         {topPartners.length > 0 && (
-          <div className="bg-white border border-[#E5E3DD] rounded-xl px-5 py-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div className="bg-white border border-[#E5E3DD] rounded-xl px-4 sm:px-5 py-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
             <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">Top Partners by Commission</p>
             <div className="space-y-2">
               {topPartners.map((p: any) => (
-                <div key={p.name} className="flex items-center gap-3">
-                  <span className="text-[12px] font-medium text-[#1A1A18] flex-1 truncate">{p.name}</span>
-                  <span className="text-[10px] text-[#8E8C85]">{p.recs} recs</span>
-                  <span className="text-[10px] text-[#8E8C85]">{p.conversions} conv</span>
-                  <span className="text-[12px] font-bold text-[#2D7A50]">{fmtM(p.commission)}</span>
+                <div key={p.name} className="flex items-center gap-2 sm:gap-3">
+                  <span className="text-[11px] sm:text-[12px] font-medium text-[#1A1A18] flex-1 truncate min-w-0">{p.name}</span>
+                  <span className="text-[10px] text-[#8E8C85] shrink-0 hidden sm:inline">{p.recs} recs</span>
+                  <span className="text-[10px] text-[#8E8C85] shrink-0 hidden sm:inline">{p.conversions} conv</span>
+                  <span className="text-[10px] text-[#8E8C85] shrink-0 sm:hidden">{p.conversions}/{p.recs}</span>
+                  <span className="text-[12px] font-bold text-[#2D7A50] shrink-0">{fmtM(p.commission)}</span>
                 </div>
               ))}
             </div>

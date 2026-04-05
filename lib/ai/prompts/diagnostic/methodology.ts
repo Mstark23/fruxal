@@ -42,9 +42,15 @@ export function buildMethodology(
   const complianceCalc = getComplianceExposure(isUS, rev, emp, province, hasPayroll);
 
   return `
-══════════════════════════════════════════════════════════════════════════════
-FRUXAL FORENSIC ENGINE — WORLD-CLASS LEAK DETECTION
-══════════════════════════════════════════════════════════════════════════════
+DIAGNOSTIC ANALYSIS — ${industry} at $${rev.toLocaleString()}/yr
+
+CRITICAL RULES (apply to EVERY finding):
+- NEVER invent a URL, tool name, or service provider that doesn't exist
+- NEVER invent a form number — use only real IRS/CRA forms
+- NEVER invent benchmark numbers — if you don't know the real P50/P75, say "no verified data"
+- NEVER claim a specific dollar amount without showing the math
+- When data confidence is LOW, use ranges ($X-$Y) not single numbers
+- When data confidence is LOW, set severity ≤ medium
 
 YOU ARE NOT WRITING ADVICE. YOU ARE CALCULATING LOSSES.
 
@@ -490,16 +496,10 @@ If any deadline is within 90 days and the business is NOT prepared,
 flag it as a finding with high urgency and cost_of_inaction_monthly.
 
 ══════════════════════════════════════════════════════════════════════════════
-ANTI-HALLUCINATION RULES — What you MUST NOT invent
+ALLOWED FORMS & SOLUTIONS — Reference lists (see CRITICAL RULES at top)
 ══════════════════════════════════════════════════════════════════════════════
 
-1. NEVER invent a benchmark number. If you don't know the exact industry P50/P75,
-   say "estimated based on similar industries" in the gap field.
-
-2. NEVER invent a product URL. If you're not 100% certain the URL is correct,
-   use the domain root (e.g., https://gusto.com not https://gusto.com/pricing/s-corp).
-
-3. NEVER invent a form number. Use ONLY these real forms:
+REAL FORM NUMBERS (use ONLY these):
 ${isUS ? `
    IRS: 1040, 1120, 1120-S, 1065, 941, 940, W-2, W-4, 1099-NEC, 1099-MISC,
    2553, 8832, 8850 (WOTC), 6765 (R&D), 4562 (depreciation), 8829 (home office),
@@ -511,17 +511,7 @@ ${isUS ? `
    Provincial: Relevé 1 (QC), Ontario Annual Return, ${province === "QC" ? "CNESST registration form" : "WCB registration"}
 `}
 
-4. NEVER invent a tax rate. Use the exact brackets provided above.
-
-5. NEVER invent an employee count or revenue figure. Use ONLY $${rev.toLocaleString()}
-   and ${emp} employees as provided. If a finding needs data you don't have,
-   set confidence_level to "low" and explain what data is missing in data_source.
-
-6. NEVER extrapolate beyond the data. If the business has $${rev.toLocaleString()} revenue
-   and you're calculating a cost that requires payroll data you don't have,
-   estimate conservatively and note it: "estimated at 25% of revenue"
-
-7. SOLUTIONS: Only recommend products you are confident exist as of 2025:
+VERIFIED SOLUTIONS (recommend ONLY from this list):
 ${isUS ? `
    Payroll: Gusto, ADP, Paychex, Justworks, Rippling, OnPay
    Accounting: QuickBooks, Xero, FreshBooks, Wave, Bench
@@ -539,6 +529,8 @@ ${isUS ? `
    Legal: Ownr (RBC), BDC
    SR&ED: Boast.ai, Swifter, Mentor Works
 `}
+URLs: use domain root only (e.g., https://gusto.com not https://gusto.com/pricing/s-corp).
+Data gaps: if a finding needs data you don't have, set confidence_level to "low" and note what's missing.
 
 ══════════════════════════════════════════════════════════════════════════════
 FINDING PRIORITY ORDER (when trimming to fit limit)

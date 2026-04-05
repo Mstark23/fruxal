@@ -118,7 +118,7 @@ LEAK DETECTORS — additional context:
 ${leakList || "None"}
 
 INDUSTRY BENCHMARKS:
-${benchmarkList || "Use Canadian SMB averages for this industry"}
+${benchmarkList || "No verified benchmarks available. Do NOT invent benchmark numbers."}
 
 ${buildQualityBar("business", "CA", industry)}
 
@@ -285,7 +285,7 @@ LEAK DETECTORS — additional context:
 ${leakList || "None"}
 
 INDUSTRY BENCHMARKS:
-${benchmarkList || "Use US SMB averages for this industry and state"}
+${benchmarkList || "No verified benchmarks available. Do NOT invent benchmark numbers."}
 
 ${buildQualityBar("business", "US", industry)}
 
@@ -306,6 +306,7 @@ STRUCTURAL RULES:
 12. MANDATORY WRITE ORDER: scores → totals → findings → executive_summary → savings_anchor → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence.
     If token budget is tight: reduce cpa_briefing and benchmark descriptions. NEVER truncate findings.
 13. When you have more analyses than the finding limit allows, use the FINDING PRIORITY ORDER from the methodology section. Never drop categories 1-3 for categories 7-9.
+${isFr ? "14. CRITICAL — FRENCH: Every user-facing text field MUST be in professional French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Analyze this US business and return a complete JSON diagnostic report.
