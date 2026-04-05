@@ -67,7 +67,7 @@ export function buildQualityBar(tier: DiagnosticTier, country: "CA" | "US" = "CA
   recommendation: "1. Request interchange-plus quote from Square (no monthly fee, 2.6% + $0.10 card-present) and Helcim (interchange-plus, avg 2.4% for restaurants). 2. Use current processing statement as leverage — show competing quote to current processor for rate match. 3. Switch during a low-volume week to minimize disruption."`
     : `EXAMPLE B — OPERATIONAL FINDING (CA):
   title: "Workers Compensation Classification Audit: $3,600/yr Premium Overpayment"
-  root_cause: "Business classified under ${province === "ON" ? "WSIB" : province === "QC" ? "CNESST" : "WCB"} rate group for general contracting when actual work is specialized electrical — wrong classification carries 40% higher base rate"
+  root_cause: "Business classified under the provincial workers compensation board (WSIB/CNESST/WCB) rate group for general contracting when actual work is specialized electrical — wrong classification carries 40% higher base rate"
   description: "Current classification: general contracting rate $4.20/$100 insurable earnings.
     Correct classification: electrical contracting rate $2.52/$100.
     Insurable payroll: $150,000/yr.
@@ -77,9 +77,9 @@ export function buildQualityBar(tier: DiagnosticTier, country: "CA" | "US" = "CA
   calculation_shown: "Current: $150K × 4.20% = $6,300 | Correct: $150K × 2.52% = $3,780 | Delta: $2,520 + exp. rating adj. $1,080 = $3,600/yr"
   impact_min: 2520
   impact_max: 3600
-  compliance_risk: "Incorrect classification is a compliance issue — ${province === "ON" ? "WSIB" : "WCB"} can audit and reclassify retroactively (3 years). Voluntary reclassification avoids penalties and may trigger a refund."
+  compliance_risk: "Incorrect classification is a compliance issue — the provincial WCB/WSIB can audit and reclassify retroactively (3 years). Voluntary reclassification avoids penalties and may trigger a refund."
   confidence_level: "medium"
-  recommendation: "1. Request current classification code from ${province === "ON" ? "WSIB" : province === "QC" ? "CNESST" : "WCB"} — compare against actual work performed. 2. File reclassification request with supporting documentation (contracts, job descriptions). 3. Engage a commercial insurance broker (BrokerLink, HUB) to audit all classifications simultaneously."`;
+  recommendation: "1. Request current classification code from your provincial workers compensation board (WSIB/CNESST/WCB) — compare against actual work performed. 2. File reclassification request with supporting documentation (contracts, job descriptions). 3. Engage a commercial insurance broker (BrokerLink, HUB) to audit all classifications simultaneously."`;
 
   return `
 ══════════════════════════════════════════════════════════════════════════════
