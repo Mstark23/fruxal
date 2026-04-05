@@ -136,13 +136,35 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: report, error } = await supabaseAdmin
+    // Get latest report — prefer completed with actual data over failed/empty ones
+    let report: any = null;
+    let error: any = null;
+
+    // First try: latest completed report with actual findings
+    const { data: goodReport } = await supabaseAdmin
       .from("diagnostic_reports")
-      .select("id, tier, status, completed_at, created_at, result_json")
+      .select("id, tier, status, completed_at, created_at, result_json, findings_count")
       .eq("user_id", userId)
+      .eq("status", "completed")
+      .gt("findings_count", 0)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
+
+    if (goodReport) {
+      report = goodReport;
+    } else {
+      // Fallback: latest report of any status (includes analyzing, failed, or empty completed)
+      const { data: anyReport, error: anyErr } = await supabaseAdmin
+        .from("diagnostic_reports")
+        .select("id, tier, status, completed_at, created_at, result_json, findings_count")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      report = anyReport;
+      error = anyErr;
+    }
 
     if (error || !report) {
       return NextResponse.json({ success: true, data: null, status: null });
