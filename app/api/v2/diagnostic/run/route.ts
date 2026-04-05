@@ -378,7 +378,10 @@ export async function POST(req: NextRequest) {
       userPrompt   = prompts.userPrompt;
     } catch (promptErr: any) {
       console.error("[Diagnostic] PROMPT BUILD FAILED:", promptErr.message, "\nStack:", promptErr.stack?.slice(0, 800));
-      return NextResponse.json({ success: false, error: "Prompt build failed: " + promptErr.message }, { status: 500 });
+      // Include stack trace to identify exact file and line
+      const stackLines = (promptErr.stack || "").split("\n").slice(0, 8).join(" | ");
+      console.error("[Diagnostic] PROMPT BUILD STACK:", promptErr.stack);
+      return NextResponse.json({ success: false, error: "Prompt build failed: " + promptErr.message + " [at: " + stackLines + "]" }, { status: 500 });
     }
 
 
