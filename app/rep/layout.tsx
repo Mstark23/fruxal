@@ -112,7 +112,7 @@ export default function RepLayout({ children }: { children: React.ReactNode }) {
             const active = normPath === item.path || normPath?.startsWith(item.path + "/");
             return (
               <button key={item.path} onClick={() => router.push(item.path)}
-                className={`flex flex-col items-center py-1.5 px-3 rounded-lg transition flex-1 ${
+                className={`flex flex-col items-center py-1.5 px-3 rounded-lg transition flex-1 min-h-[44px] ${
                   active ? "text-[#1B3A2D]" : "text-[#B5B3AD]"
                 }`}>
                 <I d={item.icon} s={20} />
@@ -121,6 +121,8 @@ export default function RepLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </div>
+        {/* Safe area for notched phones */}
+        <div className="h-[env(safe-area-inset-bottom)]" />
       </nav>
     </div>
   );

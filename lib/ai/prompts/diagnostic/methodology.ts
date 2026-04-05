@@ -299,7 +299,7 @@ Exit readiness assessment:
 ANALYSIS 11: CASCADE EFFECTS — How findings compound each other
 ══════════════════════════════════════════════════════════════════════════════
 
-Big 4 firms always show how fixes COMPOUND. You must do the same.
+Show how fixes COMPOUND — this is what separates world-class diagnostics.
 
 After identifying all findings, map the cascade:
   - Fixing entity structure → unlocks ${isUS ? "QBI deduction" : "SBD rate"} → additional saving
@@ -536,7 +536,7 @@ ${isUS ? `
    Tax filing: TurboTax Canada, Wealthsimple Tax
    Insurance: Zensurance, NEXT Canada, BrokerLink, HUB
    Banking: RBC Commercial, TD Business, Desjardins (QC)
-   Legal: Ownr (RBC), BDC, MNP
+   Legal: Ownr (RBC), BDC
    SR&ED: Boast.ai, Swifter, Mentor Works
 `}
 

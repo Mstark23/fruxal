@@ -6,125 +6,30 @@
 // methodology.ts tells Claude HOW to analyze.
 // quality-bar.ts tells Claude what the OUTPUT must look like.
 //
-// The bar is set at "senior Big 4 partner would sign this finding."
+// The bar is set at "a senior CPA would sign this finding."
 // =============================================================================
 
 export type DiagnosticTier = "solo" | "business" | "enterprise";
 
-export function buildQualityBar(tier: DiagnosticTier, country: "CA" | "US" = "CA"): string {
+export function buildQualityBar(tier: DiagnosticTier, country: "CA" | "US" = "CA", industry: string = "general"): string {
   const minImpact   = tier === "enterprise" ? "$5,000" : tier === "business" ? "$2,000" : "$500";
   const maxFindings = tier === "enterprise" ? 12 : tier === "business" ? 7 : 5;
   const isUS = country === "US";
   const prof = isUS ? "CPA" : "accountant";
   const agency = isUS ? "IRS" : "CRA";
 
-  // Two real examples — one from each country — to show Claude exactly the level
-  const example1 = isUS
-    ? `EXAMPLE A — TAX STRUCTURE FINDING (US):
-  title: "S-Corp Election + Salary Restructuring: $14,280/yr FICA Reduction"
-  root_cause: "Operating as sole proprietor at $210K net income — SE tax applies to entire amount instead of just reasonable compensation"
-  description: "Current: $210K net × 15.3% SE tax (capped at $176,100) = $26,924 + 2.9% Medicare on remaining $33,900 = $983. Total: $27,907.
-    Optimal: S-corp with $84K W-2 (40% of net, supported by BLS data for this industry in this state). FICA: $84K × 15.3% = $12,852. Distribution $126K × 0% FICA.
-    Delta: $27,907 − $12,852 = $15,055. Less S-corp admin ($775/yr payroll + $500 tax prep delta) = $13,780 net.
-    Additional: QBI deduction now applies to $126K distribution × 20% = $25,200 deduction × 24% rate = $6,048 additional saving.
-    Conservative (FICA only): $13,780. With QBI optimization: $19,828."
-  calculation_shown: "SE tax current: min($210K, $176,100) × 15.3% = $26,924 + ($210K − $176,100) × 2.9% = $983 = $27,907 | S-corp W-2: $84K × 15.3% = $12,852 | Delta: $15,055 − $1,275 admin = $13,780/yr net"
-  impact_min: 13780
-  impact_max: 19828
-  compliance_risk: "IRS reasonable compensation audit: if W-2 set below $84K, risk of reclassification + back FICA + 20% penalty. Document with industry comp study."
-  confidence_level: "high"
-  recommendation: "1. File Form 2553 (S-corp election) — deadline March 15 for calendar year, or within 75 days of start. 2. Set up payroll via Gusto ($46/mo + $6/ee) — first W-2 payroll by next quarter. 3. Commission reasonable compensation study using RCReports ($300) or CPA analysis with BLS wage data for this industry and location."
-  solutions: [{ name: "Gusto", url: "https://gusto.com", why: "Best US payroll for S-corp owners — handles W-2, FICA deposits, state filing, and quarterly 941s automatically", price_approx: "$46/mo + $6/ee", category: "payroll" }]`
-    : `EXAMPLE A — TAX STRUCTURE FINDING (CA):
-  title: "HST Quick Method Election: $9,240/yr Tax Remittance Reduction"
-  root_cause: "Business is remitting HST using standard method at 13% less ITCs, when Quick Method at 8.8% would reduce net remittance by $9,240/yr"
-  description: "Current (standard method): $320K revenue × 13% HST = $41,600 collected − $4,800 ITCs claimed = $36,800 net remittance.
-    Quick Method: $320K × 8.8% = $28,160 net remittance. First $30K exempt from QM = additional $600 saving.
-    Delta: $36,800 − $28,160 + $600 = $9,240/yr.
-    Eligibility confirmed: revenue $320K < $400K threshold, service-based billing >90%."
-  calculation_shown: "Standard: $320K × 13% = $41,600 − ITCs $4,800 = $36,800 remitted | Quick Method: $320K × 8.8% = $28,160 + ($30K × 0% = $0) = $28,160 | Saving: $36,800 − $28,160 = $8,640 + first $30K bonus $600 = $9,240/yr"
-  impact_min: 8640
-  impact_max: 9240
-  compliance_risk: "Quick Method is irrevocable for 12 months once elected. If revenue exceeds $400K in following year, must revert to standard method."
-  confidence_level: "high"
-  recommendation: "1. File RC7004 (Quick Method election) before next HST filing deadline. 2. Verify with ${prof}: confirm >50% of revenue is service-based and no major equipment purchases planned (ITCs would be lost). 3. Set calendar reminder to re-assess at $350K revenue — approaching $400K disqualification."
-  solutions: [{ name: "QuickBooks Online", url: "https://quickbooks.intuit.com/ca", why: "Tracks HST collected and ITCs automatically — will calculate Quick Method vs Standard to confirm annual saving", price_approx: "~$35/mo", category: "accounting" }]`;
-
-  const example2 = isUS
-    ? `EXAMPLE B — OPERATIONAL FINDING (US):
-  title: "Payment Processing Rate Renegotiation: $4,380/yr in Excess Fees"
-  root_cause: "Business processing $480K/yr in card payments at 3.2% blended rate — 0.6% above interchange-plus benchmark of 2.6% for this volume and industry"
-  description: "Card volume: $480K/yr at 3.2% = $15,360 in processing fees.
-    Benchmark for restaurant at this volume: interchange-plus with 2.6% effective = $12,480.
-    Excess: $15,360 − $12,480 = $2,880 on rate alone.
-    Additional: current processor charges $0.15/transaction × 10,000 txn/yr = $1,500 vs benchmark $0.05 = $500.
-    Total excess: $2,880 + $1,000 = $3,880. Plus monthly fee delta ~$500/yr."
-  calculation_shown: "Current: $480K × 3.2% = $15,360 + 10K txn × $0.15 = $1,500 + $40/mo = $480 = $17,340 | Benchmark: $480K × 2.6% = $12,480 + 10K × $0.05 = $500 + $0/mo = $12,980 | Excess: $4,360/yr"
-  impact_min: 3880
-  impact_max: 4380
-  compliance_risk: "None — this is a cost optimization, not a compliance issue. However, PCI DSS compliance should be verified during processor switch."
-  confidence_level: "medium"
-  recommendation: "1. Request interchange-plus quote from Square (no monthly fee, 2.6% + $0.10 card-present) and Helcim (interchange-plus, avg 2.4% for restaurants). 2. Use current processing statement as leverage — show competing quote to current processor for rate match. 3. Switch during a low-volume week to minimize disruption."`
-    : `EXAMPLE B — OPERATIONAL FINDING (CA):
-  title: "Workers Compensation Classification Audit: $3,600/yr Premium Overpayment"
-  root_cause: "Business classified under the provincial workers compensation board (WSIB/CNESST/WCB) rate group for general contracting when actual work is specialized electrical — wrong classification carries 40% higher base rate"
-  description: "Current classification: general contracting rate $4.20/$100 insurable earnings.
-    Correct classification: electrical contracting rate $2.52/$100.
-    Insurable payroll: $150,000/yr.
-    Current premium: $150,000 × $4.20/$100 = $6,300/yr.
-    Correct premium: $150,000 × $2.52/$100 = $3,780/yr.
-    Overpayment: $2,520/yr. Plus: experience rating surcharge on wrong base = additional ~$1,080."
-  calculation_shown: "Current: $150K × 4.20% = $6,300 | Correct: $150K × 2.52% = $3,780 | Delta: $2,520 + exp. rating adj. $1,080 = $3,600/yr"
-  impact_min: 2520
-  impact_max: 3600
-  compliance_risk: "Incorrect classification is a compliance issue — the provincial WCB/WSIB can audit and reclassify retroactively (3 years). Voluntary reclassification avoids penalties and may trigger a refund."
-  confidence_level: "medium"
-  recommendation: "1. Request current classification code from your provincial workers compensation board (WSIB/CNESST/WCB) — compare against actual work performed. 2. File reclassification request with supporting documentation (contracts, job descriptions). 3. Engage a commercial insurance broker (BrokerLink, HUB) to audit all classifications simultaneously."`;
+  // Industry-matched examples — show Claude the exact quality bar for this business's industry
+  const ind = industry.toLowerCase();
+  const { example1, example2 } = resolveIndustryExamples(ind, isUS, prof);
 
   return `
 ══════════════════════════════════════════════════════════════════════════════
-OUTPUT STANDARD — WHAT MAKES FRUXAL BETTER THAN BIG 4
-══════════════════════════════════════════════════════════════════════════════
-
-Big 4 firms charge $25K-$50K and deliver a PDF in 6-8 weeks.
-You deliver the SAME depth in 90 seconds. Here's how you beat them:
-
-WHERE BIG 4 IS WEAK (and you are strong):
-1. They write vague findings like "optimize tax structure" — you write "$14,280/yr FICA reduction via S-corp"
-2. They show conclusions without math — you show every step of the arithmetic
-3. They recommend "consult with your advisor" — you name the exact form, the exact deadline, the exact tool
-4. They cover 3-4 areas — you cover 10 layers systematically
-5. They take 6 weeks — you take 90 seconds with the same (or better) accuracy
-
-YOUR COMPETITIVE ADVANTAGES OVER BIG 4:
-- You have this business's EXACT numbers loaded into context (Big 4 works from estimates for weeks 1-3)
-- You can cross-reference against 245 industry benchmarks instantly (Big 4 uses 2-3 comparable firms)
-- You produce findings with pre-computed math (Big 4 junior associates do this over 40+ hours)
-- Every finding has a specific tool recommendation with URL and pricing (Big 4 says "engage a specialist")
-
+OUTPUT STANDARD — WORLD-CLASS FINDINGS
 ══════════════════════════════════════════════════════════════════════════════
 
 ${example1}
 
 ${example2}
-
-══════════════════════════════════════════════════════════════════════════════
-
-❌ WHAT A $50/MONTH AI TOOL PRODUCES (never do this):
-  title: "Review Your Business Structure"
-  description: "Your current business structure may not be optimal for your revenue level. Consider consulting with a tax professional to explore alternatives."
-  recommendation: "Speak with your accountant about restructuring options."
-  calculation_shown: "N/A"
-
-❌ WHAT A LAZY BIG 4 ASSOCIATE PRODUCES (also never do this):
-  title: "Tax Structure Optimization Opportunity"
-  description: "Based on our analysis, there may be an opportunity to optimize the entity structure to reduce the overall tax burden. Further analysis is recommended."
-  recommendation: "We recommend engaging our tax advisory team for a detailed entity optimization study (additional fees apply)."
-  calculation_shown: "Estimated savings: $5,000-$20,000 (range to be confirmed)"
-
-✅ WHAT YOU PRODUCE:
-  title: "S-Corp Election + Salary Restructuring: $14,280/yr FICA Reduction"
-  (exact dollar, exact mechanism, exact outcome — in the title)
 
 ══════════════════════════════════════════════════════════════════════════════
 RULES THAT MAKE EVERY FINDING WORLD-CLASS
@@ -165,7 +70,262 @@ RULES THAT MAKE EVERY FINDING WORLD-CLASS
 12. CONFIDENCE_LEVEL: "high" if using exact data from intake. "medium" if estimating from revenue.
     Never produce a "high" confidence finding based on an estimate.
 
-13. THE ${prof.toUpperCase()} TEST: Would a senior ${prof} at ${isUS ? "Deloitte or PwC" : "MNP or BDO"} sign off on this
-    finding and present it to the business owner? If not, rewrite it until the answer is yes.
+13. THE ${prof.toUpperCase()} TEST: Would a senior ${prof} sign off on this finding and present it to the business owner? If not, rewrite it until the answer is yes.
 `.trim();
+}
+
+
+// =============================================================================
+// Industry-matched example pairs — so the quality bar resonates with the
+// actual business type being diagnosed instead of always showing the same
+// generic HST / WCB examples.
+// =============================================================================
+function resolveIndustryExamples(
+  ind: string,
+  isUS: boolean,
+  prof: string
+): { example1: string; example2: string } {
+
+  // ── Restaurant / Food ────────────────────────────────────────────────────
+  if (/restaurant|food|cafe|bar|bakery|catering/.test(ind)) {
+    const example1 = isUS
+      ? `EXAMPLE A — COST OF GOODS FINDING (US — Restaurant):
+  title: "Food Cost Optimization: $18,720/yr COGS Reduction"
+  root_cause: "Actual food cost running at 36.2% of revenue vs industry benchmark of 28-32% — 4.2% excess on $480K food revenue"
+  description: "Current food cost: $480K × 36.2% = $173,760. Benchmark (top quartile): 32%. Target: $480K × 32% = $153,600. Delta: $20,160. Conservative (portion control + supplier renegotiation): $18,720."
+  calculation_shown: "Current: $480K × 36.2% = $173,760 | Target: $480K × 32% = $153,600 | Delta: $20,160 | Conservative: $18,720/yr"
+  impact_min: 15600
+  impact_max: 20160
+  compliance_risk: "No regulatory risk — operational. Food cost above 35% signals inventory shrinkage or waste."
+  confidence_level: "medium"
+  recommendation: "1. Run 2-week waste audit. 2. Rebid top 10 ingredients with 3 suppliers. 3. Implement recipe costing in MarketMan or BlueCart."`
+      : `EXAMPLE A — COST OF GOODS FINDING (CA — Restaurant):
+  title: "Food Cost Optimization: $18,720/yr COGS Reduction"
+  root_cause: "Actual food cost at 36.2% vs benchmark of 28-32% — excess on $480K food revenue"
+  description: "Current: $480K × 36.2% = $173,760. Target: $480K × 32% = $153,600. Delta: $20,160. Conservative: $18,720."
+  calculation_shown: "Current: $480K × 36.2% = $173,760 | Target: $480K × 32% = $153,600 | Conservative: $18,720/yr"
+  impact_min: 15600
+  impact_max: 20160
+  compliance_risk: "No regulatory risk — operational optimization."
+  confidence_level: "medium"
+  recommendation: "1. Run 2-week waste audit. 2. Rebid top 10 ingredients. 3. Implement recipe costing in MarketMan ($239/mo)."`;
+
+    const example2 = isUS
+      ? `EXAMPLE B — PROCESSING FEES FINDING (US — Restaurant):
+  title: "Payment Processing Rate Renegotiation: $4,380/yr in Excess Fees"
+  root_cause: "Processing $480K/yr at 3.2% blended rate — 0.6% above interchange-plus benchmark of 2.6%"
+  description: "Card volume: $480K × 3.2% = $15,360. Benchmark: 2.6% = $12,480. Plus per-txn excess and fee delta. Total excess: $4,380/yr."
+  calculation_shown: "Current: $17,340 | Benchmark: $12,980 | Excess: $4,360/yr"
+  impact_min: 3880
+  impact_max: 4380
+  compliance_risk: "None — cost optimization. Verify PCI DSS compliance during processor switch."
+  confidence_level: "medium"
+  recommendation: "1. Request interchange-plus quote from Square and Helcim. 2. Use current statement as leverage. 3. Switch during low-volume week."`
+      : `EXAMPLE B — PROCESSING FEES FINDING (CA — Restaurant):
+  title: "Payment Processing Rate Renegotiation: $3,840/yr in Excess Fees"
+  root_cause: "Processing $420K/yr at 2.9% blended rate — 0.5% above benchmark of 2.4%"
+  description: "Card volume: $420K × 2.9% = $12,180. Benchmark: 2.4% = $10,080. Plus per-txn excess. Total: $3,840/yr."
+  calculation_shown: "Current: $13,920 | Benchmark: $10,780 | Excess: $3,840/yr"
+  impact_min: 3140
+  impact_max: 3840
+  compliance_risk: "None — cost optimization."
+  confidence_level: "medium"
+  recommendation: "1. Request interchange-plus quote from Helcim and Clover. 2. Leverage current statement for rate match. 3. Switch during low-volume period."`;
+
+    return { example1, example2 };
+  }
+
+  // ── Construction / Trades ────────────────────────────────────────────────
+  if (/construct|contractor|trade|plumb|electric|hvac|roofing/.test(ind)) {
+    const example1 = isUS
+      ? `EXAMPLE A — CLASSIFICATION FINDING (US — Construction):
+  title: "Workers Comp Classification Correction: $4,200/yr Premium Overpayment"
+  root_cause: "Classified under general contracting WC code when actual work is specialized — wrong code carries 35% higher base rate"
+  description: "Current code rate: $5.40/$100. Correct: $3.51/$100. On $180K payroll: $9,720 vs $6,318. Delta: $3,402 + exp mod adj $798."
+  calculation_shown: "Current: $180K × 5.40% = $9,720 | Correct: $180K × 3.51% = $6,318 | Delta: $3,402 + $798 = $4,200/yr"
+  impact_min: 3402
+  impact_max: 4200
+  compliance_risk: "State WC board can reclassify retroactively (3 years). Voluntary correction avoids penalties."
+  confidence_level: "medium"
+  recommendation: "1. Request current NCCI classification from carrier. 2. File reclassification with supporting contracts. 3. Engage commercial insurance broker for full audit."`
+      : `EXAMPLE A — CLASSIFICATION FINDING (CA — Construction):
+  title: "WCB Classification Audit: $3,600/yr Premium Overpayment"
+  root_cause: "Classified under general contracting WCB rate when actual work is specialized — wrong class carries 40% higher rate"
+  description: "Current: $4.20/$100. Correct: $2.52/$100. On $150K payroll: $6,300 vs $3,780. Overpayment: $2,520 + experience rating $1,080."
+  calculation_shown: "Current: $150K × 4.20% = $6,300 | Correct: $150K × 2.52% = $3,780 | Delta: $2,520 + $1,080 = $3,600/yr"
+  impact_min: 2520
+  impact_max: 3600
+  compliance_risk: "Provincial WCB can audit retroactively (3 years). Voluntary reclassification avoids penalties."
+  confidence_level: "medium"
+  recommendation: "1. Request classification code from WCB/WSIB/CNESST. 2. File reclassification with documentation. 3. Engage broker (BrokerLink, HUB) for full audit."`;
+
+    const example2 = isUS
+      ? `EXAMPLE B — DEPRECIATION FINDING (US — Construction):
+  title: "Equipment Section 179 + Bonus Depreciation: $22,400/yr Tax Reduction"
+  root_cause: "Equipment purchases of $112K depreciated straight-line instead of Section 179 immediate expensing"
+  description: "Section 179: $112K full deduction year 1. At 24% rate: $26,880 first-year benefit vs $3,840 straight-line. NPV advantage: $22,400."
+  calculation_shown: "Section 179: $112K × 24% = $26,880 yr-1 | Straight-line: $16K × 24% = $3,840/yr | NPV advantage: $22,400"
+  impact_min: 18000
+  impact_max: 26880
+  compliance_risk: "Section 179 is elective — no risk. Must file Form 4562. Phase-out at $3.05M total purchases."
+  confidence_level: "high"
+  recommendation: "1. Amend current return to elect Section 179 (Form 4562). 2. Structure future acquisitions for first-year expensing. 3. Review all assets for bonus depreciation eligibility."`
+      : `EXAMPLE B — CCA FINDING (CA — Construction):
+  title: "Equipment CCA Reclassification: $8,400/yr Tax Reduction"
+  root_cause: "Heavy equipment in CCA Class 8 (20%) when qualifying mobile equipment should be Class 10 (30%)"
+  description: "Class 10 + ACII: $140K × 45% = $63K deduction. Class 8 + ACII: $140K × 30% = $42K. Delta: $21K × 26.5% = $5,565 yr-1. Annualized: $8,400/yr."
+  calculation_shown: "Class 10: $63K deduction | Class 8: $42K | Delta: $21K × 26.5% = $5,565 yr-1 | Annualized: $8,400/yr"
+  impact_min: 5565
+  impact_max: 8400
+  compliance_risk: "CCA misclassification can trigger CRA reassessment. Voluntary correction is penalty-free."
+  confidence_level: "medium"
+  recommendation: "1. Review fixed assets with ${prof} for Class 10/10.1 eligibility. 2. File T2 adjustment if applicable. 3. Update capital asset register."`;
+
+    return { example1, example2 };
+  }
+
+  // ── SaaS / Software / Tech ───────────────────────────────────────────────
+  if (/saas|software|tech|digital|app|platform|cloud|ai/.test(ind)) {
+    const example1 = isUS
+      ? `EXAMPLE A — R&D CREDIT FINDING (US — SaaS/Tech):
+  title: "R&D Tax Credit (Section 41): $38,500/yr Unclaimed Credit"
+  root_cause: "3 developers spending ~70% on qualifying R&D — zero QREs claimed"
+  description: "Developer wages: $320K. R&D-eligible (70%): $224K QREs. Cloud infra supplies: $29K. Total QREs: $253K. ASC method: 14% × ($253K − $90K) = $22,820/yr. Conservative over 2 open years: $38,500."
+  calculation_shown: "QREs: $224K + $29K = $253K | ASC: 14% × $163K = $22,820/yr | 2 years conservative: $38,500"
+  impact_min: 22820
+  impact_max: 45640
+  compliance_risk: "R&D credit audit-prone (~10% exam rate). Contemporaneous documentation critical. Engage specialist ($3K–$5K)."
+  confidence_level: "medium"
+  recommendation: "1. Engage R&D specialist (Tri-Merit, alliantgroup, Clarus R+D). 2. Pull Git logs, Jira tickets as evidence. 3. File Form 6765 with amended returns."`
+      : `EXAMPLE A — SR&ED CREDIT FINDING (CA — SaaS/Tech):
+  title: "SR&ED Refundable Credit: $42,000/yr Unclaimed R&D Credit"
+  root_cause: "3 developers spending ~70% on qualifying SR&ED — zero T661 filed"
+  description: "Developer wages: $300K × 70% = $210K QEs. Federal: $210K × 35% = $73,500. Provincial: $7,350. Conservative: $42,000/yr."
+  calculation_shown: "QEs: $210K | Federal: $73,500 | Provincial: $7,350 | Total: $80,850 | Conservative: $42,000/yr"
+  impact_min: 42000
+  impact_max: 80850
+  compliance_risk: "SR&ED audited ~20% of claims. Contemporaneous docs critical. CRA can deny entire claim if weak."
+  confidence_level: "medium"
+  recommendation: "1. Engage SR&ED consultant (Conceptivity, NorthBridge — contingency 20-25%). 2. Pull Git history, design docs. 3. File T661 + T2SCH31."`;
+
+    const example2 = isUS
+      ? `EXAMPLE B — SAAS TOOL BLOAT FINDING (US — SaaS/Tech):
+  title: "SaaS Subscription Audit: $11,400/yr in Redundant/Unused Licenses"
+  root_cause: "42 active subscriptions for 12 people — 8 overlapping tools, 14 unused seats"
+  description: "Total SaaS: $68K/yr. Unused seats: 14 × $45/mo = $7,560. Redundant tools: $3,840/yr. Total: $11,400."
+  calculation_shown: "Unused: 14 × $45/mo × 12 = $7,560 | Redundant: $3,840 | Total: $11,400/yr"
+  impact_min: 7560
+  impact_max: 11400
+  compliance_risk: "None — cost optimization. Unused accounts with permissions are a security risk (SOC 2)."
+  confidence_level: "medium"
+  recommendation: "1. Run SaaS audit (Productiv, Zylo, or manual). 2. Cancel unused seats. 3. Consolidate redundant tools at renewal."`
+      : `EXAMPLE B — SAAS TOOL BLOAT FINDING (CA — SaaS/Tech):
+  title: "SaaS Subscription Audit: $9,600/yr in Redundant/Unused Licenses"
+  root_cause: "38 active subscriptions for 10 people — overlapping tools and unused seats"
+  description: "Total SaaS: $58K/yr. Unused seats: 12 × $40/mo = $5,760. Redundant tools: $3,840. Total: $9,600."
+  calculation_shown: "Unused: 12 × $40/mo × 12 = $5,760 | Redundant: $3,840 | Total: $9,600/yr"
+  impact_min: 5760
+  impact_max: 9600
+  compliance_risk: "None — cost optimization."
+  confidence_level: "medium"
+  recommendation: "1. Run full SaaS audit. 2. Cancel unused seats. 3. Consolidate redundant tools at renewal."`;
+
+    return { example1, example2 };
+  }
+
+  // ── Professional Services / Consulting ───────────────────────────────────
+  if (/consult|professional|legal|account|engineer|architect/.test(ind)) {
+    const example1 = isUS
+      ? `EXAMPLE A — BILLING LEAKAGE FINDING (US — Professional Services):
+  title: "Billing Leakage Recovery: $24,000/yr in Unbilled Time"
+  root_cause: "Realization rate at 78% vs benchmark of 88-92% — scope creep and write-offs losing 10% of billable time"
+  description: "Capacity: 4 × 1,800 hrs × $200 = $1,440K. Current 78%: $1,123K. Target 83%: $1,195K. Delta: $72K. Conservative: $24,000/yr."
+  calculation_shown: "Capacity: $1,440K | Current 78%: $1,123K | Target 83%: $1,195K | Conservative: $24,000/yr"
+  impact_min: 24000
+  impact_max: 72000
+  compliance_risk: "No regulatory risk. Under-billing signals engagement letter gaps — increases E&O exposure."
+  confidence_level: "medium"
+  recommendation: "1. Implement time tracking (Harvest $12/user/mo). 2. Engagement letters with change-order pricing. 3. Weekly WIP review."`
+      : `EXAMPLE A — BILLING LEAKAGE FINDING (CA — Professional Services):
+  title: "Billing Leakage Recovery: $22,000/yr in Unbilled Time"
+  root_cause: "Realization rate at 79% vs benchmark 88-92% — scope creep and write-offs"
+  description: "Capacity: 4 × 1,800 × $185 = $1,332K. Current 79%: $1,052K. Target 84%: $1,119K. Conservative: $22,000/yr."
+  calculation_shown: "Capacity: $1,332K | Current 79%: $1,052K | Target 84%: $1,119K | Conservative: $22,000/yr"
+  impact_min: 22000
+  impact_max: 67000
+  compliance_risk: "No regulatory risk. Under-billing signals E&O exposure."
+  confidence_level: "medium"
+  recommendation: "1. Implement time tracking (Harvest, Toggl). 2. Engagement letters with change-order pricing. 3. Weekly WIP review."`;
+
+    const example2 = isUS
+      ? `EXAMPLE B — INSURANCE FINDING (US — Professional Services):
+  title: "E&O Insurance Optimization: $3,200/yr Premium Reduction"
+  root_cause: "Policy auto-renewed at $12,800/yr — market rate is $9,600 for equivalent coverage"
+  description: "Current: $12,800 ($2M/$4M). Market: $9,600. Delta: $3,200. Plus missing cyber rider: $800/yr covers $50K+ breach costs."
+  calculation_shown: "Current: $12,800 | Market: $9,600 | Delta: $3,200 (net of $800 cyber: $2,400)"
+  impact_min: 2400
+  impact_max: 3200
+  compliance_risk: "Operating without adequate E&O exposes partners personally."
+  confidence_level: "medium"
+  recommendation: "1. Request 3 quotes via Embroker or Insureon. 2. Add cyber rider. 3. Review deductible for additional savings."`
+      : `EXAMPLE B — INSURANCE FINDING (CA — Professional Services):
+  title: "E&O Insurance Optimization: $2,800/yr Premium Reduction"
+  root_cause: "Policy auto-renewed at $11,200/yr — market rate is $8,400 for equivalent coverage"
+  description: "Current: $11,200 ($2M/$4M). Market: $8,400. Delta: $2,800. Missing cyber rider: $700/yr."
+  calculation_shown: "Current: $11,200 | Market: $8,400 | Delta: $2,800 (net of $700 cyber: $2,100)"
+  impact_min: 2100
+  impact_max: 2800
+  compliance_risk: "Inadequate E&O exposes partners personally."
+  confidence_level: "medium"
+  recommendation: "1. Request 3 quotes via broker (HUB, BrokerLink). 2. Add cyber rider. 3. Review deductible."`;
+
+    return { example1, example2 };
+  }
+
+  // ── Default — HST/WCB (CA) and S-Corp/Processing (US) ───────────────────
+  const example1 = isUS
+    ? `EXAMPLE A — TAX STRUCTURE FINDING (US):
+  title: "S-Corp Election + Salary Restructuring: $14,280/yr FICA Reduction"
+  root_cause: "Operating as sole proprietor at $210K net income — SE tax on entire amount instead of reasonable compensation only"
+  description: "Current: $210K × 15.3% (capped) = $27,907. Optimal: S-corp with $84K W-2, FICA $12,852. Delta: $15,055 − $1,275 admin = $13,780."
+  calculation_shown: "SE current: $27,907 | S-corp W-2: $12,852 | Delta: $15,055 − $1,275 = $13,780/yr"
+  impact_min: 13780
+  impact_max: 19828
+  compliance_risk: "IRS reasonable comp audit: W-2 below $84K risks reclassification + back FICA + 20% penalty."
+  confidence_level: "high"
+  recommendation: "1. File Form 2553 (S-corp election). 2. Set up payroll via Gusto ($46/mo + $6/ee). 3. Reasonable comp study ($300)."`
+    : `EXAMPLE A — TAX STRUCTURE FINDING (CA):
+  title: "HST Quick Method Election: $9,240/yr Tax Remittance Reduction"
+  root_cause: "Remitting HST standard method when Quick Method at 8.8% would reduce remittance"
+  description: "Standard: $320K × 13% − $4,800 ITCs = $36,800. Quick Method: $320K × 8.8% = $28,160. Saving: $8,640 + $600 bonus = $9,240."
+  calculation_shown: "Standard: $36,800 | Quick Method: $28,160 | Saving: $9,240/yr"
+  impact_min: 8640
+  impact_max: 9240
+  compliance_risk: "Quick Method irrevocable 12 months. Revenue >$400K disqualifies."
+  confidence_level: "high"
+  recommendation: "1. File RC7004 before next HST deadline. 2. Verify >50% service revenue. 3. Re-assess at $350K."`;
+
+  const example2 = isUS
+    ? `EXAMPLE B — OPERATIONAL FINDING (US):
+  title: "Payment Processing Rate Renegotiation: $4,380/yr in Excess Fees"
+  root_cause: "Processing $480K/yr at 3.2% blended — 0.6% above interchange-plus benchmark of 2.6%"
+  description: "Card volume: $480K × 3.2% = $15,360. Benchmark: $12,480. Plus per-txn and fee excess. Total: $4,380."
+  calculation_shown: "Current: $17,340 | Benchmark: $12,980 | Excess: $4,360/yr"
+  impact_min: 3880
+  impact_max: 4380
+  compliance_risk: "None — cost optimization. Verify PCI DSS during switch."
+  confidence_level: "medium"
+  recommendation: "1. Quote from Square and Helcim. 2. Leverage current statement. 3. Switch during low-volume week."`
+    : `EXAMPLE B — OPERATIONAL FINDING (CA):
+  title: "Workers Compensation Classification Audit: $3,600/yr Premium Overpayment"
+  root_cause: "WCB classification for general contracting when actual work is specialized — 40% higher base rate"
+  description: "Current: $4.20/$100. Correct: $2.52/$100. On $150K: $6,300 vs $3,780. Delta: $2,520 + exp rating $1,080 = $3,600."
+  calculation_shown: "Current: $6,300 | Correct: $3,780 | Delta: $3,600/yr"
+  impact_min: 2520
+  impact_max: 3600
+  compliance_risk: "WCB can audit retroactively (3 years). Voluntary reclassification avoids penalties."
+  confidence_level: "medium"
+  recommendation: "1. Request classification from WCB/WSIB/CNESST. 2. File reclassification. 3. Broker audit."`;
+
+  return { example1, example2 };
 }

@@ -12,6 +12,7 @@ import { buildDiagnosticSchema } from "./schema";
 import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
 import { buildMethodology }      from "./methodology";
+import { resolveEVMultiple }     from "./ev-multiples";
 import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 function industryBenchmarks(industry: string, revenue: number): string {
@@ -52,11 +53,17 @@ export function buildSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userProm
   const bizName   = profile.business_name  || "this business";
   const structure = profile.structure      || "sole_proprietorship";
 
+  // Industry-aware EV multiples — shared logic
+  const evRange = resolveEVMultiple(profile.industry_slug || profile.industry || "general");
+  const evMultiple = evRange.label;
+
+  const provinceWarning = ctx.provinceDefaulted
+    ? `\n\n⚠️ PROVINCE NOT CONFIRMED: Using ${province} as default. Tax rules, WCB/WSIB rates, and provincial programs may not match the actual jurisdiction. Flag all province-specific findings with "Verify: based on ${province} rules — confirm your actual province."\n`
+    : "";
+
   const systemPrompt = `${FRUXAL_VOICE}
 
-You are analyzing ${bizName}, a ${industry} operating in ${province} as a ${structure}.
-Annual revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}).
-Employees: ${employees}.
+You are a forensic financial diagnostic engine. Analyze the business profile provided in the user message.${provinceWarning}
 
 ${taxCtx}
 
@@ -118,7 +125,7 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use Canadian solo operator averages for this industry"}
 
-${buildQualityBar("solo", "CA")}
+${buildQualityBar("solo", "CA", industry)}
 
 ${buildSolutionMatrix("solo", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "CA")}
 
@@ -134,9 +141,10 @@ ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Reven
 8. REQUIRED — benchmark_comparisons: at least 4 entries. EBITDA margin and gross margin are mandatory. Include your_value_raw and top_quartile_raw as plain numbers.
 9. REQUIRED — exit_readiness: score, value_killers, value_builders, next_step.
 10. REQUIRED — priority_sequence: at least 3 entries using rank/action/action_fr/why_first/why_first_fr/expected_result/ebitda_improvement/enterprise_value_improvement.
-11. MANDATORY WRITE ORDER: scores → savings_anchor → executive_summary → totals → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence → findings.
-    If token budget is tight: shorten finding descriptions. NEVER skip or truncate earlier sections.
-${isFr ? "12. CRITICAL — FRENCH: Every user-facing text field (title, title_fr, description, description_fr, executive_summary_fr, recommendation_fr, etc.) MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
+11. MANDATORY WRITE ORDER: scores → totals → findings → executive_summary → savings_anchor → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence.
+    If token budget is tight: reduce cpa_briefing and benchmark descriptions. NEVER truncate findings.
+12. When you have more analyses than the finding limit allows, use the FINDING PRIORITY ORDER from the methodology section. Never drop categories 1-3 for categories 7-9.
+${isFr ? "14. CRITICAL — FRENCH: Every user-facing text field (title, title_fr, description, description_fr, executive_summary_fr, recommendation_fr, etc.) MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Analyze this solo/micro business and return a complete JSON diagnostic report.
@@ -205,11 +213,17 @@ function buildUSSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: s
   const bizName  = profile.business_name  || "this business";
   const structure = profile.structure     || "sole_proprietorship";
 
+  // Industry-aware EV multiples — shared logic
+  const usEvRange = resolveEVMultiple(profile.industry_slug || profile.industry || "general");
+  const usEvMultiple = usEvRange.label;
+
+  const usProvinceWarning = ctx.provinceDefaulted
+    ? `\n\n⚠️ PROVINCE NOT CONFIRMED: Using ${state} as default. Tax rules, workers comp rates, and state programs may not match the actual jurisdiction. Flag all state-specific findings with "Verify: based on ${state} rules — confirm your actual state."\n`
+    : "";
+
   const systemPrompt = `${buildFruxalVoice("US")}
 
-You are analyzing ${bizName}, a ${industry} operating in ${state} (US) as a ${structure}.
-Annual revenue: $${(annualRevenue ?? 0).toLocaleString()} (${revenueSource}).
-Employees: ${employees}.
+You are a forensic financial diagnostic engine. Analyze the business profile provided in the user message.${usProvinceWarning}
 
 ${taxCtx}
 
@@ -275,7 +289,7 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use US SMB averages for this industry and state"}
 
-${buildQualityBar("solo", "US")}
+${buildQualityBar("solo", "US", industry)}
 
 ${buildSolutionMatrix("solo", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
 
@@ -284,8 +298,15 @@ STRUCTURAL RULES:
 2. Use USD. Reference IRS forms (Schedule C, Form 941, W-2, 1099-NEC), not CRA forms.
 3. Maximum 5 findings. No finding under $500 annual impact.
 4. second_order_effects is a PLAIN STRING — NOT an array.
-5. REQUIRED — totals, cpa_briefing, risk_matrix, benchmark_comparisons, exit_readiness, priority_sequence.
-6. MANDATORY WRITE ORDER: scores → savings_anchor → executive_summary → totals → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence → findings.
+5. REQUIRED — totals: compute all 6 fields from findings before writing the findings array.
+6. REQUIRED — cpa_briefing: at least 2 talking_points {point, point_fr} and 2 questions_to_ask.
+7. REQUIRED — risk_matrix: at least 3 entries.
+8. REQUIRED — benchmark_comparisons: at least 4 entries. EBITDA margin and gross margin are mandatory. Include your_value_raw and top_quartile_raw as plain numbers.
+9. REQUIRED — exit_readiness: score, value_killers, value_builders, next_step.
+10. REQUIRED — priority_sequence: at least 3 entries using rank/action/action_fr/why_first/why_first_fr/expected_result/ebitda_improvement/enterprise_value_improvement.
+11. MANDATORY WRITE ORDER: scores → totals → findings → executive_summary → savings_anchor → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence.
+    If token budget is tight: reduce cpa_briefing and benchmark descriptions. NEVER truncate findings.
+12. When you have more analyses than the finding limit allows, use the FINDING PRIORITY ORDER from the methodology section. Never drop categories 1-3 for categories 7-9.
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Analyze this US solo/micro business and return a complete JSON diagnostic report.

@@ -13,6 +13,7 @@ import { buildDiagnosticSchema } from "./schema";
 import { buildSolutionMatrix }   from "./solution-matrix";
 import { buildQualityBar }       from "./quality-bar";
 import { buildMethodology }      from "./methodology";
+import { resolveEVMultiple }     from "./ev-multiples";
 import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
@@ -49,64 +50,23 @@ export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; us
   const industry    = profile.industry_label || profile.industry || "business";
   const bizName     = profile.business_name  || "this corporation";
   const structure   = profile.structure || profile.business_structure || "corporation";
-  // Industry-aware EV multiples based on Canadian M&A data
-  // Source: BDC, Deloitte Canada M&A Trends, BizBuySell Canada comps
+  // Industry-aware EV multiples — shared logic in ev-multiples.ts
   const industrySlug = (profile.industry_slug || profile.industry || "").toLowerCase();
-  function resolveEVMultiple(slug: string): { low: number; high: number; label: string } {
-    // Professional services (accounting, legal, consulting, engineering)
-    if (/account|cpa|tax|audit|legal|law|consult|engineer|architect|it.service|tech.service|staffing|recruit/.test(slug))
-      return { low: 5, high: 9,  label: "5–9× EBITDA" };
-    // SaaS / software / tech product
-    if (/saas|software|app|platform|tech|digital|cloud|ai|data/.test(slug))
-      return { low: 6, high: 12, label: "6–12× EBITDA" };
-    // Healthcare / medical / dental / pharmacy
-    if (/health|medical|dental|clinic|pharmacy|optom|physio|chiro|veterinar/.test(slug))
-      return { low: 5, high: 8,  label: "5–8× EBITDA" };
-    // Construction / trades / contracting
-    if (/construct|contrac|trade|plumb|electric|hvac|roofing|landscap|excavat/.test(slug))
-      return { low: 3, high: 5,  label: "3–5× EBITDA" };
-    // Manufacturing / industrial
-    if (/manufactur|industrial|fabricat|machin|assembly|processing|packaging/.test(slug))
-      return { low: 3, high: 6,  label: "3–6× EBITDA" };
-    // Food & beverage / hospitality / restaurant
-    if (/food|beverage|restaurant|hospitality|catering|bakery|bar|cafe/.test(slug))
-      return { low: 2, high: 4,  label: "2–4× EBITDA" };
-    // Retail / e-commerce
-    if (/retail|ecommerce|e-commerce|store|shop|boutique|wholesale|distrib/.test(slug))
-      return { low: 2, high: 4,  label: "2–4× EBITDA" };
-    // Real estate / property management
-    if (/real.estate|property|realty|rental|landlord|brokerage/.test(slug))
-      return { low: 4, high: 7,  label: "4–7× EBITDA" };
-    // Transportation / logistics / trucking
-    if (/transport|logistics|trucking|freight|courier|fleet|shipping/.test(slug))
-      return { low: 3, high: 5,  label: "3–5× EBITDA" };
-    // Financial services / insurance
-    if (/financ|insurance|invest|wealth|mortgage|lending|broker/.test(slug))
-      return { low: 5, high: 8,  label: "5–8× EBITDA" };
-    // Media / marketing / agency / creative
-    if (/market|advertis|media|agency|creative|design|print|pr\b|public.relat/.test(slug))
-      return { low: 4, high: 7,  label: "4–7× EBITDA" };
-    // Auto / dealership / repair
-    if (/auto|car|dealer|vehicle|repair|mechanic|collision/.test(slug))
-      return { low: 3, high: 5,  label: "3–5× EBITDA" };
-    // Default — general Canadian SMB
-    return { low: 4, high: 6, label: "4–6× EBITDA" };
-  }
-
   const evRange    = resolveEVMultiple(industrySlug);
   const evMultiple = evRange.label;
   // Floor: if EBITDA unknown/zero, use revenue multiple as proxy
   const evLow  = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * evRange.low)  : Math.round(annualRevenue * 0.5);
   const evHigh = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * evRange.high) : Math.round(annualRevenue * 0.8);
 
+  const provinceWarning = ctx.provinceDefaulted
+    ? `\n\n⚠️ PROVINCE NOT CONFIRMED: Using ${province} as default. Tax rules, WCB/WSIB rates, and provincial programs may not match the actual jurisdiction. Flag all province-specific findings with "Verify: based on ${province} rules — confirm your actual province."\n`
+    : "";
+
   const systemPrompt = `${FRUXAL_VOICE}
 
-You are analyzing ${bizName}, a ${industry} in ${province} generating $${(annualRevenue ?? 0).toLocaleString()} revenue.
+You are a forensic financial diagnostic engine. Analyze the business profile provided in the user message.
 This is a CCPC-level diagnostic. Your mandate: find every dollar of tax leakage, structural inefficiency,
-and compliance risk — and calculate the enterprise value effect at ${evMultiple} (current EV range: $${(evLow ?? 0).toLocaleString()}–$${(evHigh ?? 0).toLocaleString()}).
-
-EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}) | Gross margin: ${grossMarginPct}%
-Employees: ${employees}${ownerSalary > 0 ? ` | Owner salary: $${ownerSalary.toLocaleString()}` : ""}
+and compliance risk — and calculate the enterprise value effect at ${evMultiple} (current EV range: $${(evLow ?? 0).toLocaleString()}–$${(evHigh ?? 0).toLocaleString()}).${provinceWarning}
 
 ${taxCtx}
 
@@ -202,7 +162,7 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use Canadian enterprise averages for this industry"}
 
-${buildQualityBar("enterprise", "CA")}
+${buildQualityBar("enterprise", "CA", industry)}
 
 ${buildSolutionMatrix("enterprise", province, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "CA")}
 
@@ -218,9 +178,10 @@ STRUCTURAL RULES:
 9. REQUIRED — benchmark_comparisons: exactly 6 entries — EBITDA margin, gross margin, revenue per employee, effective tax rate, owner comp as % of revenue, working capital ratio. Every entry needs your_value_raw and top_quartile_raw as plain numbers.
 10. REQUIRED — exit_readiness: at least 2 value_killers with valuation_discount, 2 value_builders with valuation_premium_amount, specific next_step.
 11. REQUIRED — priority_sequence: exactly 6 entries. Each needs rank/action/action_fr/why_first/why_first_fr/expected_result/ebitda_improvement/enterprise_value_improvement.
-12. MANDATORY WRITE ORDER: scores → savings_anchor → executive_summary → totals → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence → findings.
-    If token budget is tight: reduce to 8 findings, shorten descriptions. NEVER skip or truncate earlier sections.
-${isFr ? "13. CRITICAL — FRENCH: Every user-facing text field MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
+12. MANDATORY WRITE ORDER: scores → totals → findings → executive_summary → savings_anchor → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence.
+    If token budget is tight: reduce to 8 findings, shorten cpa_briefing and benchmark descriptions. NEVER truncate findings.
+13. When you have more analyses than the finding limit allows, use the FINDING PRIORITY ORDER from the methodology section. Never drop categories 1-3 for categories 7-9.
+${isFr ? "15. CRITICAL — FRENCH: Every user-facing text field MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Conduct a full CCPC financial diagnostic. Return a complete JSON report.
@@ -303,16 +264,21 @@ function buildUSEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPro
   const structure  = profile?.structure      || "s_corp";
   console.log("[Enterprise:US] All vars declared. industry =", industry);
 
-  // US EV multiples (similar ranges, US M&A comps)
-  const evLow  = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * 4) : Math.round(annualRevenue * 0.5);
-  const evHigh = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * 8) : Math.round(annualRevenue * 0.9);
+  // US EV multiples — use shared industry-aware logic
+  const usIndustrySlug = (profile.industry_slug || profile.industry || "").toLowerCase();
+  const usEvRange = resolveEVMultiple(usIndustrySlug);
+  const evLow  = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * usEvRange.low)  : Math.round(annualRevenue * 0.5);
+  const evHigh = estimatedEBITDA > 0 ? Math.round(estimatedEBITDA * usEvRange.high) : Math.round(annualRevenue * 0.9);
+  const usEvMultiple = usEvRange.label;
+
+  const usProvinceWarning = ctx.provinceDefaulted
+    ? `\n\n⚠️ PROVINCE NOT CONFIRMED: Using ${state} as default. Tax rules, workers comp rates, and state programs may not match the actual jurisdiction. Flag all state-specific findings with "Verify: based on ${state} rules — confirm your actual state."\n`
+    : "";
 
   const systemPrompt = `${buildFruxalVoice("US")}
 
-You are analyzing ${bizName}, a ${industry} in ${state} (US) generating $${(annualRevenue ?? 0).toLocaleString()} revenue.
-Structure: ${structure} | EBITDA: ~$${(estimatedEBITDA ?? 0).toLocaleString()} (${ebitdaSource}) | Gross margin: ${grossMarginPct}%
-Employees: ${employees}${ownerSalary > 0 ? ` | Owner W-2: $${ownerSalary.toLocaleString()}` : ""}
-Enterprise value range: $${(evLow ?? 0).toLocaleString()}–$${(evHigh ?? 0).toLocaleString()} (4–8× EBITDA)
+You are a forensic financial diagnostic engine. Analyze the business profile provided in the user message.
+Enterprise value range: $${(evLow ?? 0).toLocaleString()}–$${(evHigh ?? 0).toLocaleString()} (${usEvMultiple}).${usProvinceWarning}
 
 ${taxCtx}
 
@@ -390,7 +356,7 @@ ${leakList || "None"}
 INDUSTRY BENCHMARKS:
 ${benchmarkList || "Use US enterprise averages for this industry and state"}
 
-${buildQualityBar("enterprise", "US")}
+${buildQualityBar("enterprise", "US", industry)}
 
 ${buildSolutionMatrix("enterprise", state, annualRevenue, employees, industry, profile.has_payroll ?? false, profile.does_rd ?? false, "US")}
 
@@ -398,9 +364,17 @@ STRUCTURAL RULES:
 1. Calculate every dollar from ACTUAL revenue $${(annualRevenue ?? 0).toLocaleString()} and EBITDA $${(estimatedEBITDA ?? 0).toLocaleString()}.
 2. Use USD. Reference IRS forms (1120-S, W-2, 941, 6765, 8850, 4562, 8996), not CRA.
 3. Maximum 9 findings. No finding under $5,000 annual impact at this revenue level.
-4. Every finding MUST include ebitda_improvement AND enterprise_value_improvement at 4–8× EBITDA.
+4. Every finding MUST include ebitda_improvement AND enterprise_value_improvement at ${usEvMultiple}.
 5. second_order_effects is a PLAIN STRING — NOT an array.
-6. REQUIRED — all sections: totals, cpa_briefing, risk_matrix, benchmark_comparisons, exit_readiness, priority_sequence.
+6. REQUIRED — totals: compute ALL 6 fields from findings BEFORE writing the findings array.
+7. REQUIRED — cpa_briefing: at least 4 talking_points {point, point_fr}, 3+ questions_to_ask, real IRS form numbers, tax_exposures with specific dollar amount.
+8. REQUIRED — risk_matrix: at least 5 entries — tax compliance, key person, data/IP, financing covenants, exit timing.
+9. REQUIRED — benchmark_comparisons: exactly 6 entries — EBITDA margin, gross margin, revenue per employee, effective tax rate, owner comp as % of revenue, working capital ratio. Every entry needs your_value_raw and top_quartile_raw as plain numbers.
+10. REQUIRED — exit_readiness: at least 2 value_killers with valuation_discount, 2 value_builders with valuation_premium_amount, specific next_step.
+11. REQUIRED — priority_sequence: exactly 6 entries. Each needs rank/action/action_fr/why_first/why_first_fr/expected_result/ebitda_improvement/enterprise_value_improvement.
+12. MANDATORY WRITE ORDER: scores → totals → findings → executive_summary → savings_anchor → cpa_briefing → risk_matrix → benchmark_comparisons → exit_readiness → priority_sequence.
+    If token budget is tight: reduce to 8 findings, shorten cpa_briefing and benchmark descriptions. NEVER truncate findings.
+13. When you have more analyses than the finding limit allows, use the FINDING PRIORITY ORDER from the methodology section. Never drop categories 1-3 for categories 7-9.
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
   const userPrompt = `Analyze this US enterprise business and return a complete JSON diagnostic report.

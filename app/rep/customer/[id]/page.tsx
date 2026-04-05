@@ -404,35 +404,37 @@ ${repInfo?.name || 'Your Fruxal rep'}`
       )}
 
       <div className="bg-white border-b border-[#E5E3DD]">
-        <div className="max-w-[1100px] mx-auto px-6 py-4">
-          <div className="flex items-center gap-3 mb-3">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center gap-3 mb-2 sm:mb-3">
             <button onClick={() => router.push("/rep/dashboard")}
-              className="flex items-center gap-1.5 text-[11px] text-[#8E8C85] hover:text-[#1B3A2D] transition-colors">
+              className="flex items-center gap-1.5 text-[11px] text-[#8E8C85] hover:text-[#1B3A2D] transition-colors min-h-[36px]">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6"/>
               </svg>
               All Clients
             </button>
             <span className="text-[#E5E3DD]">/</span>
-            <span className="text-[11px] text-[#1A1A18] font-medium">{client.companyName}</span>
+            <span className="text-[11px] text-[#1A1A18] font-medium truncate">{client.companyName}</span>
           </div>
 
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-[18px] font-bold text-[#1A1A18]">{client.companyName}</h1>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[16px] sm:text-[18px] font-bold text-[#1A1A18]">{client.companyName}</h1>
+                <span className="text-[10px] font-bold px-3 py-1 rounded-full shrink-0"
+                  style={{ background:"rgba(27,58,45,0.08)", color:"#1B3A2D" }}>
+                  {stage.replace(/_/g," ").replace(/\b\w/g,(l: string) => l.toUpperCase())}
+                </span>
+              </div>
               <p className="text-[11px] text-[#8E8C85] mt-0.5">
                 {client.industry} · {client.province} · {client.revenueBracket}
               </p>
             </div>
 
-            <div className="flex flex-col items-end gap-2">
-              <span className="text-[10px] font-bold px-3 py-1 rounded-full"
-                style={{ background:"rgba(27,58,45,0.08)", color:"#1B3A2D" }}>
-                {stage.replace(/_/g," ").replace(/\b\w/g,(l: string) => l.toUpperCase())}
-              </span>
+            <div className="flex items-center gap-2 flex-wrap">
               {nextSteps.map((s: any) => (
                 <button key={s.next} onClick={() => advanceStage(s.next)} disabled={saving}
-                  className="text-[10px] font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-50 transition"
+                  className="text-[10px] font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-50 transition min-h-[32px]"
                   style={{ background:"#1B3A2D" }}>
                   {s.label} →
                 </button>
@@ -441,33 +443,33 @@ ${repInfo?.name || 'Your Fruxal rep'}`
           </div>
 
           {/* Rep action buttons */}
-          <div className="flex gap-2 mt-3 flex-wrap">
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible sm:flex-wrap scrollbar-hide">
             {repInfo?.calendly_url && client.pipeline?.contactEmail && (
               <button onClick={sendBookingLink} disabled={saving}
-                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#1B3A2D] text-[#1B3A2D] hover:bg-[#F0FBF5] transition-colors disabled:opacity-40">
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#1B3A2D] text-[#1B3A2D] hover:bg-[#F0FBF5] transition-colors disabled:opacity-40 whitespace-nowrap min-h-[36px]">
                 Send Booking Link →
               </button>
             )}
             <button onClick={generateCallPrep} disabled={callPrepLoading}
-              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F] hover:bg-[#F0EFEB] transition-colors disabled:opacity-40">
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F] hover:bg-[#F0EFEB] transition-colors disabled:opacity-40 whitespace-nowrap min-h-[36px]">
               {callPrepLoading ? "Generating..." : "Call Script"}
             </button>
             <button onClick={() => { setShowScripts(s => !s); if (!scripts) fetchScripts(scriptType); }}
-              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#1B3A2D] text-[#1B3A2D] hover:bg-[#F0FBF5] transition-colors">
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#1B3A2D] text-[#1B3A2D] hover:bg-[#F0FBF5] transition-colors whitespace-nowrap min-h-[36px]">
               Sales Scripts
             </button>
             {client.engagement?.id && (
               <a href={`/api/rep/customer/${diagId}/agreement`} target="_blank" rel="noopener"
-                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F] hover:bg-[#F0EFEB] transition-colors">
-                Download Agreement PDF
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-[#E5E3DD] text-[#56554F] hover:bg-[#F0EFEB] transition-colors whitespace-nowrap min-h-[36px] flex items-center">
+                Agreement PDF
               </a>
             )}
           </div>
 
-          <div className="flex gap-1 mt-4 border-b border-[#E5E3DD] -mb-px">
+          <div className="flex gap-1 mt-4 border-b border-[#E5E3DD] -mb-px overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
             {TABS.map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className="text-[11px] font-semibold px-3 py-2 border-b-2 transition-colors"
+                className="text-[11px] font-semibold px-3 py-2 border-b-2 transition-colors whitespace-nowrap shrink-0"
                 style={{
                   borderColor: tab === t.key ? "#1B3A2D" : "transparent",
                   color:       tab === t.key ? "#1B3A2D" : "#8E8C85",
@@ -479,7 +481,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-6 py-6">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
 
         {/* ═══ SALES SCRIPTS PANEL ═══ */}
         {showScripts && (
@@ -501,7 +503,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
             </div>
 
             {/* Script type tabs */}
-            <div className="flex border-b border-[#E5E3DD]">
+            <div className="flex border-b border-[#E5E3DD] overflow-x-auto scrollbar-hide">
               {([
                 { key: "cold_outreach" as ScriptTab, label: "Cold Outreach" },
                 { key: "post_prescan" as ScriptTab, label: "Post-Prescan" },
@@ -509,7 +511,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                 { key: "objection_handling" as ScriptTab, label: "Objections" },
               ]).map(st => (
                 <button key={st.key} onClick={() => handleScriptTabChange(st.key)}
-                  className="flex-1 text-[11px] font-semibold px-3 py-2.5 border-b-2 transition-colors"
+                  className="flex-1 text-[11px] font-semibold px-3 py-2.5 border-b-2 transition-colors whitespace-nowrap min-w-fit"
                   style={{
                     borderColor: scriptType === st.key ? "#1B3A2D" : "transparent",
                     color: scriptType === st.key ? "#1B3A2D" : "#8E8C85",
@@ -883,7 +885,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
 
         {tab === "savings" && (
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { label:"Confirmed Savings",  val:fmtM(client.savings?.confirmed ?? 0)   },
                 { label:`Fee (${client.savings?.feePercentage||12}%)`, val:fmtM(client.savings?.feeOwed ?? 0) },

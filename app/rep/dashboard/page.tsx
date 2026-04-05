@@ -158,10 +158,10 @@ export default function RepDashboard() {
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="bg-white border-b border-[#E5E3DD]">
-        <div className="max-w-[1100px] mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-[17px] font-bold text-[#1B3A2D] tracking-tight">Fruxal</span>
-            <span className="text-[10px] font-semibold text-[#8E8C85] uppercase tracking-wider bg-[#F0EFEB] px-2 py-0.5 rounded-full">Rep Portal</span>
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <span className="text-[15px] sm:text-[17px] font-bold text-[#1B3A2D] tracking-tight shrink-0">Fruxal</span>
+            <span className="text-[10px] font-semibold text-[#8E8C85] uppercase tracking-wider bg-[#F0EFEB] px-2 py-0.5 rounded-full shrink-0">Rep Portal</span>
             <div className="hidden sm:flex items-center gap-1 ml-2">
               <button onClick={() => router.push("/rep/commissions")}
                 className="text-[11px] font-semibold px-3 py-1 rounded-lg hover:bg-[#F0EFEB] transition"
@@ -191,7 +191,7 @@ export default function RepDashboard() {
             </div>
           </div>
           {rep && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <div className="text-right hidden sm:block">
                 <p className="text-[12px] font-semibold text-[#1A1A18]">{rep.name}</p>
                 <p className="text-[10px] text-[#8E8C85]">{rep.province || "—"} · {rep.commission_rate ?? 12}% contingency</p>
@@ -210,8 +210,8 @@ export default function RepDashboard() {
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-6 py-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-6">
           {[
             { label:"Clients",          value:clients.length,                            sub:"assigned"    },
             { label:"Active",           value:activeCount,                               sub:"engagements" },
@@ -353,7 +353,7 @@ export default function RepDashboard() {
         )}
 
         <div className="flex flex-col sm:flex-row gap-3 mb-5">
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible sm:flex-wrap scrollbar-hide">
             {[
               { key:"all",      label:`All (${clients.length})`       },
               { key:"active",   label:`Active (${activeCount})`       },
@@ -362,7 +362,7 @@ export default function RepDashboard() {
               { key:"atrisk",   label:`At Risk (${clients.filter(c => { const d = c.pipeline?.updatedAt ? Math.floor((Date.now()-new Date(c.pipeline.updatedAt).getTime())/86400000) : 0; return d >= 7 && !["completed","fee_collected","lost"].includes(c.pipeline?.stage||""); }).length})`, urgent:true },
             ].map(f => (
               <button key={f.key} onClick={() => setFilter(f.key)}
-                className="text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition-all"
+                className="text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap shrink-0 min-h-[32px]"
                 style={{ background:filter===f.key?"#1B3A2D":"white", color:filter===f.key?"white":(f.urgent?"#C4841D":"#56554F"), borderColor:filter===f.key?"#1B3A2D":(f.urgent?"rgba(196,132,29,0.3)":"#E5E3DD") }}>
                 {f.label}
               </button>

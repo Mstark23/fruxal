@@ -33,6 +33,7 @@ export interface DiagCtx {
   rdtohBalance:     number;
   hasCDA:           boolean;
   sredLastYear:     number;
+  provinceDefaulted?: boolean; // true if province was not set and we fell back to a default
   // Parsed document data (from Claude document parser — may be null if not uploaded)
   docData: {
     t2:         any | null;  // T2 Corporate Return extracted fields

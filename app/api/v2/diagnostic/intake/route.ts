@@ -7,6 +7,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { pickBestRep } from "@/lib/rep-picker";
+import { scoreLeadQuality } from "@/lib/lead-score";
 
 // ── GET: Load profile for intake pre-fill ─────────────────────────────────────
 export async function GET(req: NextRequest) {

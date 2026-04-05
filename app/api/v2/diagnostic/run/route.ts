@@ -117,7 +117,13 @@ export async function POST(req: NextRequest) {
       || bodyCountry
       || (hostHeader.includes("fruxal.com") && !hostHeader.includes("fruxal.ca") ? "US" : "CA");
     const country  = (detectedCountry === "US" ? "US" : "CA") as "CA" | "US";
-    const province = profile.province || (country === "US" ? "TX" : "ON");
+    let provinceDefaulted = false;
+    let province = profile.province;
+    if (!province || province === "") {
+      province = country === "US" ? "TX" : "ON";
+      provinceDefaulted = true;
+      console.warn(`[Diagnostic] Province not set — defaulting to ${province}. Tax rules may be inaccurate.`);
+    }
     const employees = profile.employee_count ?? 0;
 
     // ── 2. Derived financials ─────────────────────────────────────────────
@@ -366,6 +372,7 @@ export async function POST(req: NextRequest) {
       rdtohBalance:     profile.rdtoh_balance ?? 0,
       hasCDA:           profile.has_cda_balance       ?? false,
       sredLastYear:     profile.sred_claimed_last_year ?? 0,
+      provinceDefaulted,
       docData:          promptInputs.docData ?? { t2: null, financials: null, gst: null, t4: null, bank: null },
     };
 
