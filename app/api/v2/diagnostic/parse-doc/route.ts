@@ -7,12 +7,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
 
-const DOC_PROMPTS: Record<string, string> = {
-  t2: `You are a Canadian tax document parser. Extract data from this T2 Corporate Tax Return.
+function getDocPrompts(country: string): Record<string, string> {
+  const isUS = country === "US";
+
+  return {
+    t2: isUS
+      ? `You are a US tax document parser. Extract data from this Form 1120/1120-S Corporate Tax Return.
+Return ONLY valid JSON, no markdown:
+{
+  "tax_year": number,
+  "net_income_before_tax": number,
+  "taxable_income": number,
+  "total_tax_payable": number,
+  "section_199a_deduction": number,
+  "r_and_d_credit_claimed": number,
+  "amt_liability": number,
+  "accumulated_earnings": number,
+  "passive_income": number,
+  "active_business_income": number,
+  "confidence": "high"|"medium"|"low",
+  "notes": "any flags or issues noticed"
+}
+If a field is not present, use null. Never guess.`
+      : `You are a Canadian tax document parser. Extract data from this T2 Corporate Tax Return.
 Return ONLY valid JSON, no markdown:
 {
   "tax_year": number,
@@ -30,7 +52,7 @@ Return ONLY valid JSON, no markdown:
 }
 If a field is not present, use null. Never guess.`,
 
-  financials: `You are a Canadian financial statement parser. Extract data from this financial statement (Notice to Reader, Review Engagement, or Audited Financials).
+    financials: `You are a ${isUS ? "US" : "Canadian"} financial statement parser. Extract data from this financial statement (${isUS ? "compiled, reviewed, or audited financials" : "Notice to Reader, Review Engagement, or Audited Financials"}).
 Return ONLY valid JSON, no markdown:
 {
   "period_end": "YYYY-MM-DD",
@@ -52,7 +74,23 @@ Return ONLY valid JSON, no markdown:
 }
 If a field is not present, use null. Never guess.`,
 
-  gst: `You are a Canadian tax document parser. Extract data from this GST/HST Return (GST34).
+    gst: isUS
+      ? `You are a US tax document parser. Extract data from this Sales Tax Return.
+Return ONLY valid JSON, no markdown:
+{
+  "reporting_period_start": "YYYY-MM-DD",
+  "reporting_period_end": "YYYY-MM-DD",
+  "total_sales_and_other_revenue": number,
+  "sales_tax_collected": number,
+  "input_tax_credits": number,
+  "net_tax_remitted": number,
+  "use_tax_owed": number,
+  "simplified_method": boolean,
+  "confidence": "high"|"medium"|"low",
+  "notes": "any flags or issues noticed"
+}
+If a field is not present, use null. Never guess.`
+      : `You are a Canadian tax document parser. Extract data from this GST/HST Return (GST34).
 Return ONLY valid JSON, no markdown:
 {
   "reporting_period_start": "YYYY-MM-DD",
@@ -68,7 +106,24 @@ Return ONLY valid JSON, no markdown:
 }
 If a field is not present, use null. Never guess.`,
 
-  t4: `You are a Canadian tax document parser. Extract data from this T4 Summary (employer payroll summary).
+    t4: isUS
+      ? `You are a US tax document parser. Extract data from this W-2/W-3 Summary (employer payroll summary).
+Return ONLY valid JSON, no markdown:
+{
+  "tax_year": number,
+  "number_of_w2s": number,
+  "total_wages_tips_compensation": number,
+  "total_social_security_withheld": number,
+  "total_medicare_withheld": number,
+  "total_federal_income_tax_withheld": number,
+  "employer_social_security_contribution": number,
+  "employer_medicare_contribution": number,
+  "total_remittances": number,
+  "confidence": "high"|"medium"|"low",
+  "notes": "any flags or issues noticed"
+}
+If a field is not present, use null. Never guess.`
+      : `You are a Canadian tax document parser. Extract data from this T4 Summary (employer payroll summary).
 Return ONLY valid JSON, no markdown:
 {
   "tax_year": number,
@@ -85,7 +140,7 @@ Return ONLY valid JSON, no markdown:
 }
 If a field is not present, use null. Never guess.`,
 
-  bank: `You are a financial analyst. Extract key data from this bank statement.
+    bank: `You are a financial analyst. Extract key data from this bank statement.
 Return ONLY valid JSON, no markdown:
 {
   "period_start": "YYYY-MM-DD",
@@ -100,7 +155,8 @@ Return ONLY valid JSON, no markdown:
   "notes": "any flags or issues noticed"
 }
 If a field is not present, use null. Never guess.`,
-};
+  };
+}
 
 export async function POST(req: NextRequest) {
   const anthropic = getAnthropicClient();
@@ -114,6 +170,18 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const docType = (formData.get("docType") as string) || "financials";
+    const businessId = formData.get("businessId") as string | null;
+
+    // Resolve country from business profile (default CA)
+    let country = "CA";
+    if (businessId) {
+      const { data: profile } = await supabaseAdmin
+        .from("business_profiles")
+        .select("country")
+        .eq("business_id", businessId)
+        .maybeSingle();
+      country = profile?.country || "CA";
+    }
 
     if (!file) {
       return NextResponse.json({ success: false, error: "No file provided" }, { status: 400 });
@@ -134,7 +202,8 @@ export async function POST(req: NextRequest) {
     const base64 = Buffer.from(buffer).toString("base64");
     const mediaType = file.type as "application/pdf" | "image/jpeg" | "image/png" | "image/webp";
 
-    const systemPrompt = DOC_PROMPTS[docType] || DOC_PROMPTS.financials;
+    const docPrompts = getDocPrompts(country);
+    const systemPrompt = docPrompts[docType] || docPrompts.financials;
 
     // Build content block depending on file type
     const contentBlock = mediaType === "application/pdf"

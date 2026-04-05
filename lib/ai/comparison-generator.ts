@@ -34,7 +34,8 @@ export async function generateComparison(
   businessId:     string,
   userId:         string,
   newReportId:    string,
-  previousReportId: string
+  previousReportId: string,
+  country:        string = "CA"
 ): Promise<void> {
   try {
     // ── 1. Fetch both reports ─────────────────────────────────────────────
@@ -136,7 +137,7 @@ Write a brief, specific comparison summary. Lead with the score change and bigge
           body: JSON.stringify({
             model: "claude-sonnet-4-20250514",
             max_tokens: 300,
-            system: `You are summarizing the difference between two financial diagnostic scans for a Canadian SMB owner. Be specific with numbers. Write in a direct, encouraging tone. Respond with JSON only, no preamble, no markdown:
+            system: `You are summarizing the difference between two financial diagnostic scans for a ${country === "US" ? "US" : "Canadian"} SMB owner. Be specific with numbers. Write in a direct, encouraging tone. Respond with JSON only, no preamble, no markdown:
 {"headline":"...","narrative":"..."}
 headline: max 12 words, starts with a specific win or finding.
 narrative: 3-4 sentences, dollar amounts throughout.`,

@@ -30,8 +30,10 @@ function buildTaskPrompt(
   findings: any[],
   profile: any,
   tier: string,
-  language: string
+  language: string,
+  country: string = "CA"
 ): string {
+  const isUS = country === "US";
   const tierConfig = {
     solo: {
       maxTasks: 3,
@@ -47,8 +49,9 @@ function buildTaskPrompt(
     },
     enterprise: {
       maxTasks: 12,
-      tone:
-        "Include CRA/SR&ED flags, accountant prep tasks, and high-value restructuring opportunities.",
+      tone: isUS
+        ? "Include IRS audit flags, accountant prep tasks, and high-value restructuring opportunities."
+        : "Include CRA/SR&ED flags, accountant prep tasks, and high-value restructuring opportunities.",
       context: "enterprise business with complex tax and operational needs",
     },
   };
@@ -64,7 +67,7 @@ function buildTaskPrompt(
     )
     .join("\n");
 
-  return `You are a financial efficiency expert generating action tasks for a Canadian small business.
+  return `You are a financial efficiency expert generating action tasks for a ${isUS ? "US" : "Canadian"} small business.
 
 BUSINESS CONTEXT:
 - Industry: ${profile.industry || "small business"}
@@ -79,7 +82,7 @@ ${findingsSummary}
 INSTRUCTIONS:
 Generate up to ${cfg.maxTasks} prioritized tasks from these findings.
 Tone: ${cfg.tone}
-${tier === "enterprise" ? "Include at least 1 CRA/SR&ED or accountant task if relevant findings exist." : ""}
+${tier === "enterprise" ? (isUS ? "Include at least 1 IRS or accountant task if relevant findings exist." : "Include at least 1 CRA/SR&ED or accountant task if relevant findings exist.") : ""}
 
 Output ONLY valid JSON — no preamble, no markdown fences, no explanation.
 Return this exact structure:
@@ -105,10 +108,15 @@ Rules:
 - savings_monthly must be a number (annual_savings / 12, rounded)
 - effort must be exactly "easy", "medium", or "hard"
 - priority starts at 1 (highest) — order by highest savings × ease of implementation
-- solution_name should be a real Canadian-available tool (e.g. Helcim/Moneris for payments, Wave/Quickbooks for accounting, Wagepoint/Humi for payroll, Wealthsimple Tax for tax, Jobber for field service)
+${isUS
+  ? `- solution_name should be a real US-available tool (e.g. Square/Stripe for payments, QuickBooks/Wave for accounting, Gusto/ADP for payroll, TurboTax Business for tax, Jobber for field service)
+- For US payment processing: Square and Stripe are top choices for SMBs
+- For free accounting: Wave is excellent for SMBs
+- For payroll: Gusto is purpose-built for US small businesses`
+  : `- solution_name should be a real Canadian-available tool (e.g. Helcim/Moneris for payments, Wave/Quickbooks for accounting, Wagepoint/Humi for payroll, Wealthsimple Tax for tax, Jobber for field service)
 - For Canadian payment processing: Helcim saves 1-2% vs most processors
 - For free accounting: Wave is excellent for SMBs
-- For payroll: Wagepoint is purpose-built for Canadian businesses
+- For payroll: Wagepoint is purpose-built for Canadian businesses`}
 - If French: title, action, why must be in French; all other fields stay in English`;
 }
 
@@ -118,14 +126,15 @@ export async function generateTasksFromFindings(
   tier: string,
   reportId: string,
   businessId: string,
-  language: string = "en"
+  language: string = "en",
+  country: string = "CA"
 ): Promise<DiagnosticTask[]> {
   const anthropic = getAnthropicClient();
 
   if (!findings || findings.length === 0) return [];
 
   try {
-    const prompt = buildTaskPrompt(findings, profile, tier, language);
+    const prompt = buildTaskPrompt(findings, profile, tier, language, country);
 
     const response = await anthropic.messages.create({
       model: CLAUDE_MODEL,

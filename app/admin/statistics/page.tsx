@@ -80,7 +80,8 @@ const CHANNELS = [
 ];
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
-const fmtVal = (v: number, type: string) => {
+const fmtVal = (v: number | undefined | null, type: string) => {
+  if (v == null) return "—";
   if (type === "dollar") return "$" + v.toLocaleString();
   if (type === "pct")    return v + "%";
   return v.toLocaleString();
@@ -468,6 +469,7 @@ export default function StatisticsPage() {
                   <Line type="monotone" dataKey="score" strokeWidth={2} stroke="#888"
                     dot={(props: any) => {
                       const { cx, cy, payload } = props;
+                      if (cx == null || cy == null || !payload) return <circle key={Math.random()} r={0} />;
                       const isSelected = selectedDay?.day === payload.day || (!selectedDay && payload.day === TODAY.day);
                       const color = scoreColor(payload.score);
                       return <circle key={payload.day} cx={cx} cy={cy} r={isSelected ? 6 : 3} fill={color} stroke={isSelected ? "#fff" : color} strokeWidth={isSelected ? 2 : 0} />;
@@ -534,8 +536,8 @@ export default function StatisticsPage() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.12)" />
                     <XAxis dataKey="m" tick={{ fontSize: 11, fill: "#888" }} />
-                    <YAxis tick={{ fontSize: 11, fill: "#888" }} tickFormatter={(v: number) => "$" + (v / 1000).toFixed(0) + "k"} />
-                    <Tooltip formatter={(v: number, n: string) => ["$" + v.toLocaleString(), n === "rev" ? "Revenue" : "Costs"]} />
+                    <YAxis tick={{ fontSize: 11, fill: "#888" }} tickFormatter={(v: any) => "$" + ((v ?? 0) / 1000).toFixed(0) + "k"} />
+                    <Tooltip formatter={(v: any, n: string) => ["$" + (v ?? 0).toLocaleString(), n === "rev" ? "Revenue" : "Costs"]} />
                     <Area type="monotone" dataKey="rev"  stroke="#4f7cff" fill="url(#gRev)"  strokeWidth={2} name="rev" />
                     <Area type="monotone" dataKey="cost" stroke="#B34040" fill="url(#gCost)" strokeWidth={2} name="cost" />
                   </AreaChart>
@@ -559,7 +561,7 @@ export default function StatisticsPage() {
                     <Pie data={CHANNELS} dataKey="value" cx="50%" cy="50%" outerRadius={60} innerRadius={35}>
                       {CHANNELS.map((c, i) => <Cell key={i} fill={c.color} />)}
                     </Pie>
-                    <Tooltip formatter={(v: number) => v + "%"} />
+                    <Tooltip formatter={(v: any) => (v ?? 0) + "%"} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -590,7 +592,7 @@ export default function StatisticsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.12)" />
                   <XAxis dataKey="m" tick={{ fontSize: 11, fill: "#888" }} />
                   <YAxis tick={{ fontSize: 11, fill: "#888" }} domain={[600, 900]} />
-                  <Tooltip formatter={(v: number) => [v, "Customers"]} />
+                  <Tooltip formatter={(v: any) => [v ?? 0, "Customers"]} />
                   <Area type="monotone" dataKey="cust" stroke="#2D7A50" fill="url(#gCust)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>

@@ -37,7 +37,7 @@ async function assembleContext(businessId: string, userId: string) {
       // 1. Business + owner info
       supabaseAdmin
         .from("business_profiles")
-        .select("business_name, industry, industry_label, province, employee_count, annual_revenue, exact_annual_revenue")
+        .select("business_name, industry, industry_label, province, employee_count, annual_revenue, exact_annual_revenue, country")
         .eq("business_id", businessId)
         .eq("user_id", userId)
         .maybeSingle()
@@ -138,14 +138,17 @@ async function assembleContext(businessId: string, userId: string) {
   const isQC = (bizRow?.province || "").toUpperCase() === "QC" ||
     (bizRow?.province || "").toLowerCase() === "quebec";
 
+  const country = bizRow?.country || "CA";
+
   return {
     biz: {
       name:     bizRow?.business_name || "your business",
       industry: bizRow?.industry_label || bizRow?.industry || "business",
-      province: bizRow?.province || "Canada",
+      province: bizRow?.province || (country === "US" ? "N/A" : "Canada"),
       employees: bizRow?.employee_count ?? 0,
       revMonthly,
       isQC,
+      country,
     },
     currentScore:  currentReport ? (currentReport.overall_score ?? 0) : null,
     prevScore:     prevReport    ? (prevReport.overall_score ?? 0)    : null,
@@ -331,7 +334,8 @@ export async function generateMonthlyBrief(
 
     const userPrompt = await buildUserPrompt(ctx, tier);
 
-    const systemPrompt = `You are writing a monthly financial brief for a Canadian SMB owner.
+    const isUSBiz = ctx.biz.country === "US";
+    const systemPrompt = `You are writing a monthly financial brief for a ${isUSBiz ? "US" : "Canadian"} SMB owner.
 Your job is to write a brief that feels personal, specific, and genuinely useful — not a generic newsletter.
 
 Rules:

@@ -29,14 +29,15 @@ function fmt(n: number) { return "$" + Math.round(n ?? 0).toLocaleString(); }
 export async function suggestGoal(
   businessId: string,
   userId:     string,
-  tier:       string
+  tier:       string,
+  country:    string = "CA"
 ): Promise<GoalSuggestion | null> {
   try {
     // ── Assemble context ─────────────────────────────────────────────────────
     const [profileRow, openTasksRows, scoreRow, bizRow] = await Promise.all([
       supabaseAdmin
         .from("business_profiles")
-        .select("industry, industry_label, province, employee_count")
+        .select("industry, industry_label, province, employee_count, country")
         .eq("business_id", businessId)
         .eq("user_id", userId)
         .maybeSingle()
@@ -72,7 +73,9 @@ export async function suggestGoal(
     ]);
 
     const industry   = profileRow?.industry_label || profileRow?.industry || "small business";
-    const province   = profileRow?.province || "Canada";
+    const resolvedCountry = profileRow?.country || country || "CA";
+    const isUS = resolvedCountry === "US";
+    const province   = profileRow?.province || (isUS ? "N/A" : "Canada");
     const employees  = profileRow?.employee_count ?? 0;
     const openTasks  = openTasksRows as any[];
     const totalAvail = openTasks.reduce((s, t) => s + (t.savings_monthly ?? 0), 0);
@@ -138,7 +141,7 @@ For a solo operator, a recovery_amount goal of 30-50% of available savings (${fm
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 400,
-        system: `You are suggesting a realistic 90-day financial goal for a Canadian SMB owner based on their diagnostic results.
+        system: `You are suggesting a realistic 90-day financial goal for a ${isUS ? "US" : "Canadian"} SMB owner based on their diagnostic results.
 
 Rules:
 - The goal must be specific, measurable, and achievable in 90 days

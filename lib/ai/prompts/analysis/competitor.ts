@@ -14,10 +14,12 @@ export interface CompetitorContext {
   totalLeaking:   number;
   openFindings:   Array<{ title: string; annualImpact: number; category: string }>;
   competitors?:   string;
+  country?:       string;
 }
 
-export function buildCompetitorSystem(): string {
-  return `You are a Canadian business strategy advisor working with Fruxal.
+export function buildCompetitorSystem(country: string = "CA"): string {
+  const isUS = country === "US";
+  return `You are a ${isUS ? "US" : "Canadian"} business strategy advisor working with Fruxal.
 You analyze a business's financial leak profile to determine their competitive position relative to industry peers.
 
 FRAMEWORK:
@@ -26,9 +28,11 @@ FRAMEWORK:
 - Opportunities = highest-ROI fixes ranked by competitive impact
 - Threats = what happens if competitors fix these leaks and this business doesn't
 
-CANADIAN CONTEXT:
+${isUS ? `US CONTEXT:
+- Reference real US industry benchmarks where possible.
+- Account for state-level cost structures (CA vs TX vs NY etc.).` : `CANADIAN CONTEXT:
 - Reference real Canadian industry benchmarks where possible.
-- Account for provincial cost structures (QC vs ON vs AB etc.).
+- Account for provincial cost structures (QC vs ON vs AB etc.).`}
 - The "competitive gap" is the cost advantage well-run competitors have by NOT having these leaks.
 
 Rules:

@@ -17,10 +17,12 @@ export interface ActionPlanContext {
     category:     string;
     recommendation?: string;
   }>;
+  country?:       string;
 }
 
-export function buildActionPlanSystem(): string {
-  return `You are a Canadian business efficiency advisor working with Fruxal.
+export function buildActionPlanSystem(country: string = "CA"): string {
+  const isUS = country === "US";
+  return `You are a ${isUS ? "US" : "Canadian"} business efficiency advisor working with Fruxal.
 Your job is to take a business's detected financial leaks and convert them into a prioritized, specific 30/60/90 day action plan.
 
 RULES:
@@ -28,7 +30,9 @@ RULES:
 - Sequence by: (1) regulatory/compliance risk first, (2) quick wins by effort vs impact, (3) structural improvements last.
 - Dollar amounts must come from the finding data provided — no guessing.
 - Actions must be specific enough that the owner knows exactly what to do next Monday morning.
-- Canadian context: CRA deadlines, WSIB, HST filings — these come first if overdue.
+${isUS
+  ? "- US context: IRS deadlines, state tax filings, sales tax compliance — these come first if overdue."
+  : "- Canadian context: CRA deadlines, WSIB, HST filings — these come first if overdue."}
 - Respond with ONLY valid JSON. No markdown, no preamble.`;
 }
 

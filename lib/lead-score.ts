@@ -8,10 +8,11 @@
 export interface LeadSignals {
   annualRevenue:    number | null;   // From business_profiles or pipeline
   estimatedLeak:    number | null;   // ~5% revenue or prescan-calculated
-  province:         string | null;   // QC/ON = better rep coverage
+  province:         string | null;   // QC/ON = better rep coverage (CA); CA/TX/NY (US)
+  country:          string | null;   // "CA" or "US" — determines which coverage map to use
   hasAccountant:    boolean | null;  // false = likely missing credits
   lastTaxReview:    string | null;   // "never" / "3_plus_years" = high value
-  doesRd:           boolean | null;  // SR&ED claim likely
+  doesRd:           boolean | null;  // SR&ED (CA) or R&D Tax Credit (US) opportunity
   employeeCount:    number | null;   // Payroll optimization plays
   industry:         string | null;   // Some industries have higher avg savings
   daysInPipeline:   number;          // Urgency — older = cooling off
@@ -23,6 +24,7 @@ const HIGH_VALUE_INDUSTRIES = new Set([
 ]);
 
 const HIGH_COVERAGE_PROVINCES = new Set(["QC","ON","BC","AB"]);
+const HIGH_COVERAGE_US_STATES = new Set(["CA","TX","NY","FL","IL","WA","CO","GA"]);
 
 export function scoreLeadQuality(s: LeadSignals): { score: number; reasons: string[] } {
   let score = 0;
@@ -60,8 +62,9 @@ export function scoreLeadQuality(s: LeadSignals): { score: number; reasons: stri
   if ((s.employeeCount ?? 0) >= 10)    { score += 6; reasons.push("10+ employees"); }
   else if ((s.employeeCount ?? 0) >= 3){ score += 3; reasons.push("3+ employees"); }
 
-  // Province — rep coverage quality
-  if (s.province && HIGH_COVERAGE_PROVINCES.has(s.province)) {
+  // Province/state — rep coverage quality
+  const coverageSet = s.country === "US" ? HIGH_COVERAGE_US_STATES : HIGH_COVERAGE_PROVINCES;
+  if (s.province && coverageSet.has(s.province)) {
     score += 5; reasons.push(`${s.province} — strong rep coverage`);
   }
 

@@ -2,7 +2,7 @@
 // lib/ai/break-even-calculator.ts
 // Pure calculation functions — no Claude calls, no API calls, no side effects.
 // Safe to run client-side for instant feedback.
-// All inputs/outputs in monthly CAD dollars unless noted.
+// All inputs/outputs in monthly dollars unless noted.
 // =============================================================================
 
 export interface SafetyMargin {

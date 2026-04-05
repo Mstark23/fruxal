@@ -75,23 +75,23 @@ export default function TrainingHub() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <button onClick={() => router.push("/rep/dashboard")}
-            className="text-[11px] text-[#8E8C85] hover:text-[#1B3A2D] mb-3 flex items-center gap-1 transition">
+            className="text-[11px] text-[#8E8C85] hover:text-[#1B3A2D] mb-3 flex items-center gap-1 transition min-h-[36px]">
             ← Dashboard
           </button>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-[#1B3A2D] flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+            <div className="w-9 sm:w-10 h-9 sm:h-10 rounded-xl bg-[#1B3A2D] flex items-center justify-center shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
                 <path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5" />
               </svg>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-[#1A1A18]">Rep Training System</h1>
-              <p className="text-[12px] text-[#8E8C85]">Follow the modules in order. Master each before moving to the next.</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold text-[#1A1A18]">Rep Training System</h1>
+              <p className="text-[11px] sm:text-[12px] text-[#8E8C85]">Follow the modules in order. Master each before moving to the next.</p>
             </div>
           </div>
         </div>
@@ -110,9 +110,9 @@ export default function TrainingHub() {
           {MODULES.map((mod) => (
             <button key={mod.step}
               onClick={() => router.push(mod.href)}
-              className="w-full bg-white border border-[#E5E3DD] rounded-xl p-5 text-left hover:border-[#1B3A2D]/30 hover:shadow-md transition-all group"
+              className="w-full bg-white border border-[#E5E3DD] rounded-xl p-4 sm:p-5 text-left hover:border-[#1B3A2D]/30 hover:shadow-md transition-all group active:scale-[0.99]"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3 sm:gap-4">
                 {/* Step number */}
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[12px] font-bold"
                   style={{ background: mod.bg, color: mod.color }}>

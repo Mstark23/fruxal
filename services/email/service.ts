@@ -506,14 +506,19 @@ export async function sendRepNewClient(
   province: string | null,
   totalLeak: number,
   dashUrl: string,
+  country?: string,
 ): Promise<boolean> {
+  const currencyLabel = country === "US" ? "USD" : "CAD";
+  const locationLabel = province
+    ? `${province}, ${country === "US" ? "USA" : "Canada"}`
+    : (country === "US" ? "USA" : "Canada");
   const body = `
     <p style="font-size:15px;color:#1a1a2e;margin:0 0 16px">Hi ${repName},</p>
     <p style="color:#3d3d4e;margin:0 0 16px">
       You've been assigned a new client: <strong>${clientName}</strong>
-      ${industry ? ` (${industry}${province ? `, ${province}` : ''})` : ''}.
+      ${industry ? ` (${industry}, ${locationLabel})` : ` (${locationLabel})`}.
     </p>
-    ${totalLeak > 0 ? `<p style="color:#3d3d4e;margin:0 0 16px">Estimated annual leak: <strong style="color:#B34040">$${totalLeak.toLocaleString()}/yr</strong></p>` : ''}
+    ${totalLeak > 0 ? `<p style="color:#3d3d4e;margin:0 0 16px">Estimated annual leak: <strong style="color:#B34040">$${totalLeak.toLocaleString()} ${currencyLabel}/yr</strong></p>` : ''}
     <p style="color:#3d3d4e;margin:0 0 24px">Review their file and make first contact within 24 hours for best conversion.</p>
   `;
   return sendEmail({ to, subject: `New client assigned: ${clientName}`, html: emailTemplate(`New client assigned`, body, `View Client File →`, dashUrl) });

@@ -14,14 +14,17 @@ const ACTIVE_STAGES = [
   "agreement_out","signed","in_engagement","recovery_tracking",
 ];
 
-export async function pickBestRep(province: string | null): Promise<{ id: string; name: string; email: string; calendly_url: string | null; contingency_rate: number } | null> {
+export async function pickBestRep(province: string | null, country?: string | null): Promise<{ id: string; name: string; email: string; calendly_url: string | null; contingency_rate: number } | null> {
   try {
     // Get all active reps with their current active client count
-    const { data: reps } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("tier3_reps")
-      .select("id, name, email, province, status, calendly_url, contingency_rate")
+      .select("id, name, email, province, country, status, calendly_url, contingency_rate")
       .eq("status", "active");
 
+    if (!country) country = "CA"; // default to Canada
+
+    const { data: reps } = await query;
     if (!reps?.length) return null;
 
     // Count active clients per rep
@@ -42,13 +45,17 @@ export async function pickBestRep(province: string | null): Promise<{ id: string
     // Sort reps by load (ascending)
     const sorted = [...reps].sort((a, b) => (loadMap[a.id] ?? 0) - (loadMap[b.id] ?? 0));
 
-    // 1. Province match with lowest load
-    const provinceMatch = province
-      ? sorted.find(r => r.province === province)
+    // 1. Same country + same province/state with lowest load
+    const exactMatch = province
+      ? sorted.find(r => (r.country || "CA") === country && r.province === province)
       : null;
-    if (provinceMatch) return provinceMatch;
+    if (exactMatch) return exactMatch;
 
-    // 2. Any rep with lowest load
+    // 2. Same country, any province, lowest load
+    const countryMatch = sorted.find(r => (r.country || "CA") === country);
+    if (countryMatch) return countryMatch;
+
+    // 3. Any rep with lowest load (fallback)
     return sorted[0] || null;
   } catch (err: any) {
     console.error("[RepPicker]", err.message);

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     // ── Fetch business context ─────────────────────────────────────────────
     const { data: profile } = await supabaseAdmin
       .from("business_profiles")
-      .select("business_name, industry, province, exact_annual_revenue, annual_revenue, monthly_revenue, structure, has_accountant, owner_name")
+      .select("business_name, industry, province, exact_annual_revenue, annual_revenue, monthly_revenue, structure, has_accountant, owner_name, country")
       .eq("business_id", businessId)
       .single();
 
@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
       structure:      profile?.structure       || "corporation",
       has_accountant: profile?.has_accountant  ?? false,
       owner_name:     profile?.owner_name      || undefined,
+      country:        (profile?.country || "CA") as "CA" | "US",
     };
 
     // ── Fetch pipeline_id for this report ───────────────────────────────

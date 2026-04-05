@@ -11,6 +11,7 @@ const TABS = [
   { path: "/admin/diagnostic-test",   label: "Engine Tester" },
   { path: "/admin/tier3/reps",        label: "Reps" },
   { path: "/admin/accountants",        label: "Accountants" },
+  { path: "/admin/statistics",         label: "Statistics" },
   { path: "/admin/settings",          label: "Settings" },
 ];
 

@@ -1,7 +1,7 @@
 // =============================================================================
 // lib/ai/ratio-calculator.ts
 // Pure financial ratio calculations — zero dependencies, zero API calls.
-// All inputs in monthly CAD figures unless noted.
+// All inputs in monthly dollar figures unless noted.
 // Returns null (never NaN/Infinity) for any ratio with insufficient data.
 // =============================================================================
 
