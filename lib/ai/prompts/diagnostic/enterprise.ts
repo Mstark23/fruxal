@@ -16,14 +16,34 @@ import { buildMethodology }      from "./methodology";
 import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 export function buildEnterprisePrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
-  const {
-    profile, province, country, annualRevenue, revenueSource,
-    estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct,
-    employees, isFr, taxCtx, leakList, programList, benchmarkList,
-    overdue, penaltyExposure, ownerSalary, exactNetIncome, exitHorizon,
-    hasHoldco, passiveOver50k, lcgeEligible, rdtohBalance, hasCDA,
-    sredLastYear, estimatedTaxDrag, obligationsCount,
-  } = ctx;
+  const profile = ctx.profile;
+  const province = ctx.province;
+  const country = ctx.country;
+  const annualRevenue = ctx.annualRevenue;
+  const revenueSource = ctx.revenueSource;
+  const estimatedPayroll = ctx.estimatedPayroll;
+  const estimatedEBITDA = ctx.estimatedEBITDA;
+  const ebitdaSource = ctx.ebitdaSource;
+  const grossMarginPct = ctx.grossMarginPct;
+  const employees = ctx.employees;
+  const isFr = ctx.isFr;
+  const taxCtx = ctx.taxCtx;
+  const leakList = ctx.leakList;
+  const programList = ctx.programList;
+  const benchmarkList = ctx.benchmarkList;
+  const overdue = ctx.overdue;
+  const penaltyExposure = ctx.penaltyExposure;
+  const ownerSalary = ctx.ownerSalary;
+  const exactNetIncome = ctx.exactNetIncome;
+  const exitHorizon = ctx.exitHorizon;
+  const hasHoldco = ctx.hasHoldco;
+  const passiveOver50k = ctx.passiveOver50k;
+  const lcgeEligible = ctx.lcgeEligible;
+  const rdtohBalance = ctx.rdtohBalance;
+  const hasCDA = ctx.hasCDA;
+  const sredLastYear = ctx.sredLastYear;
+  const estimatedTaxDrag = ctx.estimatedTaxDrag;
+  const obligationsCount = ctx.obligationsCount;
   if ((country ?? "CA") === "US") return buildUSEnterprisePrompts(ctx);
 
   const industry    = profile.industry_label || profile.industry || "business";

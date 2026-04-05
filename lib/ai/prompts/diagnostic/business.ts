@@ -15,12 +15,24 @@ import { buildMethodology }      from "./methodology";
 import { FRUXAL_VOICE, buildFruxalVoice } from "@/lib/ai/identity";
 
 export function buildBusinessPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
-  const {
-    profile, province, country, annualRevenue, revenueSource,
-    estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct,
-    employees, isFr, taxCtx, leakList, programList, benchmarkList,
-    overdue, penaltyExposure, ownerSalary,
-  } = ctx;
+  const profile = ctx.profile;
+  const province = ctx.province;
+  const country = ctx.country;
+  const annualRevenue = ctx.annualRevenue;
+  const revenueSource = ctx.revenueSource;
+  const estimatedPayroll = ctx.estimatedPayroll;
+  const estimatedEBITDA = ctx.estimatedEBITDA;
+  const ebitdaSource = ctx.ebitdaSource;
+  const grossMarginPct = ctx.grossMarginPct;
+  const employees = ctx.employees;
+  const isFr = ctx.isFr;
+  const taxCtx = ctx.taxCtx;
+  const leakList = ctx.leakList;
+  const programList = ctx.programList;
+  const benchmarkList = ctx.benchmarkList;
+  const overdue = ctx.overdue;
+  const penaltyExposure = ctx.penaltyExposure;
+  const ownerSalary = ctx.ownerSalary;
   if ((country ?? "CA") === "US") return buildUSBusinessPrompts(ctx);
 
   const industry  = profile.industry_label || profile.industry || "business";
@@ -167,12 +179,23 @@ ${buildDiagnosticSchema("business", 7, "CA")}`;
 // US BUSINESS TIER — $150K–$1M revenue, US SMBs with employees
 // =============================================================================
 function buildUSBusinessPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
-  const {
-    profile, province: state, annualRevenue, revenueSource,
-    estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct,
-    employees, isFr, taxCtx, leakList, programList, benchmarkList,
-    overdue, penaltyExposure, ownerSalary,
-  } = ctx;
+  const profile = ctx.profile;
+  const state = ctx.province;
+  const annualRevenue = ctx.annualRevenue;
+  const revenueSource = ctx.revenueSource;
+  const estimatedPayroll = ctx.estimatedPayroll;
+  const estimatedEBITDA = ctx.estimatedEBITDA;
+  const ebitdaSource = ctx.ebitdaSource;
+  const grossMarginPct = ctx.grossMarginPct;
+  const employees = ctx.employees;
+  const isFr = ctx.isFr;
+  const taxCtx = ctx.taxCtx;
+  const leakList = ctx.leakList;
+  const programList = ctx.programList;
+  const benchmarkList = ctx.benchmarkList;
+  const overdue = ctx.overdue;
+  const penaltyExposure = ctx.penaltyExposure;
+  const ownerSalary = ctx.ownerSalary;
 
   const industry  = profile.industry_label || profile.industry || "business";
   const bizName   = profile.business_name  || "this business";

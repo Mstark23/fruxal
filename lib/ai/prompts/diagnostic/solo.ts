@@ -29,11 +29,23 @@ function industryBenchmarks(industry: string, revenue: number): string {
 }
 
 export function buildSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
-  const {
-    profile, province, country, annualRevenue, revenueSource,
-    employees, isFr, taxCtx, leakList, programList, benchmarkList,
-    overdue, penaltyExposure, grossMarginPct,
-  } = ctx;
+  const profile = ctx.profile;
+  const province = ctx.province;
+  const country = ctx.country;
+  const annualRevenue = ctx.annualRevenue;
+  const revenueSource = ctx.revenueSource;
+  const employees = ctx.employees;
+  const isFr = ctx.isFr;
+  const taxCtx = ctx.taxCtx;
+  const leakList = ctx.leakList;
+  const programList = ctx.programList;
+  const benchmarkList = ctx.benchmarkList;
+  const overdue = ctx.overdue;
+  const penaltyExposure = ctx.penaltyExposure;
+  const grossMarginPct = ctx.grossMarginPct;
+  const estimatedPayroll = ctx.estimatedPayroll;
+  const estimatedEBITDA = ctx.estimatedEBITDA;
+  const ebitdaSource = ctx.ebitdaSource;
   if ((country ?? "CA") === "US") return buildUSSoloPrompts(ctx);
 
   const industry  = profile.industry_label || profile.industry || "business";
@@ -127,8 +139,6 @@ ${annualRevenue > 0 && revenueSource.includes("estimate") ? `0. DATA NOTE: Reven
 ${isFr ? "12. CRITICAL — FRENCH: Every user-facing text field (title, title_fr, description, description_fr, executive_summary_fr, recommendation_fr, etc.) MUST be in professional Quebec French. Use 'vous' not 'tu'. JSON keys stay in English. Do NOT leave any _fr field empty or in English." : ""}
 RESPOND WITH ONLY VALID JSON — NO MARKDOWN, NO PREAMBLE, NO TRAILING TEXT.`;
 
-  const { estimatedPayroll, estimatedEBITDA, ebitdaSource } = ctx;
-
   const userPrompt = `Analyze this solo/micro business and return a complete JSON diagnostic report.
 
 ${industryBenchmarks(industry, annualRevenue)}
@@ -174,16 +184,26 @@ ${buildDiagnosticSchema("solo", 5, "CA")}`;
 // US SOLO — Sole proprietors, single-member LLCs, micro-businesses
 // =============================================================================
 function buildUSSoloPrompts(ctx: DiagCtx): { systemPrompt: string; userPrompt: string } {
-  const {
-    profile, province: state, annualRevenue, revenueSource,
-    employees, isFr, taxCtx, leakList, programList, benchmarkList,
-    overdue, penaltyExposure,
-  } = ctx;
+  const profile = ctx.profile;
+  const state = ctx.province;
+  const annualRevenue = ctx.annualRevenue;
+  const revenueSource = ctx.revenueSource;
+  const employees = ctx.employees;
+  const isFr = ctx.isFr;
+  const taxCtx = ctx.taxCtx;
+  const leakList = ctx.leakList;
+  const programList = ctx.programList;
+  const benchmarkList = ctx.benchmarkList;
+  const overdue = ctx.overdue;
+  const penaltyExposure = ctx.penaltyExposure;
+  const estimatedPayroll = ctx.estimatedPayroll;
+  const estimatedEBITDA = ctx.estimatedEBITDA;
+  const ebitdaSource = ctx.ebitdaSource;
+  const grossMarginPct = ctx.grossMarginPct;
 
   const industry = profile.industry_label || profile.industry || "business";
   const bizName  = profile.business_name  || "this business";
   const structure = profile.structure     || "sole_proprietorship";
-  const { estimatedPayroll, estimatedEBITDA, ebitdaSource, grossMarginPct } = ctx;
 
   const systemPrompt = `${buildFruxalVoice("US")}
 
