@@ -288,7 +288,7 @@ export default function RepDashboard() {
         )}
 
         {/* ═══ MY STATS ═══ */}
-        <RepStatsSection />
+        {/* Stats section removed — available at /v2/stats */}
 
         {/* ═══ CALENDLY SETUP BANNER ═══ */}
         {!rep?.calendly_url && !showCalendlyEdit && (
