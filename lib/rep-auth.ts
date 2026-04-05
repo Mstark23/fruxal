@@ -27,7 +27,7 @@ export function verifyToken(token: string): any | null {
 }
 
 export function generateMagicToken(repId: string, email: string): string {
-  return sign({ repId, email, exp: Date.now() + 15 * 60 * 1000, type: "magic" });
+  return sign({ repId, email, exp: Date.now() + 7 * 24 * 60 * 60 * 1000, type: "magic" }); // 7 days
 }
 
 export function generateSessionToken(repId: string, email: string): string {
