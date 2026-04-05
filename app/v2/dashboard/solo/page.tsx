@@ -670,8 +670,54 @@ export default function SoloDashboard() {
             ); })()}
           </div>
 
-          {/* COL 2: REP STATUS + RECOVERY PROGRESS */}
+          {/* COL 2: BOOK A CALL CTA + REP STATUS + RECOVERY PROGRESS */}
           <div className="flex flex-col gap-3">
+
+            {/* Book a Strategy Call CTA — primary conversion action */}
+            {totalLeak > 0 && !assignedRep && (
+              <a href={process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/fruxal/strategy"}
+                target="_blank" rel="noopener noreferrer"
+                className="block rounded-xl overflow-hidden hover:shadow-lg transition-all"
+                style={{ background: "linear-gradient(135deg, #1B3A2D 0%, #2A5A44 100%)" }}>
+                <div className="px-5 py-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 0112 2.18 2 2 0 0114.09 4v3"/></svg>
+                    <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">{t("Next Step", "Prochaine étape")}</span>
+                  </div>
+                  <p className="text-[16px] font-bold text-white mb-1">
+                    {t("Book Your Free Strategy Call", "Réservez votre appel stratégie gratuit")}
+                  </p>
+                  <p className="text-[12px] text-white/70 mb-3">
+                    {t(`We found $${(totalLeak ?? 0).toLocaleString()}/yr leaking from your business. A recovery expert will walk you through each finding and start recovering your money — no cost unless we find savings.`,
+                       `Nous avons trouvé ${(totalLeak ?? 0).toLocaleString()}$/an en fuites. Un expert en récupération vous guidera à travers chaque constat — aucun frais sauf si nous trouvons des économies.`)}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#1B3A2D] text-[12px] font-bold rounded-lg">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+                      {t("Book Free Call →", "Réserver →")}
+                    </span>
+                    <span className="text-[10px] text-white/50">{t("15 min · No commitment", "15 min · Sans engagement")}</span>
+                  </div>
+                </div>
+              </a>
+            )}
+
+            {/* Book a call — when rep is assigned but not yet in engagement */}
+            {assignedRep && assignedRep.pipeline_stage !== "in_engagement" && assignedRep.pipeline_stage !== "recovery_tracking" && assignedRep.calendly_url && (
+              <a href={assignedRep.calendly_url} target="_blank" rel="noopener noreferrer"
+                className="block bg-white rounded-xl border border-brand/20 p-4 hover:shadow-md transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-brand/8 flex items-center justify-center shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[12px] font-bold text-ink">{t(`Book a call with ${assignedRep.name}`, `Réserver un appel avec ${assignedRep.name}`)}</p>
+                    <p className="text-[10px] text-ink-faint">{t("Review your findings together", "Passez en revue vos constats ensemble")}</p>
+                  </div>
+                  <span className="text-brand text-[11px] font-semibold">→</span>
+                </div>
+              </a>
+            )}
 
             {/* Rep working status */}
             {assignedRep && (assignedRep.pipeline_stage === "in_engagement" || assignedRep.pipeline_stage === "recovery_tracking") ? (
