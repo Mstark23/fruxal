@@ -25,6 +25,13 @@ export function buildDiagnosticPrompts(
   tier: DiagnosticTier,
   ctx:  DiagCtx
 ): { systemPrompt: string; userPrompt: string } {
+  // Validate ctx has required fields before calling tier builders
+  if (!ctx.province) {
+    console.error("[buildDiagnosticPrompts] ctx.province is falsy:", ctx.province, "country:", ctx.country, "tier:", tier);
+    ctx.province = ctx.country === "US" ? "TX" : "ON"; // force default
+  }
+  console.log("[buildDiagnosticPrompts] tier:", tier, "country:", ctx.country, "province:", ctx.province, "industry:", ctx.profile?.industry);
+
   switch (tier) {
     case "enterprise": return buildEnterprisePrompts(ctx);
     case "business":   return buildBusinessPrompts(ctx);
