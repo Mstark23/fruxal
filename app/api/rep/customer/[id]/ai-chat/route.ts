@@ -18,7 +18,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRep } from "@/lib/rep-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { callClaude } from "@/lib/ai/client";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 import { loadMemories, formatMemoriesForPrompt, extractAndSaveMemories } from "@/lib/ai/memory";
 
 export const maxDuration = 30;
@@ -60,7 +60,8 @@ async function buildRepContext(clientId: string, repId: string) {
     supabaseAdmin.from("tier3_engagement_documents").select("document_type, label, status").eq("engagement_id", pipe.id).then(r => r.data || []),
     supabaseAdmin.from("tier3_engagements").select("id, status, fee_percentage").eq("pipeline_id", pipe.id).maybeSingle().then(r => r.data),
     supabaseAdmin.from("call_debriefs").select("call_outcome, agreed_findings, client_concerns, notes, created_at").eq("pipeline_id", pipe.id).order("created_at", { ascending: false }).limit(3).then(r => r.data || []),
-    supabaseAdmin.from("affiliate_partners").select("name, slug, category, commission_type, commission_value, description").eq("active", true).order("quality_score", { ascending: false }).limit(30).then(r => r.data || []),
+    // Partners query — will be filtered by finding categories below
+    supabaseAdmin.from("affiliate_partners").select("name, slug, category, commission_type, commission_value, description").eq("active", true).order("quality_score", { ascending: false }).limit(50).then(r => r.data || []),
     supabaseAdmin.from("affiliate_clicks").select("partner, vertical, created_at").eq("pipeline_id", pipe.id).eq("source", "rep_recommendation").then(r => r.data || []),
   ]);
 
@@ -72,9 +73,17 @@ async function buildRepContext(clientId: string, repId: string) {
   const feeOwed = Math.round(confirmedTotal * (feeRate / 100));
   const totalLeak = findings.reduce((s: number, f: any) => s + (f.annual_impact_max || f.annual_impact_min || 0), 0);
 
+  // Filter partners to only categories matching client findings
+  const findingCategories = [...new Set(
+    (findings || []).map((f: any) => (f.category || "").toLowerCase()).filter(Boolean)
+  )];
+  const filteredPartners = findingCategories.length > 0
+    ? partners.filter((p: any) => findingCategories.includes((p.category || "").toLowerCase())).slice(0, 15)
+    : partners.slice(0, 15);
+
   // Map partners to leak categories
   const partnersByCategory: Record<string, string[]> = {};
-  for (const p of partners) {
+  for (const p of filteredPartners) {
     if (!partnersByCategory[p.category]) partnersByCategory[p.category] = [];
     if (partnersByCategory[p.category].length < 3) partnersByCategory[p.category].push(`${p.name} (${p.commission_type === "percentage" ? `${p.commission_value}%` : `$${p.commission_value}`})`);
   }
@@ -139,6 +148,36 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const memoryBlock = formatMemoriesForPrompt(memories);
     const repName = auth.rep?.name || "Rep";
 
+    const slpContext = `
+SALES METHODOLOGY — STRAIGHT LINE PERSUASION (Jordan Belfort):
+You know this system. Reference it naturally when coaching.
+
+THE THREE 10s (every sale needs all three at 10/10):
+1. Certainty about the PRODUCT (Fruxal's diagnostic + recovery model)
+2. Certainty about YOU (the rep — trust, competence, likability)
+3. Certainty about the COMPANY (Fruxal — track record, contingency model)
+
+THE STRAIGHT LINE:
+- Keep the prospect moving forward along a straight line from open to close
+- Every objection is a "loop" — acknowledge, address, loop back to the line
+- Lower the Action Threshold: make saying YES feel safe and easy
+- Raise the Pain Threshold: make staying in the current situation feel costly
+
+LOOPING TECHNIQUE (for objections):
+1. Match their emotion first ("I hear you, that's a fair concern")
+2. Identify which of the Three 10s is weak
+3. Address THAT specific certainty gap
+4. Loop back: "So given that, does it make sense to move forward?"
+
+TONAL PATTERNS:
+- Reasonable & empathetic when they push back
+- Confident certainty when presenting findings
+- Scarcity ("every month you wait costs $X")
+- Curiosity ("can I share something interesting about your numbers?")
+
+When a rep asks for help with objections, closing, or call strategy — ALWAYS reference these SLP principles. Don't give generic sales advice.
+`;
+
     const systemPrompt = `You are a Fruxal AI Strategist — ${repName}'s personal assistant for this specific client.
 
 You have the client's COMPLETE file below. Your job is to help the rep:
@@ -151,6 +190,8 @@ You have the client's COMPLETE file below. Your job is to help the rep:
 ${context}
 ${memoryBlock}
 
+${slpContext}
+
 BEHAVIOR RULES:
 - Be direct and strategic. No fluff. The rep is busy.
 - Always reference the client's actual numbers.
@@ -162,16 +203,23 @@ BEHAVIOR RULES:
 - If asked about solutions, name the available partners from the list above.
 - Keep responses to 3-5 sentences unless drafting a letter/email.`;
 
-    const conversationHistory = (history || []).slice(-6);
-    const userContent = conversationHistory.length > 0
-      ? [...conversationHistory.map((m: any) => `${m.role === "assistant" ? "AI" : "Rep"}: ${m.content}`), `Rep: ${message}`].join("\n\n")
-      : message;
+    const conversationHistory = (history || []).slice(-8);
+    const messages = [
+      ...conversationHistory.map((m: any) => ({
+        role: m.role === "assistant" ? "assistant" as const : "user" as const,
+        content: m.content,
+      })),
+      { role: "user" as const, content: message },
+    ];
 
-    const result = await callClaude({
+    const response = await getAnthropicClient().messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 800,
       system: systemPrompt,
-      user: userContent,
-      maxTokens: 800,
+      messages,
     });
+    const textBlock = response.content.find((b: any) => b.type === "text") as any;
+    const result = { text: textBlock?.text || "" };
 
     // Save memories in background
     extractAndSaveMemories({

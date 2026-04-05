@@ -69,51 +69,20 @@ export async function linkPrescanToDiagnostic(
       !prescanLeaks.some(pl => matchesPrescanLeak(f, pl))
     ).length;
 
-    // ── Generate short narrative via Claude ───────────────────────────────
+    // ── Generate narrative from template (no API call needed) ─────────────
     let narrative = "";
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const confirmedCount = leaksConfirmed;
+    const newCount = leaksNew;
+    const totalPrescan = prescanLeaks.length;
 
-    if (apiKey) {
-      const prompt = `Write ONE sentence (max 30 words) summarizing the relationship between a prescan and full diagnostic for a business owner.
-
-Prescan found: ${prescanLeaks.length} potential issues (~$${(prescanCtx.totalEstimatedLoss ?? 0).toLocaleString()}/month)
-Full diagnostic confirmed: ${leaksConfirmed} of those issues
-New discoveries: ${leaksNew} additional findings
-Not confirmed: ${leaksNotFound} prescan items
-
-Write as: "Your initial scan [result] — the full diagnostic [confirmed/found] [specific numbers]."
-No markdown. No quotes around the sentence.`;
-
-      try {
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 80,
-            messages: [{ role: "user", content: prompt }],
-          }),
-        });
-        if (res.ok) {
-          const d = await res.json().catch(() => null);
-          narrative = d?.content?.[0]?.text?.trim() ?? "";
-        }
-      } catch { /* non-fatal */ }
-    }
-
-    if (!narrative) {
-      // Fallback narrative
-      if (leaksConfirmed === prescanLeaks.length && leaksNew > 0) {
-        narrative = `Your initial scan was accurate — the full diagnostic confirmed all ${leaksConfirmed} findings and uncovered ${leaksNew} additional opportunities.`;
-      } else if (leaksConfirmed > 0) {
-        narrative = `Your initial scan caught ${leaksConfirmed} of ${prescanLeaks.length} issues — the full diagnostic confirmed these and found ${leaksNew} more.`;
-      } else {
-        narrative = `The full diagnostic found ${leaksNew} opportunities, some of which align with your initial scan findings.`;
-      }
+    if (confirmedCount === totalPrescan && newCount === 0) {
+      narrative = `Your initial scan was accurate — the full diagnostic confirmed all ${confirmedCount} findings.`;
+    } else if (confirmedCount > 0 && newCount > 0) {
+      narrative = `Your initial scan caught ${confirmedCount} of ${totalPrescan} issues — the full diagnostic confirmed these and found ${newCount} more.`;
+    } else if (newCount > 0) {
+      narrative = `The full diagnostic found ${confirmedCount + newCount} opportunities, ${newCount} of which are new discoveries beyond your initial scan.`;
+    } else {
+      narrative = `The full diagnostic analyzed your business against ${totalPrescan} initial findings and provided updated recommendations.`;
     }
 
     // ── Insert link record ────────────────────────────────────────────────
