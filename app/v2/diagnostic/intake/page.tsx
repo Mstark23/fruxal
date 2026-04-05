@@ -373,12 +373,14 @@ export default function DiagnosticIntakePage() {
 
       clearTimeout(clientTimeout);
 
-      if (runJson?.success) {
+      // Redirect to the diagnostic report page if we have a reportId
+      if (runJson?.reportId) {
+        router.push("/v2/diagnostic/" + runJson.reportId);
+      } else if (runJson?.success) {
         router.push("/v2/dashboard");
       } else {
-        // Even if it failed, redirect to dashboard — it may have created the report
-        // and the dashboard will poll for completion
         console.warn("[Intake:Launch] Diagnostic response:", runJson?.error || runText.slice(0, 200));
+        // Still redirect — dashboard will poll for analyzing state
         router.push("/v2/dashboard");
       }
     } catch (e: any) {
