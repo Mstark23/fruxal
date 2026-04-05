@@ -12,9 +12,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken }        from "next-auth/jwt";
 import { supabaseAdmin }   from "@/lib/supabase-admin";
-import Anthropic           from "@anthropic-ai/sdk";
 import crypto              from "crypto";
-import { CLAUDE_MODEL }               from "@/lib/ai/client";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 import { resolveTier, tierMaxTokens } from "@/lib/ai/tier";
 import { fetchDiagnosticContext }      from "@/lib/ai/context";
 import { buildTaxContext, PromptInputs } from "@/lib/ai/prompts"; // buildTaxContext still needed for diagCtx assembly
@@ -26,7 +25,7 @@ import { contributeBenchmarks } from "@/lib/benchmark/contribute";
 import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
 
 function getAnthropic() {
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return getAnthropicClient();
 }
 export const maxDuration = 300; // Vercel Pro allows up to 300s
 
@@ -620,7 +619,7 @@ export async function POST(req: NextRequest) {
         total_programs_value:    (totals.programs_value || aiResult?.total_programs_value) ?? 0,
         ebitda_impact:           (totals.ebitda_impact || aiResult?.ebitda_impact) ?? 0,
         enterprise_value_impact: (totals.enterprise_value_impact || aiResult?.enterprise_value_impact) ?? 0,
-        model_used:           "claude-sonnet-4-20250514",
+        model_used:           CLAUDE_MODEL,
         completed_at:         new Date().toISOString(),
         updated_at:           new Date().toISOString(),
       })

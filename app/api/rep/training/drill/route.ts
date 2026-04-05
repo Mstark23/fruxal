@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireRep } from "@/lib/rep-auth";
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 import { getIndustryScenario } from "@/lib/rep/industry-scenarios";
 
 
@@ -84,7 +84,9 @@ RULES:
 Respond ONLY as the prospect. Nothing else.`;
 }
 
-function buildCoachSystem(industry?: string): string {
+function buildCombinedSystem(persona: string, scenario: string, difficulty: string, industry?: string): string {
+  const prospectSystem = buildProspectSystem(persona, scenario, difficulty, industry);
+
   // Build industry-specific coaching context
   let industryCoaching = "";
   if (industry) {
@@ -103,7 +105,13 @@ INDUSTRY-SPECIFIC COACHING:
     }
   }
 
-  return `You are a Straight Line Persuasion coach evaluating a Fruxal recovery rep's response in a live drill.
+  return `You are playing two roles simultaneously:
+
+ROLE 1 — PROSPECT: Respond in-character as the prospect. Stay in the scenario.
+
+${prospectSystem}
+
+ROLE 2 — COACH: After your prospect response, evaluate the rep's last message using Straight Line Persuasion.
 ${industryCoaching}
 
 You are coaching based on Jordan Belfort's Straight Line Persuasion System. You know the entire methodology deeply.
@@ -159,27 +167,20 @@ SCORING RUBRIC (1-10):
 3: Bad — created MORE resistance, attacked the prospect's position
 1-2: Damaging — broke rapport, sounded robotic, or showed zero understanding of SLP
 
-WHAT TO SPECIFICALLY EVALUATE:
-1. Did they MATCH the prospect's emotional state before trying to move them? (I Care tone first)
-2. Did they identify WHICH of the Three 10s was weak?
-3. Did they LOOP backward to rebuild certainty on that specific 10?
-4. Did they use appropriate TONAL PATTERN? (Name which one they should have used)
-5. Did they use POWER WORDS (minimizers, justifiers, reframers)?
-6. Did they create FORWARD MOMENTUM toward the close?
-7. Did they lower the ACTION THRESHOLD? (remove risk, make it easy, small first step)
-8. Were they SPECIFIC with the prospect's actual numbers, not generic?
-
-RESPONSE FORMAT (strict JSON):
+Return JSON:
 {
-  "score": <number 1-10>,
-  "coaching": "<2-3 sentences. Be direct. Name the specific SLP principle they used or missed. Say which of the Three 10s they should have targeted. Name the tonal pattern they should have used. Reference looping if relevant.>",
-  "better_response": "<If score is 7 or below, write the EXACT words the rep SHOULD have said. Include tonal direction in brackets like [I Care tone] or [Absolute Certainty]. This must be a complete, word-for-word response they can memorize and use. If score is 8+, set to null.>",
-  "closed": <boolean — true only if the prospect has clearly agreed to move forward>
-}`;
+  "prospect_response": "What the prospect says next (1-3 sentences, in character)",
+  "score": 1-10,
+  "coaching": "Brief SLP coaching note (2-3 sentences)",
+  "better_response": "What the rep should have said (only if score <= 7, else null)",
+  "closed": true/false
+}
+
+Respond with ONLY valid JSON. No markdown fences. No preamble.`;
 }
 
 export async function POST(req: NextRequest) {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = getAnthropicClient();
 
   try {
     const auth = await requireRep(req);
@@ -195,24 +196,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ prospectMessage: openingLine || "Hello?" });
     }
 
-    // === RESPOND: rep sends message, get prospect + coach response ===
+    // === RESPOND: rep sends message, get prospect + coach in ONE call ===
     if (action === "respond") {
-      const prospectMessages = (history || [])
+      const conversationContext = (history || [])
         .filter((m: any) => m.role !== "coach")
-        .map((m: any) => ({
-          role: m.role === "rep" ? "user" : "assistant",
-          content: m.content,
-        }));
+        .map((m: any) => `${m.role.toUpperCase()}: ${m.content}`)
+        .join("\n");
 
-      // Get coach evaluation first (fast, structured)
-      const coachRes = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 300,
-        system: buildCoachSystem(industry),
+      const combinedRes = await client.messages.create({
+        model: CLAUDE_MODEL,
+        max_tokens: 500,
+        system: buildCombinedSystem(persona, scenario, difficulty, industry),
         messages: [
           {
             role: "user",
-            content: `Scenario: ${scenario}\nDifficulty: ${difficulty}\nProspect persona: ${persona}\n\nConversation so far:\n${(history || []).slice(0, -1).map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}\n\nRep's latest response: "${repResponse}"\n\nScore and coach this response.`,
+            content: `Scenario: ${scenario}\nDifficulty: ${difficulty}\nProspect persona: ${persona}\nTurn: ${turn}/8\n\nConversation so far:\n${conversationContext}\n\nRep's latest response: "${repResponse}"\n\nPlay the prospect AND score the rep. Return JSON only.`,
           },
         ],
       });
@@ -221,12 +219,14 @@ export async function POST(req: NextRequest) {
       let coaching = "Keep building certainty. Stay focused on the Three 10s.";
       let betterResponse: string | null = null;
       let closed = false;
+      let prospectResponse = "...";
 
       try {
-        const raw = coachRes.content[0]?.type === "text" ? coachRes.content[0].text : "";
+        const raw = combinedRes.content[0]?.type === "text" ? combinedRes.content[0].text : "";
         const jsonMatch = raw.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
+          prospectResponse = parsed.prospect_response || "...";
           score = Math.min(10, Math.max(1, Number(parsed.score) || 5));
           coaching = parsed.coaching || coaching;
           betterResponse = parsed.better_response || null;
@@ -234,25 +234,10 @@ export async function POST(req: NextRequest) {
         }
       } catch { /* use defaults */ }
 
-      // If closed or last turn, skip prospect response
+      // If closed or last turn, mark as finished
       if (closed || turn >= 8) {
         return NextResponse.json({ score, coaching, betterResponse, closed: true, prospectResponse: "" });
       }
-
-      // Get prospect response
-      const prospectRes = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 120,
-        system: buildProspectSystem(persona, scenario, difficulty, industry),
-        messages: [
-          ...prospectMessages,
-          { role: "user", content: repResponse },
-        ],
-      });
-
-      const prospectResponse = prospectRes.content[0]?.type === "text"
-        ? prospectRes.content[0].text
-        : "...";
 
       return NextResponse.json({ score, coaching, betterResponse, closed, prospectResponse });
     }

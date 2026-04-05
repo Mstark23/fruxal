@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/middleware";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
@@ -24,7 +24,7 @@ const PROVINCE_TAX_CONTEXT: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const anthropic = getAnthropicClient();
 
   const auth = await requireAdmin(req);
   if (!auth.authorized) return auth.error!;
@@ -174,7 +174,7 @@ Generate 8-12 high-quality findings specific to ${businessName}. Calculate all d
 RESPOND WITH ONLY VALID JSON.`;
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 8000,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],

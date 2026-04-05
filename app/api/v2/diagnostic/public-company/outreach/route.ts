@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 
 
 // ── Tone instructions ─────────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ const TONE_INSTRUCTIONS: Record<string, string> = {
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
 export async function POST(req: NextRequest) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const anthropic = getAnthropicClient();
 
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -174,7 +174,7 @@ Write the full outreach sequence now. Remember: sentence 1 = ${fmt(biggestDollar
 
     // ── Call Claude ──────────────────────────────────────────────────────────
     const response = await anthropic.messages.create({
-      model:      "claude-sonnet-4-20250514",
+      model:      CLAUDE_MODEL,
       max_tokens: 3000,
       system:     systemPrompt,
       messages:   [{ role: "user", content: userPrompt }],

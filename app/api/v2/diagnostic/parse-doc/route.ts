@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
@@ -103,7 +103,7 @@ If a field is not present, use null. Never guess.`,
 };
 
 export async function POST(req: NextRequest) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const anthropic = getAnthropicClient();
 
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
       : { type: "image" as const, source: { type: "base64" as const, media_type: mediaType, data: base64 } };
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 1500,
       system: systemPrompt,
       messages: [{

@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { getAnthropicClient, CLAUDE_MODEL } from '@/lib/ai/client';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -86,7 +87,7 @@ ${industryHint}${basePrompt}`;
 export const maxDuration = 60; // Vercel function timeout (seconds)
 
 export async function POST(request: NextRequest) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const anthropic = getAnthropicClient();
 
   try {
     // Rate limit: 10 requests/minute per IP
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
     
     // Call Claude API with language-aware system prompt (streamed to reduce timeout risk)
     const stream = anthropic.messages.stream({
-      model: 'claude-sonnet-4-20250514',
+      model: CLAUDE_MODEL,
       max_tokens: 1500, // Increased: final summary + tags + run_analysis needs room
       system: [{ type: "text", text: buildSystemPrompt(lang || "en", prefilledIndustry || "", country), cache_control: { type: "ephemeral" } }] as any,
       messages,
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
           ];
           
           const followUpStream = anthropic.messages.stream({
-            model: 'claude-sonnet-4-20250514',
+            model: CLAUDE_MODEL,
             max_tokens: 512,
             system: [{ type: "text", text: buildSystemPrompt(lang || 'en', '', country), cache_control: { type: "ephemeral" } }] as any,
             messages: followUpMessages,

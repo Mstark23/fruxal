@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 import { aggregateFMPData, type FMPCompanyData } from "@/services/fmp/fmp-aggregator";
 
 export const maxDuration = 120;
@@ -227,7 +227,7 @@ function buildJSONSchema(fmp: FMPCompanyData): string {
 
 // ── POST handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const anthropic = getAnthropicClient();
 
   const start = Date.now();
 
@@ -307,7 +307,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: CLAUDE_MODEL,
         max_tokens: 10000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
@@ -330,7 +330,7 @@ export async function POST(req: NextRequest) {
     const resultJson = {
       ...aiResult,
       fmp_snapshot: fmpData,
-      model_used: "claude-sonnet-4-20250514",
+      model_used: CLAUDE_MODEL,
       prompt_tokens: promptTokens,
       completion_tokens: completionTokens,
       analysis_duration_ms: duration,
