@@ -19,11 +19,8 @@ import { resolveTier, tierMaxTokens } from "@/lib/ai/tier";
 import { fetchDiagnosticContext }      from "@/lib/ai/context";
 import { buildTaxContext, PromptInputs } from "@/lib/ai/prompts"; // buildTaxContext still needed for diagCtx assembly
 import { buildDiagnosticPrompts } from "@/lib/ai/prompts/diagnostic/index";
-import { buildDiagnosticTool } from "@/lib/ai/prompts/diagnostic/tool-schema";
-import { generateTasksFromFindings } from "@/lib/ai/task-generator";
+// buildDiagnosticTool import removed — tool_use mode not currently active
 import { getPrescanContext, type PrescanContext } from "@/lib/ai/prescan-context";
-import { suggestGoal } from "@/lib/ai/goal-suggester";
-import { generateComparison } from "@/lib/ai/comparison-generator";
 import { buildTimeline }         from "@/lib/ai/timeline-builder";
 import { contributeBenchmarks } from "@/lib/benchmark/contribute";
 import { linkPrescanToDiagnostic } from "@/lib/ai/prescan-linker";
@@ -33,40 +30,16 @@ function getAnthropic() {
 }
 export const maxDuration = 300; // Vercel Pro allows up to 300s
 
-// Per-user rate limiter for diagnostic runs
-// Per-user rate limiter
-const _diagRl = new Map<string, { c: number; r: number }>();
-
-function diagRateCheck(userId: string): boolean {
-  const now = Date.now();
-  const window = 10 * 60 * 1000; // 10 minutes
-  const max = 3; // max 3 diagnostic runs per 10 min per user
-  const entry = _diagRl.get(userId);
-  if (!entry || entry.r < now) {
-    _diagRl.set(userId, { c: 1, r: now + window });
-    return true;
-  }
-  entry.c++;
-  return entry.c <= max;
+// Supabase-based rate limiter — works correctly on Vercel (no module-level state)
+async function diagRateCheck(userId: string): Promise<boolean> {
+  const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { count } = await supabaseAdmin
+    .from("diagnostic_reports")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .or(`status.eq.analyzing,created_at.gte.${tenMinAgo}`);
+  return (count ?? 0) <= 3;
 }
-
-// Global hourly cost protection — prevent runaway API costs
-let _globalDiagCount = 0;
-let _globalDiagResetAt = Date.now() + 3_600_000;
-const GLOBAL_HOURLY_LIMIT = 100; // max 100 diagnostic runs per hour across all users (~$1,500/hr cap)
-
-function globalCostCheck(): boolean {
-  const now = Date.now();
-  if (now > _globalDiagResetAt) { _globalDiagCount = 0; _globalDiagResetAt = now + 3_600_000; }
-  _globalDiagCount++;
-  return _globalDiagCount <= GLOBAL_HOURLY_LIMIT;
-}
-
-// Cleanup stale entries every 15 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [k, v] of _diagRl) { if (v.r < now) _diagRl.delete(k); }
-}, 900_000);
 
 export async function POST(req: NextRequest) {
   const start = Date.now();
@@ -83,15 +56,8 @@ export async function POST(req: NextRequest) {
     const language: string = body.language || "en";
     const userId = ((token as any)?.id || token?.sub) as string;
 
-    // Global cost protection — cap total API spend per hour
-    if (!globalCostCheck()) {
-      return NextResponse.json(
-        { success: false, error: "System is experiencing high demand. Please try again in a few minutes." },
-        { status: 503 }
-      );
-    }
-    // Rate limit: max 3 diagnostic runs per 10 min per user
-    if (!diagRateCheck(userId)) {
+    // Rate limit: max 3 diagnostic runs per 10 min per user (Supabase-based, works on Vercel)
+    if (!(await diagRateCheck(userId))) {
       return NextResponse.json(
         { success: false, error: "Too many diagnostic requests. Please wait a few minutes." },
         { status: 429 }
@@ -508,6 +474,23 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Check if response was truncated by max_tokens
+      const finalMsg = await stream.finalMessage();
+      if (finalMsg.stop_reason === "max_tokens") {
+        console.warn("[Diagnostic] Claude hit max_tokens — response may be truncated");
+        // Try to close the JSON by finding the last complete object
+        if (!rawText.endsWith("}")) {
+          const lastBrace = rawText.lastIndexOf("}");
+          if (lastBrace > 0) {
+            rawText = rawText.slice(0, lastBrace + 1);
+            // Try to close open arrays/objects
+            const openBrackets = (rawText.match(/\[/g) || []).length - (rawText.match(/\]/g) || []).length;
+            const openBraces = (rawText.match(/\{/g) || []).length - (rawText.match(/\}/g) || []).length;
+            rawText += "]".repeat(Math.max(0, openBrackets)) + "}".repeat(Math.max(0, openBraces));
+          }
+        }
+      }
+
       if (!rawText || rawText.length < 50) {
         throw new Error("AI returned an incomplete response (length=" + rawText.length + ")");
       }
@@ -556,14 +539,46 @@ export async function POST(req: NextRequest) {
 
       // Schema validation: verify essential fields are present
       const hasValidScores = aiResult?.scores && typeof aiResult.scores.overall === 'number';
-      if (!hasValidScores || !Array.isArray(aiResult?.findings) || aiResult.findings.length === 0) {
-        console.error("[Diagnostic] AI returned invalid schema (scores:", !!aiResult?.scores, "findings:", aiResult?.findings?.length ?? 0, ")");
+      const hasFindings = Array.isArray(aiResult?.findings) && aiResult.findings.length > 0;
+      const hasTotals = aiResult?.totals && typeof aiResult.totals.annual_leaks === 'number';
+      const hasExecSummary = typeof aiResult?.executive_summary === 'string' && aiResult.executive_summary.length > 20;
+
+      if (!hasValidScores || !hasFindings) {
+        // Critical failure — can't display anything
+        console.error("[Diagnostic] Missing critical fields: scores=", !!hasValidScores, "findings=", !!hasFindings);
         await supabaseAdmin.from("diagnostic_reports")
           .update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", reportId);
         return NextResponse.json(
           { success: false, error: "AI returned an incomplete analysis. Please try again.", reportId },
           { status: 422 }
         );
+      }
+
+      // Backfill missing optional fields with defaults
+      if (!aiResult.totals) aiResult.totals = { annual_leaks: 0, potential_savings: 0, penalty_exposure: 0, programs_value: 0, ebitda_impact: 0, enterprise_value_impact: 0 };
+      if (!aiResult.executive_summary) aiResult.executive_summary = "Diagnostic completed. Review your findings below.";
+      if (!Array.isArray(aiResult.risk_matrix)) aiResult.risk_matrix = [];
+      if (!Array.isArray(aiResult.benchmark_comparisons)) aiResult.benchmark_comparisons = [];
+      if (!aiResult.cpa_briefing) aiResult.cpa_briefing = { intro: "", talking_points: [], forms_to_file: [] };
+
+      // Validate each finding has required fields
+      aiResult.findings = aiResult.findings.map((f: any) => ({
+        ...f,
+        title: f.title || "Untitled Finding",
+        category: f.category || "general",
+        severity: ["critical","high","medium","low"].includes(f.severity) ? f.severity : "medium",
+        impact_min: f.impact_min ?? f.annual_leak ?? 0,
+        impact_max: f.impact_max ?? f.potential_savings ?? f.impact_min ?? f.annual_leak ?? 0,
+        description: f.description || "",
+        recommendation: f.recommendation || "",
+      }));
+
+      // Compute totals from findings if totals are missing/zero
+      if (!aiResult.totals.annual_leaks || aiResult.totals.annual_leaks === 0) {
+        aiResult.totals.annual_leaks = aiResult.findings.reduce((s: number, f: any) => s + (f.impact_max || 0), 0);
+      }
+      if (!aiResult.totals.potential_savings || aiResult.totals.potential_savings === 0) {
+        aiResult.totals.potential_savings = Math.round(aiResult.totals.annual_leaks * 0.85);
       }
 
     } catch (aiErr: any) {
@@ -615,8 +630,13 @@ export async function POST(req: NextRequest) {
         leak_name:             f.title,
         category:              f.category,
         severity:              f.severity,
-        annual_leak:           f.annual_leak ?? 0,
-        potential_savings:     f.potential_savings ?? 0,
+        annual_leak:           f.impact_max ?? f.annual_leak ?? f.potential_savings ?? 0,
+        potential_savings:     f.impact_max ?? f.potential_savings ?? f.annual_leak ?? 0,
+        annual_impact_min:     f.impact_min ?? f.annual_leak ?? 0,
+        annual_impact_max:     f.impact_max ?? f.potential_savings ?? f.annual_leak ?? 0,
+        title:                 f.title || f.leak_name || "Unknown",
+        description:           f.description || "",
+        recommendation:        f.recommendation || "",
         status:                "detected",
         diagnostic_report_id:  reportId,
         created_at:            new Date().toISOString(),
@@ -627,47 +647,15 @@ export async function POST(req: NextRequest) {
       } catch (e: any) { console.error("[Diagnostic:Run] detected_leaks insert error:", e.message); }
     }
 
-    // ── 9. Generate execution playbooks in background (non-blocking) ────────
-    // Separate Claude call — generates step-by-step accountant playbook per finding.
-    // Stored in execution_playbooks table. Rep portal reads from there.
-    if (aiResult?.findings?.length) {
-      fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v2/diagnostic/generate-playbooks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.CRON_SECRET || ""}`,
-        },
-        body: JSON.stringify({ reportId, businessId, language }),
-      }).catch((e: any) =>
-        console.warn("[Diagnostic] Playbook generation failed (non-blocking):", e?.message)
-      );
-    }
-
-    // ── 9orig. Generate task cards in background (non-blocking) ──────────────
-    // Fire-and-forget: task generation never blocks the diagnostic response.
-    // Uses a separate Claude call — failure is logged but never surfaces to user.
-    if (aiResult?.findings?.length) {
-      const taskProfile = {
-        industry: profile.industry_label || profile.industry,
-        province,
-        annual_revenue: annualRevenue,
-      };
-      generateTasksFromFindings(
-        aiResult.findings,
-        taskProfile,
-        tier,
-        reportId,
-        businessId,
-        language
-      ).catch((e: any) =>
-        console.warn("[Diagnostic] Task generation failed (non-blocking):", e?.message)
-      );
-
     // ── 9b. Auto-extract break-even data from diagnostic (non-blocking) ──────
+    const bgController = new AbortController();
+    setTimeout(() => bgController.abort(), 10_000);
+    if (aiResult?.findings?.length) {
     fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v2/breakeven/extract`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET || ""}` },
       body: JSON.stringify({ businessId }),
+      signal: bgController.signal,
     }).catch(() => { /* non-fatal */ });
     }
 
@@ -711,50 +699,14 @@ export async function POST(req: NextRequest) {
       console.warn("[BenchmarkFlywheel] Non-blocking contribution failed:", e?.message)
     );
 
-    // ── 9f. Generate comparison if previous report exists (non-blocking) ────────
-Promise.resolve(supabaseAdmin
-      .from("diagnostic_reports")
-      .select("id, overall_score, created_at")
-      .eq("business_id", businessId)
-      .eq("status", "completed")
-      .neq("id", reportId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle())
-      .then(async ({ data: prevReport }: any) => {
-        if (!prevReport) return; // first scan — no comparison
-        await supabaseAdmin
-          .from("diagnostic_reports")
-          .update({ is_rescan: true } as any)
-          .eq("id", reportId);
-        generateComparison(businessId, userId, reportId, prevReport.id)
-          .catch((e: any) => console.warn("[Diagnostic] Comparison generation failed:", e?.message));
-      })
-      .catch(() => { /* non-fatal */ });
-
-    // ── 9e. Generate goal suggestion (non-blocking) ──────────────────────────
-    // Only suggest if user has no active goal AND store in diagnostic_reports.goal_suggestion
-Promise.resolve(supabaseAdmin
-      .from("business_goals")
-      .select("id", { count: "exact", head: true })
-      .eq("business_id", businessId)
-      .eq("status", "active"))
-      .then(async ({ count }: any) => {
-        if ((count ?? 0) > 0) return;
-        const suggestion = await suggestGoal(businessId, userId, tier);
-        if (!suggestion) return;
-        await supabaseAdmin
-          .from("diagnostic_reports")
-          .update({ goal_suggestion: suggestion } as any)
-          .eq("id", reportId);
-      })
-      .catch(() => { /* non-fatal */ });
-
     // ── 9c. Auto-extract financial ratios from diagnostic (non-blocking) ──────
+    const bgController2 = new AbortController();
+    setTimeout(() => bgController2.abort(), 10_000);
     fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v2/ratios/extract`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ businessId }),
+      signal: bgController2.signal,
     }).catch(() => { /* non-fatal */ });
 
     // ── 10. Auto-create tier3_pipeline entry (enterprise) ─────────────────

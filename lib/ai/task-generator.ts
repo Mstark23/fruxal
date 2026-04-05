@@ -4,7 +4,7 @@
 // Called after diagnostic/run completes — never blocks the main response
 // =============================================================================
 
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/ai/client";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { findSolutionsForTask } from "@/lib/solutions/matcher";
 
@@ -120,7 +120,7 @@ export async function generateTasksFromFindings(
   businessId: string,
   language: string = "en"
 ): Promise<DiagnosticTask[]> {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const anthropic = getAnthropicClient();
 
   if (!findings || findings.length === 0) return [];
 
@@ -128,7 +128,7 @@ export async function generateTasksFromFindings(
     const prompt = buildTaskPrompt(findings, profile, tier, language);
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 2000,
       system:
         "You are a financial efficiency expert. Output ONLY valid JSON. No markdown, no preamble, no explanation. Just the JSON object.",
