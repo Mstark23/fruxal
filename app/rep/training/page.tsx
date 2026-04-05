@@ -195,6 +195,16 @@ export default function RepTrainingPage() {
               style={{ color: "rgba(255,255,255,0.4)" }}>
               Learn First →
             </button>
+            <button onClick={() => router.push("/rep/training/product")}
+              className="text-[12px] font-semibold hover:text-white transition hidden sm:block"
+              style={{ color: "rgba(255,255,255,0.4)" }}>
+              Product →
+            </button>
+            <button onClick={() => router.push("/rep/training/daily")}
+              className="text-[12px] font-semibold hover:text-white transition hidden sm:block"
+              style={{ color: "rgba(255,255,255,0.4)" }}>
+              Daily Structure →
+            </button>
             <button onClick={() => router.push("/rep/scripts")}
               className="text-[12px] font-semibold hover:text-white transition hidden sm:block"
               style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -249,6 +259,40 @@ export default function RepTrainingPage() {
               </p>
             </div>
             <span className="text-[11px] font-bold shrink-0" style={{ color: "#2D7A50" }}>Learn →</span>
+          </div>
+
+          {/* Product Knowledge banner */}
+          <div className="p-4 rounded-xl mb-3 flex items-center gap-4 cursor-pointer hover:opacity-90 transition"
+            onClick={() => router.push("/rep/training/product")}
+            style={{ background: "rgba(45,122,80,0.08)", border: "1px solid rgba(45,122,80,0.2)" }}>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: "rgba(45,122,80,0.15)" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D7A50" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-white">Know the product inside and out</p>
+              <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                What Fruxal does, how the model works, leak types, competitive advantage, and common questions.
+              </p>
+            </div>
+            <span className="text-[11px] font-bold shrink-0" style={{ color: "#2D7A50" }}>Product →</span>
+          </div>
+
+          {/* Daily Structure banner */}
+          <div className="p-4 rounded-xl mb-8 flex items-center gap-4 cursor-pointer hover:opacity-90 transition"
+            onClick={() => router.push("/rep/training/daily")}
+            style={{ background: "rgba(196,132,29,0.06)", border: "1px solid rgba(196,132,29,0.15)" }}>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: "rgba(196,132,29,0.12)" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4841D" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-white">Follow the daily structure</p>
+              <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Hour-by-hour schedule, daily targets, weekly rhythm, and key tools to use every day.
+              </p>
+            </div>
+            <span className="text-[11px] font-bold shrink-0" style={{ color: "#C4841D" }}>Daily →</span>
           </div>
 
           {/* Difficulty */}
