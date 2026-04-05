@@ -452,7 +452,14 @@ export default function DiagnosticIntakePage() {
 
   if (loading) return (
     <div className="min-h-screen bg-bg flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-border border-t-brand rounded-full animate-spin" />
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-[10px] border-2 border-[#1B3A2D]/20 border-t-[#1B3A2D] animate-spin" style={{ animationDuration: "1.2s" }} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -818,7 +825,7 @@ export default function DiagnosticIntakePage() {
           <div className="space-y-6" style={{ animation: "fadeUp 0.25s ease-out" }}>
             <div>
               <h2 className="text-lg font-bold text-ink mb-1">{t("Upload your documents", "Téléversez vos documents")}</h2>
-              <p className="text-xs text-ink-faint">{t("Claude reads your documents and extracts the exact numbers. All documents are optional — more = better accuracy.", "Claude lit vos documents et extrait les chiffres exacts. Tous les documents sont facultatifs — plus = meilleure précision.")}</p>
+              <p className="text-xs text-ink-faint">{t("Fruxal reads your documents and extracts the exact numbers. All documents are optional — more = better accuracy.", "Fruxal lit vos documents et extrait les chiffres exacts. Tous les documents sont facultatifs — plus = meilleure précision.")}</p>
             </div>
 
             {/* Quality indicator */}
@@ -932,7 +939,7 @@ export default function DiagnosticIntakePage() {
                   {docState.uploading && (
                     <div className="mt-3 flex items-center gap-2">
                       <div className="w-3.5 h-3.5 border border-brand border-t-transparent rounded-full animate-spin" />
-                      <p className="text-[10px] text-ink-faint">{t("Claude is reading your document...", "Claude lit votre document...")}</p>
+                      <p className="text-[10px] text-ink-faint">{t("Fruxal is reading your document...", "Fruxal lit votre document...")}</p>
                     </div>
                   )}
 
@@ -978,7 +985,7 @@ export default function DiagnosticIntakePage() {
           <div className="space-y-6" style={{ animation: "fadeUp 0.25s ease-out" }}>
             <div>
               <h2 className="text-lg font-bold text-ink mb-1">{t("Review & launch", "Révision et lancement")}</h2>
-              <p className="text-xs text-ink-faint">{t("Here's what Claude will analyze. Everything looks accurate? Launch your diagnostic.", "Voici ce que Claude analysera. Tout semble exact? Lancez votre diagnostic.")}</p>
+              <p className="text-xs text-ink-faint">{t("Here's what Fruxal will analyze. Everything looks accurate? Launch your diagnostic.", "Voici ce que Fruxal analysera. Tout semble exact? Lancez votre diagnostic.")}</p>
             </div>
 
             {/* Quality score */}
@@ -1033,7 +1040,7 @@ export default function DiagnosticIntakePage() {
             {/* Docs uploaded list */}
             {Object.values(docs).some((d: any) => d.data) && (
               <div className="bg-white border border-border-light rounded-xl p-4">
-                <p className="text-[10px] font-bold text-ink uppercase mb-2">{t("Documents read by Claude", "Documents lus par Claude")}</p>
+                <p className="text-[10px] font-bold text-ink uppercase mb-2">{t("Documents analyzed by Fruxal", "Documents analysés par Fruxal")}</p>
                 <div className="space-y-1">
                   {[["t2", data.country === "US" ? "Form 1120 / 1120-S" : "T2 Corporate Return"],["financials","Financial Statements"],["gst", data.country === "US" ? "State Sales Tax / Form 941" : "GST/HST Return"],["t4", data.country === "US" ? "W-2 Summary" : "T4 Summary"],["bank","Bank Statements"]].map(([k,label]) =>
                     docs[k].data ? (

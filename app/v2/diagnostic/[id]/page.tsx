@@ -235,7 +235,12 @@ export default function DiagnosticReportPage() {
     return (
       <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-2 border-[#1B3A2D]/30 border-t-[#1B3A2D] rounded-full animate-spin mx-auto" />
+          <div className="relative w-10 h-10 mx-auto">
+            <div className="absolute inset-0 rounded-[10px] border-2 border-[#1B3A2D]/20 border-t-[#1B3A2D] animate-spin" style={{ animationDuration: "1.2s" }} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
+            </div>
+          </div>
           <p className="text-sm text-[#8E8C85]">{isFr ? "Chargement du rapport..." : "Loading report..."}</p>
         </div>
       </div>
@@ -259,8 +264,13 @@ export default function DiagnosticReportPage() {
     return (
       <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-3 border-[#1B3A2D]/30 border-t-[#1B3A2D] rounded-full animate-spin mx-auto" />
-          <p className="text-[#1A1A18] text-sm font-semibold">{isFr ? "Analyse en cours..." : "Analysis in progress..."}</p>
+          <div className="relative w-14 h-14 mx-auto">
+            <div className="absolute inset-0 rounded-[12px] border-2 border-[#1B3A2D]/20 border-t-[#1B3A2D] animate-spin" style={{ animationDuration: "1.2s" }} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
+            </div>
+          </div>
+          <p className="text-[#1A1A18] text-sm font-semibold">{isFr ? "Fruxal analyse votre entreprise..." : "Fruxal is analyzing your business..."}</p>
           <p className="text-xs text-[#8E8C85]">{isFr ? "Cela peut prendre 30-60 secondes" : "This may take 30-60 seconds"}</p>
         </div>
       </div>

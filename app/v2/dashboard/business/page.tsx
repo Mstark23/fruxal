@@ -199,7 +199,7 @@ export default function BusinessDashboard() {
   const displayLeaks = diagFindings.length > 0 ? diagFindings.slice(0, 6) : leaks.slice(0, 6);
 
   if (loading || authLoading) return (
-    <div className="min-h-screen bg-bg flex items-center justify-center"><div className="w-6 h-6 border-2 border-border border-t-brand rounded-full animate-spin" /></div>
+    <div className="min-h-screen bg-bg flex items-center justify-center"><div className="relative w-10 h-10"><div className="absolute inset-0 rounded-[10px] border-2 border-[#1B3A2D]/20 border-t-[#1B3A2D] animate-spin" style={{ animationDuration: "1.2s" }} /><div className="absolute inset-0 flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></div></div></div>
   );
 
   if (!loading && leaks.length === 0 && diagFindings.length === 0 && !totalLeak && !isAnalyzing) return (
