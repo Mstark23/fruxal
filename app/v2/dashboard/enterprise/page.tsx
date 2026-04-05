@@ -616,11 +616,12 @@ export default function EnterpriseDashboard() {
     </div>
   );
 
-  const calendlyUrl = typeof window !== "undefined"
-    ? (entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || null)
-    : (entStatus?.rep?.calendly_url || process.env.NEXT_PUBLIC_CALENDLY_URL || null);
-  const callHref   = calendlyUrl || `mailto:${entStatus?.rep?.email || "hello@fruxal.com"}`;
-  const callIsEmail = !calendlyUrl;
+  const calendlyUrl = entStatus?.rep?.calendly_url
+    || process.env.NEXT_PUBLIC_CALENDLY_URL
+    || "https://calendly.com/fruxal/strategy"
+    || null;
+  const callHref   = calendlyUrl;
+  const callIsEmail = false;
 
   const SEV: Record<string, { dot: string; badge: string; text: string }> = {
     critical: { dot: "#B34040", badge: "rgba(179,64,64,0.07)",   text: "#B34040" },
