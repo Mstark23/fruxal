@@ -353,7 +353,7 @@ export async function POST(request: NextRequest) {
             const rep = await pickBestRep(run?.province || null);
 
             if (rep) {
-              const baseUrl = process.env.NEXTAUTH_URL || "https://fruxal.ca";
+              const baseUrl = country === "US" ? "https://fruxal.com" : "https://fruxal.ca";
               notifyAdmin({
               type: "hot_lead_assigned",
               company: email,
@@ -382,7 +382,7 @@ export async function POST(request: NextRequest) {
 
     // Track referral if code provided
     if (referralCode && userId) {
-      fetch((process.env.NEXTAUTH_URL || "https://fruxal.ca") + "/api/referral", {
+      fetch((country === "US" ? "https://fruxal.com" : "https://fruxal.ca") + "/api/referral", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ referralCode, newUserId: userId }),

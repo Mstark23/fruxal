@@ -363,7 +363,7 @@ export default function DiagnosticIntakePage() {
       const runRes = await fetch("/api/v2/diagnostic/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessId, language: lang }),
+        body: JSON.stringify({ businessId, language: lang, country: data.country || "CA" }),
         signal: controller.signal,
       });
       const runText = await runRes.text();

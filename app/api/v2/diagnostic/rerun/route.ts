@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     // Get business_id
     const { data: profile } = await supabaseAdmin
       .from("business_profiles")
-      .select("business_id, user_id")
+      .select("business_id, user_id, country")
       .eq("user_id", userId)
       .single();
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     fetch(`${origin}/api/v2/diagnostic/run`, {
       method:  "POST",
       headers,
-      body:    JSON.stringify({ businessId: profile.business_id, language }),
+      body:    JSON.stringify({ businessId: profile.business_id, language, country: profile.country || "CA" }),
     }).catch(err => console.error("[Rerun] Background diagnostic error:", err.message));
 
     // Poll for the new "analyzing" report that was just created

@@ -656,7 +656,7 @@ ${repInfo?.name || 'Your Fruxal rep'}`
             <div className="bg-white border border-[#E5E3DD] rounded-xl px-5 py-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.03)" }}>
               <p className="text-[10px] font-bold text-[#8E8C85] uppercase tracking-wider mb-3">Contact & Notes</p>
               {client.pipeline?.contactName && (
-                <div className="grid grid-cols-2 gap-3 mb-4 text-[11px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-4 text-[11px]">
                   <div><span className="text-[#8E8C85]">Contact: </span><span className="font-medium text-[#1A1A18]">{client.pipeline.contactName}</span></div>
                   {client.pipeline.contactEmail && <div><a href={`mailto:${client.pipeline.contactEmail}`} className="text-[#1B3A2D] hover:underline">{client.pipeline.contactEmail}</a></div>}
                   {client.pipeline.contactPhone && <div><a href={`tel:${client.pipeline.contactPhone}`} className="text-[#56554F]">{client.pipeline.contactPhone}</a></div>}
@@ -1211,16 +1211,16 @@ ${repInfo?.name || 'Your Fruxal rep'}`
                   ))}
                 </div>
               )}
-              <div className="border-t border-[#E5E3DD] px-4 py-3 flex gap-2">
+              <div className="border-t border-[#E5E3DD] px-3 sm:px-4 py-3 flex gap-2 sticky bottom-20 lg:bottom-0 bg-white z-10">
                 <input
                   value={msgText}
                   onChange={e => setMsgText(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                   placeholder="Type a message…"
-                  className="flex-1 text-[12px] border border-[#E5E3DD] rounded-lg px-3 py-2 bg-[#FAFAF8] focus:outline-none focus:border-[#1B3A2D]"
+                  className="flex-1 text-[13px] border border-[#E5E3DD] rounded-lg px-3 py-2.5 bg-[#FAFAF8] focus:outline-none focus:border-[#1B3A2D] min-h-[44px]"
                 />
                 <button onClick={sendMessage} disabled={msgSending || !msgText.trim()}
-                  className="px-4 py-2 text-[11px] font-semibold text-white rounded-lg disabled:opacity-40 transition"
+                  className="px-4 py-2.5 text-[11px] font-semibold text-white rounded-lg disabled:opacity-40 transition min-h-[44px]"
                   style={{ background: "#1B3A2D" }}>
                   {msgSending ? "…" : "Send"}
                 </button>

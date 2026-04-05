@@ -110,13 +110,18 @@ export async function POST(req: NextRequest) {
 
     const tier     = resolveTier(profile, business);
     const isFr     = language === "fr";
-    // Country: profile > request body > host header > default CA
+    // Country: profile > request body > REJECT if both missing
     const bodyCountry = body?.country;
-    const hostHeader = req.headers.get("host") || "";
-    const detectedCountry = profile.country
-      || bodyCountry
-      || (hostHeader.includes("fruxal.com") && !hostHeader.includes("fruxal.ca") ? "US" : "CA");
-    const country  = (detectedCountry === "US" ? "US" : "CA") as "CA" | "US";
+    const resolvedCountry = profile.country || bodyCountry;
+    if (!resolvedCountry) {
+      console.error("[Diagnostic] No country set — profile.country:", profile.country, "body.country:", bodyCountry);
+      return NextResponse.json({
+        success: false,
+        error: "Country not set. Please complete your profile with your country before running a diagnostic.",
+        redirect: "/v2/diagnostic/intake",
+      }, { status: 422 });
+    }
+    const country = (resolvedCountry === "US" ? "US" : "CA") as "CA" | "US";
     let provinceDefaulted = false;
     let province = profile.province;
     if (!province || province === "") {

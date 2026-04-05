@@ -211,6 +211,27 @@ export default function RepDashboard() {
       </div>
 
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        {/* Mobile greeting — visible only on small screens where sidebar is hidden */}
+        {rep && (
+          <div className="flex items-center justify-between mb-4 sm:hidden">
+            <div>
+              <p className="text-[15px] font-bold text-[#1A1A18]">Hey {rep.name?.split(" ")[0]}</p>
+              <p className="text-[11px] text-[#8E8C85]">{rep.province || "—"} · {rep.commission_rate ?? 12}% contingency</p>
+            </div>
+            {rep.calendly_url ? (
+              <a href={rep.calendly_url} target="_blank" rel="noopener noreferrer"
+                className="text-[10px] font-semibold text-[#2D7A50] bg-[rgba(45,122,80,0.08)] px-3 py-1.5 rounded-lg">
+                Booking link
+              </a>
+            ) : (
+              <button onClick={() => { setCalendlyInput(""); setShowCalendlyEdit(true); }}
+                className="text-[10px] font-semibold text-[#C4841D] bg-[rgba(196,132,29,0.08)] px-3 py-1.5 rounded-lg">
+                + Calendly
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-6">
           {[
             { label:"Clients",          value:clients.length,                            sub:"assigned"    },
@@ -413,7 +434,8 @@ export default function RepDashboard() {
 
               return (
                 <div key={c.pipelineId || c.diagnosticId}
-                  className="bg-white border rounded-xl p-4 text-left hover:shadow-md transition-all group relative"
+                  onClick={() => router.push(`/rep/customer/${c.pipelineId || c.diagnosticId}`)}
+                  className="bg-white border rounded-xl p-4 text-left hover:shadow-md transition-all group relative cursor-pointer active:scale-[0.99]"
                   style={{boxShadow:"0 1px 3px rgba(0,0,0,0.03)", borderColor: isStalled ? "rgba(179,64,64,0.3)" : isGoingCold ? "rgba(196,132,29,0.25)" : "#E5E3DD"}}>
 
                   {/* Risk badge */}
@@ -424,7 +446,7 @@ export default function RepDashboard() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-semibold text-[#1A1A18] truncate group-hover:text-[#1B3A2D]">{c.companyName}</p>
-                      <p className="text-[10px] text-[#8E8C85] mt-0.5">{summaryLine}</p>
+                      <p className="text-[10px] text-[#8E8C85] mt-0.5 line-clamp-2 sm:line-clamp-1">{summaryLine}</p>
                     </div>
                     <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full ml-2 shrink-0" style={{color:stage.color,background:stage.bg}}>{stage.label}</span>{isNew && <span className="text-[9px] font-black px-1.5 py-0.5 rounded ml-1" style={{background:"rgba(45,122,80,0.15)",color:"#2D7A50"}}>NEW</span>}
                   </div>
